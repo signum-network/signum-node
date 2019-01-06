@@ -13,7 +13,6 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.io.*;
 import java.lang.reflect.Method;
@@ -24,6 +23,8 @@ import java.net.URLClassLoader;
 import java.security.Permission;
 
 public class BurstGUI extends Application {
+    private static final String iconLocation = "/images/burst_overlay_logo.png";
+
     private static String[] args;
     private static boolean userClosed = false;
     private static final Logger LOGGER = LoggerFactory.getLogger(BurstGUI.class);
@@ -45,6 +46,7 @@ public class BurstGUI extends Application {
         textArea.setEditable(false);
         sendJavaOutputToTextArea(textArea);
         primaryStage.setScene(new Scene(textArea, 800, 450));
+        primaryStage.getIcons().add(new javafx.scene.image.Image(getClass().getResourceAsStream(iconLocation)));
         stage = primaryStage;
         showTrayIcon();
         new Thread(BurstGUI::runBrs).start();
@@ -108,7 +110,7 @@ public class BurstGUI extends Application {
             popupMenu.add(showItem);
             popupMenu.add(shutdownItem);
 
-            TrayIcon newTrayIcon = new TrayIcon(ImageIO.read(BurstGUI.class.getResourceAsStream("/images/burst_overlay_logo.png")), "Burst Reference Software", popupMenu);
+            TrayIcon newTrayIcon = new TrayIcon(Toolkit.getDefaultToolkit().createImage(BurstGUI.class.getResource(iconLocation)), "Burst Reference Software", popupMenu);
             newTrayIcon.setImage(newTrayIcon.getImage().getScaledInstance(newTrayIcon.getSize().width, -1, Image.SCALE_SMOOTH));
             newTrayIcon.addActionListener(e -> openWebUi());
             systemTray.add(newTrayIcon);

@@ -1,5 +1,7 @@
 package brs;
 
+import brs.props.PropertyService;
+import brs.props.Props;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -127,9 +129,19 @@ public class BurstGUI extends Application {
 
     private static void openWebUi() {
         try {
-            Desktop.getDesktop().browse(new URI("http://localhost:8125"));
-        } catch (Exception e) {
-            showMessage("Error opening web UI. Please open your browser and navigate to \"http://localhost:8125\" or \"https://localhost:8125\" if the node is configured to use SSL");
+            PropertyService propertyService = Burst.getPropertyService();
+            int port = propertyService.getInt(Props.API_PORT);
+            String httpPrefix = propertyService.getBoolean(Props.API_SSL) ? "https://" : "http://";
+            String address = httpPrefix + "localhost:" + String.valueOf(port);
+            try {
+                Desktop.getDesktop().browse(new URI(address));
+            } catch (Exception e) { // Catches parse exception or exception when opening browser
+                LOGGER.error("Could not open browser", e);
+                showMessage("Error opening web UI. Please open your browser and navigate to " + address);
+            }
+        } catch (Exception e) { // Catches error accessing PropertyService
+            LOGGER.error("Could not access PropertyService", e);
+            showMessage("Could not open web UI as could not read BRS configuration.");
         }
     }
 

@@ -132,7 +132,7 @@ public class BurstGUI extends Application {
     private static void openWebUi() {
         try {
             PropertyService propertyService = Burst.getPropertyService();
-            int port = propertyService.getInt(Props.API_PORT);
+            int port = propertyService.getBoolean(Props.DEV_TESTNET) ? 6876 : propertyService.getInt(Props.API_PORT);
             String httpPrefix = propertyService.getBoolean(Props.API_SSL) ? "https://" : "http://";
             String address = httpPrefix + "localhost:" + String.valueOf(port);
             try {
@@ -150,13 +150,25 @@ public class BurstGUI extends Application {
     private static void runBrs() {
         try {
             Burst.main(args);
-        } catch (Throwable t1) {
-            if (!(t1 instanceof SecurityException)) {
-                LOGGER.error("BurstGUI caught exception starting BRS", t1);
+            try {
+                if (Burst.getPropertyService().getBoolean(Props.DEV_TESTNET)) {
+                    onTestNetEnabled();
+                }
+            } catch (Throwable t) {
+                LOGGER.error("Could not determine if running in testnet mode", t);
+            }
+        } catch (Throwable t) {
+            if (!(t instanceof SecurityException)) {
+                LOGGER.error("BurstGUI caught exception starting BRS", t);
                 showMessage("BurstGUI caught exception starting BRS");
                 onBrsStopped();
             }
         }
+    }
+
+    private static void onTestNetEnabled() {
+        stage.setTitle(stage.getTitle() + " (TESTNET)");
+        trayIcon.setToolTip(trayIcon.getToolTip() + " (TESTNET)");
     }
 
     private static void onBrsStopped() {

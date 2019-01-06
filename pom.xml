@@ -336,7 +336,7 @@
           </descriptorRefs>
           <archive>
             <manifest>
-              <mainClass>brs.Burst</mainClass>
+              <mainClass>brs.BurstGUI</mainClass>
             </manifest>
           </archive>
         </configuration>

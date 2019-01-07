@@ -163,12 +163,12 @@ public class BurstGUI extends Application {
     }
 
     private static void onTestNetEnabled() {
-        stage.setTitle(stage.getTitle() + " (TESTNET)");
+        Platform.runLater(() -> stage.setTitle(stage.getTitle() + " (TESTNET)"));
         trayIcon.setToolTip(trayIcon.getToolTip() + " (TESTNET)");
     }
 
     private static void onBrsStopped() {
-        stage.setTitle(stage.getTitle() + " (STOPPED)");
+        Platform.runLater(() -> stage.setTitle(stage.getTitle() + " (STOPPED)"));
         trayIcon.setToolTip(trayIcon.getToolTip() + " (STOPPED)");
     }
 

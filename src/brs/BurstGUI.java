@@ -1,5 +1,6 @@
 package brs;
 
+import brs.http.API;
 import brs.props.PropertyService;
 import brs.props.Props;
 import javafx.application.Application;
@@ -24,6 +25,8 @@ import java.security.Permission;
 
 public class BurstGUI extends Application {
     private static final String iconLocation = "/images/burst_overlay_logo.png";
+    private static final String failedToStartMessage = "BurstGUI caught exception starting BRS";
+    private static final String unexpectedExitMessage = "BRS Quit unexpectedly! Exit code ";
 
     private static String[] args;
     private static boolean userClosed = false;
@@ -52,13 +55,9 @@ public class BurstGUI extends Application {
         new Thread(BurstGUI::runBrs).start();
     }
 
-    /**
-     * Adds a path to add to the classpath
-     * @param s The path to add to the classpath
-     */
-    public static void addToClasspath(String s) {
+    public static void addToClasspath(String path) {
         try {
-            File f = new File(s);
+            File f = new File(path);
             URI u = f.toURI();
             URLClassLoader urlClassLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
             Class<URLClassLoader> urlClass = URLClassLoader.class;
@@ -66,7 +65,7 @@ public class BurstGUI extends Application {
             method.setAccessible(true);
             method.invoke(urlClassLoader, u.toURL());
         } catch (Exception e) {
-            LOGGER.error("Could not add path \"" + s + "\" to classpath", e);
+            LOGGER.error("Could not add path \"" + path + "\" to classpath", e);
         }
     }
 
@@ -90,9 +89,6 @@ public class BurstGUI extends Application {
         }
     }
 
-    /**
-     * @return A tray icon if successful or null otherwise
-     */
     private static TrayIcon createTrayIcon() {
         try {
             SystemTray systemTray = SystemTray.getSystemTray();
@@ -132,7 +128,7 @@ public class BurstGUI extends Application {
     private static void openWebUi() {
         try {
             PropertyService propertyService = Burst.getPropertyService();
-            int port = propertyService.getBoolean(Props.DEV_TESTNET) ? 6876 : propertyService.getInt(Props.API_PORT);
+            int port = propertyService.getBoolean(Props.DEV_TESTNET) ? API.TESTNET_API_PORT : propertyService.getInt(Props.API_PORT);
             String httpPrefix = propertyService.getBoolean(Props.API_SSL) ? "https://" : "http://";
             String address = httpPrefix + "localhost:" + String.valueOf(port);
             try {
@@ -159,8 +155,8 @@ public class BurstGUI extends Application {
             }
         } catch (Throwable t) {
             if (!(t instanceof SecurityException)) {
-                LOGGER.error("BurstGUI caught exception starting BRS", t);
-                showMessage("BurstGUI caught exception starting BRS");
+                LOGGER.error(failedToStartMessage, t);
+                showMessage(failedToStartMessage);
                 onBrsStopped();
             }
         }
@@ -224,8 +220,8 @@ public class BurstGUI extends Application {
         @Override
         public void checkExit(int status) {
             if (!userClosed) {
-                LOGGER.error("BRS Quit unexpectedly! Exit code " + String.valueOf(status));
-                showMessage("BRS Quit unexpectedly! Exit code " + String.valueOf(status));
+                LOGGER.error(unexpectedExitMessage + String.valueOf(status));
+                showMessage(unexpectedExitMessage + String.valueOf(status));
                 onBrsStopped();
                 throw new SecurityException();
             }

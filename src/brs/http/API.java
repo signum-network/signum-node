@@ -34,7 +34,7 @@ public final class API {
   static Set<Subnet> allowedBotHosts;
   static boolean enableDebugAPI;
   private static final Logger logger = LoggerFactory.getLogger(API.class);
-  private static final int TESTNET_API_PORT = 6876;
+  public static final int TESTNET_API_PORT = 6876;
   private static Server apiServer;
 
   public API(TransactionProcessor transactionProcessor,

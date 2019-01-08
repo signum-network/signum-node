@@ -15,12 +15,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
-import java.io.*;
-import java.lang.reflect.Method;
+import java.io.FileDescriptor;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.URI;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.security.Permission;
 
 public class BurstGUI extends Application {

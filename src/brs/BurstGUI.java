@@ -36,7 +36,6 @@ public class BurstGUI extends Application {
 
     public static void main(String[] args) {
         BurstGUI.args = args;
-        addToClasspath("./conf");
         System.setSecurityManager(new BurstGUISecurityManager());
         Platform.setImplicitExit(false);
         launch(args);
@@ -53,20 +52,6 @@ public class BurstGUI extends Application {
         stage = primaryStage;
         showTrayIcon();
         new Thread(BurstGUI::runBrs).start();
-    }
-
-    public static void addToClasspath(String path) {
-        try {
-            File f = new File(path);
-            URI u = f.toURI();
-            URLClassLoader urlClassLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
-            Class<URLClassLoader> urlClass = URLClassLoader.class;
-            Method method = urlClass.getDeclaredMethod("addURL", URL.class);
-            method.setAccessible(true);
-            method.invoke(urlClassLoader, u.toURL());
-        } catch (Exception e) {
-            LOGGER.error("Could not add path \"" + path + "\" to classpath", e);
-        }
     }
 
     private static void shutdown() {

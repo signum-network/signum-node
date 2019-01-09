@@ -128,7 +128,7 @@ public class BurstGUI extends Application {
     private static void openWebUi() {
         try {
             PropertyService propertyService = Burst.getPropertyService();
-            int port = propertyService.getBoolean(Props.DEV_TESTNET) ? API.TESTNET_API_PORT : propertyService.getInt(Props.API_PORT);
+            int port = propertyService.getBoolean(Props.DEV_TESTNET) ? propertyService.getInt(Props.DEV_API_PORT) : propertyService.getInt(Props.API_PORT);
             String httpPrefix = propertyService.getBoolean(Props.API_SSL) ? "https://" : "http://";
             String address = httpPrefix + "localhost:" + String.valueOf(port);
             try {

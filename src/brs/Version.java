@@ -3,14 +3,14 @@ package brs;
 import java.util.Objects;
 import java.util.StringTokenizer;
 
-public class Version {
+public final class Version {
     public static final Version EMPTY = new Version(0, 0, 0, PrereleaseTag.NONE, -1);
 
     private final int major;
     private final int minor;
     private final int patch;
-    private final PrereleaseTag prereleaseTag;
-    private final int prereleaseIteration;
+    private final PrereleaseTag prereleaseTag; // NONE if release
+    private final int prereleaseIteration; // -1 if release
 
     public Version(int major, int minor, int patch, PrereleaseTag prereleaseTag, int prereleaseIteration) {
         this.major = major;
@@ -71,18 +71,43 @@ public class Version {
 
     public boolean isGreaterThan(Version otherVersion) {
         if (major > otherVersion.major) return true;
+        if (major < otherVersion.major) return false;
         if (minor > otherVersion.minor) return true;
+        if (minor < otherVersion.minor) return false;
         if (patch > otherVersion.patch) return true;
+        if (patch < otherVersion.patch) return false;
         if (prereleaseTag.priority > otherVersion.prereleaseTag.priority) return true;
+        if (prereleaseTag.priority < otherVersion.prereleaseTag.priority) return false;
         return prereleaseIteration > otherVersion.prereleaseIteration;
     }
 
     public boolean isGreaterThanOrEqualTo(Version otherVersion) {
-        if (major >= otherVersion.major) return true;
-        if (minor >= otherVersion.minor) return true;
-        if (patch >= otherVersion.patch) return true;
-        if (prereleaseTag.priority >= otherVersion.prereleaseTag.priority) return true;
-        return prereleaseIteration >= otherVersion.prereleaseIteration;
+        if (isGreaterThan(otherVersion)) return true;
+        return Objects.equals(this, otherVersion);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Version version = (Version) o;
+
+        if (major != version.major) return false;
+        if (minor != version.minor) return false;
+        if (patch != version.patch) return false;
+        if (prereleaseIteration != version.prereleaseIteration) return false;
+        return prereleaseTag == version.prereleaseTag;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = major;
+        result = 31 * result + minor;
+        result = 31 * result + patch;
+        result = 31 * result + prereleaseTag.hashCode();
+        result = 31 * result + prereleaseIteration;
+        return result;
     }
 
     public enum PrereleaseTag {

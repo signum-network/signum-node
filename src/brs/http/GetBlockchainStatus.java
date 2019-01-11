@@ -30,7 +30,7 @@ final class GetBlockchainStatus extends APIServlet.APIRequestHandler {
   JSONStreamAware processRequest(HttpServletRequest req) {
     JSONObject response = new JSONObject();
     response.put("application", Burst.APPLICATION);
-    response.put("version", Burst.VERSION);
+    response.put("version", Burst.VERSION.toString());
     response.put(TIME_RESPONSE, timeService.getEpochTime());
     Block lastBlock = blockchain.getLastBlock();
     response.put("lastBlock", lastBlock.getStringId());

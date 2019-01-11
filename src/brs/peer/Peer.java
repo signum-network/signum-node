@@ -1,5 +1,6 @@
 package brs.peer;
 
+import brs.Version;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -15,7 +16,7 @@ public interface Peer extends Comparable<Peer> {
 
   State getState();
 
-  String getVersion();
+  Version getVersion();
 
   String getApplication();
 
@@ -33,7 +34,7 @@ public interface Peer extends Comparable<Peer> {
 
   boolean isAtLeastMyVersion();
 
-  boolean isHigherOrEqualVersionThan(String version);
+  boolean isHigherOrEqualVersionThan(Version version);
 
   void blacklist(Exception cause, String description);
 

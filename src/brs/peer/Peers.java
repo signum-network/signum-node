@@ -53,7 +53,11 @@ public final class Peers {
     if(header == null || header.isEmpty() || ! header.trim().startsWith("BRS/")) {
       return false;
     } else {
-      return isHigherOrEqualVersion(MIN_VERSION, header.trim().substring("BRS/".length()));
+      try {
+        return isHigherOrEqualVersion(MIN_VERSION, Version.parse(header.trim().substring("BRS/".length())));
+      } catch (IllegalArgumentException e) {
+          return false;
+      }
     }
   }
 
@@ -100,7 +104,9 @@ public final class Peers {
   private static int lastSavedPeers;
 
   static JSONStreamAware myPeerInfoRequest;
+  static JSONStreamAware myPeerInfoRequestBackwardsCompatible;
   static JSONStreamAware myPeerInfoResponse;
+  static JSONStreamAware myPeerInfoResponseBackwardsCompatible;
 
   private static final Listeners<Peer,Event> listeners = new Listeners<>();
 
@@ -172,13 +178,17 @@ public final class Peers {
     }
 
     json.put("application",  Burst.APPLICATION);
-    json.put("version",      Burst.VERSION);
+    json.put("version",      Burst.VERSION.toBackwardsCompatibleString());
     json.put("platform",     Peers.myPlatform);
     json.put("shareAddress", Peers.shareMyAddress);
     logger.debug("My peer info:\n" + json.toJSONString());
-    myPeerInfoResponse = JSON.prepare(json);
+    myPeerInfoResponseBackwardsCompatible = JSON.prepare(json);
     json.put("requestType", "getInfo");
+    myPeerInfoRequestBackwardsCompatible = prepareRequest(json);
+    json.put("version", Burst.VERSION.toString());
+    myPeerInfoResponse = JSON.prepare(json);
     myPeerInfoRequest = prepareRequest(json);
+
 
     if(propertyService.getBoolean(P2P_ENABLE_TX_REBROADCAST)) {
       rebroadcastPeers = Collections
@@ -623,7 +633,7 @@ public final class Peers {
         Peer peer = peers.get(entry.getValue());
         if (peer != null && peer.getState() == Peer.State.CONNECTED && peer.shareAddress() && !peer.isBlacklisted()
             && peer.getVersion() != null
-            && peer.getVersion().startsWith(dumpPeersVersion)) {
+            && peer.getVersion().toString().startsWith(dumpPeersVersion)) {
           buf.append("('").append(entry.getKey()).append("'), ");
         }
       }

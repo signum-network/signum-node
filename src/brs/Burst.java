@@ -44,7 +44,7 @@ import static brs.schema.Tables.UNCONFIRMED_TRANSACTION;
 
 public final class Burst {
 
-  public static final String VERSION     = "2.3.0";
+  public static final Version VERSION = Version.parse("v2.3.0-dev");
   public static final String APPLICATION = "BRS";
 
   private static final String DEFAULT_PROPERTIES_NAME = "brs-default.properties";
@@ -70,7 +70,7 @@ public final class Burst {
   private static PropertyService loadProperties() {
     final Properties defaultProperties = new Properties();
 
-    logger.info("Initializing Burst Reference Software (BRS) version {}", VERSION);
+    logger.info("Initializing Burst Reference Software (BRS) version {}", VERSION.toString());
     try (InputStream is = ClassLoader.getSystemResourceAsStream(DEFAULT_PROPERTIES_NAME)) {
       if (is != null) {
         defaultProperties.load(is);
@@ -128,20 +128,16 @@ public final class Burst {
   }
 
   public static void main(String[] args) {
-    validateVersionNotDev(VERSION);
+    validateVersionNotDev();
     Runtime.getRuntime().addShutdownHook(new Thread(Burst::shutdown));
     init();
   }
 
-  private static void validateVersionNotDev(String version) {
-    if(isDevVersion(version) && System.getProperty("dev") == null) {
+  private static void validateVersionNotDev() {
+    if(VERSION.isPrelease() && System.getProperty("dev") == null) {
       logger.error("THIS IS A DEVELOPMENT WALLET, PLEASE DO NOT USE THIS");
       System.exit(0);
     }
-  }
-
-  private static boolean isDevVersion(String version) {
-    return Integer.parseInt(version.split("\\.")[1]) % 2 != 0;
   }
 
   public static void init(Properties customProperties) {

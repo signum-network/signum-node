@@ -1,9 +1,6 @@
 package brs.peer;
 
-import brs.BlockchainProcessor;
-import brs.Burst;
-import brs.BurstException;
-import brs.Constants;
+import brs.*;
 import brs.crypto.Crypto;
 import brs.props.Props;
 import brs.util.Convert;
@@ -20,8 +17,6 @@ import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
 final class PeerImpl implements Peer {
@@ -34,7 +29,7 @@ final class PeerImpl implements Peer {
   private volatile boolean shareAddress;
   private volatile String platform;
   private volatile String application;
-  private volatile String version;
+  private volatile Version version;
   private volatile boolean isOldVersion;
   private volatile long blacklistingTime;
   private volatile State state;
@@ -51,7 +46,7 @@ final class PeerImpl implements Peer {
       this.port = new URL("http://" + announcedAddress).getPort();
     } catch (MalformedURLException ignore) {}
     this.state = State.NON_CONNECTED;
-    this.version = ""; //not null
+    this.version = Version.EMPTY; //not null
     this.shareAddress = true;
   }
 
@@ -117,63 +112,35 @@ final class PeerImpl implements Peer {
   }
 
   @Override
-  public String getVersion() {
+  public Version getVersion() {
     return version;
   }
 
   // semantic versioning for peer versions. here: ">=" negate it for "<"
-  public boolean isHigherOrEqualVersionThan(String ourVersion) {
+  public boolean isHigherOrEqualVersionThan(Version ourVersion) {
     return isHigherOrEqualVersion(ourVersion, version);
   }
 
-  public static boolean isHigherOrEqualVersion(String ourVersion, String possiblyLowerVersion) {
-    if(possiblyLowerVersion == null || possiblyLowerVersion.isEmpty()) {
+  public static boolean isHigherOrEqualVersion(Version ourVersion, Version possiblyLowerVersion) {
+    if (ourVersion == null || possiblyLowerVersion == null) {
       return false;
     }
 
-    Pattern pattern = Pattern.compile("^(\\d+)\\.(\\d+)\\.(\\d+)?");
-    Matcher matchPeer = pattern.matcher(possiblyLowerVersion);
-    Matcher matchCompare = pattern.matcher(ourVersion);
-
-    if (matchPeer.find() && matchCompare.find()) {  // if both peer version and our comparison version are sane
-      // we have simplified versions with 3 limbs: X.Y.Z
-      for (int limb = 1; limb <= 3; limb++) {
-        int peerLimb = Integer.parseInt(matchPeer.group(limb));
-        int comparisonLimb = Integer.parseInt(matchCompare.group(limb));
-        if (peerLimb > comparisonLimb) {
-          return true;
-        }
-        if (peerLimb < comparisonLimb) {
-          return false;
-        }
-      }
-      return true; // all limbs equal
-    }
-    return false; // either version not sane
+    return ourVersion.isGreaterThanOrEqualTo(possiblyLowerVersion);
   }
 
   public boolean isAtLeastMyVersion() {
-    return isHigherOrEqualVersionThan(Burst.VERSION.substring(0, Burst.VERSION.lastIndexOf(".")) + ".0");
+    return isHigherOrEqualVersionThan(Burst.VERSION);
   }
   
   void setVersion(String version) {
-    this.version = version;
+    this.version = Version.EMPTY;
     isOldVersion = false;
     if (Burst.APPLICATION.equals(application) && version != null) {
-      // a runtime exception should be ok, if someone broke the constants
-      int[] currentVersionParts = Arrays.stream(Constants.MIN_VERSION.split("\\.")).mapToInt(Integer::parseInt).toArray();
-
       try {
-        int[] versionParts = Arrays.stream(version.split("\\.")).mapToInt(Integer::parseInt).toArray();
-
-        for (int i = 0; i < currentVersionParts.length; i++) {
-          if ( versionParts[i] != currentVersionParts[i] ) {
-            isOldVersion = versionParts[i] < currentVersionParts[i];
-            break;
-          }
-        }
-      }
-      catch (NumberFormatException e) {
+        this.version = Version.parse(version);
+        isOldVersion = Constants.MIN_VERSION.isGreaterThan(this.version);
+      } catch (IllegalArgumentException e) {
         isOldVersion = true;
       }
     }
@@ -200,7 +167,7 @@ final class PeerImpl implements Peer {
   @Override
   public String getSoftware() {
     return Convert.truncate(application, "?", 10, false)
-        + " (" + Convert.truncate(version, "?", 10, false) + ")"
+        + " (" + Convert.truncate(version.toString(), "?", 10, false) + ")"
         + " @ " + Convert.truncate(platform, "?", 10, false);
   }
 
@@ -356,7 +323,7 @@ final class PeerImpl implements Peer {
       connection.setDoOutput(true);
       connection.setConnectTimeout(Peers.connectTimeout);
       connection.setReadTimeout(Peers.readTimeout);
-      connection.addRequestProperty("User-Agent","BRS/" + Burst.VERSION);
+      connection.addRequestProperty("User-Agent", "BRS/" + Burst.VERSION.toBackwardsCompatibleStringIfNeeded(this.version));
       connection.setRequestProperty("Accept-Encoding", "gzip");
       connection.setRequestProperty("Connection", "close");
 
@@ -442,7 +409,7 @@ final class PeerImpl implements Peer {
   }
 
   void connect(int currentTime) {
-    JSONObject response = send(Peers.myPeerInfoRequest);
+    JSONObject response = send(version.backwardsCompatibilityNeeded() ? Peers.myPeerInfoRequestBackwardsCompatible : Peers.myPeerInfoRequest);
     if (response != null) {
       application = (String)response.get("application");
       setVersion((String) response.get("version"));

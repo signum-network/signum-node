@@ -47,7 +47,7 @@ final class GetInfo extends PeerServlet.PeerRequestHandler {
     //peerImpl.setState(Peer.State.CONNECTED);
     Peers.notifyListeners(peerImpl, Peers.Event.ADDED_ACTIVE_PEER);
 
-    return Peers.myPeerInfoResponse;
+    return peerImpl.getVersion().backwardsCompatibilityNeeded() ? Peers.myPeerInfoResponseBackwardsCompatible : Peers.myPeerInfoResponse;
 
   }
 

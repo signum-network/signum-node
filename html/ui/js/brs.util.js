@@ -574,19 +574,19 @@ var BRS = (function(BRS, $, undefined) {
         }, no_escaping);
     };
     BRS.formatTimestamp = function(timestamp, date_only) {
+        var date;
         if (typeof timestamp === "object") {
             date = timestamp;
         } else {
             date = new Date(Date.UTC(2014, 7, 11, 2, 0, 0, 0) + timestamp * 1000);
         }
-        var date;
         if (!isNaN(date) && typeof(date.getFullYear) == 'function') {
             var d = date.getDate();
             var dd = d < 10 ? '0' + d : d;
             var M = date.getMonth() + 1;
             var MM = M < 10 ? '0' + M : M;
             var yyyy = date.getFullYear();
-            var yy = new String(yyyy).substring(2);
+            var yy = String(yyyy).substring(2);
 
             var format = LOCALE_DATE_FORMAT;
 
@@ -604,7 +604,7 @@ var BRS = (function(BRS, $, undefined) {
                 var minutes = date.getMinutes();
                 var seconds = date.getSeconds();
 
-                if (!BRS.settings["24_hour_format"]) {
+                if (BRS.settings["24_hour_format"] == 0) {
                     hours = hours % 12;
                 }
                 if (hours < 10) {
@@ -618,7 +618,7 @@ var BRS = (function(BRS, $, undefined) {
                 }
                 res += " " + hours + ":" + minutes + ":" + seconds;
 
-                if (!BRS.settings["24_hour_format"]) {
+                if (BRS.settings["24_hour_format"] == 0) {
                     res += " " + (originalHours > 12 ? "PM" : "AM");
                 }
             }

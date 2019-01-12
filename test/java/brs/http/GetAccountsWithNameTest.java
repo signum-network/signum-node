@@ -57,4 +57,24 @@ public class GetAccountsWithNameTest extends AbstractUnitTest {
         assertNotNull(resultList);
         assertEquals(1, resultList.size());
     }
+
+    @Test
+    public void processRequest_noAccountFound() throws BurstException {
+        final String targetAccountName = "exampleAccountName";
+
+        final HttpServletRequest req = QuickMocker.httpServletRequest(
+                new QuickMocker.MockParam(NAME_PARAMETER, targetAccountName)
+        );
+
+        final BurstIterator<Account> mockIterator = mockBurstIterator();
+
+        when(accountService.getAccountsWithName(targetAccountName)).thenReturn(mockIterator);
+
+        final JSONObject resultOverview = (JSONObject) t.processRequest(req);
+        assertNotNull(resultOverview);
+
+        final JSONArray resultList = (JSONArray) resultOverview.get(ACCOUNTS_RESPONSE);
+        assertNotNull(resultList);
+        assertEquals(0, resultList.size());
+    }
 }

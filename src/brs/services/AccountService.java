@@ -26,6 +26,8 @@ public interface AccountService {
 
   BurstIterator<RewardRecipientAssignment> getAccountsWithRewardRecipient(Long recipientId);
 
+  BurstIterator<Account> getAccountsWithName(String name);
+
   BurstIterator<Account> getAllAccounts(int from, int to);
 
   Account getOrAddAccount(long id);

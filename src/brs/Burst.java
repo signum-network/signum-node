@@ -70,7 +70,7 @@ public final class Burst {
   private static PropertyService loadProperties() {
     final Properties defaultProperties = new Properties();
 
-    logger.info("Initializing Burst Reference Software (BRS) version {}", VERSION.toString());
+    logger.info("Initializing Burst Reference Software (BRS) version {}", VERSION);
     try (InputStream is = ClassLoader.getSystemResourceAsStream(DEFAULT_PROPERTIES_NAME)) {
       if (is != null) {
         defaultProperties.load(is);

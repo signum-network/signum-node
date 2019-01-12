@@ -21,7 +21,6 @@ public final class Version {
     }
 
     public static Version parse(String version) throws IllegalArgumentException {
-        System.out.println("Parsing " + version);
         try {
             version = version.replace("-", ".").toLowerCase();
             if (version.startsWith("v")) version = version.substring(1);

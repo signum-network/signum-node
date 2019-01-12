@@ -61,7 +61,8 @@ public final class Version {
     @Override
     public String toString() {
         String baseVersion = "v"+major+"."+minor+"."+patch;
-        return prereleaseTag == PrereleaseTag.NONE ? baseVersion : baseVersion+"-"+prereleaseTag.tag+(prereleaseIteration >= 0 ? prereleaseIteration : "");
+        String prereleaseSuffix = "-" + prereleaseTag.tag + (prereleaseIteration >= 0 ? prereleaseIteration : "");
+        return prereleaseTag == PrereleaseTag.NONE ? baseVersion : baseVersion + prereleaseSuffix;
     }
 
     public boolean isPrelease() {

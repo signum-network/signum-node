@@ -210,7 +210,7 @@ public final class JSONData {
     json.put("downloadedVolume", peer.getDownloadedVolume());
     json.put("uploadedVolume", peer.getUploadedVolume());
     json.put("application", peer.getApplication());
-    json.put("version", peer.getVersion());
+    json.put("version", peer.getVersion().toString());
     json.put("platform", peer.getPlatform());
     json.put("blacklisted", peer.isBlacklisted());
     json.put("lastUpdated", peer.getLastUpdated());

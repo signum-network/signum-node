@@ -126,7 +126,7 @@ final class PeerImpl implements Peer {
       return false;
     }
 
-    return ourVersion.isGreaterThanOrEqualTo(possiblyLowerVersion);
+    return possiblyLowerVersion.isGreaterThanOrEqualTo(ourVersion);
   }
 
   public boolean isAtLeastMyVersion() {

@@ -604,7 +604,7 @@ var BRS = (function(BRS, $, undefined) {
                 var minutes = date.getMinutes();
                 var seconds = date.getSeconds();
 
-                if (BRS.settings["24_hour_format"] == 0) {
+                if (!parseInt(BRS.settings["24_hour_format"])) {
                     hours = hours % 12;
                 }
                 if (hours < 10) {
@@ -618,7 +618,7 @@ var BRS = (function(BRS, $, undefined) {
                 }
                 res += " " + hours + ":" + minutes + ":" + seconds;
 
-                if (BRS.settings["24_hour_format"] == 0) {
+                if (!parseInt(BRS.settings["24_hour_format"])) {
                     res += " " + (originalHours > 12 ? "PM" : "AM");
                 }
             }

@@ -128,13 +128,12 @@ public final class Burst {
   }
 
   public static void main(String[] args) {
-    validateVersionNotDev();
     Runtime.getRuntime().addShutdownHook(new Thread(Burst::shutdown));
     init();
   }
 
-  private static void validateVersionNotDev() {
-    if(VERSION.isPrelease() && System.getProperty("dev") == null) {
+  private static void validateVersionNotDev(PropertyService propertyService) {
+    if(VERSION.isPrelease() && !propertyService.getBoolean(Props.DEV_TESTNET)) {
       logger.error("THIS IS A DEVELOPMENT WALLET, PLEASE DO NOT USE THIS");
       System.exit(0);
     }
@@ -149,6 +148,7 @@ public final class Burst {
   }
 
   private static void loadWallet(PropertyService propertyService) {
+    validateVersionNotDev(propertyService);
     Burst.propertyService = propertyService;
 
     try {

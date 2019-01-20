@@ -7,6 +7,7 @@ import brs.common.QuickMocker.MockParam;
 import brs.fluxcapacitor.FluxCapacitor;
 import brs.services.EscrowService;
 import brs.services.ParameterService;
+import brs.util.JSON;
 import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -155,7 +156,7 @@ public class EscrowSignTest extends AbstractTransactionTest {
 
     final JsonObject result = (JsonObject) t.processRequest(req);
 
-    assertEquals(3, result.get(ERROR_CODE_RESPONSE));
+    assertEquals(3, JSON.getAsInt(result.get(ERROR_CODE_RESPONSE)));
   }
 
   @Test
@@ -170,7 +171,7 @@ public class EscrowSignTest extends AbstractTransactionTest {
 
     final JsonObject result = (JsonObject) t.processRequest(req);
 
-    assertEquals(5, result.get(ERROR_CODE_RESPONSE));
+    assertEquals(5, JSON.getAsInt(result.get(ERROR_CODE_RESPONSE)));
   }
 
   @Test
@@ -188,7 +189,7 @@ public class EscrowSignTest extends AbstractTransactionTest {
 
     final JsonObject result = (JsonObject) t.processRequest(req);
 
-    assertEquals(5, result.get(ERROR_CODE_RESPONSE));
+    assertEquals(5, JSON.getAsInt(result.get(ERROR_CODE_RESPONSE)));
   }
 
   @Test
@@ -215,7 +216,7 @@ public class EscrowSignTest extends AbstractTransactionTest {
 
     final JsonObject result = (JsonObject) t.processRequest(req);
 
-    assertEquals(5, result.get(ERROR_CODE_RESPONSE));
+    assertEquals(5, JSON.getAsInt(result.get(ERROR_CODE_RESPONSE)));
   }
 
   @Test
@@ -239,7 +240,7 @@ public class EscrowSignTest extends AbstractTransactionTest {
 
     final JsonObject result = (JsonObject) t.processRequest(req);
 
-    assertEquals(4, result.get(ERROR_CODE_RESPONSE));
+    assertEquals(4, JSON.getAsInt(result.get(ERROR_CODE_RESPONSE)));
   }
 
   @Test
@@ -263,6 +264,6 @@ public class EscrowSignTest extends AbstractTransactionTest {
 
     final JsonObject result = (JsonObject) t.processRequest(req);
 
-    assertEquals(4, result.get(ERROR_CODE_RESPONSE));
+    assertEquals(4, JSON.getAsInt(result.get(ERROR_CODE_RESPONSE)));
   }
 }

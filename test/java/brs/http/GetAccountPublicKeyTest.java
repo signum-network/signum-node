@@ -44,7 +44,7 @@ public class GetAccountPublicKeyTest {
     final JsonObject result = (JsonObject) t.processRequest(req);
     assertNotNull(result);
 
-    assertEquals(TestConstants.TEST_PUBLIC_KEY, result.get(PUBLIC_KEY_RESPONSE));
+    assertEquals(TestConstants.TEST_PUBLIC_KEY, JSON.getAsString(result.get(PUBLIC_KEY_RESPONSE)));
   }
 
   @Test

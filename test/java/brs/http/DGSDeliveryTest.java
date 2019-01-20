@@ -1,40 +1,32 @@
 package brs.http;
 
-import static brs.Constants.MAX_BALANCE_NQT;
-import static brs.TransactionType.DigitalGoods.DELIVERY;
-import static brs.common.TestConstants.TEST_SECRET_PHRASE;
-import static brs.fluxcapacitor.FeatureToggle.DIGITAL_GOODS_STORE;
-import static brs.http.JSONResponses.ALREADY_DELIVERED;
-import static brs.http.JSONResponses.INCORRECT_DGS_DISCOUNT;
-import static brs.http.JSONResponses.INCORRECT_DGS_GOODS;
-import static brs.http.JSONResponses.INCORRECT_PURCHASE;
-import static brs.http.common.Parameters.DISCOUNT_NQT_PARAMETER;
-import static brs.http.common.Parameters.GOODS_TO_ENCRYPT_PARAMETER;
-import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-
-import brs.Account;
-import brs.Attachment;
-import brs.Blockchain;
-import brs.Burst;
-import brs.BurstException;
+import brs.*;
 import brs.DigitalGoodsStore.Purchase;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.fluxcapacitor.FluxCapacitor;
 import brs.services.AccountService;
 import brs.services.ParameterService;
-import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import javax.servlet.http.HttpServletRequest;
+
+import static brs.Constants.MAX_BALANCE_NQT;
+import static brs.TransactionType.DigitalGoods.DELIVERY;
+import static brs.common.TestConstants.TEST_SECRET_PHRASE;
+import static brs.fluxcapacitor.FeatureToggle.DIGITAL_GOODS_STORE;
+import static brs.http.JSONResponses.*;
+import static brs.http.common.Parameters.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Burst.class)
@@ -72,8 +64,8 @@ public class DGSDeliveryTest extends AbstractTransactionTest {
     final Account mockBuyerAccount = mock(Account.class);
     final Purchase mockPurchase = mock(Purchase.class);
 
-    when(mockSellerAccount.getId()).thenReturn(1l);
-    when(mockPurchase.getSellerId()).thenReturn(1l);
+    when(mockSellerAccount.getId()).thenReturn(1L);
+    when(mockPurchase.getSellerId()).thenReturn(1L);
     when(mockPurchase.getBuyerId()).thenReturn(2L);
     when(mockPurchase.getQuantity()).thenReturn(9);
     when(mockPurchase.getPriceNQT()).thenReturn(1L);
@@ -102,8 +94,8 @@ public class DGSDeliveryTest extends AbstractTransactionTest {
     final Account mockSellerAccount = mock(Account.class);
     final Purchase mockPurchase = mock(Purchase.class);
 
-    when(mockSellerAccount.getId()).thenReturn(1l);
-    when(mockPurchase.getSellerId()).thenReturn(2l);
+    when(mockSellerAccount.getId()).thenReturn(1L);
+    when(mockPurchase.getSellerId()).thenReturn(2L);
 
     when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockSellerAccount);
     when(parameterServiceMock.getPurchase(eq(req))).thenReturn(mockPurchase);
@@ -118,8 +110,8 @@ public class DGSDeliveryTest extends AbstractTransactionTest {
     final Account mockSellerAccount = mock(Account.class);
     final Purchase mockPurchase = mock(Purchase.class);
 
-    when(mockSellerAccount.getId()).thenReturn(1l);
-    when(mockPurchase.getSellerId()).thenReturn(1l);
+    when(mockSellerAccount.getId()).thenReturn(1L);
+    when(mockPurchase.getSellerId()).thenReturn(1L);
 
     when(mockPurchase.isPending()).thenReturn(false);
 
@@ -138,8 +130,8 @@ public class DGSDeliveryTest extends AbstractTransactionTest {
     final Account mockSellerAccount = mock(Account.class);
     final Purchase mockPurchase = mock(Purchase.class);
 
-    when(mockSellerAccount.getId()).thenReturn(1l);
-    when(mockPurchase.getSellerId()).thenReturn(1l);
+    when(mockSellerAccount.getId()).thenReturn(1L);
+    when(mockPurchase.getSellerId()).thenReturn(1L);
 
     when(mockPurchase.isPending()).thenReturn(true);
 
@@ -158,8 +150,8 @@ public class DGSDeliveryTest extends AbstractTransactionTest {
     final Account mockSellerAccount = mock(Account.class);
     final Purchase mockPurchase = mock(Purchase.class);
 
-    when(mockSellerAccount.getId()).thenReturn(1l);
-    when(mockPurchase.getSellerId()).thenReturn(1l);
+    when(mockSellerAccount.getId()).thenReturn(1L);
+    when(mockPurchase.getSellerId()).thenReturn(1L);
 
     when(mockPurchase.isPending()).thenReturn(true);
 
@@ -178,8 +170,8 @@ public class DGSDeliveryTest extends AbstractTransactionTest {
     final Account mockSellerAccount = mock(Account.class);
     final Purchase mockPurchase = mock(Purchase.class);
 
-    when(mockSellerAccount.getId()).thenReturn(1l);
-    when(mockPurchase.getSellerId()).thenReturn(1l);
+    when(mockSellerAccount.getId()).thenReturn(1L);
+    when(mockPurchase.getSellerId()).thenReturn(1L);
 
     when(mockPurchase.isPending()).thenReturn(true);
 
@@ -198,8 +190,8 @@ public class DGSDeliveryTest extends AbstractTransactionTest {
     final Account mockSellerAccount = mock(Account.class);
     final Purchase mockPurchase = mock(Purchase.class);
 
-    when(mockSellerAccount.getId()).thenReturn(1l);
-    when(mockPurchase.getSellerId()).thenReturn(1l);
+    when(mockSellerAccount.getId()).thenReturn(1L);
+    when(mockPurchase.getSellerId()).thenReturn(1L);
     when(mockPurchase.getQuantity()).thenReturn(999999999);
     when(mockPurchase.getPriceNQT()).thenReturn(1L);
 
@@ -222,8 +214,8 @@ public class DGSDeliveryTest extends AbstractTransactionTest {
     final Account mockSellerAccount = mock(Account.class);
     final Purchase mockPurchase = mock(Purchase.class);
 
-    when(mockSellerAccount.getId()).thenReturn(1l);
-    when(mockPurchase.getSellerId()).thenReturn(1l);
+    when(mockSellerAccount.getId()).thenReturn(1L);
+    when(mockPurchase.getSellerId()).thenReturn(1L);
     when(mockPurchase.getQuantity()).thenReturn(9);
     when(mockPurchase.getPriceNQT()).thenReturn(1L);
 

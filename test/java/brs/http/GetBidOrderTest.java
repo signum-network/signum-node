@@ -5,6 +5,7 @@ import brs.Order.Bid;
 import brs.assetexchange.AssetExchange;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
+import brs.util.JSON;
 import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,7 +46,7 @@ public class GetBidOrderTest {
 
     final JsonObject result = (JsonObject) t.processRequest(req);
     assertNotNull(result);
-    assertEquals("" + bidOrderId, result.get(ORDER_RESPONSE));
+    assertEquals("" + bidOrderId, JSON.getAsString(result.get(ORDER_RESPONSE)));
   }
 
   @Test

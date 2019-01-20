@@ -2,6 +2,7 @@ package brs.http;
 
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
+import brs.util.JSON;
 import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,8 +36,8 @@ public class GetAccountIdTest {
 
     final JsonObject result = (JsonObject) t.processRequest(req);
 
-    assertEquals(TEST_ACCOUNT_NUMERIC_ID, result.get(ACCOUNT_RESPONSE));
-    assertEquals(TEST_PUBLIC_KEY, result.get(PUBLIC_KEY_RESPONSE));
+    assertEquals(TEST_ACCOUNT_NUMERIC_ID, JSON.getAsString(result.get(ACCOUNT_RESPONSE)));
+    assertEquals(TEST_PUBLIC_KEY, JSON.getAsString(result.get(PUBLIC_KEY_RESPONSE)));
   }
 
   @Test
@@ -47,8 +48,8 @@ public class GetAccountIdTest {
 
     final JsonObject result = (JsonObject) t.processRequest(req);
 
-    assertEquals(TEST_ACCOUNT_NUMERIC_ID, result.get(ACCOUNT_RESPONSE));
-    assertEquals(TEST_PUBLIC_KEY, result.get(PUBLIC_KEY_RESPONSE));
+    assertEquals(TEST_ACCOUNT_NUMERIC_ID, JSON.getAsString(result.get(ACCOUNT_RESPONSE)));
+    assertEquals(TEST_PUBLIC_KEY, JSON.getAsString(result.get(PUBLIC_KEY_RESPONSE)));
   }
 
   @Test

@@ -1,5 +1,6 @@
 package brs.http;
 
+import brs.util.JSON;
 import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,8 +38,8 @@ public class CalculateFullHashTest {
     when(req.getParameter(eq(UNSIGNED_TRANSACTION_BYTES_PARAMETER))).thenReturn(mockUnsignedTransactionBytes);
     when(req.getParameter(eq(SIGNATURE_HASH_PARAMETER))).thenReturn(mockSignatureHash);
 
-    final JsonObject result = (JsonObject) t.processRequest(req);
-    assertEquals(expectedFullHash, result.get(FULL_HASH_RESPONSE));
+    final JsonObject result = JSON.getAsJsonObject(t.processRequest(req));
+    assertEquals(expectedFullHash, JSON.getAsString(result.get(FULL_HASH_RESPONSE)));
   }
 
   @Test

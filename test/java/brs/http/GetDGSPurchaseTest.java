@@ -5,6 +5,7 @@ import brs.DigitalGoodsStore.Purchase;
 import brs.common.QuickMocker;
 import brs.crypto.EncryptedData;
 import brs.services.ParameterService;
+import brs.util.JSON;
 import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -71,18 +72,18 @@ public class GetDGSPurchaseTest {
 
     assertNotNull(result);
 
-    assertEquals("" + mockPurchase.getId(), result.get(PURCHASE_RESPONSE));
-    assertEquals("" + mockPurchase.getGoodsId(), result.get(GOODS_RESPONSE));
-    assertEquals(mockPurchase.getName(), result.get(NAME_RESPONSE));
-    assertEquals("" + mockPurchase.getSellerId(), result.get(SELLER_RESPONSE));
-    assertEquals("" + mockPurchase.getPriceNQT(), result.get(PRICE_NQT_RESPONSE));
-    assertEquals(mockPurchase.getQuantity(), result.get(QUANTITY_RESPONSE));
-    assertEquals("" + mockPurchase.getBuyerId(), result.get(BUYER_RESPONSE));
-    assertEquals(mockPurchase.getTimestamp(), result.get(TIMESTAMP_RESPONSE));
-    assertEquals(mockPurchase.getDeliveryDeadlineTimestamp(), result.get(DELIVERY_DEADLINE_TIMESTAMP_RESPONSE));
-    assertEquals(mockPurchase.isPending(), result.get(PENDING_RESPONSE));
-    assertEquals("" + mockPurchase.getDiscountNQT(), result.get(DISCOUNT_NQT_RESPONSE));
-    assertEquals("" + mockPurchase.getRefundNQT(), result.get(REFUND_NQT_RESPONSE));
+    assertEquals("" + mockPurchase.getId(), JSON.getAsString(result.get(PURCHASE_RESPONSE)));
+    assertEquals("" + mockPurchase.getGoodsId(), JSON.getAsString(result.get(GOODS_RESPONSE)));
+    assertEquals(mockPurchase.getName(), JSON.getAsString(result.get(NAME_RESPONSE)));
+    assertEquals("" + mockPurchase.getSellerId(), JSON.getAsString(result.get(SELLER_RESPONSE)));
+    assertEquals("" + mockPurchase.getPriceNQT(), JSON.getAsString(result.get(PRICE_NQT_RESPONSE)));
+    assertEquals(mockPurchase.getQuantity(), JSON.getAsInt(result.get(QUANTITY_RESPONSE)));
+    assertEquals("" + mockPurchase.getBuyerId(), JSON.getAsString(result.get(BUYER_RESPONSE)));
+    assertEquals(mockPurchase.getTimestamp(), JSON.getAsInt(result.get(TIMESTAMP_RESPONSE)));
+    assertEquals(mockPurchase.getDeliveryDeadlineTimestamp(), JSON.getAsInt(result.get(DELIVERY_DEADLINE_TIMESTAMP_RESPONSE)));
+    assertEquals(mockPurchase.isPending(), JSON.getAsBoolean(result.get(PENDING_RESPONSE)));
+    assertEquals("" + mockPurchase.getDiscountNQT(), JSON.getAsString(result.get(DISCOUNT_NQT_RESPONSE)));
+    assertEquals("" + mockPurchase.getRefundNQT(), JSON.getAsString(result.get(REFUND_NQT_RESPONSE)));
   }
 
 }

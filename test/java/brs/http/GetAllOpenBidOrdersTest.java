@@ -6,6 +6,7 @@ import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
+import brs.util.JSON;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.junit.Before;
@@ -62,11 +63,11 @@ public class GetAllOpenBidOrdersTest extends AbstractUnitTest {
     assertNotNull(openOrdersResult);
     assertEquals(1, openOrdersResult.size());
 
-    final JsonObject openOrderResult = (JsonObject) openOrdersResult.get(0);
-    assertEquals("" + mockBidOrder.getId(), openOrderResult.get(ORDER_RESPONSE));
-    assertEquals("" + mockBidOrder.getAssetId(), openOrderResult.get(ASSET_RESPONSE));
-    assertEquals("" + mockBidOrder.getQuantityQNT(), openOrderResult.get(QUANTITY_QNT_RESPONSE));
-    assertEquals("" + mockBidOrder.getPriceNQT(), openOrderResult.get(PRICE_NQT_RESPONSE));
-    assertEquals(mockBidOrder.getHeight(), openOrderResult.get(HEIGHT_RESPONSE));
+    final JsonObject openOrderResult = JSON.getAsJsonObject(openOrdersResult.get(0));
+    assertEquals("" + mockBidOrder.getId(), JSON.getAsString(openOrderResult.get(ORDER_RESPONSE)));
+    assertEquals("" + mockBidOrder.getAssetId(), JSON.getAsString(openOrderResult.get(ASSET_RESPONSE)));
+    assertEquals("" + mockBidOrder.getQuantityQNT(), JSON.getAsString(openOrderResult.get(QUANTITY_QNT_RESPONSE)));
+    assertEquals("" + mockBidOrder.getPriceNQT(), JSON.getAsString(openOrderResult.get(PRICE_NQT_RESPONSE)));
+    assertEquals(mockBidOrder.getHeight(), JSON.getAsInt(openOrderResult.get(HEIGHT_RESPONSE)));
   }
 }

@@ -3,6 +3,7 @@ package brs.peer;
 import brs.Block;
 import brs.Blockchain;
 import brs.common.QuickMocker;
+import brs.util.JSON;
 import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,8 +44,8 @@ public class GetCumulativeDifficultyTest {
     final JsonObject result = (JsonObject) t.processRequest(request, mock(Peer.class));
     assertNotNull(result);
 
-    assertEquals(cumulativeDifficulty.toString(), result.get("cumulativeDifficulty"));
-    assertEquals(blockchainHeight, result.get("blockchainHeight"));
+    assertEquals(cumulativeDifficulty.toString(), JSON.getAsString(result.get("cumulativeDifficulty")));
+    assertEquals(blockchainHeight, JSON.getAsInt(result.get("blockchainHeight")));
   }
 
 }

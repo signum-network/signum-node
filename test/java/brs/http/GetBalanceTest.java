@@ -4,6 +4,7 @@ import brs.Account;
 import brs.BurstException;
 import brs.common.QuickMocker;
 import brs.services.ParameterService;
+import brs.util.JSON;
 import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,11 +42,11 @@ public class GetBalanceTest {
 
     JsonObject result = (JsonObject) t.processRequest(req);
 
-    assertEquals("1", result.get(BALANCE_NQT_RESPONSE));
-    assertEquals("2", result.get(UNCONFIRMED_BALANCE_NQT_RESPONSE));
-    assertEquals("1", result.get(EFFECTIVE_BALANCE_NQT_RESPONSE));
-    assertEquals("3", result.get(FORGED_BALANCE_NQT_RESPONSE));
-    assertEquals("1", result.get(GUARANTEED_BALANCE_NQT_RESPONSE));
+    assertEquals("1", JSON.getAsString(result.get(BALANCE_NQT_RESPONSE)));
+    assertEquals("2", JSON.getAsString(result.get(UNCONFIRMED_BALANCE_NQT_RESPONSE)));
+    assertEquals("1", JSON.getAsString(result.get(EFFECTIVE_BALANCE_NQT_RESPONSE)));
+    assertEquals("3", JSON.getAsString(result.get(FORGED_BALANCE_NQT_RESPONSE)));
+    assertEquals("1", JSON.getAsString(result.get(GUARANTEED_BALANCE_NQT_RESPONSE)));
   }
 
   @Test
@@ -56,10 +57,10 @@ public class GetBalanceTest {
 
     JsonObject result = (JsonObject) t.processRequest(req);
 
-    assertEquals("0", result.get(BALANCE_NQT_RESPONSE));
-    assertEquals("0", result.get(UNCONFIRMED_BALANCE_NQT_RESPONSE));
-    assertEquals("0", result.get(EFFECTIVE_BALANCE_NQT_RESPONSE));
-    assertEquals("0", result.get(FORGED_BALANCE_NQT_RESPONSE));
-    assertEquals("0", result.get(GUARANTEED_BALANCE_NQT_RESPONSE));
+    assertEquals("0", JSON.getAsString(result.get(BALANCE_NQT_RESPONSE)));
+    assertEquals("0", JSON.getAsString(result.get(UNCONFIRMED_BALANCE_NQT_RESPONSE)));
+    assertEquals("0", JSON.getAsString(result.get(EFFECTIVE_BALANCE_NQT_RESPONSE)));
+    assertEquals("0", JSON.getAsString(result.get(FORGED_BALANCE_NQT_RESPONSE)));
+    assertEquals("0", JSON.getAsString(result.get(GUARANTEED_BALANCE_NQT_RESPONSE)));
   }
 }

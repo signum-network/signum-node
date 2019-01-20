@@ -45,14 +45,14 @@ public class QuickMocker {
 
     paramsWithKeys.addAll(Arrays.asList(parameters));
 
-    return httpServletRequest(paramsWithKeys.toArray(new MockParam[paramsWithKeys.size()]));
+    return httpServletRequest(paramsWithKeys.toArray(new MockParam[0]));
   }
 
   public static JsonObject jsonObject(JSONParam... parameters) {
-    final JsonObject mockedRequest = mock(JsonObject.class);
+    final JsonObject mockedRequest = new JsonObject();
 
     for (JSONParam mp : parameters) {
-      when(mockedRequest.get(mp.key)).thenReturn(mp.value);
+      mockedRequest.add(mp.key, mp.value);
     }
 
     return mockedRequest;

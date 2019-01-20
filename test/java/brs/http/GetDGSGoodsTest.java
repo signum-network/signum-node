@@ -9,6 +9,7 @@ import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
 import brs.db.sql.DbUtils;
 import brs.services.DGSGoodsStoreService;
+import brs.util.JSON;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.junit.Before;
@@ -75,15 +76,15 @@ public class GetDGSGoodsTest extends AbstractUnitTest {
     final JsonObject result = (JsonObject) goodsList.get(0);
     assertNotNull(result);
 
-    assertEquals("" + mockGood.getId(), result.get(GOODS_RESPONSE));
-    assertEquals(mockGood.getName(), result.get(NAME_RESPONSE));
-    assertEquals(mockGood.getDescription(), result.get(DESCRIPTION_RESPONSE));
-    assertEquals(mockGood.getQuantity(), result.get(QUANTITY_RESPONSE));
-    assertEquals("" + mockGood.getPriceNQT(), result.get(PRICE_NQT_RESPONSE));
-    assertEquals("" + mockGood.getSellerId(), result.get(SELLER_PARAMETER));
-    assertEquals(mockGood.getTags(), result.get(TAGS_RESPONSE));
-    assertEquals(mockGood.isDelisted(), result.get(DELISTED_RESPONSE));
-    assertEquals(mockGood.getTimestamp(), result.get(TIMESTAMP_RESPONSE));
+    assertEquals("" + mockGood.getId(), JSON.getAsString(result.get(GOODS_RESPONSE)));
+    assertEquals(mockGood.getName(), JSON.getAsString(result.get(NAME_RESPONSE)));
+    assertEquals(mockGood.getDescription(), JSON.getAsString(result.get(DESCRIPTION_RESPONSE)));
+    assertEquals(mockGood.getQuantity(), JSON.getAsInt(result.get(QUANTITY_RESPONSE)));
+    assertEquals("" + mockGood.getPriceNQT(), JSON.getAsString(result.get(PRICE_NQT_RESPONSE)));
+    assertEquals("" + mockGood.getSellerId(), JSON.getAsString(result.get(SELLER_PARAMETER)));
+    assertEquals(mockGood.getTags(), JSON.getAsString(result.get(TAGS_RESPONSE)));
+    assertEquals(mockGood.isDelisted(), JSON.getAsBoolean(result.get(DELISTED_RESPONSE)));
+    assertEquals(mockGood.getTimestamp(), JSON.getAsInt(result.get(TIMESTAMP_RESPONSE)));
   }
 
   @Test
@@ -115,15 +116,15 @@ public class GetDGSGoodsTest extends AbstractUnitTest {
     final JsonObject result = (JsonObject) goodsList.get(0);
     assertNotNull(result);
 
-    assertEquals("" + mockGood.getId(), result.get(GOODS_RESPONSE));
-    assertEquals(mockGood.getName(), result.get(NAME_RESPONSE));
-    assertEquals(mockGood.getDescription(), result.get(DESCRIPTION_RESPONSE));
-    assertEquals(mockGood.getQuantity(), result.get(QUANTITY_RESPONSE));
-    assertEquals("" + mockGood.getPriceNQT(), result.get(PRICE_NQT_RESPONSE));
-    assertEquals("" + mockGood.getSellerId(), result.get(SELLER_PARAMETER));
-    assertEquals(mockGood.getTags(), result.get(TAGS_RESPONSE));
-    assertEquals(mockGood.isDelisted(), result.get(DELISTED_RESPONSE));
-    assertEquals(mockGood.getTimestamp(), result.get(TIMESTAMP_RESPONSE));
+    assertEquals("" + mockGood.getId(), JSON.getAsString(result.get(GOODS_RESPONSE)));
+    assertEquals(mockGood.getName(), JSON.getAsString(result.get(NAME_RESPONSE)));
+    assertEquals(mockGood.getDescription(), JSON.getAsString(result.get(DESCRIPTION_RESPONSE)));
+    assertEquals(mockGood.getQuantity(), JSON.getAsInt(result.get(QUANTITY_RESPONSE)));
+    assertEquals("" + mockGood.getPriceNQT(), JSON.getAsString(result.get(PRICE_NQT_RESPONSE)));
+    assertEquals("" + mockGood.getSellerId(), JSON.getAsString(result.get(SELLER_PARAMETER)));
+    assertEquals(mockGood.getTags(), JSON.getAsString(result.get(TAGS_RESPONSE)));
+    assertEquals(mockGood.isDelisted(), JSON.getAsBoolean(result.get(DELISTED_RESPONSE)));
+    assertEquals(mockGood.getTimestamp(), JSON.getAsInt(result.get(TIMESTAMP_RESPONSE)));
   }
 
   @Test
@@ -155,15 +156,15 @@ public class GetDGSGoodsTest extends AbstractUnitTest {
     final JsonObject result = (JsonObject) goodsList.get(0);
     assertNotNull(result);
 
-    assertEquals("" + mockGood.getId(), result.get(GOODS_RESPONSE));
-    assertEquals(mockGood.getName(), result.get(NAME_RESPONSE));
-    assertEquals(mockGood.getDescription(), result.get(DESCRIPTION_RESPONSE));
-    assertEquals(mockGood.getQuantity(), result.get(QUANTITY_RESPONSE));
-    assertEquals("" + mockGood.getPriceNQT(), result.get(PRICE_NQT_RESPONSE));
-    assertEquals("" + mockGood.getSellerId(), result.get(SELLER_PARAMETER));
-    assertEquals(mockGood.getTags(), result.get(TAGS_RESPONSE));
-    assertEquals(mockGood.isDelisted(), result.get(DELISTED_RESPONSE));
-    assertEquals(mockGood.getTimestamp(), result.get(TIMESTAMP_RESPONSE));
+    assertEquals("" + mockGood.getId(), JSON.getAsString(result.get(GOODS_RESPONSE)));
+    assertEquals(mockGood.getName(), JSON.getAsString(result.get(NAME_RESPONSE)));
+    assertEquals(mockGood.getDescription(), JSON.getAsString(result.get(DESCRIPTION_RESPONSE)));
+    assertEquals(mockGood.getQuantity(), JSON.getAsInt(result.get(QUANTITY_RESPONSE)));
+    assertEquals("" + mockGood.getPriceNQT(), JSON.getAsString(result.get(PRICE_NQT_RESPONSE)));
+    assertEquals("" + mockGood.getSellerId(), JSON.getAsString(result.get(SELLER_PARAMETER)));
+    assertEquals(mockGood.getTags(), JSON.getAsString(result.get(TAGS_RESPONSE)));
+    assertEquals(mockGood.isDelisted(), JSON.getAsBoolean(result.get(DELISTED_RESPONSE)));
+    assertEquals(mockGood.getTimestamp(), JSON.getAsInt(result.get(TIMESTAMP_RESPONSE)));
   }
 
   private DigitalGoodsStore.Goods mockGood() {

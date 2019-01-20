@@ -8,6 +8,7 @@ import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
+import brs.util.JSON;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.junit.Before;
@@ -17,8 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -77,9 +77,9 @@ public class GetAllTradesTest extends AbstractUnitTest {
     final JsonObject tradeAssetInfoResult = (JsonObject) tradesResult.get(0);
     assertNotNull(tradeAssetInfoResult);
 
-    assertEquals("" + priceNQT, tradeAssetInfoResult.get(PRICE_NQT_RESPONSE));
-    assertEquals("" + mockAssetId, tradeAssetInfoResult.get(ASSET_RESPONSE));
-    assertEquals(mockAssetName, tradeAssetInfoResult.get(NAME_RESPONSE));
+    assertEquals("" + priceNQT, JSON.getAsString(tradeAssetInfoResult.get(PRICE_NQT_RESPONSE)));
+    assertEquals("" + mockAssetId, JSON.getAsString(tradeAssetInfoResult.get(ASSET_RESPONSE)));
+    assertEquals(mockAssetName, JSON.getAsString(tradeAssetInfoResult.get(NAME_RESPONSE)));
   }
 
   @Test
@@ -116,9 +116,9 @@ public class GetAllTradesTest extends AbstractUnitTest {
     final JsonObject tradeAssetInfoResult = (JsonObject) tradesResult.get(0);
     assertNotNull(tradeAssetInfoResult);
 
-    assertEquals("" + priceNQT, tradeAssetInfoResult.get(PRICE_NQT_RESPONSE));
-    assertEquals("" + mockAssetId, tradeAssetInfoResult.get(ASSET_RESPONSE));
-    assertEquals(null, tradeAssetInfoResult.get(NAME_RESPONSE));
+    assertEquals("" + priceNQT, JSON.getAsString(tradeAssetInfoResult.get(PRICE_NQT_RESPONSE)));
+    assertEquals("" + mockAssetId, JSON.getAsString(tradeAssetInfoResult.get(ASSET_RESPONSE)));
+    assertNull(JSON.getAsString(tradeAssetInfoResult.get(NAME_RESPONSE)));
 
     verify(mockAssetExchange, never()).getAsset(eq(mockAssetId));
   }

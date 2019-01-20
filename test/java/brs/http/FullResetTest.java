@@ -2,6 +2,7 @@ package brs.http;
 
 import brs.BlockchainProcessor;
 import brs.common.QuickMocker;
+import brs.util.JSON;
 import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,7 +35,7 @@ public class FullResetTest {
 
     final JsonObject result = ((JsonObject) t.processRequest(req));
 
-    assertEquals(true, result.get(DONE_RESPONSE));
+    assertTrue(JSON.getAsBoolean(result.get(DONE_RESPONSE)));
   }
 
   @Test
@@ -45,7 +46,7 @@ public class FullResetTest {
 
     final JsonObject result = ((JsonObject) t.processRequest(req));
 
-    assertEquals("java.lang.RuntimeException: errorMessage", result.get(ERROR_RESPONSE));
+    assertEquals("java.lang.RuntimeException: errorMessage", JSON.getAsString(result.get(ERROR_RESPONSE)));
   }
 
   @Test

@@ -9,6 +9,7 @@ import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
 import brs.services.ParameterService;
 import brs.services.SubscriptionService;
+import brs.util.JSON;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.junit.Before;
@@ -73,10 +74,10 @@ public class GetAccountSubscriptionsTest extends AbstractUnitTest {
     final JsonObject resultSubscription = (JsonObject) resultSubscriptions.get(0);
     assertNotNull(resultSubscription);
 
-    assertEquals("" + subscription.getId(), resultSubscription.get(ID_RESPONSE));
-    assertEquals("" + subscription.getAmountNQT(), resultSubscription.get(AMOUNT_NQT_RESPONSE));
-    assertEquals(subscription.getFrequency(), resultSubscription.get(FREQUENCY_RESPONSE));
-    assertEquals(subscription.getTimeNext(), resultSubscription.get(TIME_NEXT_RESPONSE));
+    assertEquals("" + subscription.getId(), JSON.getAsString(resultSubscription.get(ID_RESPONSE)));
+    assertEquals("" + subscription.getAmountNQT(), JSON.getAsString(resultSubscription.get(AMOUNT_NQT_RESPONSE)));
+    assertEquals(subscription.getFrequency(), JSON.getAsInt(resultSubscription.get(FREQUENCY_RESPONSE)));
+    assertEquals(subscription.getTimeNext(), JSON.getAsInt(resultSubscription.get(TIME_NEXT_RESPONSE)));
   }
 
 }

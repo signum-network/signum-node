@@ -3,6 +3,7 @@ package brs.http;
 import brs.Asset;
 import brs.assetexchange.AssetExchange;
 import brs.common.QuickMocker;
+import brs.util.JSON;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.junit.Before;
@@ -64,9 +65,9 @@ public class GetAssetsTest {
 
     final JsonObject assetResponse = (JsonObject) responseList.get(0);
     assertNotNull(assetResponse);
-    assertEquals(mockTradeCount, assetResponse.get(NUMBER_OF_TRADES_RESPONSE));
-    assertEquals(mockTransferCount, assetResponse.get(NUMBER_OF_TRANSFERS_RESPONSE));
-    assertEquals(mockAccountsCount, assetResponse.get(NUMBER_OF_ACCOUNTS_RESPONSE));
+    assertEquals(mockTradeCount, JSON.getAsInt(assetResponse.get(NUMBER_OF_TRADES_RESPONSE)));
+    assertEquals(mockTransferCount, JSON.getAsInt(assetResponse.get(NUMBER_OF_TRANSFERS_RESPONSE)));
+    assertEquals(mockAccountsCount, JSON.getAsInt(assetResponse.get(NUMBER_OF_ACCOUNTS_RESPONSE)));
   }
 
   @Test

@@ -5,6 +5,7 @@ import brs.Transaction;
 import brs.TransactionProcessor;
 import brs.services.ParameterService;
 import brs.services.TransactionService;
+import brs.util.JSON;
 import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -59,8 +60,8 @@ public class BroadcastTransactionTest {
 
     verify(transactionProcessorMock).broadcast(eq(mockTransaction));
 
-    assertEquals(mockTransactionStringId, result.get(TRANSACTION_RESPONSE));
-    assertEquals(mockTransactionFullHash, result.get(FULL_HASH_RESPONSE));
+    assertEquals(mockTransactionStringId, JSON.getAsString(result.get(TRANSACTION_RESPONSE)));
+    assertEquals(mockTransactionFullHash, JSON.getAsString(result.get(FULL_HASH_RESPONSE)));
   }
 
   @Test
@@ -80,7 +81,7 @@ public class BroadcastTransactionTest {
 
     final JsonObject result = (JsonObject) t.processRequest(req);
 
-    assertEquals(4, result.get(ERROR_CODE_RESPONSE));
+    assertEquals(4, JSON.getAsInt(result.get(ERROR_CODE_RESPONSE)));
     assertNotNull(result.get(ERROR_DESCRIPTION_RESPONSE));
   }
 

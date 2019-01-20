@@ -11,6 +11,7 @@ import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
 import brs.services.AccountService;
 import brs.services.ParameterService;
+import brs.util.JSON;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.junit.Before;
@@ -143,8 +144,8 @@ public class GetAssetTransfersTest extends AbstractUnitTest {
     assertEquals(1, resultList.size());
 
     final JsonObject transferInfoResult = (JsonObject) resultList.get(0);
-    assertEquals("" + assetId, transferInfoResult.get(ASSET_RESPONSE));
-    assertEquals(mockAsset.getName(), transferInfoResult.get(NAME_RESPONSE));
+    assertEquals("" + assetId, JSON.getAsString(transferInfoResult.get(ASSET_RESPONSE)));
+    assertEquals(mockAsset.getName(), JSON.getAsString(transferInfoResult.get(NAME_RESPONSE)));
   }
 
 }

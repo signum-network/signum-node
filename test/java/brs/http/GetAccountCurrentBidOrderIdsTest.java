@@ -9,6 +9,7 @@ import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
 import brs.services.ParameterService;
+import brs.util.JSON;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.junit.Before;
@@ -71,7 +72,7 @@ public class GetAccountCurrentBidOrderIdsTest extends AbstractUnitTest {
     final JsonArray resultList = (JsonArray) result.get(BID_ORDER_IDS_RESPONSE);
     assertNotNull(resultList);
     assertEquals(1, resultList.size());
-    assertEquals("" + mockBidId, resultList.get(0));
+    assertEquals("" + mockBidId, JSON.getAsString(resultList.get(0)));
   }
 
   @Test
@@ -106,7 +107,7 @@ public class GetAccountCurrentBidOrderIdsTest extends AbstractUnitTest {
     final JsonArray resultList = (JsonArray) result.get(BID_ORDER_IDS_RESPONSE);
     assertNotNull(resultList);
     assertEquals(1, resultList.size());
-    assertEquals("" + mockBidId, resultList.get(0));
+    assertEquals("" + mockBidId, JSON.getAsString(resultList.get(0)));
   }
 
 }

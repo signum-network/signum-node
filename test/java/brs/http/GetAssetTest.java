@@ -7,6 +7,7 @@ import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.services.ParameterService;
+import brs.util.JSON;
 import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -63,13 +64,13 @@ public class GetAssetTest extends AbstractUnitTest {
     final JsonObject result = (JsonObject) t.processRequest(req);
 
     assertNotNull(result);
-    assertEquals(asset.getName(), result.get(NAME_RESPONSE));
-    assertEquals(asset.getDescription(), result.get(DESCRIPTION_RESPONSE));
-    assertEquals(asset.getDecimals(), result.get(DECIMALS_RESPONSE));
-    assertEquals("" + asset.getQuantityQNT(), result.get(QUANTITY_QNT_RESPONSE));
-    assertEquals("" + asset.getId(), result.get(ASSET_RESPONSE));
-    assertEquals(tradeCount, result.get(NUMBER_OF_TRADES_RESPONSE));
-    assertEquals(transferCount, result.get(NUMBER_OF_TRANSFERS_RESPONSE));
-    assertEquals(assetAccountsCount, result.get(NUMBER_OF_ACCOUNTS_RESPONSE));
+    assertEquals(asset.getName(), JSON.getAsString(result.get(NAME_RESPONSE)));
+    assertEquals(asset.getDescription(), JSON.getAsString(result.get(DESCRIPTION_RESPONSE)));
+    assertEquals(asset.getDecimals(), JSON.getAsInt(result.get(DECIMALS_RESPONSE)));
+    assertEquals("" + asset.getQuantityQNT(), JSON.getAsString(result.get(QUANTITY_QNT_RESPONSE)));
+    assertEquals("" + asset.getId(), JSON.getAsString(result.get(ASSET_RESPONSE)));
+    assertEquals(tradeCount, JSON.getAsInt(result.get(NUMBER_OF_TRADES_RESPONSE)));
+    assertEquals(transferCount, JSON.getAsInt(result.get(NUMBER_OF_TRANSFERS_RESPONSE)));
+    assertEquals(assetAccountsCount, JSON.getAsInt(result.get(NUMBER_OF_ACCOUNTS_RESPONSE)));
   }
 }

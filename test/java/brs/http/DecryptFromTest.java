@@ -6,7 +6,7 @@ import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.crypto.EncryptedData;
 import brs.services.ParameterService;
-import com.google.gson.JsonObject;
+import brs.util.JSON;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -54,7 +54,7 @@ public class DecryptFromTest {
 
     when(mockParameterService.getAccount(req)).thenReturn(mockAccount);
 
-    assertEquals("\u0001", ((JsonObject) t.processRequest(req)).get(DECRYPTED_MESSAGE_RESPONSE));
+    assertEquals("\u0001", JSON.getAsString(JSON.getAsJsonObject(t.processRequest(req)).get(DECRYPTED_MESSAGE_RESPONSE)));
   }
 
   @Test

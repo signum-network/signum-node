@@ -2,6 +2,7 @@ package brs.peer;
 
 import brs.Account;
 import brs.services.AccountService;
+import brs.util.JSON;
 import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,7 +43,7 @@ public class GetAccountBalanceTest {
 
     final JsonObject result = (JsonObject) t.processRequest(req, peer);
 
-    assertEquals("" + mockBalanceNQT, result.get(BALANCE_NQT_RESPONSE_FIELD));
+    assertEquals("" + mockBalanceNQT, JSON.getAsString(result.get(BALANCE_NQT_RESPONSE_FIELD)));
   }
 
   @Test
@@ -55,7 +56,7 @@ public class GetAccountBalanceTest {
 
     final JsonObject result = (JsonObject) t.processRequest(req, peer);
 
-    assertEquals("0", result.get(BALANCE_NQT_RESPONSE_FIELD));
+    assertEquals("0", JSON.getAsString(result.get(BALANCE_NQT_RESPONSE_FIELD)));
   }
 
 }

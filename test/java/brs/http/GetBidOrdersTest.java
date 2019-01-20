@@ -9,6 +9,7 @@ import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
 import brs.services.ParameterService;
+import brs.util.JSON;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.junit.Before;
@@ -76,7 +77,7 @@ public class GetBidOrdersTest extends AbstractUnitTest {
     final JsonObject resultBidOrder = (JsonObject) resultBidOrdersList.get(0);
     assertNotNull(resultBidOrder);
 
-    assertEquals("" + mockOrderId, resultBidOrder.get(ORDER_RESPONSE));
+    assertEquals("" + mockOrderId, JSON.getAsString(resultBidOrder.get(ORDER_RESPONSE)));
   }
 
 }

@@ -6,6 +6,7 @@ import brs.common.QuickMocker.MockParam;
 import brs.fluxcapacitor.FluxCapacitor;
 import brs.services.ParameterService;
 import brs.services.SubscriptionService;
+import brs.util.JSON;
 import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -84,7 +85,7 @@ public class SubscriptionCancelTest extends AbstractTransactionTest {
     final JsonObject response = (JsonObject) t.processRequest(req);
     assertNotNull(response);
 
-    assertEquals(3, response.get(ERROR_CODE_RESPONSE));
+    assertEquals(3, JSON.getAsInt(response.get(ERROR_CODE_RESPONSE)));
   }
 
   @Test
@@ -96,7 +97,7 @@ public class SubscriptionCancelTest extends AbstractTransactionTest {
     final JsonObject response = (JsonObject) t.processRequest(req);
     assertNotNull(response);
 
-    assertEquals(4, response.get(ERROR_CODE_RESPONSE));
+    assertEquals(4, JSON.getAsInt(response.get(ERROR_CODE_RESPONSE)));
   }
 
   @Test
@@ -112,7 +113,7 @@ public class SubscriptionCancelTest extends AbstractTransactionTest {
     final JsonObject response = (JsonObject) t.processRequest(req);
     assertNotNull(response);
 
-    assertEquals(5, response.get(ERROR_CODE_RESPONSE));
+    assertEquals(5, JSON.getAsInt(response.get(ERROR_CODE_RESPONSE)));
   }
 
   @Test
@@ -136,6 +137,6 @@ public class SubscriptionCancelTest extends AbstractTransactionTest {
     final JsonObject response = (JsonObject) t.processRequest(req);
     assertNotNull(response);
 
-    assertEquals(7, response.get(ERROR_CODE_RESPONSE));
+    assertEquals(7, JSON.getAsInt(response.get(ERROR_CODE_RESPONSE)));
   }
 }

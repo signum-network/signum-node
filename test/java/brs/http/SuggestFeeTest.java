@@ -4,6 +4,7 @@ import brs.BurstException;
 import brs.common.QuickMocker;
 import brs.feesuggestions.FeeSuggestion;
 import brs.feesuggestions.FeeSuggestionCalculator;
+import brs.util.JSON;
 import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,8 +43,8 @@ public class SuggestFeeTest {
 
     final JsonObject result = (JsonObject) t.processRequest(req);
 
-    assertEquals(cheap, result.get(CHEAP_FEE_RESPONSE));
-    assertEquals(standard, result.get(STANDARD_FEE_RESPONSE));
-    assertEquals(priority, result.get(PRIORITY_FEE_RESPONSE));
+    assertEquals(cheap, JSON.getAsLong(result.get(CHEAP_FEE_RESPONSE)));
+    assertEquals(standard, JSON.getAsLong(result.get(STANDARD_FEE_RESPONSE)));
+    assertEquals(priority, JSON.getAsLong(result.get(PRIORITY_FEE_RESPONSE)));
   }
 }

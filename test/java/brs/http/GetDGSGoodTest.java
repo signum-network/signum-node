@@ -4,6 +4,7 @@ import brs.BurstException;
 import brs.DigitalGoodsStore;
 import brs.common.QuickMocker;
 import brs.services.ParameterService;
+import brs.util.JSON;
 import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,13 +52,13 @@ public class GetDGSGoodTest {
     final JsonObject result = (JsonObject) t.processRequest(req);
     assertNotNull(result);
 
-    assertEquals("" + mockGoods.getId(), result.get(GOODS_RESPONSE));
-    assertEquals(mockGoods.getName(), result.get(NAME_RESPONSE));
-    assertEquals(mockGoods.getDescription(), result.get(DESCRIPTION_RESPONSE));
-    assertEquals(mockGoods.getQuantity(), result.get(QUANTITY_RESPONSE));
-    assertEquals("" + mockGoods.getPriceNQT(), result.get(PRICE_NQT_RESPONSE));
-    assertEquals(mockGoods.getTags(), result.get(TAGS_RESPONSE));
-    assertEquals(mockGoods.isDelisted(), result.get(DELISTED_RESPONSE));
-    assertEquals(mockGoods.getTimestamp(), result.get(TIMESTAMP_RESPONSE));
+    assertEquals("" + mockGoods.getId(), JSON.getAsString(result.get(GOODS_RESPONSE)));
+    assertEquals(mockGoods.getName(), JSON.getAsString(result.get(NAME_RESPONSE)));
+    assertEquals(mockGoods.getDescription(), JSON.getAsString(result.get(DESCRIPTION_RESPONSE)));
+    assertEquals(mockGoods.getQuantity(), JSON.getAsInt(result.get(QUANTITY_RESPONSE)));
+    assertEquals("" + mockGoods.getPriceNQT(), JSON.getAsString(result.get(PRICE_NQT_RESPONSE)));
+    assertEquals(mockGoods.getTags(), JSON.getAsString(result.get(TAGS_RESPONSE)));
+    assertEquals(mockGoods.isDelisted(), JSON.getAsBoolean(result.get(DELISTED_RESPONSE)));
+    assertEquals(mockGoods.getTimestamp(), JSON.getAsInt(result.get(TIMESTAMP_RESPONSE)));
   }
 }

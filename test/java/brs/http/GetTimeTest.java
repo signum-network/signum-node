@@ -2,6 +2,7 @@ package brs.http;
 
 import brs.common.QuickMocker;
 import brs.services.TimeService;
+import brs.util.JSON;
 import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,7 +37,7 @@ public class GetTimeTest {
 
     final JsonObject result = (JsonObject) t.processRequest(req);
 
-    assertEquals(currentEpochTime, result.get(TIME_RESPONSE));
+    assertEquals(currentEpochTime, JSON.getAsInt(result.get(TIME_RESPONSE)));
   }
 
 }

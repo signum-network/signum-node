@@ -9,6 +9,7 @@ import brs.common.QuickMocker;
 import brs.db.BurstIterator;
 import brs.services.AliasService;
 import brs.services.ParameterService;
+import brs.util.JSON;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.junit.Before;
@@ -70,8 +71,8 @@ public class GetAliasesTest extends AbstractUnitTest {
 
     final JsonObject result = (JsonObject) resultList.get(0);
     assertNotNull(result);
-    assertEquals("" +mockAlias.getId(), result.get(ALIAS_RESPONSE));
-    assertEquals("" + mockOffer.getPriceNQT(), result.get(PRICE_NQT_RESPONSE));
+    assertEquals("" +mockAlias.getId(), JSON.getAsString(result.get(ALIAS_RESPONSE)));
+    assertEquals("" + mockOffer.getPriceNQT(), JSON.getAsString(result.get(PRICE_NQT_RESPONSE)));
   }
 
 }

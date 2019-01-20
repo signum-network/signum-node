@@ -11,6 +11,7 @@ import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
 import brs.services.EscrowService;
 import brs.services.ParameterService;
+import brs.util.JSON;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.junit.Before;
@@ -95,22 +96,22 @@ public class GetAccountEscrowTransactionsTest extends AbstractUnitTest {
     final JsonObject result = (JsonObject) resultList.get(0);
     assertNotNull(result);
 
-    assertEquals("" + escrow.getId(), result.get(ID_RESPONSE));
-    assertEquals("" + escrow.getSenderId(), result.get(SENDER_RESPONSE));
-    assertEquals("BURST-2228-2222-BMNG-22222", result.get(SENDER_RS_RESPONSE));
-    assertEquals("" + escrow.getRecipientId(), result.get(RECIPIENT_RESPONSE));
-    assertEquals("BURST-2227-2222-ZAYB-22222", result.get(RECIPIENT_RS_RESPONSE));
-    assertEquals("" + escrow.getAmountNQT(), result.get(AMOUNT_NQT_RESPONSE));
-    assertEquals(escrow.getRequiredSigners(), result.get(REQUIRED_SIGNERS_RESPONSE));
-    assertEquals(escrow.getDeadline(), result.get(DEADLINE_RESPONSE));
-    assertEquals("undecided", result.get(DEADLINE_ACTION_RESPONSE));
+    assertEquals("" + escrow.getId(), JSON.getAsString(result.get(ID_RESPONSE)));
+    assertEquals("" + escrow.getSenderId(), JSON.getAsString(result.get(SENDER_RESPONSE)));
+    assertEquals("BURST-2228-2222-BMNG-22222", JSON.getAsString(result.get(SENDER_RS_RESPONSE)));
+    assertEquals("" + escrow.getRecipientId(), JSON.getAsString(result.get(RECIPIENT_RESPONSE)));
+    assertEquals("BURST-2227-2222-ZAYB-22222", JSON.getAsString(result.get(RECIPIENT_RS_RESPONSE)));
+    assertEquals("" + escrow.getAmountNQT(), JSON.getAsString(result.get(AMOUNT_NQT_RESPONSE)));
+    assertEquals(escrow.getRequiredSigners(), JSON.getAsInt(result.get(REQUIRED_SIGNERS_RESPONSE)));
+    assertEquals(escrow.getDeadline(), JSON.getAsInt(result.get(DEADLINE_RESPONSE)));
+    assertEquals("undecided", JSON.getAsString(result.get(DEADLINE_ACTION_RESPONSE)));
 
     final JsonArray signersResult = (JsonArray) result.get(SIGNERS_RESPONSE);
     assertEquals(1, signersResult.size());
 
     final JsonObject signer = (JsonObject) signersResult.get(0);
-    assertEquals("" + decision.getAccountId(), signer.get(ID_RESPONSE));
-    assertEquals("BURST-2225-2222-QVC9-22222", signer.get(ID_RS_RESPONSE));
-    assertEquals("undecided", signer.get(DECISION_RESPONSE));
+    assertEquals("" + decision.getAccountId(), JSON.getAsString(signer.get(ID_RESPONSE)));
+    assertEquals("BURST-2225-2222-QVC9-22222", JSON.getAsString(signer.get(ID_RS_RESPONSE)));
+    assertEquals("undecided", JSON.getAsString(signer.get(DECISION_RESPONSE)));
   }
 }

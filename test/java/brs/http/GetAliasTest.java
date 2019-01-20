@@ -5,6 +5,7 @@ import brs.Alias.Offer;
 import brs.common.QuickMocker;
 import brs.services.AliasService;
 import brs.services.ParameterService;
+import brs.util.JSON;
 import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,9 +50,9 @@ public class GetAliasTest {
 
     final JsonObject result = (JsonObject) t.processRequest(req);
     assertNotNull(result);
-    assertEquals(mockAlias.getAliasName(), result.get(ALIAS_NAME_RESPONSE));
-    assertEquals("" + mockOffer.getPriceNQT(), result.get(PRICE_NQT_RESPONSE));
-    assertEquals("" + mockOffer.getBuyerId(), result.get(BUYER_RESPONSE));
+    assertEquals(mockAlias.getAliasName(), JSON.getAsString(result.get(ALIAS_NAME_RESPONSE)));
+    assertEquals("" + mockOffer.getPriceNQT(), JSON.getAsString(result.get(PRICE_NQT_RESPONSE)));
+    assertEquals("" + mockOffer.getBuyerId(), JSON.getAsString(result.get(BUYER_RESPONSE)));
   }
 
 }

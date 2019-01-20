@@ -6,14 +6,17 @@ import brs.Blockchain;
 import brs.BurstException;
 import brs.db.BurstIterator;
 import brs.services.ParameterService;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.BLOCK_IDS_RESPONSE;
+
+;
+;
 
 public final class GetAccountBlockIds extends APIServlet.APIRequestHandler {
 
@@ -27,14 +30,14 @@ public final class GetAccountBlockIds extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
     Account account = parameterService.getAccount(req);
 
     int timestamp = ParameterParser.getTimestamp(req);
     int firstIndex = ParameterParser.getFirstIndex(req);
     int lastIndex = ParameterParser.getLastIndex(req);
 
-    JSONArray blockIds = new JSONArray();
+    JsonArray blockIds = new JsonArray();
     try (BurstIterator<? extends Block> iterator = blockchain.getBlocks(account, timestamp, firstIndex, lastIndex)) {
       while (iterator.hasNext()) {
         Block block = iterator.next();
@@ -42,8 +45,8 @@ public final class GetAccountBlockIds extends APIServlet.APIRequestHandler {
       }
     }
 
-    JSONObject response = new JSONObject();
-    response.put(BLOCK_IDS_RESPONSE, blockIds);
+    JsonObject response = new JsonObject();
+    response.add(BLOCK_IDS_RESPONSE, blockIds);
 
     return response;
   }

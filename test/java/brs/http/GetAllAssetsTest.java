@@ -1,33 +1,28 @@
 package brs.http;
 
-import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
-import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
-import static brs.http.common.ResultFields.ASSETS_RESPONSE;
-import static brs.http.common.ResultFields.ASSET_RESPONSE;
-import static brs.http.common.ResultFields.DECIMALS_RESPONSE;
-import static brs.http.common.ResultFields.DESCRIPTION_RESPONSE;
-import static brs.http.common.ResultFields.NAME_RESPONSE;
-import static brs.http.common.ResultFields.NUMBER_OF_ACCOUNTS_RESPONSE;
-import static brs.http.common.ResultFields.NUMBER_OF_TRADES_RESPONSE;
-import static brs.http.common.ResultFields.NUMBER_OF_TRANSFERS_RESPONSE;
-import static brs.http.common.ResultFields.QUANTITY_QNT_RESPONSE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import brs.Asset;
 import brs.assetexchange.AssetExchange;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
-import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
+
+import javax.servlet.http.HttpServletRequest;
+
+import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
+import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
+import static brs.http.common.ResultFields.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+;
 
 public class GetAllAssetsTest extends AbstractUnitTest {
 
@@ -69,14 +64,14 @@ public class GetAllAssetsTest extends AbstractUnitTest {
     when(assetExchange.getTransferCount(eq(mockAssetId))).thenReturn(2);
     when(assetExchange.getTradeCount(eq(mockAssetId))).thenReturn(3);
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
     assertNotNull(result);
 
-    final JSONArray assetsResult = (JSONArray) result.get(ASSETS_RESPONSE);
+    final JsonArray assetsResult = (JsonArray) result.get(ASSETS_RESPONSE);
     assertNotNull(assetsResult);
     assertEquals(1, assetsResult.size());
 
-    final JSONObject assetResult = (JSONObject) assetsResult.get(0);
+    final JsonObject assetResult = (JsonObject) assetsResult.get(0);
     assertNotNull(assetResult);
 
     assertEquals(mockAsset.getName(), assetResult.get(NAME_RESPONSE));

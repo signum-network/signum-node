@@ -3,12 +3,14 @@ package brs.http;
 import brs.*;
 import brs.services.ParameterService;
 import brs.util.Convert;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.*;
 import static brs.http.common.Parameters.*;
+
+;
 
 public final class IssueAsset extends CreateTransaction {
 
@@ -23,7 +25,7 @@ public final class IssueAsset extends CreateTransaction {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
 
     String name = req.getParameter(NAME_PARAMETER);
     String description = req.getParameter(DESCRIPTION_PARAMETER);

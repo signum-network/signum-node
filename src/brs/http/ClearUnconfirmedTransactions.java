@@ -1,13 +1,15 @@
 package brs.http;
 
 import brs.TransactionProcessor;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.ResultFields.DONE_RESPONSE;
 import static brs.http.common.ResultFields.ERROR_RESPONSE;
+
+;
 
 public final class ClearUnconfirmedTransactions extends APIServlet.APIRequestHandler {
 
@@ -19,13 +21,13 @@ public final class ClearUnconfirmedTransactions extends APIServlet.APIRequestHan
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) {
-    JSONObject response = new JSONObject();
+  JsonElement processRequest(HttpServletRequest req) {
+    JsonObject response = new JsonObject();
     try {
       transactionProcessor.clearUnconfirmedTransactions();
-      response.put(DONE_RESPONSE, true);
+      response.addProperty(DONE_RESPONSE, true);
     } catch (RuntimeException e) {
-      response.put(ERROR_RESPONSE, e.toString());
+      response.addProperty(ERROR_RESPONSE, e.toString());
     }
     return response;
   }

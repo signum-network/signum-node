@@ -3,12 +3,14 @@ package brs.http;
 import brs.BurstException;
 import brs.Order;
 import brs.assetexchange.AssetExchange;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.UNKNOWN_ORDER;
 import static brs.http.common.Parameters.ORDER_PARAMETER;
+
+;
 
 public final class GetBidOrder extends APIServlet.APIRequestHandler {
 
@@ -20,7 +22,7 @@ public final class GetBidOrder extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
     long orderId = ParameterParser.getOrderId(req);
     Order.Bid bidOrder = assetExchange.getBidOrder(orderId);
 

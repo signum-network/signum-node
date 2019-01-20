@@ -1,12 +1,14 @@
 package brs.http;
 
 import brs.services.TimeService;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.ResultFields.TIME_RESPONSE;
+
+;
 
 public final class GetTime extends APIServlet.APIRequestHandler {
 
@@ -18,9 +20,9 @@ public final class GetTime extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) {
-    JSONObject response = new JSONObject();
-    response.put(TIME_RESPONSE, timeService.getEpochTime());
+  JsonElement processRequest(HttpServletRequest req) {
+    JsonObject response = new JsonObject();
+    response.addProperty(TIME_RESPONSE, timeService.getEpochTime());
 
     return response;
   }

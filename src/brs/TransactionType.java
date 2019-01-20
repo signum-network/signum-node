@@ -13,7 +13,8 @@ import brs.fluxcapacitor.FluxCapacitor;
 import brs.services.*;
 import brs.transactionduplicates.TransactionDuplicationKey;
 import brs.util.Convert;
-import org.json.simple.JSONObject;
+import brs.util.JSON;
+import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -226,7 +227,7 @@ public abstract class TransactionType {
 
   public abstract Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException;
 
-  abstract Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException;
+  abstract Attachment.AbstractAttachment parseAttachment(JsonObject attachmentData) throws BurstException.NotValidException;
 
   abstract void validateAttachment(Transaction transaction) throws BurstException.ValidationException;
 
@@ -280,7 +281,7 @@ public abstract class TransactionType {
 
   abstract void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount);
 
-  public void parseAppendices(Transaction.Builder builder, JSONObject attachmentData) {
+  public void parseAppendices(Transaction.Builder builder, JsonObject attachmentData) {
     builder.message(Appendix.Message.parse(attachmentData));
     builder.encryptedMessage(Appendix.EncryptedMessage.parse(attachmentData));
     builder.publicKeyAnnouncement((Appendix.PublicKeyAnnouncement.parse(attachmentData)));
@@ -368,7 +369,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.EmptyAttachment parseAttachment(JSONObject attachmentData) {
+        Attachment.EmptyAttachment parseAttachment(JsonObject attachmentData) {
           return Attachment.ORDINARY_PAYMENT;
         }
 
@@ -397,7 +398,7 @@ public abstract class TransactionType {
       }
 
       @Override
-      Attachment.PaymentMultiOutCreation parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+      Attachment.PaymentMultiOutCreation parseAttachment(JsonObject attachmentData) throws BurstException.NotValidException {
         return new Attachment.PaymentMultiOutCreation(attachmentData);
       }
 
@@ -428,7 +429,7 @@ public abstract class TransactionType {
       }
 
       @Override
-      public void parseAppendices(Transaction.Builder builder, JSONObject attachmentData) {}
+      public void parseAppendices(Transaction.Builder builder, JsonObject attachmentData) {}
 
       @Override
       public void parseAppendices(Transaction.Builder builder, int flags, byte version, ByteBuffer buffer) {}
@@ -445,7 +446,7 @@ public abstract class TransactionType {
       }
 
       @Override
-      Attachment.PaymentMultiSameOutCreation parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+      Attachment.PaymentMultiSameOutCreation parseAttachment(JsonObject attachmentData) throws BurstException.NotValidException {
         return new Attachment.PaymentMultiSameOutCreation(attachmentData);
       }
 
@@ -474,7 +475,7 @@ public abstract class TransactionType {
       }
 
       @Override
-      public void parseAppendices(Transaction.Builder builder, JSONObject attachmentData) {}
+      public void parseAppendices(Transaction.Builder builder, JsonObject attachmentData) {}
 
       @Override
       public void parseAppendices(Transaction.Builder builder, int flags, byte version, ByteBuffer buffer) {}
@@ -514,7 +515,7 @@ public abstract class TransactionType {
       }
 
       @Override
-      Attachment.EmptyAttachment parseAttachment(JSONObject attachmentData) {
+      Attachment.EmptyAttachment parseAttachment(JsonObject attachmentData) {
         return Attachment.ARBITRARY_MESSAGE;
       }
 
@@ -526,7 +527,7 @@ public abstract class TransactionType {
       void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
         Attachment attachment = transaction.getAttachment();
         if (transaction.getAmountNQT() != 0) {
-          throw new BurstException.NotValidException("Invalid arbitrary message: " + attachment.getJSONObject());
+          throw new BurstException.NotValidException("Invalid arbitrary message: " + JSON.toJsonString(attachment.getJsonObject()));
         }
         if (! fluxCapacitor.isActive(FeatureToggle.DIGITAL_GOODS_STORE) && transaction.getMessage() == null) {
           throw new BurstException.NotCurrentlyValidException("Missing message appendix not allowed before DGS block");
@@ -573,7 +574,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.MessagingAliasAssignment parseAttachment(JSONObject attachmentData) {
+        Attachment.MessagingAliasAssignment parseAttachment(JsonObject attachmentData) {
           return new Attachment.MessagingAliasAssignment(attachmentData);
         }
 
@@ -595,7 +596,7 @@ public abstract class TransactionType {
           if (attachment.getAliasName().isEmpty()
               || Convert.toBytes(attachment.getAliasName()).length > Constants.MAX_ALIAS_LENGTH
               || attachment.getAliasURI().length() > Constants.MAX_ALIAS_URI_LENGTH) {
-            throw new BurstException.NotValidException("Invalid alias assignment: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid alias assignment: " + JSON.toJsonString(attachment.getJsonObject()));
           }
           String normalizedAlias = attachment.getAliasName().toLowerCase();
           for (int i = 0; i < normalizedAlias.length(); i++) {
@@ -629,7 +630,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.MessagingAliasSell parseAttachment(JSONObject attachmentData) {
+        Attachment.MessagingAliasSell parseAttachment(JsonObject attachmentData) {
           return new Attachment.MessagingAliasSell(attachmentData);
         }
 
@@ -653,8 +654,7 @@ public abstract class TransactionType {
             throw new BurstException.NotYetEnabledException("Alias transfer not yet enabled at height " + blockchain.getLastBlock().getHeight());
           }
           if (transaction.getAmountNQT() != 0) {
-            throw new BurstException.NotValidException("Invalid sell alias transaction: " +
-                                                     transaction.getJSONObject());
+            throw new BurstException.NotValidException("Invalid sell alias transaction: " + JSON.toJsonString(transaction.getJsonObject()));
           }
           final Attachment.MessagingAliasSell attachment =
               (Attachment.MessagingAliasSell) transaction.getAttachment();
@@ -701,7 +701,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.MessagingAliasBuy parseAttachment(JSONObject attachmentData) {
+        Attachment.MessagingAliasBuy parseAttachment(JsonObject attachmentData) {
           return new Attachment.MessagingAliasBuy(attachmentData);
         }
 
@@ -771,7 +771,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.MessagingAccountInfo parseAttachment(JSONObject attachmentData) {
+        Attachment.MessagingAccountInfo parseAttachment(JsonObject attachmentData) {
           return new Attachment.MessagingAccountInfo(attachmentData);
         }
 
@@ -781,7 +781,7 @@ public abstract class TransactionType {
           if (Convert.toBytes(attachment.getName()).length > Constants.MAX_ACCOUNT_NAME_LENGTH
               || Convert.toBytes(attachment.getDescription()).length > Constants.MAX_ACCOUNT_DESCRIPTION_LENGTH
               ) {
-            throw new BurstException.NotValidException("Invalid account info issuance: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid account info issuance: " + JSON.toJsonString(attachment.getJsonObject()));
           }
         }
 
@@ -827,7 +827,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.ColoredCoinsAssetIssuance parseAttachment(JSONObject attachmentData) {
+        Attachment.ColoredCoinsAssetIssuance parseAttachment(JsonObject attachmentData) {
           return new Attachment.ColoredCoinsAssetIssuance(attachmentData);
         }
 
@@ -858,7 +858,7 @@ public abstract class TransactionType {
               || attachment.getQuantityQNT() <= 0
               || attachment.getQuantityQNT() > Constants.MAX_ASSET_QUANTITY_QNT
               ) {
-            throw new BurstException.NotValidException("Invalid asset issuance: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid asset issuance: " + JSON.toJsonString(attachment.getJsonObject()));
           }
           String normalizedName = attachment.getName().toLowerCase();
           for (int i = 0; i < normalizedName.length(); i++) {
@@ -888,7 +888,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.ColoredCoinsAssetTransfer parseAttachment(JSONObject attachmentData) {
+        Attachment.ColoredCoinsAssetTransfer parseAttachment(JsonObject attachmentData) {
           return new Attachment.ColoredCoinsAssetTransfer(attachmentData);
         }
 
@@ -924,7 +924,7 @@ public abstract class TransactionType {
           if (transaction.getAmountNQT() != 0
               || attachment.getComment() != null && attachment.getComment().length() > Constants.MAX_ASSET_TRANSFER_COMMENT_LENGTH
               || attachment.getAssetId() == 0) {
-            throw new BurstException.NotValidException("Invalid asset transfer amount or comment: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid asset transfer amount or comment: " + JSON.toJsonString(attachment.getJsonObject()));
           }
           if (transaction.getVersion() > 0 && attachment.getComment() != null) {
             throw new BurstException.NotValidException("Asset transfer comments no longer allowed, use message " +
@@ -932,7 +932,7 @@ public abstract class TransactionType {
           }
           Asset asset = assetExchange.getAsset(attachment.getAssetId());
           if (attachment.getQuantityQNT() <= 0 || (asset != null && attachment.getQuantityQNT() > asset.getQuantityQNT())) {
-            throw new BurstException.NotValidException("Invalid asset transfer asset or quantity: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid asset transfer asset or quantity: " + JSON.toJsonString(attachment.getJsonObject()));
           }
           if (asset == null) {
             throw new BurstException.NotCurrentlyValidException("Asset " + Convert.toUnsignedLong(attachment.getAssetId()) +
@@ -954,11 +954,11 @@ public abstract class TransactionType {
         Attachment.ColoredCoinsOrderPlacement attachment = (Attachment.ColoredCoinsOrderPlacement)transaction.getAttachment();
         if (attachment.getPriceNQT() <= 0 || attachment.getPriceNQT() > Constants.MAX_BALANCE_NQT
             || attachment.getAssetId() == 0) {
-          throw new BurstException.NotValidException("Invalid asset order placement: " + attachment.getJSONObject());
+          throw new BurstException.NotValidException("Invalid asset order placement: " + JSON.toJsonString(attachment.getJsonObject()));
         }
         Asset asset = assetExchange.getAsset(attachment.getAssetId());
         if (attachment.getQuantityQNT() <= 0 || (asset != null && attachment.getQuantityQNT() > asset.getQuantityQNT())) {
-          throw new BurstException.NotValidException("Invalid asset order placement asset or quantity: " + attachment.getJSONObject());
+          throw new BurstException.NotValidException("Invalid asset order placement asset or quantity: " + JSON.toJsonString(attachment.getJsonObject()));
         }
         if (asset == null) {
           throw new BurstException.NotCurrentlyValidException("Asset " + Convert.toUnsignedLong(attachment.getAssetId()) +
@@ -986,7 +986,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.ColoredCoinsAskOrderPlacement parseAttachment(JSONObject attachmentData) {
+        Attachment.ColoredCoinsAskOrderPlacement parseAttachment(JsonObject attachmentData) {
           return new Attachment.ColoredCoinsAskOrderPlacement(attachmentData);
         }
 
@@ -1031,7 +1031,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.ColoredCoinsBidOrderPlacement parseAttachment(JSONObject attachmentData) {
+        Attachment.ColoredCoinsBidOrderPlacement parseAttachment(JsonObject attachmentData) {
           return new Attachment.ColoredCoinsBidOrderPlacement(attachmentData);
         }
 
@@ -1099,7 +1099,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.ColoredCoinsAskOrderCancellation parseAttachment(JSONObject attachmentData) {
+        Attachment.ColoredCoinsAskOrderCancellation parseAttachment(JsonObject attachmentData) {
           return new Attachment.ColoredCoinsAskOrderCancellation(attachmentData);
         }
 
@@ -1141,7 +1141,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.ColoredCoinsBidOrderCancellation parseAttachment(JSONObject attachmentData) {
+        Attachment.ColoredCoinsBidOrderCancellation parseAttachment(JsonObject attachmentData) {
           return new Attachment.ColoredCoinsBidOrderCancellation(attachmentData);
         }
 
@@ -1217,7 +1217,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.DigitalGoodsListing parseAttachment(JSONObject attachmentData) {
+        Attachment.DigitalGoodsListing parseAttachment(JsonObject attachmentData) {
           return new Attachment.DigitalGoodsListing(attachmentData);
         }
 
@@ -1236,7 +1236,7 @@ public abstract class TransactionType {
               || attachment.getTags().length() > Constants.MAX_DGS_LISTING_TAGS_LENGTH
               || attachment.getQuantity() < 0 || attachment.getQuantity() > Constants.MAX_DGS_LISTING_QUANTITY
               || attachment.getPriceNQT() <= 0 || attachment.getPriceNQT() > Constants.MAX_BALANCE_NQT) {
-            throw new BurstException.NotValidException("Invalid digital goods listing: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid digital goods listing: " + JSON.toJsonString(attachment.getJsonObject()));
           }
         }
 
@@ -1260,7 +1260,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.DigitalGoodsDelisting parseAttachment(JSONObject attachmentData) {
+        Attachment.DigitalGoodsDelisting parseAttachment(JsonObject attachmentData) {
           return new Attachment.DigitalGoodsDelisting(attachmentData);
         }
 
@@ -1275,7 +1275,7 @@ public abstract class TransactionType {
           Attachment.DigitalGoodsDelisting attachment = (Attachment.DigitalGoodsDelisting) transaction.getAttachment();
           DigitalGoodsStore.Goods goods = dgsGoodsStoreService.getGoods(attachment.getGoodsId());
           if (goods != null && transaction.getSenderId() != goods.getSellerId()) {
-            throw new BurstException.NotValidException("Invalid digital goods delisting - seller is different: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid digital goods delisting - seller is different: " + JSON.toJsonString(attachment.getJsonObject()));
           }
           if (goods == null || goods.isDelisted()) {
             throw new BurstException.NotCurrentlyValidException("Goods " + Convert.toUnsignedLong(attachment.getGoodsId()) +
@@ -1309,7 +1309,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.DigitalGoodsPriceChange parseAttachment(JSONObject attachmentData) {
+        Attachment.DigitalGoodsPriceChange parseAttachment(JsonObject attachmentData) {
           return new Attachment.DigitalGoodsPriceChange(attachmentData);
         }
 
@@ -1325,7 +1325,7 @@ public abstract class TransactionType {
           DigitalGoodsStore.Goods goods = dgsGoodsStoreService.getGoods(attachment.getGoodsId());
           if (attachment.getPriceNQT() <= 0 || attachment.getPriceNQT() > Constants.MAX_BALANCE_NQT
               || (goods != null && transaction.getSenderId() != goods.getSellerId())) {
-            throw new BurstException.NotValidException("Invalid digital goods price change: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid digital goods price change: " + JSON.toJsonString(attachment.getJsonObject()));
           }
           if (goods == null || goods.isDelisted()) {
             throw new BurstException.NotCurrentlyValidException("Goods " + Convert.toUnsignedLong(attachment.getGoodsId()) +
@@ -1360,7 +1360,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.DigitalGoodsQuantityChange parseAttachment(JSONObject attachmentData) {
+        Attachment.DigitalGoodsQuantityChange parseAttachment(JsonObject attachmentData) {
           return new Attachment.DigitalGoodsQuantityChange(attachmentData);
         }
 
@@ -1377,7 +1377,7 @@ public abstract class TransactionType {
           if (attachment.getDeltaQuantity() < -Constants.MAX_DGS_LISTING_QUANTITY
               || attachment.getDeltaQuantity() > Constants.MAX_DGS_LISTING_QUANTITY
               || (goods != null && transaction.getSenderId() != goods.getSellerId())) {
-            throw new BurstException.NotValidException("Invalid digital goods quantity change: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid digital goods quantity change: " + JSON.toJsonString(attachment.getJsonObject()));
           }
           if (goods == null || goods.isDelisted()) {
             throw new BurstException.NotCurrentlyValidException("Goods " + Convert.toUnsignedLong(attachment.getGoodsId()) +
@@ -1412,7 +1412,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.DigitalGoodsPurchase parseAttachment(JSONObject attachmentData) {
+        Attachment.DigitalGoodsPurchase parseAttachment(JsonObject attachmentData) {
           return new Attachment.DigitalGoodsPurchase(attachmentData);
         }
 
@@ -1451,7 +1451,7 @@ public abstract class TransactionType {
           if (attachment.getQuantity() <= 0 || attachment.getQuantity() > Constants.MAX_DGS_LISTING_QUANTITY
               || attachment.getPriceNQT() <= 0 || attachment.getPriceNQT() > Constants.MAX_BALANCE_NQT
               || (goods != null && goods.getSellerId() != transaction.getRecipientId())) {
-            throw new BurstException.NotValidException("Invalid digital goods purchase: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid digital goods purchase: " + JSON.toJsonString(attachment.getJsonObject()));
           }
           if (transaction.getEncryptedMessage() != null && ! transaction.getEncryptedMessage().isText()) {
             throw new BurstException.NotValidException("Only text encrypted messages allowed");
@@ -1461,7 +1461,7 @@ public abstract class TransactionType {
                                                               "not yet listed or already delisted");
           }
           if (attachment.getQuantity() > goods.getQuantity() || attachment.getPriceNQT() != goods.getPriceNQT()) {
-            throw new BurstException.NotCurrentlyValidException("Goods price or quantity changed: " + attachment.getJSONObject());
+            throw new BurstException.NotCurrentlyValidException("Goods price or quantity changed: " + JSON.toJsonString(attachment.getJsonObject()));
           }
           if (attachment.getDeliveryDeadlineTimestamp() <= blockchain.getLastBlock().getTimestamp()) {
             throw new BurstException.NotCurrentlyValidException("Delivery deadline has already expired: " + attachment.getDeliveryDeadlineTimestamp());
@@ -1488,7 +1488,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.DigitalGoodsDelivery parseAttachment(JSONObject attachmentData) {
+        Attachment.DigitalGoodsDelivery parseAttachment(JsonObject attachmentData) {
           return new Attachment.DigitalGoodsDelivery(attachmentData);
         }
 
@@ -1510,11 +1510,10 @@ public abstract class TransactionType {
                   (purchase.getBuyerId() != transaction.getRecipientId()
                    || transaction.getSenderId() != purchase.getSellerId()
                    || attachment.getDiscountNQT() > Convert.safeMultiply(purchase.getPriceNQT(), purchase.getQuantity())))) {
-            throw new BurstException.NotValidException("Invalid digital goods delivery: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid digital goods delivery: " + JSON.toJsonString(attachment.getJsonObject()));
           }
           if (purchase == null || purchase.getEncryptedGoods() != null) {
-            throw new BurstException.NotCurrentlyValidException("Purchase does not exist yet, or already delivered: "
-                                                              + attachment.getJSONObject());
+            throw new BurstException.NotCurrentlyValidException("Purchase does not exist yet, or already delivered: " + JSON.toJsonString(attachment.getJsonObject()));
           }
         }
 
@@ -1544,7 +1543,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.DigitalGoodsFeedback parseAttachment(JSONObject attachmentData) {
+        Attachment.DigitalGoodsFeedback parseAttachment(JsonObject attachmentData) {
           return new Attachment.DigitalGoodsFeedback(attachmentData);
         }
 
@@ -1561,7 +1560,7 @@ public abstract class TransactionType {
           if (purchase != null &&
               (purchase.getSellerId() != transaction.getRecipientId()
                || transaction.getSenderId() != purchase.getBuyerId())) {
-            throw new BurstException.NotValidException("Invalid digital goods feedback: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid digital goods feedback: " + JSON.toJsonString(attachment.getJsonObject()));
           }
           if (transaction.getEncryptedMessage() == null && transaction.getMessage() == null) {
             throw new BurstException.NotValidException("Missing feedback message");
@@ -1603,7 +1602,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.DigitalGoodsRefund parseAttachment(JSONObject attachmentData) {
+        Attachment.DigitalGoodsRefund parseAttachment(JsonObject attachmentData) {
           return new Attachment.DigitalGoodsRefund(attachmentData);
         }
 
@@ -1644,7 +1643,7 @@ public abstract class TransactionType {
               || (purchase != null &&
                   (purchase.getBuyerId() != transaction.getRecipientId()
                    || transaction.getSenderId() != purchase.getSellerId()))) {
-            throw new BurstException.NotValidException("Invalid digital goods refund: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid digital goods refund: " + JSON.toJsonString(attachment.getJsonObject()));
           }
           if (transaction.getEncryptedMessage() != null && ! transaction.getEncryptedMessage().isText()) {
             throw new BurstException.NotValidException("Only text encrypted messages allowed");
@@ -1701,7 +1700,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.AccountControlEffectiveBalanceLeasing parseAttachment(JSONObject attachmentData) {
+        Attachment.AccountControlEffectiveBalanceLeasing parseAttachment(JsonObject attachmentData) {
           return new Attachment.AccountControlEffectiveBalanceLeasing(attachmentData);
         }
 
@@ -1719,8 +1718,7 @@ public abstract class TransactionType {
           if (transaction.getSenderId() == transaction.getRecipientId()
               || transaction.getAmountNQT() != 0
               || attachment.getPeriod() < 1440) {
-            throw new BurstException.NotValidException("Invalid effective balance leasing: "
-                                                     + transaction.getJSONObject() + " transaction " + transaction.getStringId());
+            throw new BurstException.NotValidException("Invalid effective balance leasing: " + JSON.toJsonString(transaction.getJsonObject()) + " transaction " + transaction.getStringId());
           }
           if (recipientAccount == null
               || (recipientAccount.getPublicKey() == null && ! transaction.getStringId().equals("5081403377391821646"))) {
@@ -1769,7 +1767,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.BurstMiningRewardRecipientAssignment parseAttachment(JSONObject attachmentData) {
+        Attachment.BurstMiningRewardRecipientAssignment parseAttachment(JsonObject attachmentData) {
           return new Attachment.BurstMiningRewardRecipientAssignment(attachmentData);
         }
 
@@ -1798,30 +1796,25 @@ public abstract class TransactionType {
 
           Account.RewardRecipientAssignment rewardAssignment = accountService.getRewardRecipientAssignment(sender);
           if (rewardAssignment != null && rewardAssignment.getFromHeight() >= height) {
-            throw new BurstException.NotCurrentlyValidException("Cannot reassign reward recipient before previous goes into effect: "
-                                                                + transaction.getJSONObject());
+            throw new BurstException.NotCurrentlyValidException("Cannot reassign reward recipient before previous goes into effect: " + JSON.toJsonString(transaction.getJsonObject()));
           }
           Account recip = accountService.getAccount(transaction.getRecipientId());
           if (recip == null || recip.getPublicKey() == null) {
-            throw new BurstException.NotValidException("Reward recipient must have public key saved in blockchain: "
-                                                       + transaction.getJSONObject());
+            throw new BurstException.NotValidException("Reward recipient must have public key saved in blockchain: " + JSON.toJsonString(transaction.getJsonObject()));
           }
 
           if (fluxCapacitor.isActive(PRE_DYMAXION)) {
             if (transaction.getAmountNQT() != 0 || transaction.getFeeNQT() < FEE_QUANT) {
-              throw new BurstException.NotValidException("Reward recipient assignment transaction must have 0 send amount and at least minimum fee: "
-                      + transaction.getJSONObject());
+              throw new BurstException.NotValidException("Reward recipient assignment transaction must have 0 send amount and at least minimum fee: " + JSON.toJsonString(transaction.getJsonObject()));
             }
           } else {
             if (transaction.getAmountNQT() != 0 || transaction.getFeeNQT() != Constants.ONE_BURST) {
-              throw new BurstException.NotValidException("Reward recipient assignment transaction must have 0 send amount and 1 fee: "
-                      + transaction.getJSONObject());
+              throw new BurstException.NotValidException("Reward recipient assignment transaction must have 0 send amount and 1 fee: " + JSON.toJsonString(transaction.getJsonObject()));
             }
           }
 
           if (height < Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK) {
-            throw new BurstException.NotCurrentlyValidException("Reward recipient assignment not allowed before block "
-                                                                + Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK);
+            throw new BurstException.NotCurrentlyValidException("Reward recipient assignment not allowed before block " + Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK);
           }
         }
 
@@ -1854,7 +1847,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.AdvancedPaymentEscrowCreation parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.AdvancedPaymentEscrowCreation parseAttachment(JsonObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.AdvancedPaymentEscrowCreation(attachmentData);
         }
 
@@ -1964,7 +1957,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.AdvancedPaymentEscrowSign parseAttachment(JSONObject attachmentData) {
+        Attachment.AdvancedPaymentEscrowSign parseAttachment(JsonObject attachmentData) {
           return new Attachment.AdvancedPaymentEscrowSign(attachmentData);
         }
 
@@ -2040,7 +2033,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.AdvancedPaymentEscrowResult parseAttachment(JSONObject attachmentData) {
+        Attachment.AdvancedPaymentEscrowResult parseAttachment(JsonObject attachmentData) {
           return new Attachment.AdvancedPaymentEscrowResult(attachmentData);
         }
 
@@ -2091,7 +2084,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.AdvancedPaymentSubscriptionSubscribe parseAttachment(JSONObject attachmentData) {
+        Attachment.AdvancedPaymentSubscriptionSubscribe parseAttachment(JsonObject attachmentData) {
           return new Attachment.AdvancedPaymentSubscriptionSubscribe(attachmentData);
         }
 
@@ -2153,7 +2146,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.AdvancedPaymentSubscriptionCancel parseAttachment(JSONObject attachmentData) {
+        Attachment.AdvancedPaymentSubscriptionCancel parseAttachment(JsonObject attachmentData) {
           return new Attachment.AdvancedPaymentSubscriptionCancel(attachmentData);
         }
 
@@ -2222,7 +2215,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.AdvancedPaymentSubscriptionPayment parseAttachment(JSONObject attachmentData) {
+        Attachment.AdvancedPaymentSubscriptionPayment parseAttachment(JsonObject attachmentData) {
           return new Attachment.AdvancedPaymentSubscriptionPayment(attachmentData);
         }
 
@@ -2309,7 +2302,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        AbstractAttachment parseAttachment(JSONObject attachmentData) {
+        AbstractAttachment parseAttachment(JsonObject attachmentData) {
           // TODO Auto-generated method stub
           //System.out.println("parsing at attachment");
             //System.out.println("attachment parsed");
@@ -2382,7 +2375,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        AbstractAttachment parseAttachment(JSONObject attachmentData) {
+        AbstractAttachment parseAttachment(JsonObject attachmentData) {
           return Attachment.AT_PAYMENT;
         }
 

@@ -6,13 +6,16 @@ import brs.assetexchange.AssetExchange;
 import brs.db.BurstIterator;
 import brs.services.ParameterService;
 import brs.util.Convert;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.*;
+
+;
+;
 
 final class GetBidOrderIds extends APIServlet.APIRequestHandler {
 
@@ -26,19 +29,19 @@ final class GetBidOrderIds extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
     long assetId = parameterService.getAsset(req).getId();
     int firstIndex = ParameterParser.getFirstIndex(req);
     int lastIndex = ParameterParser.getLastIndex(req);
 
-    JSONArray orderIds = new JSONArray();
+    JsonArray orderIds = new JsonArray();
     try (BurstIterator<Order.Bid> bidOrders = assetExchange.getSortedBidOrders(assetId, firstIndex, lastIndex)) {
       while (bidOrders.hasNext()) {
         orderIds.add(Convert.toUnsignedLong(bidOrders.next().getId()));
       }
     }
-    JSONObject response = new JSONObject();
-    response.put("bidOrderIds", orderIds);
+    JsonObject response = new JsonObject();
+    response.add("bidOrderIds", orderIds);
     return response;
   }
 

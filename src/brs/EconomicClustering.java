@@ -1,6 +1,7 @@
 package brs;
 
 import brs.fluxcapacitor.FeatureToggle;
+import brs.util.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +59,7 @@ public final class EconomicClustering {
       return ecBlock != null && ecBlock.getHeight() == transaction.getECBlockHeight();
     }
     catch ( NullPointerException e ) {
-      logger.debug("caught null pointer exception during verifyFork with transaction:" + transaction.getJSONObject().toString());
+      logger.debug("caught null pointer exception during verifyFork with transaction:" + JSON.toJsonString(transaction.getJsonObject()));
       throw e;
     }
   }

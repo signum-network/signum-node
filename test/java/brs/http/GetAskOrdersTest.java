@@ -1,20 +1,5 @@
 package brs.http;
 
-import static brs.http.common.Parameters.ASSET_PARAMETER;
-import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
-import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
-import static brs.http.common.ResultFields.ASK_ORDERS_RESPONSE;
-import static brs.http.common.ResultFields.ASSET_RESPONSE;
-import static brs.http.common.ResultFields.HEIGHT_RESPONSE;
-import static brs.http.common.ResultFields.ORDER_RESPONSE;
-import static brs.http.common.ResultFields.PRICE_NQT_RESPONSE;
-import static brs.http.common.ResultFields.QUANTITY_QNT_RESPONSE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import brs.Asset;
 import brs.BurstException;
 import brs.Order.Ask;
@@ -24,11 +9,22 @@ import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
 import brs.services.ParameterService;
-import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
+
+import javax.servlet.http.HttpServletRequest;
+
+import static brs.http.common.Parameters.*;
+import static brs.http.common.ResultFields.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+;
 
 public class GetAskOrdersTest extends AbstractUnitTest {
 
@@ -76,15 +72,15 @@ public class GetAskOrdersTest extends AbstractUnitTest {
 
     when(assetExchangeMock.getSortedAskOrders(eq(assetIndex), eq(firstIndex), eq(lastIndex))).thenReturn(askIterator);
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
     assertNotNull(result);
 
-    final JSONArray orders = (JSONArray) result.get(ASK_ORDERS_RESPONSE);
+    final JsonArray orders = (JsonArray) result.get(ASK_ORDERS_RESPONSE);
     assertNotNull(orders);
 
     assertEquals(2, orders.size());
 
-    final JSONObject askOrder1Result = (JSONObject) orders.get(0);
+    final JsonObject askOrder1Result = (JsonObject) orders.get(0);
 
     assertEquals("" + askOrder1.getId(), askOrder1Result.get(ORDER_RESPONSE));
     assertEquals("" + askOrder1.getAssetId(), askOrder1Result.get(ASSET_RESPONSE));

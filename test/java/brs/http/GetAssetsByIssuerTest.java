@@ -1,22 +1,5 @@
 package brs.http;
 
-import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
-import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
-import static brs.http.common.ResultFields.ASSETS_RESPONSE;
-import static brs.http.common.ResultFields.ASSET_RESPONSE;
-import static brs.http.common.ResultFields.DECIMALS_RESPONSE;
-import static brs.http.common.ResultFields.DESCRIPTION_RESPONSE;
-import static brs.http.common.ResultFields.NAME_RESPONSE;
-import static brs.http.common.ResultFields.NUMBER_OF_ACCOUNTS_RESPONSE;
-import static brs.http.common.ResultFields.NUMBER_OF_TRADES_RESPONSE;
-import static brs.http.common.ResultFields.NUMBER_OF_TRANSFERS_RESPONSE;
-import static brs.http.common.ResultFields.QUANTITY_QNT_RESPONSE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import brs.Account;
 import brs.Asset;
 import brs.assetexchange.AssetExchange;
@@ -25,12 +8,24 @@ import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
 import brs.services.ParameterService;
-import java.util.Arrays;
-import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
+
+import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
+import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
+import static brs.http.common.ResultFields.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+;
 
 public class GetAssetsByIssuerTest extends AbstractUnitTest {
 
@@ -79,18 +74,18 @@ public class GetAssetsByIssuerTest extends AbstractUnitTest {
     when(mockAssetExchange.getTransferCount(eq(mockAssetId))).thenReturn(2);
     when(mockAssetExchange.getTradeCount(eq(mockAssetId))).thenReturn(3);
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
     assertNotNull(result);
 
-    final JSONArray assetsForAccountsResult = (JSONArray) result.get(ASSETS_RESPONSE);
+    final JsonArray assetsForAccountsResult = (JsonArray) result.get(ASSETS_RESPONSE);
     assertNotNull(assetsForAccountsResult);
     assertEquals(1, assetsForAccountsResult.size());
 
-    final JSONArray assetsForAccount1Result = (JSONArray) assetsForAccountsResult.get(0);
+    final JsonArray assetsForAccount1Result = (JsonArray) assetsForAccountsResult.get(0);
     assertNotNull(assetsForAccount1Result);
     assertEquals(1, assetsForAccount1Result.size());
 
-    final JSONObject assetResult = (JSONObject) assetsForAccount1Result.get(0);
+    final JsonObject assetResult = (JsonObject) assetsForAccount1Result.get(0);
     assertNotNull(assetResult);
 
     assertEquals(mockAsset.getName(), assetResult.get(NAME_RESPONSE));

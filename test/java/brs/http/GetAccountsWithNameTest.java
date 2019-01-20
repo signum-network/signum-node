@@ -6,8 +6,8 @@ import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.db.BurstIterator;
 import brs.services.AccountService;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -19,6 +19,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+;
 
 public class GetAccountsWithNameTest extends AbstractUnitTest {
 
@@ -50,10 +52,10 @@ public class GetAccountsWithNameTest extends AbstractUnitTest {
 
         when(accountService.getAccountsWithName(targetAccountName)).thenReturn(mockIterator);
 
-        final JSONObject resultOverview = (JSONObject) t.processRequest(req);
+        final JsonObject resultOverview = (JsonObject) t.processRequest(req);
         assertNotNull(resultOverview);
 
-        final JSONArray resultList = (JSONArray) resultOverview.get(ACCOUNTS_RESPONSE);
+        final JsonArray resultList = (JsonArray) resultOverview.get(ACCOUNTS_RESPONSE);
         assertNotNull(resultList);
         assertEquals(1, resultList.size());
     }
@@ -70,10 +72,10 @@ public class GetAccountsWithNameTest extends AbstractUnitTest {
 
         when(accountService.getAccountsWithName(targetAccountName)).thenReturn(mockIterator);
 
-        final JSONObject resultOverview = (JSONObject) t.processRequest(req);
+        final JsonObject resultOverview = (JsonObject) t.processRequest(req);
         assertNotNull(resultOverview);
 
-        final JSONArray resultList = (JSONArray) resultOverview.get(ACCOUNTS_RESPONSE);
+        final JsonArray resultList = (JsonArray) resultOverview.get(ACCOUNTS_RESPONSE);
         assertNotNull(resultList);
         assertEquals(0, resultList.size());
     }

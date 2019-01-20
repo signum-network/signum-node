@@ -7,7 +7,8 @@ import brs.db.BurstKey;
 import brs.fluxcapacitor.FeatureToggle;
 import brs.transactionduplicates.TransactionDuplicationKey;
 import brs.util.Convert;
-import org.json.simple.JSONObject;
+import brs.util.JSON;
+import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -466,7 +467,7 @@ public class Transaction implements Comparable<Transaction> {
       appendages.forEach(appendage -> appendage.putBytes(buffer));
       return buffer.array();
     } catch (RuntimeException e) {
-      logger.debug("Failed to get transaction bytes for transaction: " + getJSONObject().toJSONString());
+      logger.debug("Failed to get transaction bytes for transaction: " + JSON.toJsonString(getJsonObject()));
       throw e;
     }
   }
@@ -539,50 +540,46 @@ public class Transaction implements Comparable<Transaction> {
     }
   */
 
-  public JSONObject getJSONObject() {
-    JSONObject json = new JSONObject();
-    json.put("type", type.getType());
-    json.put("subtype", type.getSubtype());
-    json.put("timestamp", timestamp);
-    json.put("deadline", deadline);
-    json.put("senderPublicKey", Convert.toHexString(senderPublicKey));
+  public JsonObject getJsonObject() {
+    JsonObject json = new JsonObject();
+    json.addProperty("type", type.getType());
+    json.addProperty("subtype", type.getSubtype());
+    json.addProperty("timestamp", timestamp);
+    json.addProperty("deadline", deadline);
+    json.addProperty("senderPublicKey", Convert.toHexString(senderPublicKey));
     if (type.hasRecipient()) {
-      json.put("recipient", Convert.toUnsignedLong(recipientId));
+      json.addProperty("recipient", Convert.toUnsignedLong(recipientId));
     }
-    json.put("amountNQT", amountNQT);
-    json.put("feeNQT", feeNQT);
+    json.addProperty("amountNQT", amountNQT);
+    json.addProperty("feeNQT", feeNQT);
     if (referencedTransactionFullHash != null) {
-      json.put("referencedTransactionFullHash", referencedTransactionFullHash);
+      json.addProperty("referencedTransactionFullHash", referencedTransactionFullHash);
     }
-    json.put("ecBlockHeight", ecBlockHeight);
-    json.put("ecBlockId", Convert.toUnsignedLong(ecBlockId));
-    json.put("signature", Convert.toHexString(signature));
-    JSONObject attachmentJSON = new JSONObject();
-    appendages.forEach(appendage -> attachmentJSON.putAll(appendage.getJSONObject()));
+    json.addProperty("ecBlockHeight", ecBlockHeight);
+    json.addProperty("ecBlockId", Convert.toUnsignedLong(ecBlockId));
+    json.addProperty("signature", Convert.toHexString(signature));
+    JsonObject attachmentJSON = new JsonObject();
+    appendages.forEach(appendage -> JSON.addAll(attachmentJSON, appendage.getJsonObject()));
     //if (! attachmentJSON.isEmpty()) {
-    json.put("attachment", attachmentJSON);
+    json.add("attachment", attachmentJSON);
     //}
-    json.put("version", version);
+    json.addProperty("version", version);
     return json;
   }
 
-  static Transaction parseTransaction(JSONObject transactionData, int height) throws BurstException.NotValidException {
+  static Transaction parseTransaction(JsonObject transactionData, int height) throws BurstException.NotValidException {
     try {
-      byte type = ((Long) transactionData.get("type")).byteValue();
-      byte subtype = ((Long) transactionData.get("subtype")).byteValue();
-      int timestamp = ((Long) transactionData.get("timestamp")).intValue();
-      short deadline = ((Long) transactionData.get("deadline")).shortValue();
-      byte[] senderPublicKey = Convert.parseHexString((String) transactionData.get("senderPublicKey"));
-      long amountNQT = Convert.parseLong(transactionData.get("amountNQT"));
-      long feeNQT = Convert.parseLong(transactionData.get("feeNQT"));
-      String referencedTransactionFullHash = (String) transactionData.get("referencedTransactionFullHash");
-      byte[] signature = Convert.parseHexString((String) transactionData.get("signature"));
-      Long versionValue = (Long) transactionData.get("version");
-      byte version = versionValue == null ? 0 : versionValue.byteValue();
-      JSONObject attachmentData = (JSONObject) transactionData.get("attachment");
-      if(attachmentData == null) {
-        attachmentData = new JSONObject();
-      }
+      byte type = JSON.getAsByte(transactionData.get("type"));
+      byte subtype = JSON.getAsByte(transactionData.get("subtype"));
+      int timestamp = JSON.getAsInt(transactionData.get("timestamp"));
+      short deadline = JSON.getAsShort(transactionData.get("deadline"));
+      byte[] senderPublicKey = Convert.parseHexString(JSON.getAsString(transactionData.get("senderPublicKey")));
+      long amountNQT = JSON.getAsLong(transactionData.get("amountNQT"));
+      long feeNQT = JSON.getAsLong(transactionData.get("feeNQT"));
+      String referencedTransactionFullHash = JSON.getAsString(transactionData.get("referencedTransactionFullHash"));
+      byte[] signature = Convert.parseHexString(JSON.getAsString(transactionData.get("signature")));
+      byte version = JSON.getAsByte(transactionData.get("version"));
+      JsonObject attachmentData = JSON.getAsJsonObject(transactionData.get("attachment"));
 
       TransactionType transactionType = TransactionType.findTransactionType(type, subtype);
       if (transactionType == null) {
@@ -595,19 +592,19 @@ public class Transaction implements Comparable<Transaction> {
           .signature(signature)
           .height(height);
       if (transactionType.hasRecipient()) {
-        long recipientId = Convert.parseUnsignedLong((String) transactionData.get("recipient"));
+        long recipientId = Convert.parseUnsignedLong(JSON.getAsString(transactionData.get("recipient")));
         builder.recipientId(recipientId);
       }
 
       transactionType.parseAppendices(builder, attachmentData);
 
       if (version > 0) {
-        builder.ecBlockHeight(((Long) transactionData.get("ecBlockHeight")).intValue());
-        builder.ecBlockId(Convert.parseUnsignedLong((String) transactionData.get("ecBlockId")));
+        builder.ecBlockHeight(JSON.getAsInt(transactionData.get("ecBlockHeight")));
+        builder.ecBlockId(Convert.parseUnsignedLong(JSON.getAsString(transactionData.get("ecBlockId"))));
       }
       return builder.build();
     } catch (BurstException.NotValidException|RuntimeException e) {
-      logger.debug("Failed to parse transaction: " + transactionData.toJSONString());
+      logger.debug("Failed to parse transaction: " + JSON.toJsonString(transactionData));
       throw e;
     }
   }

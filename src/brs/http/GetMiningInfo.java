@@ -5,11 +5,13 @@ import brs.Blockchain;
 import brs.Burst;
 import brs.crypto.hash.Shabal256;
 import brs.util.Convert;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 import java.nio.ByteBuffer;
+
+;
 
 final class GetMiningInfo extends APIServlet.APIRequestHandler {
 
@@ -21,10 +23,10 @@ final class GetMiningInfo extends APIServlet.APIRequestHandler {
   }
 	
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) {
-    JSONObject response = new JSONObject();
+  JsonElement processRequest(HttpServletRequest req) {
+    JsonObject response = new JsonObject();
 		
-    response.put("height", Long.toString((long)Burst.getBlockchain().getHeight() + 1));
+    response.addProperty("height", Long.toString((long)Burst.getBlockchain().getHeight() + 1));
 		
     Block lastBlock = blockchain.getLastBlock();
     byte[] lastGenSig = lastBlock.getGenerationSignature();
@@ -38,8 +40,8 @@ final class GetMiningInfo extends APIServlet.APIRequestHandler {
     md.update(buf.array());
     byte[] newGenSig = md.digest();
 		
-    response.put("generationSignature", Convert.toHexString(newGenSig));
-    response.put("baseTarget", Long.toString(lastBlock.getBaseTarget()));
+    response.addProperty("generationSignature", Convert.toHexString(newGenSig));
+    response.addProperty("baseTarget", Long.toString(lastBlock.getBaseTarget()));
 		
     return response;
   }

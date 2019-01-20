@@ -1,13 +1,5 @@
 package brs.http;
 
-import static brs.http.common.ResultFields.ATS_RESPONSE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import brs.AT;
 import brs.Account;
 import brs.BurstException;
@@ -17,12 +9,23 @@ import brs.common.QuickMocker;
 import brs.services.ATService;
 import brs.services.AccountService;
 import brs.services.ParameterService;
-import java.util.Arrays;
-import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
+
+import static brs.http.common.ResultFields.ATS_RESPONSE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+;
 
 public class GetAccountATsTest {
 
@@ -65,14 +68,14 @@ public class GetAccountATsTest {
     when(mockATService.getATsIssuedBy(eq(mockAccountId))).thenReturn(Arrays.asList(mockATId));
     when(mockATService.getAT(eq(mockATId))).thenReturn(mockAT);
 
-    JSONObject result = (JSONObject) t.processRequest(req);
+    JsonObject result = (JsonObject) t.processRequest(req);
     assertNotNull(result);
 
-    final JSONArray atsResultList = (JSONArray) result.get(ATS_RESPONSE);
+    final JsonArray atsResultList = (JsonArray) result.get(ATS_RESPONSE);
     assertNotNull(atsResultList);
     assertEquals(1, atsResultList.size());
 
-    final JSONObject atsResult = (JSONObject) atsResultList.get(0);
+    final JsonObject atsResult = (JsonObject) atsResultList.get(0);
     assertNotNull(atsResult);
   }
 

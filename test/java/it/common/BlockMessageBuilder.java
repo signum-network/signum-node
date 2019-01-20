@@ -1,9 +1,9 @@
 package it.common;
 
-import java.util.HashMap;
-import java.util.Map;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
+;
 
 public class BlockMessageBuilder {
 
@@ -18,7 +18,7 @@ public class BlockMessageBuilder {
   private String generatorPublicKey;
   private String payloadHash;
   private String blockSignature;
-  private JSONArray transactions = new JSONArray();
+  private JsonArray transactions = new JsonArray();
   private long timestamp;
   private String previousBlockHash;
 
@@ -77,9 +77,9 @@ public class BlockMessageBuilder {
     return this;
   }
 
-  public BlockMessageBuilder transactions(JSONArray transactions) {
+  public BlockMessageBuilder transactions(JsonArray transactions) {
     if(transactions == null) {
-      this.transactions = new JSONArray();
+      this.transactions = new JsonArray();
     } else {
       this.transactions = transactions;
     }
@@ -96,24 +96,24 @@ public class BlockMessageBuilder {
     return this;
   }
 
-  public JSONObject toJson() {
-    final Map overview = new HashMap();
+  public JsonObject toJson() {
+    final JsonObject overview = new JsonObject();
 
-    overview.put("payloadLength", payloadLength);
-    overview.put("totalAmountNQT", totalAmountNQT);
-    overview.put("version", version);
-    overview.put("nonce", nonce);
-    overview.put("totalFeeNQT", totalFeeNQT);
-    overview.put("blockATs", blockATs);
-    overview.put("previousBlock", previousBlock);
-    overview.put("generationSignature", generationSignature);
-    overview.put("generatorPublicKey", generatorPublicKey);
-    overview.put("payloadHash", payloadHash);
-    overview.put("blockSignature", blockSignature);
-    overview.put("transactions", transactions);
-    overview.put("timestamp", timestamp);
-    overview.put("previousBlockHash", previousBlockHash);
+    overview.addProperty("payloadLength", payloadLength);
+    overview.addProperty("totalAmountNQT", totalAmountNQT);
+    overview.addProperty("version", version);
+    overview.addProperty("nonce", nonce);
+    overview.addProperty("totalFeeNQT", totalFeeNQT);
+    overview.addProperty("blockATs", blockATs);
+    overview.addProperty("previousBlock", previousBlock);
+    overview.addProperty("generationSignature", generationSignature);
+    overview.addProperty("generatorPublicKey", generatorPublicKey);
+    overview.addProperty("payloadHash", payloadHash);
+    overview.addProperty("blockSignature", blockSignature);
+    overview.add("transactions", transactions);
+    overview.addProperty("timestamp", timestamp);
+    overview.addProperty("previousBlockHash", previousBlockHash);
 
-    return new JSONObject(overview);
+    return overview;
   }
 }

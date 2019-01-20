@@ -3,12 +3,14 @@ package brs.http;
 import brs.Account;
 import brs.BurstException;
 import brs.services.ParameterService;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.AMOUNT_NQT_PARAMETER;
 import static brs.http.common.Parameters.RECIPIENT_PARAMETER;
+
+;
 
 final class SendMoney extends CreateTransaction {
 
@@ -20,7 +22,7 @@ final class SendMoney extends CreateTransaction {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
     long recipient = ParameterParser.getRecipientId(req);
     long amountNQT = ParameterParser.getAmountNQT(req);
     Account account = parameterService.getSenderAccount(req);

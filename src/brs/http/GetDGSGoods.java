@@ -6,14 +6,17 @@ import brs.db.BurstIterator;
 import brs.db.sql.DbUtils;
 import brs.http.common.Parameters;
 import brs.services.DGSGoodsStoreService;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.GOODS_RESPONSE;
+
+;
+;
 
 public final class GetDGSGoods extends APIServlet.APIRequestHandler {
 
@@ -25,15 +28,15 @@ public final class GetDGSGoods extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
     long sellerId = ParameterParser.getSellerId(req);
     int firstIndex = ParameterParser.getFirstIndex(req);
     int lastIndex = ParameterParser.getLastIndex(req);
     boolean inStockOnly = !Parameters.isFalse(req.getParameter(IN_STOCK_ONLY_PARAMETER));
 
-    JSONObject response = new JSONObject();
-    JSONArray goodsJSON = new JSONArray();
-    response.put(GOODS_RESPONSE, goodsJSON);
+    JsonObject response = new JsonObject();
+    JsonArray goodsJSON = new JsonArray();
+    response.add(GOODS_RESPONSE, goodsJSON);
 
     BurstIterator<DigitalGoodsStore.Goods> goods = null;
     try {

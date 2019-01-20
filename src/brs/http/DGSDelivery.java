@@ -6,12 +6,14 @@ import brs.http.common.Parameters;
 import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.util.Convert;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.*;
 import static brs.http.common.Parameters.*;
+
+;
 
 public final class DGSDelivery extends CreateTransaction {
 
@@ -28,7 +30,7 @@ public final class DGSDelivery extends CreateTransaction {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
 
     Account sellerAccount = parameterService.getSenderAccount(req);
     DigitalGoodsStore.Purchase purchase = parameterService.getPurchase(req);

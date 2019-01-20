@@ -1,8 +1,11 @@
 package brs.peer;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
+;
+;
 
 final class GetPeers extends PeerServlet.PeerRequestHandler {
 
@@ -12,11 +15,11 @@ final class GetPeers extends PeerServlet.PeerRequestHandler {
 
 
   @Override
-  JSONStreamAware processRequest(JSONObject request, Peer peer) {
+  JsonElement processRequest(JsonObject request, Peer peer) {
 
-    JSONObject response = new JSONObject();
+    JsonObject response = new JsonObject();
 
-    JSONArray peers = new JSONArray();
+    JsonArray peers = new JsonArray();
     for (Peer otherPeer : Peers.getAllPeers()) {
 
       if (! otherPeer.isBlacklisted() && otherPeer.getAnnouncedAddress() != null
@@ -27,7 +30,7 @@ final class GetPeers extends PeerServlet.PeerRequestHandler {
       }
 
     }
-    response.put("peers", peers);
+    response.add("peers", peers);
 
     return response;
   }

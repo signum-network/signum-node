@@ -6,9 +6,9 @@ import brs.props.Props;
 import brs.util.Convert;
 import brs.util.CountingInputStream;
 import brs.util.CountingOutputStream;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
-import org.json.simple.JSONValue;
+import brs.util.JSON;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -292,9 +292,9 @@ final class PeerImpl implements Peer {
   }
 
   @Override
-  public JSONObject send(final JSONStreamAware request) {
+  public JsonObject send(final JsonElement request) {
 
-    JSONObject response;
+    JsonObject response;
 
     String log = null;
     boolean showLog = false;
@@ -314,7 +314,7 @@ final class PeerImpl implements Peer {
 
       if (Peers.communicationLoggingMask != 0) {
         StringWriter stringWriter = new StringWriter();
-        request.writeJSONString(stringWriter);
+        JSON.writeTo(request, stringWriter);
         log = "\"" + url.toString() + "\": " + stringWriter.toString();
       }
 
@@ -329,7 +329,7 @@ final class PeerImpl implements Peer {
 
       CountingOutputStream cos = new CountingOutputStream(connection.getOutputStream());
       try (Writer writer = new BufferedWriter(new OutputStreamWriter(cos, StandardCharsets.UTF_8))) {
-        request.writeJSONString(writer);
+        JSON.writeTo(request, writer);
       } // rico666: no catch?
       updateUploadedVolume(cos.getCount());
 
@@ -354,11 +354,11 @@ final class PeerImpl implements Peer {
           }
           log += " >>> " + responseValue;
           showLog = true;
-          response = (JSONObject) JSONValue.parse(responseValue);
+          response = JSON.getAsJsonObject(JSON.parse(responseValue));
         }
         else {
           try (Reader reader = new BufferedReader(new InputStreamReader(responseStream, StandardCharsets.UTF_8))) {
-            response = (JSONObject)JSONValue.parse(reader);
+            response = JSON.getAsJsonObject(JSON.parse(reader));
           }
         }
         updateDownloadedVolume(cis.getCount());
@@ -378,6 +378,7 @@ final class PeerImpl implements Peer {
       }
 
     } catch (RuntimeException|IOException e) {
+      e.printStackTrace();
       if (! (e instanceof UnknownHostException || e instanceof SocketTimeoutException || e instanceof SocketException)) {
         logger.debug("Error sending JSON request", e);
       }
@@ -409,13 +410,13 @@ final class PeerImpl implements Peer {
   }
 
   void connect(int currentTime) {
-    JSONObject response = send(version.backwardsCompatibilityNeeded() ? Peers.myPeerInfoRequestBackwardsCompatible : Peers.myPeerInfoRequest);
+    JsonObject response = send(version.backwardsCompatibilityNeeded() ? Peers.myPeerInfoRequestBackwardsCompatible : Peers.myPeerInfoRequest);
     if (response != null) {
-      application = (String)response.get("application");
-      setVersion((String) response.get("version"));
-      platform = (String)response.get("platform");
-      shareAddress = Boolean.TRUE.equals(response.get("shareAddress"));
-      String newAnnouncedAddress = Convert.emptyToNull((String)response.get("announcedAddress"));
+      application = JSON.getAsString(response.get("application"));
+      setVersion(JSON.getAsString(response.get("version")));
+      platform = JSON.getAsString(response.get("platform"));
+      shareAddress = Boolean.TRUE.equals(JSON.getAsBoolean(response.get("shareAddress")));
+      String newAnnouncedAddress = Convert.emptyToNull(JSON.getAsString(response.get("announcedAddress")));
       if (newAnnouncedAddress != null && ! newAnnouncedAddress.equals(announcedAddress)) {
         // force verification of changed announced address
         setState(Peer.State.NON_CONNECTED);

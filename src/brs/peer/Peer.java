@@ -1,8 +1,8 @@
 package brs.peer;
 
 import brs.Version;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 public interface Peer extends Comparable<Peer> {
 
@@ -56,6 +56,6 @@ public interface Peer extends Comparable<Peer> {
 
   // void setLastUnconfirmedTransactionTimestamp(Long lastUnconfirmedTransactionTimestamp);
 
-  JSONObject send(JSONStreamAware request);
+  JsonObject send(JsonElement request);
 
 }

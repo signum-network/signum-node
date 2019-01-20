@@ -2,11 +2,15 @@ package brs.peer;
 
 import brs.Blockchain;
 import brs.util.Convert;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import brs.util.JSON;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import java.util.List;
+
+;
+;
 
 final class GetNextBlockIds extends PeerServlet.PeerRequestHandler {
 
@@ -18,19 +22,19 @@ final class GetNextBlockIds extends PeerServlet.PeerRequestHandler {
 
 
   @Override
-  JSONStreamAware processRequest(JSONObject request, Peer peer) {
+  JsonElement processRequest(JsonObject request, Peer peer) {
 
-    JSONObject response = new JSONObject();
+    JsonObject response = new JsonObject();
 
-    JSONArray nextBlockIds = new JSONArray();
-    long blockId = Convert.parseUnsignedLong(request.get("blockId").toString());
+    JsonArray nextBlockIds = new JsonArray();
+    long blockId = Convert.parseUnsignedLong(JSON.toJsonString(request.get("blockId")));
     List<Long> ids = blockchain.getBlockIdsAfter(blockId, 100);
 
     for (Long id : ids) {
       nextBlockIds.add(Convert.toUnsignedLong(id));
     }
 
-    response.put("nextBlockIds", nextBlockIds);
+    response.add("nextBlockIds", nextBlockIds);
 
     return response;
   }

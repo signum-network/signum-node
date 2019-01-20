@@ -1,15 +1,5 @@
 package brs.http;
 
-import static brs.http.common.ResultFields.ALIASES_RESPONSE;
-import static brs.http.common.ResultFields.ALIAS_RESPONSE;
-import static brs.http.common.ResultFields.PRICE_NQT_RESPONSE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import brs.Account;
 import brs.Alias;
 import brs.Alias.Offer;
@@ -19,11 +9,21 @@ import brs.common.QuickMocker;
 import brs.db.BurstIterator;
 import brs.services.AliasService;
 import brs.services.ParameterService;
-import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
+
+import javax.servlet.http.HttpServletRequest;
+
+import static brs.http.common.ResultFields.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+;
 
 public class GetAliasesTest extends AbstractUnitTest {
 
@@ -61,14 +61,14 @@ public class GetAliasesTest extends AbstractUnitTest {
     when(mockAliasService.getAliasesByOwner(eq(accountId), eq(0), eq(-1))).thenReturn(mockAliasIterator);
     when(mockAliasService.getOffer(eq(mockAlias))).thenReturn(mockOffer);
 
-    final JSONObject resultOverview = (JSONObject) t.processRequest(req);
+    final JsonObject resultOverview = (JsonObject) t.processRequest(req);
     assertNotNull(resultOverview);
 
-    final JSONArray resultList = (JSONArray) resultOverview.get(ALIASES_RESPONSE);
+    final JsonArray resultList = (JsonArray) resultOverview.get(ALIASES_RESPONSE);
     assertNotNull(resultList);
     assertEquals(1, resultList.size());
 
-    final JSONObject result = (JSONObject) resultList.get(0);
+    final JsonObject result = (JsonObject) resultList.get(0);
     assertNotNull(result);
     assertEquals("" +mockAlias.getId(), result.get(ALIAS_RESPONSE));
     assertEquals("" + mockOffer.getPriceNQT(), result.get(PRICE_NQT_RESPONSE));

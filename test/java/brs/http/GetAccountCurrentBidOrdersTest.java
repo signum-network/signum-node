@@ -1,17 +1,5 @@
 package brs.http;
 
-import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
-import static brs.http.common.Parameters.ASSET_PARAMETER;
-import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
-import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
-import static brs.http.common.ResultFields.BID_ORDERS_RESPONSE;
-import static brs.http.common.ResultFields.ORDER_RESPONSE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import brs.Account;
 import brs.BurstException;
 import brs.Order.Bid;
@@ -21,11 +9,23 @@ import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
 import brs.services.ParameterService;
-import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
+
+import javax.servlet.http.HttpServletRequest;
+
+import static brs.http.common.Parameters.*;
+import static brs.http.common.ResultFields.BID_ORDERS_RESPONSE;
+import static brs.http.common.ResultFields.ORDER_RESPONSE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+;
 
 public class GetAccountCurrentBidOrdersTest extends AbstractUnitTest {
 
@@ -66,14 +66,14 @@ public class GetAccountCurrentBidOrdersTest extends AbstractUnitTest {
     when(mockParameterService.getAccount(eq(req))).thenReturn(mockAccount);
     when(mockAssetExchange.getBidOrdersByAccount(eq(accountId), eq(firstIndex), eq(lastIndex))).thenReturn(mockBidIterator);
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
     assertNotNull(result);
 
-    final JSONArray resultList = (JSONArray) result.get(BID_ORDERS_RESPONSE);
+    final JsonArray resultList = (JsonArray) result.get(BID_ORDERS_RESPONSE);
     assertNotNull(resultList);
     assertEquals(1, resultList.size());
 
-    final JSONObject resultBid = (JSONObject) resultList.get(0);
+    final JsonObject resultBid = (JsonObject) resultList.get(0);
     assertNotNull(resultBid);
     assertEquals("" + mockBidId, resultBid.get(ORDER_RESPONSE));
   }
@@ -104,14 +104,14 @@ public class GetAccountCurrentBidOrdersTest extends AbstractUnitTest {
     when(mockParameterService.getAccount(eq(req))).thenReturn(mockAccount);
     when(mockAssetExchange.getBidOrdersByAccountAsset(eq(accountId), eq(assetId), eq(firstIndex), eq(lastIndex))).thenReturn(mockBidIterator);
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
     assertNotNull(result);
 
-    final JSONArray resultList = (JSONArray) result.get(BID_ORDERS_RESPONSE);
+    final JsonArray resultList = (JsonArray) result.get(BID_ORDERS_RESPONSE);
     assertNotNull(resultList);
     assertEquals(1, resultList.size());
 
-    final JSONObject resultBid = (JSONObject) resultList.get(0);
+    final JsonObject resultBid = (JsonObject) resultList.get(0);
     assertNotNull(resultBid);
     assertEquals("" + mockBidId, resultBid.get(ORDER_RESPONSE));
   }

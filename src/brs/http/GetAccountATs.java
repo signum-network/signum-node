@@ -5,15 +5,18 @@ import brs.BurstException;
 import brs.services.ATService;
 import brs.services.AccountService;
 import brs.services.ParameterService;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.ResultFields.ATS_RESPONSE;
+
+;
+;
 
 public final class GetAccountATs extends APIServlet.APIRequestHandler {
 
@@ -29,17 +32,17 @@ public final class GetAccountATs extends APIServlet.APIRequestHandler {
   }
 	
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
     Account account = parameterService.getAccount(req);
 		
     List<Long> atIds = atService.getATsIssuedBy(account.getId());
-    JSONArray ats = new JSONArray();
+    JsonArray ats = new JsonArray();
     for(long atId : atIds) {
       ats.add(JSONData.at(atService.getAT(atId), accountService));
     }
 		
-    JSONObject response = new JSONObject();
-    response.put(ATS_RESPONSE, ats);
+    JsonObject response = new JsonObject();
+    response.add(ATS_RESPONSE, ats);
     return response;
   }
 }

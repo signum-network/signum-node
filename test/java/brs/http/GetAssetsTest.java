@@ -1,25 +1,26 @@
 package brs.http;
 
+import brs.Asset;
+import brs.assetexchange.AssetExchange;
+import brs.common.QuickMocker;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import org.junit.Before;
+import org.junit.Test;
+
+import javax.servlet.http.HttpServletRequest;
+
 import static brs.http.JSONResponses.INCORRECT_ASSET;
 import static brs.http.JSONResponses.UNKNOWN_ASSET;
 import static brs.http.common.Parameters.ASSETS_PARAMETER;
-import static brs.http.common.ResultFields.ASSETS_RESPONSE;
-import static brs.http.common.ResultFields.NUMBER_OF_ACCOUNTS_RESPONSE;
-import static brs.http.common.ResultFields.NUMBER_OF_TRADES_RESPONSE;
-import static brs.http.common.ResultFields.NUMBER_OF_TRANSFERS_RESPONSE;
-import static org.junit.Assert.*;
+import static brs.http.common.ResultFields.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import brs.Asset;
-import brs.assetexchange.AssetExchange;
-import brs.common.QuickMocker;
-import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
+;
 
 public class GetAssetsTest {
 
@@ -54,14 +55,14 @@ public class GetAssetsTest {
     when(mockAssetExchange.getTransferCount(eq(assetId))).thenReturn(mockTransferCount);
     when(mockAssetExchange.getAssetAccountsCount(eq(assetId))).thenReturn(mockAccountsCount);
 
-    final JSONObject response = (JSONObject) t.processRequest(req);
+    final JsonObject response = (JsonObject) t.processRequest(req);
     assertNotNull(response);
 
-    final JSONArray responseList = (JSONArray) response.get(ASSETS_RESPONSE);
+    final JsonArray responseList = (JsonArray) response.get(ASSETS_RESPONSE);
     assertNotNull(responseList);
     assertEquals(1, responseList.size());
 
-    final JSONObject assetResponse = (JSONObject) responseList.get(0);
+    final JsonObject assetResponse = (JsonObject) responseList.get(0);
     assertNotNull(assetResponse);
     assertEquals(mockTradeCount, assetResponse.get(NUMBER_OF_TRADES_RESPONSE));
     assertEquals(mockTransferCount, assetResponse.get(NUMBER_OF_TRANSFERS_RESPONSE));

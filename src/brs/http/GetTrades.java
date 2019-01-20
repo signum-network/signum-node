@@ -10,14 +10,17 @@ import brs.db.sql.DbUtils;
 import brs.http.common.Parameters;
 import brs.services.ParameterService;
 import brs.util.Convert;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.TRADES_RESPONSE;
+
+;
+;
 
 public final class GetTrades extends APIServlet.APIRequestHandler {
 
@@ -31,7 +34,7 @@ public final class GetTrades extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
 
     String assetId = Convert.emptyToNull(req.getParameter(ASSET_PARAMETER));
     String accountId = Convert.emptyToNull(req.getParameter(ACCOUNT_PARAMETER));
@@ -40,8 +43,8 @@ public final class GetTrades extends APIServlet.APIRequestHandler {
     int lastIndex = ParameterParser.getLastIndex(req);
     boolean includeAssetInfo = !Parameters.isFalse(req.getParameter(INCLUDE_ASSET_INFO_PARAMETER));
 
-    JSONObject response = new JSONObject();
-    JSONArray tradesData = new JSONArray();
+    JsonObject response = new JsonObject();
+    JsonArray tradesData = new JsonArray();
     BurstIterator<Trade> trades = null;
     try {
       if (accountId == null) {
@@ -64,7 +67,7 @@ public final class GetTrades extends APIServlet.APIRequestHandler {
     } finally {
       DbUtils.close(trades);
     }
-    response.put(TRADES_RESPONSE, tradesData);
+    response.add(TRADES_RESPONSE, tradesData);
 
     return response;
   }

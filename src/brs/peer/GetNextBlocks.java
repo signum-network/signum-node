@@ -4,12 +4,16 @@ import brs.Block;
 import brs.Blockchain;
 import brs.Constants;
 import brs.util.Convert;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import brs.util.JSON;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
+
+;
+;
 
 final class GetNextBlocks extends PeerServlet.PeerRequestHandler {
 
@@ -21,13 +25,13 @@ final class GetNextBlocks extends PeerServlet.PeerRequestHandler {
 
 
   @Override
-  JSONStreamAware processRequest(JSONObject request, Peer peer) {
+  JsonElement processRequest(JsonObject request, Peer peer) {
 
-    JSONObject response = new JSONObject();
+    JsonObject response = new JsonObject();
 
     List<Block> nextBlocks = new ArrayList<>();
     int totalLength = 0;
-    long blockId = Convert.parseUnsignedLong(request.get("blockId").toString());
+    long blockId = Convert.parseUnsignedLong(JSON.toJsonString(request.get("blockId")));
     List<? extends Block> blocks = blockchain.getBlocksAfter(blockId, 100);
 
     for (Block block : blocks) {
@@ -39,11 +43,11 @@ final class GetNextBlocks extends PeerServlet.PeerRequestHandler {
       totalLength += length;
     }
 
-    JSONArray nextBlocksArray = new JSONArray();
+    JsonArray nextBlocksArray = new JsonArray();
     for (Block nextBlock : nextBlocks) {
-      nextBlocksArray.add(nextBlock.getJSONObject());
+      nextBlocksArray.add(nextBlock.getJsonObject());
     }
-    response.put("nextBlocks", nextBlocksArray);
+    response.add("nextBlocks", nextBlocksArray);
 
     return response;
   }

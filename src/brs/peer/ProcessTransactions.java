@@ -3,8 +3,10 @@ package brs.peer;
 import brs.BurstException;
 import brs.TransactionProcessor;
 import brs.util.JSON;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
+;
 
 final class ProcessTransactions extends PeerServlet.PeerRequestHandler {
 
@@ -16,7 +18,7 @@ final class ProcessTransactions extends PeerServlet.PeerRequestHandler {
 
 
   @Override
-  JSONStreamAware processRequest(JSONObject request, Peer peer) {
+  JsonElement processRequest(JsonObject request, Peer peer) {
 
     try {
       transactionProcessor.processPeerTransactions(request, peer);
@@ -24,8 +26,8 @@ final class ProcessTransactions extends PeerServlet.PeerRequestHandler {
     } catch (RuntimeException | BurstException.ValidationException e) {
       //logger.debug("Failed to parse peer transactions: " + request.toJSONString());
       peer.blacklist(e, "received invalid data via requestType=processTransactions");
-      JSONObject response = new JSONObject();
-      response.put("error", e.toString());
+      JsonObject response = new JsonObject();
+      response.addProperty("error", e.toString());
       return response;
     }
   }

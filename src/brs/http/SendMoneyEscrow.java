@@ -3,8 +3,8 @@ package brs.http;
 import brs.*;
 import brs.services.ParameterService;
 import brs.util.Convert;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.ERROR_CODE_RESPONSE;
 import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
+
+;
 
 final class SendMoneyEscrow extends CreateTransaction {
 	
@@ -25,7 +27,7 @@ final class SendMoneyEscrow extends CreateTransaction {
   }
 	
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
     Account sender = parameterService.getSenderAccount(req);
     Long recipient = ParameterParser.getRecipientId(req);
     Long amountNQT = ParameterParser.getAmountNQT(req);
@@ -33,34 +35,34 @@ final class SendMoneyEscrow extends CreateTransaction {
 		
     long requiredSigners;
     try {
-      requiredSigners = Convert.parseLong(req.getParameter(REQUIRED_SIGNERS_PARAMETER));
+      requiredSigners = Long.parseLong(req.getParameter(REQUIRED_SIGNERS_PARAMETER));
       if(requiredSigners < 1 || requiredSigners > 10) {
-        JSONObject response = new JSONObject();
-        response.put(ERROR_CODE_RESPONSE, 4);
-        response.put(ERROR_DESCRIPTION_RESPONSE, "Invalid number of requiredSigners");
+        JsonObject response = new JsonObject();
+        response.addProperty(ERROR_CODE_RESPONSE, 4);
+        response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Invalid number of requiredSigners");
         return response;
       }
     }
     catch(Exception e) {
-      JSONObject response = new JSONObject();
-      response.put(ERROR_CODE_RESPONSE, 4);
-      response.put(ERROR_DESCRIPTION_RESPONSE, "Invalid requiredSigners parameter");
+      JsonObject response = new JsonObject();
+      response.addProperty(ERROR_CODE_RESPONSE, 4);
+      response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Invalid requiredSigners parameter");
       return response;
     }
 		
     if(signerString == null) {
-      JSONObject response = new JSONObject();
-      response.put(ERROR_CODE_RESPONSE, 3);
-      response.put(ERROR_DESCRIPTION_RESPONSE, "Signers not specified");
+      JsonObject response = new JsonObject();
+      response.addProperty(ERROR_CODE_RESPONSE, 3);
+      response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Signers not specified");
       return response;
     }
 		
     String signersArray[] = signerString.split(";", 10);
 		
     if(signersArray.length < 1 || signersArray.length > 10 || signersArray.length < requiredSigners) {
-      JSONObject response = new JSONObject();
-      response.put(ERROR_CODE_RESPONSE, 4);
-      response.put(ERROR_DESCRIPTION_RESPONSE, "Invalid number of signers");
+      JsonObject response = new JsonObject();
+      response.addProperty(ERROR_CODE_RESPONSE, 4);
+      response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Invalid number of signers");
       return response;
     }
 		
@@ -73,42 +75,42 @@ final class SendMoneyEscrow extends CreateTransaction {
       }
     }
     catch(Exception e) {
-      JSONObject response = new JSONObject();
-      response.put(ERROR_CODE_RESPONSE, 4);
-      response.put(ERROR_DESCRIPTION_RESPONSE, "Invalid signers parameter");
+      JsonObject response = new JsonObject();
+      response.addProperty(ERROR_CODE_RESPONSE, 4);
+      response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Invalid signers parameter");
       return response;
     }
 		
     long totalAmountNQT = Convert.safeAdd(amountNQT, signers.size() * Constants.ONE_BURST);
     if(sender.getBalanceNQT() < totalAmountNQT) {
-      JSONObject response = new JSONObject();
-      response.put(ERROR_CODE_RESPONSE, 6);
-      response.put(ERROR_DESCRIPTION_RESPONSE, "Insufficient funds");
+      JsonObject response = new JsonObject();
+      response.addProperty(ERROR_CODE_RESPONSE, 6);
+      response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Insufficient funds");
       return response;
     }
 		
     long deadline;
     try {
-      deadline = Convert.parseLong(req.getParameter(ESCROW_DEADLINE_PARAMETER));
+      deadline = Long.parseLong(req.getParameter(ESCROW_DEADLINE_PARAMETER));
       if(deadline < 1 || deadline > 7776000) {
-        JSONObject response = new JSONObject();
-        response.put(ERROR_CODE_RESPONSE, 4);
-        response.put(ERROR_DESCRIPTION_RESPONSE, "Escrow deadline must be 1 - 7776000");
+        JsonObject response = new JsonObject();
+        response.addProperty(ERROR_CODE_RESPONSE, 4);
+        response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Escrow deadline must be 1 - 7776000");
         return response;
       }
     }
     catch(Exception e) {
-      JSONObject response = new JSONObject();
-      response.put(ERROR_CODE_RESPONSE, 4);
-      response.put(ERROR_DESCRIPTION_RESPONSE, "Invalid " + ESCROW_DEADLINE_PARAMETER + " parameter");
+      JsonObject response = new JsonObject();
+      response.addProperty(ERROR_CODE_RESPONSE, 4);
+      response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Invalid " + ESCROW_DEADLINE_PARAMETER + " parameter");
       return response;
     }
 
     Escrow.DecisionType deadlineAction = Escrow.stringToDecision(req.getParameter(DEADLINE_ACTION_PARAMETER));
     if(deadlineAction == null || deadlineAction == Escrow.DecisionType.UNDECIDED) {
-      JSONObject response = new JSONObject();
-      response.put(ERROR_CODE_RESPONSE, 4);
-      response.put(ERROR_DESCRIPTION_RESPONSE, "Invalid " + DEADLINE_ACTION_PARAMETER + " parameter");
+      JsonObject response = new JsonObject();
+      response.addProperty(ERROR_CODE_RESPONSE, 4);
+      response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Invalid " + DEADLINE_ACTION_PARAMETER + " parameter");
       return response;
     }
 		

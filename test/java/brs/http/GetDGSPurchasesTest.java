@@ -1,30 +1,28 @@
 package brs.http;
 
-import static brs.http.common.Parameters.BUYER_PARAMETER;
-import static brs.http.common.Parameters.COMPLETED_PARAMETER;
-import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
-import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
-import static brs.http.common.Parameters.PURCHASE_PARAMETER;
-import static brs.http.common.Parameters.SELLER_PARAMETER;
-import static brs.http.common.ResultFields.PURCHASES_RESPONSE;
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import brs.BurstException;
-import brs.DigitalGoodsStore.Goods;
 import brs.DigitalGoodsStore.Purchase;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
 import brs.services.DGSGoodsStoreService;
-import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
+
+import javax.servlet.http.HttpServletRequest;
+
+import static brs.http.common.Parameters.*;
+import static brs.http.common.ResultFields.PURCHASES_RESPONSE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+;
 
 public class GetDGSPurchasesTest extends AbstractUnitTest {
 
@@ -56,10 +54,10 @@ public class GetDGSPurchasesTest extends AbstractUnitTest {
 
     when(mockDGSGoodsStoreService.getAllPurchases(eq(0), eq(-1))).thenReturn(mockGoodsIterator);
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
     assertNotNull(result);
 
-    final JSONArray purchasesResult = (JSONArray) result.get(PURCHASES_RESPONSE);
+    final JsonArray purchasesResult = (JsonArray) result.get(PURCHASES_RESPONSE);
     assertNotNull(purchasesResult);
     assertEquals(1, purchasesResult.size());
   }
@@ -81,10 +79,10 @@ public class GetDGSPurchasesTest extends AbstractUnitTest {
 
     when(mockDGSGoodsStoreService.getSellerPurchases(eq(1L), eq(0), eq(-1))).thenReturn(mockGoodsIterator);
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
     assertNotNull(result);
 
-    final JSONArray purchasesResult = (JSONArray) result.get(PURCHASES_RESPONSE);
+    final JsonArray purchasesResult = (JsonArray) result.get(PURCHASES_RESPONSE);
     assertNotNull(purchasesResult);
     assertEquals(1, purchasesResult.size());
   }
@@ -106,10 +104,10 @@ public class GetDGSPurchasesTest extends AbstractUnitTest {
 
     when(mockDGSGoodsStoreService.getBuyerPurchases(eq(1L), eq(0), eq(-1))).thenReturn(mockGoodsIterator);
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
     assertNotNull(result);
 
-    final JSONArray purchasesResult = (JSONArray) result.get(PURCHASES_RESPONSE);
+    final JsonArray purchasesResult = (JsonArray) result.get(PURCHASES_RESPONSE);
     assertNotNull(purchasesResult);
     assertEquals(1, purchasesResult.size());
   }
@@ -131,10 +129,10 @@ public class GetDGSPurchasesTest extends AbstractUnitTest {
 
     when(mockDGSGoodsStoreService.getSellerBuyerPurchases(eq(1L), eq(2L), eq(0), eq(-1))).thenReturn(mockGoodsIterator);
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
     assertNotNull(result);
 
-    final JSONArray purchasesResult = (JSONArray) result.get(PURCHASES_RESPONSE);
+    final JsonArray purchasesResult = (JsonArray) result.get(PURCHASES_RESPONSE);
     assertNotNull(purchasesResult);
     assertEquals(1, purchasesResult.size());
   }

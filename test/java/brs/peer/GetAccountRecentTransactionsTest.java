@@ -1,11 +1,5 @@
 package brs.peer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import brs.Account;
 import brs.Blockchain;
 import brs.Transaction;
@@ -16,10 +10,19 @@ import brs.common.QuickMocker.JSONParam;
 import brs.common.TestConstants;
 import brs.db.BurstIterator;
 import brs.services.AccountService;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+;
 
 public class GetAccountRecentTransactionsTest extends AbstractUnitTest {
 
@@ -40,7 +43,7 @@ public class GetAccountRecentTransactionsTest extends AbstractUnitTest {
   public void processRequest() {
     final String accountId = TestConstants.TEST_ACCOUNT_NUMERIC_ID;
 
-    final JSONObject request = QuickMocker.jsonObject(new JSONParam("account", accountId));
+    final JsonObject request = QuickMocker.jsonObject(new JSONParam("account", new JsonPrimitive(accountId)));
 
     final Peer peerMock = mock(Peer.class);
 
@@ -53,10 +56,10 @@ public class GetAccountRecentTransactionsTest extends AbstractUnitTest {
     when(mockAccountService.getAccount(eq(TestConstants.TEST_ACCOUNT_NUMERIC_ID_PARSED))).thenReturn(mockAccount);
     when(mockBlockchain.getTransactions(eq(mockAccount), eq(0), eq((byte) -1), eq((byte) 0), eq(0), eq(0), eq(9))).thenReturn(transactionsIterator);
 
-    final JSONObject result = (JSONObject) t.processRequest(request, peerMock);
+    final JsonObject result = (JsonObject) t.processRequest(request, peerMock);
     assertNotNull(result);
 
-    final JSONArray transactionsResult = (JSONArray) result.get("transactions");
+    final JsonArray transactionsResult = (JsonArray) result.get("transactions");
     assertNotNull(transactionsResult);
     assertEquals(1, transactionsResult.size());
   }

@@ -12,11 +12,13 @@ import brs.services.AccountService;
 import brs.services.TimeService;
 import brs.services.TransactionService;
 import brs.unconfirmedtransactions.UnconfirmedTransactionStore;
+import brs.util.JSON;
 import brs.util.Listener;
 import brs.util.Listeners;
 import brs.util.ThreadPool;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +32,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static brs.http.common.ResultFields.UNCONFIRMED_TRANSACTIONS_RESPONSE;
+
+;
 
 public class TransactionProcessorImpl implements TransactionProcessor {
 
@@ -80,12 +84,12 @@ public class TransactionProcessorImpl implements TransactionProcessor {
                       if (peer == null) {
                           return;
                       }
-                      JSONObject response = Peers.readUnconfirmedTransactionsNonBlocking(peer).get();
+                      JsonObject response = Peers.readUnconfirmedTransactionsNonBlocking(peer).get();
                       if (response == null) {
                           return;
                       }
 
-                      JSONArray transactionsData = (JSONArray) response.get(UNCONFIRMED_TRANSACTIONS_RESPONSE);
+                      JsonArray transactionsData = JSON.getAsJsonArray(response.get(UNCONFIRMED_TRANSACTIONS_RESPONSE));
 
                       if (transactionsData == null) {
                           return;
@@ -101,7 +105,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
                               List<CompletableFuture<?>> expectedResults = new ArrayList<>();
 
                               for (Peer otherPeer : activePrioPlusExtra) {
-                                  CompletableFuture<JSONObject> unconfirmedTransactionsResult = Peers.readUnconfirmedTransactionsNonBlocking(otherPeer);
+                                  CompletableFuture<JsonObject> unconfirmedTransactionsResult = Peers.readUnconfirmedTransactionsNonBlocking(otherPeer);
 
                                   unconfirmedTransactionsResult.whenComplete((jsonObject, throwable) -> {
                                       try {
@@ -217,8 +221,8 @@ public class TransactionProcessorImpl implements TransactionProcessor {
   }
 
   @Override
-  public void processPeerTransactions(JSONObject request, Peer peer) throws BurstException.ValidationException {
-    JSONArray transactionsData = (JSONArray)request.get("transactions");
+  public void processPeerTransactions(JsonObject request, Peer peer) throws BurstException.ValidationException {
+    JsonArray transactionsData = JSON.getAsJsonArray(request.get("transactions"));
     List<Transaction> processedTransactions = processPeerTransactions(transactionsData, peer);
 
     if(! processedTransactions.isEmpty()) {
@@ -232,7 +236,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
   }
 
   @Override
-  public Transaction parseTransaction(JSONObject transactionData) throws BurstException.NotValidException {
+  public Transaction parseTransaction(JsonObject transactionData) throws BurstException.NotValidException {
     return Transaction.parseTransaction(transactionData, blockchain.getHeight());
   }
     
@@ -275,12 +279,12 @@ public class TransactionProcessorImpl implements TransactionProcessor {
         unconfirmedTransactionStore.put(transaction, null);
       }
       catch ( BurstException.ValidationException e ) {
-        logger.debug("Discarding invalid transaction in for later processing: " + transaction.getJSONObject().toJSONString(), e);
+        logger.debug("Discarding invalid transaction in for later processing: " + JSON.toJsonString(transaction.getJsonObject()), e);
       }
     }
   }
 
-  private List<Transaction> processPeerTransactions(JSONArray transactionsData, Peer peer) throws BurstException.ValidationException {
+  private List<Transaction> processPeerTransactions(JsonArray transactionsData, Peer peer) throws BurstException.ValidationException {
 	  if (blockchain.getLastBlock().getTimestamp() < timeService.getEpochTime() - 60 * 1440 && ! testUnconfirmedTransactions) {
       return new ArrayList<>();
     }
@@ -288,9 +292,9 @@ public class TransactionProcessorImpl implements TransactionProcessor {
       return new ArrayList<>();
     }
     List<Transaction> transactions = new ArrayList<>();
-    for (Object transactionData : transactionsData) {
+    for (JsonElement transactionData : transactionsData) {
       try {
-        Transaction transaction = parseTransaction((JSONObject) transactionData);
+        Transaction transaction = parseTransaction(JSON.getAsJsonObject(transactionData));
         transactionService.validate(transaction);
         if(!this.economicClustering.verifyFork(transaction)) {
           /*if(Burst.getBlockchain().getHeight() >= Constants.EC_CHANGE_BLOCK_1) {
@@ -301,7 +305,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
         transactions.add(transaction);
       } catch (BurstException.NotCurrentlyValidException ignore) {
       } catch (BurstException.NotValidException e) {
-        logger.debug("Invalid transaction from peer: " + ((JSONObject) transactionData).toJSONString());
+        logger.debug("Invalid transaction from peer: " + JSON.toJsonString(transactionData));
         throw e;
       }
     }
@@ -339,7 +343,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
 
             if (!(transaction.verifySignature() && transactionService.verifyPublicKey(transaction))) {
               if (accountService.getAccount(transaction.getSenderId()) != null) {
-                logger.debug("Transaction " + transaction.getJSONObject().toJSONString() + " failed to verify");
+                logger.debug("Transaction " + JSON.toJsonString(transaction.getJsonObject()) + " failed to verify");
               }
               stores.commitTransaction();
               continue;

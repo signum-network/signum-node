@@ -1,15 +1,5 @@
 package brs.http;
 
-import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
-import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
-import static brs.http.common.Parameters.TIMESTAMP_PARAMETER;
-import static brs.http.common.ResultFields.BLOCKS_RESPONSE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import brs.Account;
 import brs.Block;
 import brs.Blockchain;
@@ -20,13 +10,24 @@ import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
 import brs.services.BlockService;
 import brs.services.ParameterService;
-import java.util.Arrays;
-import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.powermock.core.classloader.annotations.SuppressStaticInitializationFor;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
+
+import static brs.http.common.Parameters.*;
+import static brs.http.common.ResultFields.BLOCKS_RESPONSE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+;
 
 @SuppressStaticInitializationFor("brs.Block")
 public class GetAccountBlocksTest extends AbstractUnitTest {
@@ -67,13 +68,13 @@ public class GetAccountBlocksTest extends AbstractUnitTest {
     final BurstIterator<Block> mockBlockIterator = mockBurstIterator(Arrays.asList(mockBlock));
     when(blockchainMock.getBlocks(eq(mockAccount), eq(mockTimestamp), eq(mockFirstIndex), eq(mockLastIndex))).thenReturn(mockBlockIterator);
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
 
-    final JSONArray blocks = (JSONArray) result.get(BLOCKS_RESPONSE);
+    final JsonArray blocks = (JsonArray) result.get(BLOCKS_RESPONSE);
     assertNotNull(blocks);
     assertEquals(1, blocks.size());
 
-    final JSONObject resultBlock = (JSONObject) blocks.get(0);
+    final JsonObject resultBlock = (JsonObject) blocks.get(0);
     assertNotNull(resultBlock);
 
     //TODO validate all fields

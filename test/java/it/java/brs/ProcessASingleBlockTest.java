@@ -1,10 +1,8 @@
 package it.java.brs;
 
+import com.google.gson.JsonObject;
 import it.common.AbstractIT;
 import it.common.BlockMessageBuilder;
-import java.io.IOException;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.ParseException;
 import org.junit.Test;
 
 public class ProcessASingleBlockTest extends AbstractIT {
@@ -16,7 +14,7 @@ public class ProcessASingleBlockTest extends AbstractIT {
     Thread.sleep(200);
   }
 
-  public JSONObject getJSONFirstBlock() {
+  public JsonObject getJSONFirstBlock() {
     return new BlockMessageBuilder()
         .payloadLength(0)
         .totalAmountNQT(0).totalFeeNQT(0)

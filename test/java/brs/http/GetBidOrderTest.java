@@ -1,22 +1,24 @@
 package brs.http;
 
-import static brs.http.JSONResponses.UNKNOWN_ORDER;
-import static brs.http.common.Parameters.ORDER_PARAMETER;
-import static brs.http.common.ResultFields.ORDER_RESPONSE;
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import brs.BurstException;
 import brs.Order.Bid;
 import brs.assetexchange.AssetExchange;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
+
+import javax.servlet.http.HttpServletRequest;
+
+import static brs.http.JSONResponses.UNKNOWN_ORDER;
+import static brs.http.common.Parameters.ORDER_PARAMETER;
+import static brs.http.common.ResultFields.ORDER_RESPONSE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class GetBidOrderTest {
 
@@ -41,7 +43,7 @@ public class GetBidOrderTest {
 
     HttpServletRequest req = QuickMocker.httpServletRequest(new MockParam(ORDER_PARAMETER, bidOrderId));
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
     assertNotNull(result);
     assertEquals("" + bidOrderId, result.get(ORDER_RESPONSE));
   }

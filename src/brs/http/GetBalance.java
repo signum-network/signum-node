@@ -3,9 +3,11 @@ package brs.http;
 import brs.BurstException;
 import brs.http.common.Parameters;
 import brs.services.ParameterService;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
 
 import javax.servlet.http.HttpServletRequest;
+
+;
 
 public final class GetBalance extends APIServlet.APIRequestHandler {
 
@@ -17,7 +19,7 @@ public final class GetBalance extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
     return JSONData.accountBalance(parameterService.getAccount(req));
   }
 

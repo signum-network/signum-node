@@ -1,9 +1,12 @@
 package brs.peer;
 
 import brs.util.JSON;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
+;
+;
 
 final class AddPeers extends PeerServlet.PeerRequestHandler {
 
@@ -12,11 +15,11 @@ final class AddPeers extends PeerServlet.PeerRequestHandler {
   private AddPeers() {}
 
   @Override
-  JSONStreamAware processRequest(JSONObject request, Peer peer) {
-    JSONArray peers = (JSONArray)request.get("peers");
+  JsonElement processRequest(JsonObject request, Peer peer) {
+    JsonArray peers = JSON.getAsJsonArray(request.get("peers"));
     if (peers != null && Peers.getMorePeers) {
-      for (Object announcedAddress : peers) {
-        Peers.addPeer((String) announcedAddress);
+      for (JsonElement announcedAddress : peers) {
+        Peers.addPeer(JSON.getAsString(announcedAddress));
       }
     }
     return JSON.emptyJSON;

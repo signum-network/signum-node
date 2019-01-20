@@ -2,11 +2,13 @@ package brs.http;
 
 import brs.BurstException;
 import brs.services.ParameterService;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.GOODS_PARAMETER;
+
+;
 
 public final class GetDGSGood extends APIServlet.APIRequestHandler {
 
@@ -18,7 +20,7 @@ public final class GetDGSGood extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
     return JSONData.goods(parameterService.getGoods(req));
   }
 

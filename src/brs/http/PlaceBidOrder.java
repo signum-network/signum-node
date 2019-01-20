@@ -3,7 +3,7 @@ package brs.http;
 import brs.*;
 import brs.services.ParameterService;
 import brs.util.Convert;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -22,7 +22,7 @@ final class PlaceBidOrder extends CreateTransaction {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
 
     Asset asset = parameterService.getAsset(req);
     long priceNQT = ParameterParser.getPriceNQT(req);

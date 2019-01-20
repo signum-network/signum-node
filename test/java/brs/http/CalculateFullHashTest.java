@@ -1,5 +1,11 @@
 package brs.http;
 
+import com.google.gson.JsonObject;
+import org.junit.Before;
+import org.junit.Test;
+
+import javax.servlet.http.HttpServletRequest;
+
 import static brs.http.JSONResponses.MISSING_SIGNATURE_HASH;
 import static brs.http.JSONResponses.MISSING_UNSIGNED_BYTES;
 import static brs.http.common.Parameters.SIGNATURE_HASH_PARAMETER;
@@ -9,11 +15,6 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mock;
-
-import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
 
 public class CalculateFullHashTest {
 
@@ -36,7 +37,7 @@ public class CalculateFullHashTest {
     when(req.getParameter(eq(UNSIGNED_TRANSACTION_BYTES_PARAMETER))).thenReturn(mockUnsignedTransactionBytes);
     when(req.getParameter(eq(SIGNATURE_HASH_PARAMETER))).thenReturn(mockSignatureHash);
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
     assertEquals(expectedFullHash, result.get(FULL_HASH_RESPONSE));
   }
 

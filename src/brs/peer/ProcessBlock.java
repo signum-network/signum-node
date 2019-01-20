@@ -4,8 +4,10 @@ import brs.Blockchain;
 import brs.BlockchainProcessor;
 import brs.BurstException;
 import brs.util.JSON;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
+;
 
 public final class ProcessBlock extends PeerServlet.PeerRequestHandler {
 
@@ -17,26 +19,26 @@ public final class ProcessBlock extends PeerServlet.PeerRequestHandler {
     this.blockchainProcessor = blockchainProcessor;
   }
 
-  private static final JSONStreamAware ACCEPTED;
+  private static final JsonElement ACCEPTED;
   static {
-    JSONObject response = new JSONObject();
-    response.put("accepted", true);
-    ACCEPTED = JSON.prepare(response);
+    JsonObject response = new JsonObject();
+    response.addProperty("accepted", true);
+    ACCEPTED = response;
   }
 
-  private static final JSONStreamAware NOT_ACCEPTED;
+  private static final JsonElement NOT_ACCEPTED;
   static {
-    JSONObject response = new JSONObject();
-    response.put("accepted", false);
-    NOT_ACCEPTED = JSON.prepare(response);
+    JsonObject response = new JsonObject();
+    response.addProperty("accepted", false);
+    NOT_ACCEPTED = response;
   }
 
   @Override
-  public JSONStreamAware processRequest(JSONObject request, Peer peer) {
+  public JsonElement processRequest(JsonObject request, Peer peer) {
 
     try {
 
-      if (! blockchain.getLastBlock().getStringId().equals(request.get("previousBlock"))) {
+      if (! blockchain.getLastBlock().getStringId().equals(JSON.getAsString(request.get("previousBlock")))) {
         // do this check first to avoid validation failures of future blocks and transactions
         // when loading blockchain from scratch
         return NOT_ACCEPTED;

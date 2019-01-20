@@ -1,23 +1,22 @@
 package brs.http;
 
-import static brs.http.common.ResultFields.ALIAS_NAME_RESPONSE;
-import static brs.http.common.ResultFields.BUYER_RESPONSE;
-import static brs.http.common.ResultFields.PRICE_NQT_RESPONSE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import brs.Alias;
 import brs.Alias.Offer;
 import brs.common.QuickMocker;
 import brs.services.AliasService;
 import brs.services.ParameterService;
-import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
+
+import javax.servlet.http.HttpServletRequest;
+
+import static brs.http.common.ResultFields.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class GetAliasTest {
 
@@ -48,7 +47,7 @@ public class GetAliasTest {
     when(mockParameterService.getAlias(eq(req))).thenReturn(mockAlias);
     when(mockAliasService.getOffer(eq(mockAlias))).thenReturn(mockOffer);
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
     assertNotNull(result);
     assertEquals(mockAlias.getAliasName(), result.get(ALIAS_NAME_RESPONSE));
     assertEquals("" + mockOffer.getPriceNQT(), result.get(PRICE_NQT_RESPONSE));

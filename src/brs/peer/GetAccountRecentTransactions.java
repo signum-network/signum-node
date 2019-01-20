@@ -6,9 +6,13 @@ import brs.Transaction;
 import brs.db.BurstIterator;
 import brs.services.AccountService;
 import brs.util.Convert;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import brs.util.JSON;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
+;
+;
 
 public class GetAccountRecentTransactions extends PeerServlet.PeerRequestHandler {
 
@@ -21,14 +25,14 @@ public class GetAccountRecentTransactions extends PeerServlet.PeerRequestHandler
   }
 	
   @Override
-  JSONStreamAware processRequest(JSONObject request, Peer peer) {
+  JsonElement processRequest(JsonObject request, Peer peer) {
 		
-    JSONObject response = new JSONObject();
+    JsonObject response = new JsonObject();
 		
     try {
-      Long accountId = Convert.parseAccountId((String)request.get("account"));
+      Long accountId = Convert.parseAccountId(JSON.getAsString(request.get("account")));
       Account account = accountService.getAccount(accountId);
-      JSONArray transactions = new JSONArray();
+      JsonArray transactions = new JsonArray();
       if(account != null) {
         BurstIterator<? extends Transaction> iterator = blockchain.getTransactions(account, 0, (byte)-1, (byte)0, 0, 0, 9);
         while(iterator.hasNext()) {
@@ -36,7 +40,7 @@ public class GetAccountRecentTransactions extends PeerServlet.PeerRequestHandler
           transactions.add(brs.http.JSONData.transaction(transaction, blockchain.getHeight()));
         }
       }
-      response.put("transactions", transactions);
+      response.add("transactions", transactions);
     }
     catch(Exception e) {
     }

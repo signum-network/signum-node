@@ -6,8 +6,8 @@ import brs.crypto.EncryptedData;
 import brs.http.common.Parameters;
 import brs.services.ParameterService;
 import brs.util.Convert;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +17,8 @@ import static brs.http.JSONResponses.DECRYPTION_FAILED;
 import static brs.http.JSONResponses.INCORRECT_ACCOUNT;
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.DECRYPTED_MESSAGE_RESPONSE;
+
+;
 
 public final class DecryptFrom extends APIServlet.APIRequestHandler {
 
@@ -30,7 +32,7 @@ public final class DecryptFrom extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
     Account account = parameterService.getAccount(req);
     if (account.getPublicKey() == null) {
       return INCORRECT_ACCOUNT;
@@ -42,8 +44,8 @@ public final class DecryptFrom extends APIServlet.APIRequestHandler {
     boolean isText = !Parameters.isFalse(req.getParameter(DECRYPTED_MESSAGE_IS_TEXT_PARAMETER));
     try {
       byte[] decrypted = account.decryptFrom(encryptedData, secretPhrase);
-      JSONObject response = new JSONObject();
-      response.put(DECRYPTED_MESSAGE_RESPONSE, isText ? Convert.toString(decrypted) : Convert.toHexString(decrypted));
+      JsonObject response = new JsonObject();
+      response.addProperty(DECRYPTED_MESSAGE_RESPONSE, isText ? Convert.toString(decrypted) : Convert.toHexString(decrypted));
       return response;
     } catch (RuntimeException e) {
       logger.debug(e.toString());

@@ -3,13 +3,15 @@ package brs.http;
 import brs.*;
 import brs.services.AccountService;
 import brs.services.ParameterService;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.GOODS_NOT_DELIVERED;
 import static brs.http.JSONResponses.INCORRECT_PURCHASE;
 import static brs.http.common.Parameters.PURCHASE_PARAMETER;
+
+;
 
 public final class DGSFeedback extends CreateTransaction {
 
@@ -25,7 +27,7 @@ public final class DGSFeedback extends CreateTransaction {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
     DigitalGoodsStore.Purchase purchase = parameterService.getPurchase(req);
     Account buyerAccount = parameterService.getSenderAccount(req);
 

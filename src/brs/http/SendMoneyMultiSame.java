@@ -3,8 +3,8 @@ package brs.http;
 import brs.*;
 import brs.services.ParameterService;
 import brs.util.Convert;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
@@ -13,6 +13,8 @@ import java.util.Collection;
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.ERROR_CODE_RESPONSE;
 import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
+
+;
 
 final class SendMoneyMultiSame extends CreateTransaction {
 
@@ -32,25 +34,25 @@ final class SendMoneyMultiSame extends CreateTransaction {
   }
 	
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
     long amountNQT = ParameterParser.getAmountNQT(req);
     Account sender = parameterService.getSenderAccount(req);
     String recipientString = Convert.emptyToNull(req.getParameter(RECIPIENTS_PARAMETER));
 
 
     if(recipientString == null) {
-      JSONObject response = new JSONObject();
-      response.put(ERROR_CODE_RESPONSE, 3);
-      response.put(ERROR_DESCRIPTION_RESPONSE, "Recipients not specified");
+      JsonObject response = new JsonObject();
+      response.addProperty(ERROR_CODE_RESPONSE, 3);
+      response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Recipients not specified");
       return response;
     }
 		
     String recipientsArray[] = recipientString.split(";", Constants.MAX_MULTI_SAME_OUT_RECIPIENTS);
 
     if(recipientsArray.length > Constants.MAX_MULTI_SAME_OUT_RECIPIENTS || recipientsArray.length < 2) {
-      JSONObject response = new JSONObject();
-      response.put(ERROR_CODE_RESPONSE, 4);
-      response.put(ERROR_DESCRIPTION_RESPONSE, "Invalid number of recipients");
+      JsonObject response = new JsonObject();
+      response.addProperty(ERROR_CODE_RESPONSE, 4);
+      response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Invalid number of recipients");
       return response;
     }
 
@@ -63,16 +65,16 @@ final class SendMoneyMultiSame extends CreateTransaction {
       }
     }
     catch(Exception e) {
-      JSONObject response = new JSONObject();
-      response.put(ERROR_CODE_RESPONSE, 4);
-      response.put(ERROR_DESCRIPTION_RESPONSE, "Invalid recipients parameter");
+      JsonObject response = new JsonObject();
+      response.addProperty(ERROR_CODE_RESPONSE, 4);
+      response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Invalid recipients parameter");
       return response;
     }
 		
     if(sender.getBalanceNQT() < totalAmountNQT) {
-      JSONObject response = new JSONObject();
-      response.put(ERROR_CODE_RESPONSE, 6);
-      response.put(ERROR_DESCRIPTION_RESPONSE, "Insufficient funds");
+      JsonObject response = new JsonObject();
+      response.addProperty(ERROR_CODE_RESPONSE, 6);
+      response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Insufficient funds");
       return response;
     }
 

@@ -3,14 +3,16 @@ package brs.peer;
 import brs.Transaction;
 import brs.TransactionProcessor;
 import brs.peer.PeerServlet.ExtendedProcessRequest;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 import static brs.http.common.ResultFields.UNCONFIRMED_TRANSACTIONS_RESPONSE;
+
+;
 
 final class GetUnconfirmedTransactions extends PeerServlet.ExtendedPeerRequestHandler {
 
@@ -23,17 +25,17 @@ final class GetUnconfirmedTransactions extends PeerServlet.ExtendedPeerRequestHa
   }
 
   @Override
-  ExtendedProcessRequest extendedProcessRequest(JSONObject request, Peer peer) {
-    JSONObject response = new JSONObject();
+  ExtendedProcessRequest extendedProcessRequest(JsonObject request, Peer peer) {
+    JsonObject response = new JsonObject();
 
     final List<Transaction> unconfirmedTransactions = transactionProcessor.getAllUnconfirmedTransactionsFor(peer);
 
-    JSONArray transactionsData = new JSONArray();
+    JsonArray transactionsData = new JsonArray();
     for (Transaction transaction : unconfirmedTransactions) {
-      transactionsData.add(transaction.getJSONObject());
+      transactionsData.add(transaction.getJsonObject());
     }
 
-    response.put(UNCONFIRMED_TRANSACTIONS_RESPONSE, transactionsData);
+    response.add(UNCONFIRMED_TRANSACTIONS_RESPONSE, transactionsData);
 
     return new ExtendedProcessRequest(response, () -> transactionProcessor.markFingerPrintsOf(peer, unconfirmedTransactions));
   }

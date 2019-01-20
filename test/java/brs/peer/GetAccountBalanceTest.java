@@ -1,5 +1,11 @@
 package brs.peer;
 
+import brs.Account;
+import brs.services.AccountService;
+import com.google.gson.JsonObject;
+import org.junit.Before;
+import org.junit.Test;
+
 import static brs.common.TestConstants.TEST_ACCOUNT_ID;
 import static brs.common.TestConstants.TEST_ACCOUNT_NUMERIC_ID_PARSED;
 import static brs.peer.GetAccountBalance.ACCOUNT_ID_PARAMETER_FIELD;
@@ -8,12 +14,6 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
-import brs.Account;
-import brs.services.AccountService;
-import org.json.simple.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
 
 public class GetAccountBalanceTest {
 
@@ -30,8 +30,8 @@ public class GetAccountBalanceTest {
 
   @Test
   public void processRequest() {
-    final JSONObject req = new JSONObject();
-    req.put(ACCOUNT_ID_PARAMETER_FIELD, TEST_ACCOUNT_ID);
+    final JsonObject req = new JsonObject();
+    req.addProperty(ACCOUNT_ID_PARAMETER_FIELD, TEST_ACCOUNT_ID);
     final Peer peer = mock(Peer.class);
 
     long mockBalanceNQT = 5;
@@ -40,20 +40,20 @@ public class GetAccountBalanceTest {
 
     when(mockAccountService.getAccount(eq(TEST_ACCOUNT_NUMERIC_ID_PARSED))).thenReturn(mockAccount);
 
-    final JSONObject result = (JSONObject) t.processRequest(req, peer);
+    final JsonObject result = (JsonObject) t.processRequest(req, peer);
 
     assertEquals("" + mockBalanceNQT, result.get(BALANCE_NQT_RESPONSE_FIELD));
   }
 
   @Test
   public void processRequest_notExistingAccount() {
-    final JSONObject req = new JSONObject();
-    req.put(ACCOUNT_ID_PARAMETER_FIELD, TEST_ACCOUNT_ID);
+    final JsonObject req = new JsonObject();
+    req.addProperty(ACCOUNT_ID_PARAMETER_FIELD, TEST_ACCOUNT_ID);
     final Peer peer = mock(Peer.class);
 
     when(mockAccountService.getAccount(eq(TEST_ACCOUNT_NUMERIC_ID_PARSED))).thenReturn(null);
 
-    final JSONObject result = (JSONObject) t.processRequest(req, peer);
+    final JsonObject result = (JsonObject) t.processRequest(req, peer);
 
     assertEquals("0", result.get(BALANCE_NQT_RESPONSE_FIELD));
   }

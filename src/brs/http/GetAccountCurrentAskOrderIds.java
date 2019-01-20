@@ -6,14 +6,17 @@ import brs.assetexchange.AssetExchange;
 import brs.db.BurstIterator;
 import brs.services.ParameterService;
 import brs.util.Convert;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.ASK_ORDER_IDS_RESPONSE;
+
+;
+;
 
 public final class GetAccountCurrentAskOrderIds extends APIServlet.APIRequestHandler {
 
@@ -27,7 +30,7 @@ public final class GetAccountCurrentAskOrderIds extends APIServlet.APIRequestHan
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
     long accountId = parameterService.getAccount(req).getId();
     long assetId = 0;
     try {
@@ -44,7 +47,7 @@ public final class GetAccountCurrentAskOrderIds extends APIServlet.APIRequestHan
     } else {
       askOrders = assetExchange.getAskOrdersByAccountAsset(accountId, assetId, firstIndex, lastIndex);
     }
-    JSONArray orderIds = new JSONArray();
+    JsonArray orderIds = new JsonArray();
     try {
       while (askOrders.hasNext()) {
         orderIds.add(Convert.toUnsignedLong(askOrders.next().getId()));
@@ -52,8 +55,8 @@ public final class GetAccountCurrentAskOrderIds extends APIServlet.APIRequestHan
     } finally {
       askOrders.close();
     }
-    JSONObject response = new JSONObject();
-    response.put(ASK_ORDER_IDS_RESPONSE, orderIds);
+    JsonObject response = new JsonObject();
+    response.add(ASK_ORDER_IDS_RESPONSE, orderIds);
     return response;
   }
 

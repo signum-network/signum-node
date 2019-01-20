@@ -6,14 +6,17 @@ import brs.db.BurstIterator;
 import brs.http.common.Parameters;
 import brs.services.DGSGoodsStoreService;
 import brs.util.FilteringIterator;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.PURCHASES_RESPONSE;
+
+;
+;
 
 public final class GetDGSPurchases extends APIServlet.APIRequestHandler {
 
@@ -25,7 +28,7 @@ public final class GetDGSPurchases extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
 
     long sellerId = ParameterParser.getSellerId(req);
     long buyerId = ParameterParser.getBuyerId(req);
@@ -34,9 +37,9 @@ public final class GetDGSPurchases extends APIServlet.APIRequestHandler {
     final boolean completed = Parameters.isTrue(req.getParameter(COMPLETED_PARAMETER));
 
 
-    JSONObject response = new JSONObject();
-    JSONArray purchasesJSON = new JSONArray();
-    response.put(PURCHASES_RESPONSE, purchasesJSON);
+    JsonObject response = new JsonObject();
+    JsonArray purchasesJSON = new JsonArray();
+    response.add(PURCHASES_RESPONSE, purchasesJSON);
 
     if (sellerId == 0 && buyerId == 0) {
       try (FilteringIterator<DigitalGoodsStore.Purchase> purchaseIterator

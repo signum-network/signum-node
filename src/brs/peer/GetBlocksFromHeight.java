@@ -2,13 +2,16 @@ package brs.peer;
 
 import brs.Block;
 import brs.Blockchain;
-import brs.util.Convert;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import brs.util.JSON;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
+
+;
+;
 
 final class GetBlocksFromHeight extends PeerServlet.PeerRequestHandler {
 
@@ -20,13 +23,13 @@ final class GetBlocksFromHeight extends PeerServlet.PeerRequestHandler {
 
 
   @Override
-  JSONStreamAware processRequest(JSONObject request, Peer peer) {
-    JSONObject response = new JSONObject();
-    int blockHeight = Convert.parseInteger(request.get("height").toString());
+  JsonElement processRequest(JsonObject request, Peer peer) {
+    JsonObject response = new JsonObject();
+    int blockHeight = JSON.getAsInt(request.get("height"));
     int numBlocks = 100;
 
     try {
-      numBlocks = Convert.parseInteger(request.get("numBlocks").toString());
+      numBlocks = JSON.getAsInt(request.get("numBlocks"));
     } catch (Exception e) {}
 
     //small failsafe
@@ -41,11 +44,11 @@ final class GetBlocksFromHeight extends PeerServlet.PeerRequestHandler {
     List<? extends Block> blocks = blockchain.getBlocksAfter(blockId, numBlocks);
     List<Block> nextBlocks = new ArrayList<>(blocks);
 
-    JSONArray nextBlocksArray = new JSONArray();
+    JsonArray nextBlocksArray = new JsonArray();
     for (Block nextBlock : nextBlocks) {
-      nextBlocksArray.add(nextBlock.getJSONObject());
+      nextBlocksArray.add(nextBlock.getJsonObject());
     }
-    response.put("nextBlocks", nextBlocksArray);
+    response.add("nextBlocks", nextBlocksArray);
     return response;
   }
 

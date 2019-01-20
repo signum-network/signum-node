@@ -2,8 +2,10 @@ package brs.peer;
 
 import brs.Block;
 import brs.Blockchain;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
+;
 
 final class GetCumulativeDifficulty extends PeerServlet.PeerRequestHandler {
 
@@ -15,12 +17,12 @@ final class GetCumulativeDifficulty extends PeerServlet.PeerRequestHandler {
 
 
   @Override
-  JSONStreamAware processRequest(JSONObject request, Peer peer) {
-    JSONObject response = new JSONObject();
+  JsonElement processRequest(JsonObject request, Peer peer) {
+    JsonObject response = new JsonObject();
 
     Block lastBlock = blockchain.getLastBlock();
-    response.put("cumulativeDifficulty", lastBlock.getCumulativeDifficulty().toString());
-    response.put("blockchainHeight", lastBlock.getHeight());
+    response.addProperty("cumulativeDifficulty", lastBlock.getCumulativeDifficulty().toString());
+    response.addProperty("blockchainHeight", lastBlock.getHeight());
     return response;
   }
 

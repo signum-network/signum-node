@@ -1,5 +1,19 @@
 package brs.http;
 
+import brs.Account;
+import brs.Blockchain;
+import brs.BurstException;
+import brs.common.AbstractUnitTest;
+import brs.common.QuickMocker;
+import brs.services.ParameterService;
+import brs.util.JSON;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import org.junit.Before;
+import org.junit.Test;
+
+import javax.servlet.http.HttpServletRequest;
+
 import static brs.http.common.ResultFields.ACCOUNT_RESPONSE;
 import static brs.http.common.ResultFields.LESSORS_RESPONSE;
 import static junit.framework.TestCase.assertTrue;
@@ -9,17 +23,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import brs.Account;
-import brs.Blockchain;
-import brs.BurstException;
-import brs.common.AbstractUnitTest;
-import brs.common.QuickMocker;
-import brs.services.ParameterService;
-import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
+;
 
 public class GetAccountLessorsTest extends AbstractUnitTest {
 
@@ -46,11 +50,11 @@ public class GetAccountLessorsTest extends AbstractUnitTest {
     when(parameterServiceMock.getAccount(eq(req))).thenReturn(mockAccount);
     when(parameterServiceMock.getHeight(eq(req))).thenReturn(0);
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
 
     assertNotNull(result);
-    assertEquals("" + mockAccount.getId(), result.get(ACCOUNT_RESPONSE));
-    assertTrue(((JSONArray) result.get(LESSORS_RESPONSE)).isEmpty());
+    assertEquals("" + mockAccount.getId(), JSON.getAsString(result.get(ACCOUNT_RESPONSE)));
+    assertTrue(((JsonArray) result.get(LESSORS_RESPONSE)).size() > 0);
   }
 
 }

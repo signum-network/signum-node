@@ -3,13 +3,15 @@ package brs.http;
 import brs.Blockchain;
 import brs.BlockchainProcessor;
 import brs.http.common.Parameters;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.*;
+
+;
 
 final class Scan extends APIServlet.APIRequestHandler {
 
@@ -23,8 +25,8 @@ final class Scan extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) {
-    JSONObject response = new JSONObject();
+  JsonElement processRequest(HttpServletRequest req) {
+    JsonObject response = new JsonObject();
     try {
       if (Parameters.isTrue(req.getParameter(VALIDATE_PARAMETER))) {
         blockchainProcessor.validateAtNextScan();
@@ -45,15 +47,15 @@ final class Scan extends APIServlet.APIRequestHandler {
         blockchainProcessor.scan(height);
       }
       else {
-        response.put(ERROR_RESPONSE, "invalid numBlocks or height");
+        response.addProperty(ERROR_RESPONSE, "invalid numBlocks or height");
         return response;
       }
       long end = System.currentTimeMillis();
-      response.put(DONE_RESPONSE, true);
-      response.put(SCAN_TIME_RESPONSE, (end - start)/1000);
+      response.addProperty(DONE_RESPONSE, true);
+      response.addProperty(SCAN_TIME_RESPONSE, (end - start)/1000);
     }
     catch (RuntimeException e) {
-      response.put(ERROR_RESPONSE, e.toString());
+      response.addProperty(ERROR_RESPONSE, e.toString());
     }
     return response;
   }

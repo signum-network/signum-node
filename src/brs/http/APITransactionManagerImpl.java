@@ -14,8 +14,8 @@ import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.services.TransactionService;
 import brs.util.Convert;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -23,6 +23,8 @@ import static brs.http.JSONResponses.*;
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.*;
 import static brs.http.common.ResultFields.FULL_HASH_RESPONSE;
+
+;
 
 public class APITransactionManagerImpl implements APITransactionManager {
 
@@ -43,7 +45,7 @@ public class APITransactionManagerImpl implements APITransactionManager {
   }
 
   @Override
-  public JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, Long recipientId, long amountNQT, Attachment attachment, long minimumFeeNQT) throws BurstException {
+  public JsonElement createTransaction(HttpServletRequest req, Account senderAccount, Long recipientId, long amountNQT, Attachment attachment, long minimumFeeNQT) throws BurstException {
     int blockchainHeight = blockchain.getHeight();
     String deadlineValue = req.getParameter(DEADLINE_PARAMETER);
     String referencedTransactionFullHash = Convert.emptyToNull(req.getParameter(REFERENCED_TRANSACTION_FULL_HASH_PARAMETER));
@@ -124,7 +126,7 @@ public class APITransactionManagerImpl implements APITransactionManager {
       return INCORRECT_REFERENCED_TRANSACTION;
     }
 
-    JSONObject response = new JSONObject();
+    JsonObject response = new JsonObject();
 
     // shouldn't try to get publicKey from senderAccount as it may have not been set yet
     byte[] publicKey = secretPhrase != null ? Crypto.getPublicKey(secretPhrase) : Convert.parseHexString(publicKeyValue);
@@ -152,26 +154,26 @@ public class APITransactionManagerImpl implements APITransactionManager {
       if (secretPhrase != null) {
         transaction.sign(secretPhrase);
         transactionService.validate(transaction); // 2nd validate may be needed if validation requires id to be known
-        response.put(TRANSACTION_RESPONSE, transaction.getStringId());
-        response.put(FULL_HASH_RESPONSE, transaction.getFullHash());
-        response.put(TRANSACTION_BYTES_RESPONSE, Convert.toHexString(transaction.getBytes()));
-        response.put(SIGNATURE_HASH_RESPONSE, Convert.toHexString(Crypto.sha256().digest(transaction.getSignature())));
+        response.addProperty(TRANSACTION_RESPONSE, transaction.getStringId());
+        response.addProperty(FULL_HASH_RESPONSE, transaction.getFullHash());
+        response.addProperty(TRANSACTION_BYTES_RESPONSE, Convert.toHexString(transaction.getBytes()));
+        response.addProperty(SIGNATURE_HASH_RESPONSE, Convert.toHexString(Crypto.sha256().digest(transaction.getSignature())));
         if (broadcast) {
-          response.put(NUMBER_PEERS_SENT_TO_RESPONSE, transactionProcessor.broadcast(transaction));
-          response.put(BROADCASTED_RESPONSE, true);
+          response.addProperty(NUMBER_PEERS_SENT_TO_RESPONSE, transactionProcessor.broadcast(transaction));
+          response.addProperty(BROADCASTED_RESPONSE, true);
         } else {
-          response.put(BROADCASTED_RESPONSE, false);
+          response.addProperty(BROADCASTED_RESPONSE, false);
         }
       } else {
-        response.put(BROADCASTED_RESPONSE, false);
+        response.addProperty(BROADCASTED_RESPONSE, false);
       }
-      response.put(UNSIGNED_TRANSACTION_BYTES_RESPONSE, Convert.toHexString(transaction.getUnsignedBytes()));
-      response.put(TRANSACTION_JSON_RESPONSE, JSONData.unconfirmedTransaction(transaction));
+      response.addProperty(UNSIGNED_TRANSACTION_BYTES_RESPONSE, Convert.toHexString(transaction.getUnsignedBytes()));
+      response.add(TRANSACTION_JSON_RESPONSE, JSONData.unconfirmedTransaction(transaction));
 
     } catch (BurstException.NotYetEnabledException e) {
       return FEATURE_NOT_AVAILABLE;
     } catch (BurstException.ValidationException e) {
-      response.put(ERROR_RESPONSE, e.getMessage());
+      response.addProperty(ERROR_RESPONSE, e.getMessage());
     }
     return response;
   }

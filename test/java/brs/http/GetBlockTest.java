@@ -1,26 +1,23 @@
 package brs.http;
 
-import static brs.http.JSONResponses.INCORRECT_BLOCK;
-import static brs.http.JSONResponses.INCORRECT_HEIGHT;
-import static brs.http.JSONResponses.INCORRECT_TIMESTAMP;
-import static brs.http.JSONResponses.UNKNOWN_BLOCK;
-import static brs.http.common.Parameters.BLOCK_PARAMETER;
-import static brs.http.common.Parameters.HEIGHT_PARAMETER;
-import static brs.http.common.Parameters.TIMESTAMP_PARAMETER;
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import brs.Block;
 import brs.Blockchain;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.services.BlockService;
-import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
+
+import javax.servlet.http.HttpServletRequest;
+
+import static brs.http.JSONResponses.*;
+import static brs.http.common.Parameters.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class GetBlockTest {
 
@@ -49,7 +46,7 @@ public class GetBlockTest {
 
     when(blockchainMock.getBlock(eq(blockId))).thenReturn(mockBlock);
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
 
     assertNotNull(result);
   }
@@ -76,7 +73,7 @@ public class GetBlockTest {
     when(blockchainMock.getHeight()).thenReturn(100);
     when(blockchainMock.getBlockAtHeight(eq(blockHeight))).thenReturn(mockBlock);
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
 
     assertNotNull(result);
   }
@@ -126,7 +123,7 @@ public class GetBlockTest {
 
     when(blockchainMock.getLastBlock(eq(timestamp))).thenReturn(mockBlock);
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
 
     assertNotNull(result);
   }

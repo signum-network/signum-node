@@ -6,8 +6,8 @@ import brs.TransactionProcessor;
 import brs.services.ParameterService;
 import brs.services.TransactionService;
 import brs.util.Convert;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.logging.Level;
@@ -16,6 +16,8 @@ import java.util.logging.Logger;
 import static brs.http.common.Parameters.TRANSACTION_BYTES_PARAMETER;
 import static brs.http.common.Parameters.TRANSACTION_JSON_PARAMETER;
 import static brs.http.common.ResultFields.*;
+
+;
 
 public final class BroadcastTransaction extends APIServlet.APIRequestHandler {
 
@@ -34,22 +36,22 @@ public final class BroadcastTransaction extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
 
     String transactionBytes = Convert.emptyToNull(req.getParameter(TRANSACTION_BYTES_PARAMETER));
     String transactionJSON = Convert.emptyToNull(req.getParameter(TRANSACTION_JSON_PARAMETER));
     Transaction transaction = parameterService.parseTransaction(transactionBytes, transactionJSON);
-    JSONObject response = new JSONObject();
+    JsonObject response = new JsonObject();
     try {
       transactionService.validate(transaction);
-      response.put(NUMBER_PEERS_SENT_TO_RESPONSE, transactionProcessor.broadcast(transaction));
-      response.put(TRANSACTION_RESPONSE, transaction.getStringId());
-      response.put(FULL_HASH_RESPONSE, transaction.getFullHash());
+      response.addProperty(NUMBER_PEERS_SENT_TO_RESPONSE, transactionProcessor.broadcast(transaction));
+      response.addProperty(TRANSACTION_RESPONSE, transaction.getStringId());
+      response.addProperty(FULL_HASH_RESPONSE, transaction.getFullHash());
     } catch (BurstException.ValidationException | RuntimeException e) {
       logger.log(Level.INFO, e.getMessage(), e);
-      response.put(ERROR_CODE_RESPONSE, 4);
-      response.put(ERROR_DESCRIPTION_RESPONSE, "Incorrect transaction: " + e.toString());
-      response.put(ERROR_RESPONSE, e.getMessage());
+      response.addProperty(ERROR_CODE_RESPONSE, 4);
+      response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Incorrect transaction: " + e.toString());
+      response.addProperty(ERROR_RESPONSE, e.getMessage());
     }
     return response;
 

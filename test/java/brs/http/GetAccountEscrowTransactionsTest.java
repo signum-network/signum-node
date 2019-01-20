@@ -1,24 +1,5 @@
 package brs.http;
 
-import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
-import static brs.http.common.Parameters.ESCROWS_RESPONSE;
-import static brs.http.common.ResultFields.AMOUNT_NQT_RESPONSE;
-import static brs.http.common.ResultFields.DEADLINE_ACTION_RESPONSE;
-import static brs.http.common.ResultFields.DEADLINE_RESPONSE;
-import static brs.http.common.ResultFields.DECISION_RESPONSE;
-import static brs.http.common.ResultFields.ID_RESPONSE;
-import static brs.http.common.ResultFields.ID_RS_RESPONSE;
-import static brs.http.common.ResultFields.RECIPIENT_RESPONSE;
-import static brs.http.common.ResultFields.RECIPIENT_RS_RESPONSE;
-import static brs.http.common.ResultFields.REQUIRED_SIGNERS_RESPONSE;
-import static brs.http.common.ResultFields.SENDER_RESPONSE;
-import static brs.http.common.ResultFields.SENDER_RS_RESPONSE;
-import static brs.http.common.ResultFields.SIGNERS_RESPONSE;
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import brs.Account;
 import brs.BurstException;
 import brs.Escrow;
@@ -30,14 +11,25 @@ import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
 import brs.services.EscrowService;
 import brs.services.ParameterService;
-import brs.util.Convert;
-import java.util.Arrays;
-import java.util.Collection;
-import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
+import java.util.Collection;
+
+import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
+import static brs.http.common.Parameters.ESCROWS_RESPONSE;
+import static brs.http.common.ResultFields.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+;
 
 public class GetAccountEscrowTransactionsTest extends AbstractUnitTest {
 
@@ -93,14 +85,14 @@ public class GetAccountEscrowTransactionsTest extends AbstractUnitTest {
     final Collection<Escrow> escrowCollection = Arrays.asList(escrow);
     when(escrowServiceMock.getEscrowTransactionsByParticipant(eq(accountId))).thenReturn(escrowCollection);
 
-    final JSONObject resultOverview = (JSONObject) t.processRequest(req);
+    final JsonObject resultOverview = (JsonObject) t.processRequest(req);
     assertNotNull(resultOverview);
 
-    final JSONArray resultList = (JSONArray) resultOverview.get(ESCROWS_RESPONSE);
+    final JsonArray resultList = (JsonArray) resultOverview.get(ESCROWS_RESPONSE);
     assertNotNull(resultList);
     assertEquals(1, resultList.size());
 
-    final JSONObject result = (JSONObject) resultList.get(0);
+    final JsonObject result = (JsonObject) resultList.get(0);
     assertNotNull(result);
 
     assertEquals("" + escrow.getId(), result.get(ID_RESPONSE));
@@ -113,10 +105,10 @@ public class GetAccountEscrowTransactionsTest extends AbstractUnitTest {
     assertEquals(escrow.getDeadline(), result.get(DEADLINE_RESPONSE));
     assertEquals("undecided", result.get(DEADLINE_ACTION_RESPONSE));
 
-    final JSONArray signersResult = (JSONArray) result.get(SIGNERS_RESPONSE);
+    final JsonArray signersResult = (JsonArray) result.get(SIGNERS_RESPONSE);
     assertEquals(1, signersResult.size());
 
-    final JSONObject signer = (JSONObject) signersResult.get(0);
+    final JsonObject signer = (JsonObject) signersResult.get(0);
     assertEquals("" + decision.getAccountId(), signer.get(ID_RESPONSE));
     assertEquals("BURST-2225-2222-QVC9-22222", signer.get(ID_RS_RESPONSE));
     assertEquals("undecided", signer.get(DECISION_RESPONSE));

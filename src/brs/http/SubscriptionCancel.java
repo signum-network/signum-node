@@ -4,14 +4,16 @@ import brs.*;
 import brs.services.ParameterService;
 import brs.services.SubscriptionService;
 import brs.util.Convert;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.SUBSCRIPTION_PARAMETER;
 import static brs.http.common.ResultFields.ERROR_CODE_RESPONSE;
 import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
+
+;
 
 public final class SubscriptionCancel extends CreateTransaction {
 
@@ -27,14 +29,14 @@ public final class SubscriptionCancel extends CreateTransaction {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
     final Account sender = parameterService.getSenderAccount(req);
 
     String subscriptionString = Convert.emptyToNull(req.getParameter(SUBSCRIPTION_PARAMETER));
     if (subscriptionString == null) {
-      JSONObject response = new JSONObject();
-      response.put(ERROR_CODE_RESPONSE, 3);
-      response.put(ERROR_DESCRIPTION_RESPONSE, "Subscription Id not specified");
+      JsonObject response = new JsonObject();
+      response.addProperty(ERROR_CODE_RESPONSE, 3);
+      response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Subscription Id not specified");
       return response;
     }
 
@@ -42,25 +44,25 @@ public final class SubscriptionCancel extends CreateTransaction {
     try {
       subscriptionId = Convert.parseUnsignedLong(subscriptionString);
     } catch (Exception e) {
-      JSONObject response = new JSONObject();
-      response.put(ERROR_CODE_RESPONSE, 4);
-      response.put(ERROR_DESCRIPTION_RESPONSE, "Failed to parse subscription id");
+      JsonObject response = new JsonObject();
+      response.addProperty(ERROR_CODE_RESPONSE, 4);
+      response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Failed to parse subscription id");
       return response;
     }
 
     Subscription subscription = subscriptionService.getSubscription(subscriptionId);
     if (subscription == null) {
-      JSONObject response = new JSONObject();
-      response.put(ERROR_CODE_RESPONSE, 5);
-      response.put(ERROR_DESCRIPTION_RESPONSE, "Subscription not found");
+      JsonObject response = new JsonObject();
+      response.addProperty(ERROR_CODE_RESPONSE, 5);
+      response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Subscription not found");
       return response;
     }
 
     if (sender.getId() != subscription.getSenderId() &&
         sender.getId() != subscription.getRecipientId()) {
-      JSONObject response = new JSONObject();
-      response.put(ERROR_CODE_RESPONSE, 7);
-      response.put(ERROR_DESCRIPTION_RESPONSE, "Must be sender or recipient to cancel subscription");
+      JsonObject response = new JsonObject();
+      response.addProperty(ERROR_CODE_RESPONSE, 7);
+      response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Must be sender or recipient to cancel subscription");
       return response;
     }
 

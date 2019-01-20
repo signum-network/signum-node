@@ -9,13 +9,15 @@ import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.EscrowService;
 import brs.services.TimeService;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.INCLUDE_COUNTS_PARAMETER;
 import static brs.http.common.ResultFields.TIME_RESPONSE;
+
+;
 
 final class GetState extends APIServlet.APIRequestHandler {
 
@@ -40,15 +42,15 @@ final class GetState extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) {
+  JsonElement processRequest(HttpServletRequest req) {
 
-    JSONObject response = new JSONObject();
+    JsonObject response = new JsonObject();
 
-    response.put("application", Burst.APPLICATION);
-    response.put("version", Burst.VERSION.toString());
-    response.put(TIME_RESPONSE, timeService.getEpochTime());
-    response.put("lastBlock", blockchain.getLastBlock().getStringId());
-    response.put("cumulativeDifficulty", blockchain.getLastBlock().getCumulativeDifficulty().toString());
+    response.addProperty("application", Burst.APPLICATION);
+    response.addProperty("version", Burst.VERSION.toString());
+    response.addProperty(TIME_RESPONSE, timeService.getEpochTime());
+    response.addProperty("lastBlock", blockchain.getLastBlock().getStringId());
+    response.addProperty("cumulativeDifficulty", blockchain.getLastBlock().getCumulativeDifficulty().toString());
 
 
     long totalEffectiveBalance = 0;
@@ -65,35 +67,35 @@ final class GetState extends APIServlet.APIRequestHandler {
         totalEffectiveBalance += escrows.next().getAmountNQT();
       }
     }
-    response.put("totalEffectiveBalanceNXT", totalEffectiveBalance / Constants.ONE_BURST);
+    response.addProperty("totalEffectiveBalanceNXT", totalEffectiveBalance / Constants.ONE_BURST);
 
 
     if (!"false".equalsIgnoreCase(req.getParameter("includeCounts"))) {
-      response.put("numberOfBlocks", blockchain.getHeight() + 1);
-      response.put("numberOfTransactions", blockchain.getTransactionCount());
-      response.put("numberOfAccounts", accountService.getCount());
-      response.put("numberOfAssets", assetExchange.getAssetsCount());
+      response.addProperty("numberOfBlocks", blockchain.getHeight() + 1);
+      response.addProperty("numberOfTransactions", blockchain.getTransactionCount());
+      response.addProperty("numberOfAccounts", accountService.getCount());
+      response.addProperty("numberOfAssets", assetExchange.getAssetsCount());
       int askCount = assetExchange.getAskCount();
       int bidCount = assetExchange.getBidCount();
-      response.put("numberOfOrders", askCount + bidCount);
-      response.put("numberOfAskOrders", askCount);
-      response.put("numberOfBidOrders", bidCount);
-      response.put("numberOfTrades", assetExchange.getTradesCount());
-      response.put("numberOfTransfers", assetExchange.getAssetTransferCount());
-      response.put("numberOfAliases", aliasService.getAliasCount());
-      //response.put("numberOfPolls", Poll.getCount());
-      //response.put("numberOfVotes", Vote.getCount());
+      response.addProperty("numberOfOrders", askCount + bidCount);
+      response.addProperty("numberOfAskOrders", askCount);
+      response.addProperty("numberOfBidOrders", bidCount);
+      response.addProperty("numberOfTrades", assetExchange.getTradesCount());
+      response.addProperty("numberOfTransfers", assetExchange.getAssetTransferCount());
+      response.addProperty("numberOfAliases", aliasService.getAliasCount());
+      //response.addProperty("numberOfPolls", Poll.getCount());
+      //response.addProperty("numberOfVotes", Vote.getCount());
     }
-    response.put("numberOfPeers", Peers.getAllPeers().size());
-    response.put("numberOfUnlockedAccounts", generator.getAllGenerators().size());
+    response.addProperty("numberOfPeers", Peers.getAllPeers().size());
+    response.addProperty("numberOfUnlockedAccounts", generator.getAllGenerators().size());
     Peer lastBlockchainFeeder = Burst.getBlockchainProcessor().getLastBlockchainFeeder();
-    response.put("lastBlockchainFeeder", lastBlockchainFeeder == null ? null : lastBlockchainFeeder.getAnnouncedAddress());
-    response.put("lastBlockchainFeederHeight", Burst.getBlockchainProcessor().getLastBlockchainFeederHeight());
-    response.put("isScanning", Burst.getBlockchainProcessor().isScanning());
-    response.put("availableProcessors", Runtime.getRuntime().availableProcessors());
-    response.put("maxMemory", Runtime.getRuntime().maxMemory());
-    response.put("totalMemory", Runtime.getRuntime().totalMemory());
-    response.put("freeMemory", Runtime.getRuntime().freeMemory());
+    response.addProperty("lastBlockchainFeeder", lastBlockchainFeeder == null ? null : lastBlockchainFeeder.getAnnouncedAddress());
+    response.addProperty("lastBlockchainFeederHeight", Burst.getBlockchainProcessor().getLastBlockchainFeederHeight());
+    response.addProperty("isScanning", Burst.getBlockchainProcessor().isScanning());
+    response.addProperty("availableProcessors", Runtime.getRuntime().availableProcessors());
+    response.addProperty("maxMemory", Runtime.getRuntime().maxMemory());
+    response.addProperty("totalMemory", Runtime.getRuntime().totalMemory());
+    response.addProperty("freeMemory", Runtime.getRuntime().freeMemory());
 
     return response;
   }

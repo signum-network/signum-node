@@ -4,8 +4,10 @@ import brs.TransactionType.Payment;
 import brs.at.AT_Constants;
 import brs.crypto.EncryptedData;
 import brs.util.Convert;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import brs.util.JSON;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -25,7 +27,7 @@ public interface Attachment extends Appendix {
       super(buffer, transactionVersion);
     }
 
-    private AbstractAttachment(JSONObject attachmentData) {
+    private AbstractAttachment(JsonObject attachmentData) {
       super(attachmentData);
     }
 
@@ -65,7 +67,7 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    final void putMyJSON(JSONObject json) {
+    final void putMyJSON(JsonObject json) {
     }
 
     @Override
@@ -118,17 +120,17 @@ public interface Attachment extends Appendix {
       }
     }
 
-    PaymentMultiOutCreation(JSONObject attachmentData) throws BurstException.NotValidException {
+    PaymentMultiOutCreation(JsonObject attachmentData) throws BurstException.NotValidException {
       super(attachmentData);
 
-      JSONArray recipients = (JSONArray)attachmentData.get(RECIPIENTS_PARAMETER);
+      JsonArray recipients = JSON.getAsJsonArray(attachmentData.get(RECIPIENTS_PARAMETER));
       HashMap<Long,Boolean> recipientOf = new HashMap<>();
 
-      for (Object recipientObject : recipients) {
-        JSONArray recipient = (JSONArray) recipientObject;
+      for (JsonElement recipientObject : recipients) {
+        JsonArray recipient = JSON.getAsJsonArray(recipientObject);
 
-        long recipientId = new BigInteger((String) recipient.get(0)).longValue();
-        long amountNQT = Convert.parseLong(recipient.get(1));
+        long recipientId = new BigInteger(JSON.getAsString(recipient.get(0))).longValue();
+        long amountNQT = JSON.getAsLong(recipient.get(1));
         if (recipientOf.containsKey(recipientId))
           throw new BurstException.NotValidException("Duplicate recipient on multi out transaction");
 
@@ -139,8 +141,7 @@ public interface Attachment extends Appendix {
         this.recipients.add(new ArrayList<>(Arrays.asList(recipientId, amountNQT)));
       }
       if (recipients.size() > Constants.MAX_MULTI_OUT_RECIPIENTS || recipients.size() <= 1) {
-        throw new BurstException.NotValidException(
-            "Invalid number of recipients listed on multi out transaction");
+        throw new BurstException.NotValidException("Invalid number of recipients listed on multi out transaction");
       }
     }
 
@@ -161,8 +162,7 @@ public interface Attachment extends Appendix {
         this.recipients.add(new ArrayList<>(Arrays.asList(recipientId, amountNQT)));
       }
       if (recipients.size() > Constants.MAX_MULTI_OUT_RECIPIENTS || recipients.size() <= 1) {
-        throw new BurstException.NotValidException(
-            "Invalid number of recipients listed on multi out transaction");
+        throw new BurstException.NotValidException("Invalid number of recipients listed on multi out transaction");
       }
     }
 
@@ -183,18 +183,18 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
-      final JSONArray recipientsJSON = new JSONArray();
+    void putMyJSON(JsonObject attachment) {
+      final JsonArray recipientsJSON = new JsonArray();
 
       this.recipients.stream()
         .map(recipient -> {
-          final JSONArray recipientJSON = new JSONArray();
+          final JsonArray recipientJSON = new JsonArray();
           recipientJSON.add(Convert.toUnsignedLong(recipient.get(0)));
           recipientJSON.add(recipient.get(1).toString());
           return recipientJSON;
         }).forEach(recipientsJSON::add);
 
-      attachment.put(RECIPIENTS_RESPONSE, recipientsJSON);
+      attachment.add(RECIPIENTS_RESPONSE, recipientsJSON);
     }
 
     @Override
@@ -240,14 +240,14 @@ public interface Attachment extends Appendix {
       }
     }
 
-    PaymentMultiSameOutCreation(JSONObject attachmentData) throws BurstException.NotValidException {
+    PaymentMultiSameOutCreation(JsonObject attachmentData) throws BurstException.NotValidException {
       super(attachmentData);
 
-      JSONArray recipients = (JSONArray)attachmentData.get(RECIPIENTS_PARAMETER);
+      JsonArray recipients = JSON.getAsJsonArray(attachmentData.get(RECIPIENTS_PARAMETER));
       HashMap<Long,Boolean> recipientOf = new HashMap<>();
 
-      for (Object recipient : recipients) {
-        long recipientId = new BigInteger((String) recipient).longValue();
+      for (JsonElement recipient : recipients) {
+        long recipientId = new BigInteger(JSON.getAsString(recipient)).longValue();
         if (recipientOf.containsKey(recipientId))
           throw new BurstException.NotValidException("Duplicate recipient on multi same out transaction");
 
@@ -294,10 +294,10 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
-      JSONArray recipients = new JSONArray();
+    void putMyJSON(JsonObject attachment) {
+      JsonArray recipients = new JsonArray();
       this.recipients.forEach(a -> recipients.add(Convert.toUnsignedLong(a)));
-      attachment.put(RECIPIENTS_RESPONSE, recipients);
+      attachment.add(RECIPIENTS_RESPONSE, recipients);
     }
 
     @Override
@@ -351,10 +351,10 @@ public interface Attachment extends Appendix {
       aliasURI = Convert.readString(buffer, buffer.getShort(), Constants.MAX_ALIAS_URI_LENGTH).trim();
     }
 
-    MessagingAliasAssignment(JSONObject attachmentData) {
+    MessagingAliasAssignment(JsonObject attachmentData) {
       super(attachmentData);
-      aliasName = (Convert.nullToEmpty((String) attachmentData.get(ALIAS_PARAMETER))).trim();
-      aliasURI = (Convert.nullToEmpty((String) attachmentData.get(URI_PARAMETER))).trim();
+      aliasName = (Convert.nullToEmpty(JSON.getAsString(attachmentData.get(ALIAS_PARAMETER)))).trim();
+      aliasURI = (Convert.nullToEmpty(JSON.getAsString(attachmentData.get(URI_PARAMETER)))).trim();
     }
 
     public MessagingAliasAssignment(String aliasName, String aliasURI, int blockchainHeight) {
@@ -384,9 +384,9 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
-      attachment.put(ALIAS_RESPONSE, aliasName);
-      attachment.put(URI_RESPONSE, aliasURI);
+    void putMyJSON(JsonObject attachment) {
+      attachment.addProperty(ALIAS_RESPONSE, aliasName);
+      attachment.addProperty(URI_RESPONSE, aliasURI);
     }
 
     @Override
@@ -414,10 +414,10 @@ public interface Attachment extends Appendix {
       this.priceNQT = buffer.getLong();
     }
 
-    MessagingAliasSell(JSONObject attachmentData) {
+    MessagingAliasSell(JsonObject attachmentData) {
       super(attachmentData);
-      this.aliasName = Convert.nullToEmpty((String) attachmentData.get(ALIAS_PARAMETER));
-      this.priceNQT = Convert.parseLong(attachmentData.get(PRICE_NQT_PARAMETER));
+      this.aliasName = Convert.nullToEmpty(JSON.getAsString(attachmentData.get(ALIAS_PARAMETER)));
+      this.priceNQT = JSON.getAsLong(attachmentData.get(PRICE_NQT_PARAMETER));
     }
 
     public MessagingAliasSell(String aliasName, long priceNQT, int blockchainHeight) {
@@ -450,9 +450,9 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
-      attachment.put(ALIAS_RESPONSE, aliasName);
-      attachment.put(PRICE_NQT_RESPONSE, priceNQT);
+    void putMyJSON(JsonObject attachment) {
+      attachment.addProperty(ALIAS_RESPONSE, aliasName);
+      attachment.addProperty(PRICE_NQT_RESPONSE, priceNQT);
     }
 
     public String getAliasName(){
@@ -473,9 +473,9 @@ public interface Attachment extends Appendix {
       this.aliasName = Convert.readString(buffer, buffer.get(), Constants.MAX_ALIAS_LENGTH);
     }
 
-    MessagingAliasBuy(JSONObject attachmentData) {
+    MessagingAliasBuy(JsonObject attachmentData) {
       super(attachmentData);
-      this.aliasName = Convert.nullToEmpty((String) attachmentData.get(ALIAS_PARAMETER));
+      this.aliasName = Convert.nullToEmpty(JSON.getAsString(attachmentData.get(ALIAS_PARAMETER)));
     }
 
     public MessagingAliasBuy(String aliasName, int blockchainHeight) {
@@ -506,8 +506,8 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
-      attachment.put(ALIAS_RESPONSE, aliasName);
+    void putMyJSON(JsonObject attachment) {
+      attachment.addProperty(ALIAS_RESPONSE, aliasName);
     }
 
     public String getAliasName(){
@@ -526,10 +526,10 @@ public interface Attachment extends Appendix {
       this.description = Convert.readString(buffer, buffer.getShort(), Constants.MAX_ACCOUNT_DESCRIPTION_LENGTH);
     }
 
-    MessagingAccountInfo(JSONObject attachmentData) {
+    MessagingAccountInfo(JsonObject attachmentData) {
       super(attachmentData);
-      this.name = Convert.nullToEmpty((String) attachmentData.get(NAME_PARAMETER));
-      this.description = Convert.nullToEmpty((String) attachmentData.get(DESCRIPTION_PARAMETER));
+      this.name = Convert.nullToEmpty(JSON.getAsString(attachmentData.get(NAME_PARAMETER)));
+      this.description = Convert.nullToEmpty(JSON.getAsString(attachmentData.get(DESCRIPTION_PARAMETER)));
     }
 
     public MessagingAccountInfo(String name, String description, int blockchainHeight) {
@@ -559,9 +559,9 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
-      attachment.put(NAME_RESPONSE, name);
-      attachment.put(DESCRIPTION_RESPONSE, description);
+    void putMyJSON(JsonObject attachment) {
+      attachment.addProperty(NAME_RESPONSE, name);
+      attachment.addProperty(DESCRIPTION_RESPONSE, description);
     }
 
     @Override
@@ -594,12 +594,12 @@ public interface Attachment extends Appendix {
       this.decimals = buffer.get();
     }
 
-    ColoredCoinsAssetIssuance(JSONObject attachmentData) {
+    ColoredCoinsAssetIssuance(JsonObject attachmentData) {
       super(attachmentData);
-      this.name = (String) attachmentData.get(NAME_PARAMETER);
-      this.description = Convert.nullToEmpty((String) attachmentData.get(DESCRIPTION_PARAMETER));
-      this.quantityQNT = Convert.parseLong(attachmentData.get(QUANTITY_QNT_PARAMETER));
-      this.decimals = ((Long) attachmentData.get(DECIMALS_PARAMETER)).byteValue();
+      this.name = JSON.getAsString(attachmentData.get(NAME_PARAMETER));
+      this.description = Convert.nullToEmpty(JSON.getAsString(attachmentData.get(DESCRIPTION_PARAMETER)));
+      this.quantityQNT = JSON.getAsLong(attachmentData.get(QUANTITY_QNT_PARAMETER));
+      this.decimals = JSON.getAsByte(attachmentData.get(DECIMALS_PARAMETER));
     }
 
     public ColoredCoinsAssetIssuance(String name, String description, long quantityQNT, byte decimals, int blockchainHeight) {
@@ -633,11 +633,11 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
-      attachment.put(NAME_RESPONSE, name);
-      attachment.put(DESCRIPTION_RESPONSE, description);
-      attachment.put(QUANTITY_QNT_RESPONSE, quantityQNT);
-      attachment.put(DECIMALS_RESPONSE, decimals);
+    void putMyJSON(JsonObject attachment) {
+      attachment.addProperty(NAME_RESPONSE, name);
+      attachment.addProperty(DESCRIPTION_RESPONSE, description);
+      attachment.addProperty(QUANTITY_QNT_RESPONSE, quantityQNT);
+      attachment.addProperty(DECIMALS_RESPONSE, decimals);
     }
 
     @Override
@@ -675,11 +675,11 @@ public interface Attachment extends Appendix {
       this.comment = getVersion() == 0 ? Convert.readString(buffer, buffer.getShort(), Constants.MAX_ASSET_TRANSFER_COMMENT_LENGTH) : null;
     }
 
-    ColoredCoinsAssetTransfer(JSONObject attachmentData) {
+    ColoredCoinsAssetTransfer(JsonObject attachmentData) {
       super(attachmentData);
-      this.assetId = Convert.parseUnsignedLong((String) attachmentData.get(ASSET_PARAMETER));
-      this.quantityQNT = Convert.parseLong(attachmentData.get(QUANTITY_QNT_PARAMETER));
-      this.comment = getVersion() == 0 ? Convert.nullToEmpty((String) attachmentData.get(COMMENT_PARAMETER)) : null;
+      this.assetId = Convert.parseUnsignedLong(JSON.getAsString(attachmentData.get(ASSET_PARAMETER)));
+      this.quantityQNT = JSON.getAsLong(attachmentData.get(QUANTITY_QNT_PARAMETER));
+      this.comment = getVersion() == 0 ? Convert.nullToEmpty(JSON.getAsString(attachmentData.get(COMMENT_PARAMETER))) : null;
     }
 
     public ColoredCoinsAssetTransfer(long assetId, long quantityQNT, int blockchainHeight) {
@@ -711,11 +711,11 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
-      attachment.put(ASSET_RESPONSE, Convert.toUnsignedLong(assetId));
-      attachment.put(QUANTITY_QNT_RESPONSE, quantityQNT);
+    void putMyJSON(JsonObject attachment) {
+      attachment.addProperty(ASSET_RESPONSE, Convert.toUnsignedLong(assetId));
+      attachment.addProperty(QUANTITY_QNT_RESPONSE, quantityQNT);
       if (getVersion() == 0) {
-        attachment.put(COMMENT_RESPONSE, comment);
+        attachment.addProperty(COMMENT_RESPONSE, comment);
       }
     }
 
@@ -751,11 +751,11 @@ public interface Attachment extends Appendix {
       this.priceNQT = buffer.getLong();
     }
 
-    private ColoredCoinsOrderPlacement(JSONObject attachmentData) {
+    private ColoredCoinsOrderPlacement(JsonObject attachmentData) {
       super(attachmentData);
-      this.assetId = Convert.parseUnsignedLong((String) attachmentData.get(ASSET_PARAMETER));
-      this.quantityQNT = Convert.parseLong(attachmentData.get(QUANTITY_QNT_PARAMETER));
-      this.priceNQT = Convert.parseLong(attachmentData.get(PRICE_NQT_PARAMETER));
+      this.assetId = Convert.parseUnsignedLong(JSON.getAsString(attachmentData.get(ASSET_PARAMETER)));
+      this.quantityQNT = JSON.getAsLong(attachmentData.get(QUANTITY_QNT_PARAMETER));
+      this.priceNQT = JSON.getAsLong(attachmentData.get(PRICE_NQT_PARAMETER));
     }
 
     private ColoredCoinsOrderPlacement(long assetId, long quantityQNT, long priceNQT, int blockchainHeight) {
@@ -778,10 +778,10 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
-      attachment.put(ASSET_RESPONSE, Convert.toUnsignedLong(assetId));
-      attachment.put(QUANTITY_QNT_RESPONSE, quantityQNT);
-      attachment.put(PRICE_NQT_RESPONSE, priceNQT);
+    void putMyJSON(JsonObject attachment) {
+      attachment.addProperty(ASSET_RESPONSE, Convert.toUnsignedLong(assetId));
+      attachment.addProperty(QUANTITY_QNT_RESPONSE, quantityQNT);
+      attachment.addProperty(PRICE_NQT_RESPONSE, priceNQT);
     }
 
     public long getAssetId() {
@@ -803,7 +803,7 @@ public interface Attachment extends Appendix {
       super(buffer, transactionVersion);
     }
 
-    ColoredCoinsAskOrderPlacement(JSONObject attachmentData) {
+    ColoredCoinsAskOrderPlacement(JsonObject attachmentData) {
       super(attachmentData);
     }
 
@@ -829,7 +829,7 @@ public interface Attachment extends Appendix {
       super(buffer, transactionVersion);
     }
 
-    ColoredCoinsBidOrderPlacement(JSONObject attachmentData) {
+    ColoredCoinsBidOrderPlacement(JsonObject attachmentData) {
       super(attachmentData);
     }
 
@@ -858,9 +858,9 @@ public interface Attachment extends Appendix {
       this.orderId = buffer.getLong();
     }
 
-    private ColoredCoinsOrderCancellation(JSONObject attachmentData) {
+    private ColoredCoinsOrderCancellation(JsonObject attachmentData) {
       super(attachmentData);
-      this.orderId = Convert.parseUnsignedLong((String) attachmentData.get(ORDER_PARAMETER));
+      this.orderId = Convert.parseUnsignedLong(JSON.getAsString(attachmentData.get(ORDER_PARAMETER)));
     }
 
     private ColoredCoinsOrderCancellation(long orderId, int blockchainHeight) {
@@ -879,8 +879,8 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
-      attachment.put(ORDER_RESPONSE, Convert.toUnsignedLong(orderId));
+    void putMyJSON(JsonObject attachment) {
+      attachment.addProperty(ORDER_RESPONSE, Convert.toUnsignedLong(orderId));
     }
 
     public long getOrderId() {
@@ -894,7 +894,7 @@ public interface Attachment extends Appendix {
       super(buffer, transactionVersion);
     }
 
-    ColoredCoinsAskOrderCancellation(JSONObject attachmentData) {
+    ColoredCoinsAskOrderCancellation(JsonObject attachmentData) {
       super(attachmentData);
     }
 
@@ -920,7 +920,7 @@ public interface Attachment extends Appendix {
       super(buffer, transactionVersion);
     }
 
-    ColoredCoinsBidOrderCancellation(JSONObject attachmentData) {
+    ColoredCoinsBidOrderCancellation(JsonObject attachmentData) {
       super(attachmentData);
     }
 
@@ -957,13 +957,13 @@ public interface Attachment extends Appendix {
       this.priceNQT = buffer.getLong();
     }
 
-    DigitalGoodsListing(JSONObject attachmentData) {
+    DigitalGoodsListing(JsonObject attachmentData) {
       super(attachmentData);
-      this.name = (String) attachmentData.get(NAME_RESPONSE);
-      this.description = (String) attachmentData.get(DESCRIPTION_RESPONSE);
-      this.tags = (String) attachmentData.get(TAGS_RESPONSE);
-      this.quantity = ((Long) attachmentData.get(QUANTITY_RESPONSE)).intValue();
-      this.priceNQT = Convert.parseLong(attachmentData.get(PRICE_NQT_PARAMETER));
+      this.name = JSON.getAsString(attachmentData.get(NAME_RESPONSE));
+      this.description = JSON.getAsString(attachmentData.get(DESCRIPTION_RESPONSE));
+      this.tags = JSON.getAsString(attachmentData.get(TAGS_RESPONSE));
+      this.quantity = JSON.getAsInt(attachmentData.get(QUANTITY_RESPONSE));
+      this.priceNQT = JSON.getAsLong(attachmentData.get(PRICE_NQT_PARAMETER));
     }
 
     public DigitalGoodsListing(String name, String description, String tags, int quantity, long priceNQT, int blockchainHeight) {
@@ -1002,12 +1002,12 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
-      attachment.put(NAME_RESPONSE, name);
-      attachment.put(DESCRIPTION_RESPONSE, description);
-      attachment.put(TAGS_RESPONSE, tags);
-      attachment.put(QUANTITY_RESPONSE, quantity);
-      attachment.put(PRICE_NQT_RESPONSE, priceNQT);
+    void putMyJSON(JsonObject attachment) {
+      attachment.addProperty(NAME_RESPONSE, name);
+      attachment.addProperty(DESCRIPTION_RESPONSE, description);
+      attachment.addProperty(TAGS_RESPONSE, tags);
+      attachment.addProperty(QUANTITY_RESPONSE, quantity);
+      attachment.addProperty(PRICE_NQT_RESPONSE, priceNQT);
     }
 
     @Override
@@ -1036,9 +1036,9 @@ public interface Attachment extends Appendix {
       this.goodsId = buffer.getLong();
     }
 
-    DigitalGoodsDelisting(JSONObject attachmentData) {
+    DigitalGoodsDelisting(JsonObject attachmentData) {
       super(attachmentData);
-      this.goodsId = Convert.parseUnsignedLong((String)attachmentData.get(GOODS_PARAMETER));
+      this.goodsId = Convert.parseUnsignedLong(JSON.getAsString(attachmentData.get(GOODS_PARAMETER)));
     }
 
     public DigitalGoodsDelisting(long goodsId, int blockchainHeight) {
@@ -1062,8 +1062,8 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
-      attachment.put(GOODS_RESPONSE, Convert.toUnsignedLong(goodsId));
+    void putMyJSON(JsonObject attachment) {
+      attachment.addProperty(GOODS_RESPONSE, Convert.toUnsignedLong(goodsId));
     }
 
     @Override
@@ -1086,10 +1086,10 @@ public interface Attachment extends Appendix {
       this.priceNQT = buffer.getLong();
     }
 
-    DigitalGoodsPriceChange(JSONObject attachmentData) {
+    DigitalGoodsPriceChange(JsonObject attachmentData) {
       super(attachmentData);
-      this.goodsId = Convert.parseUnsignedLong((String)attachmentData.get(GOODS_PARAMETER));
-      this.priceNQT = Convert.parseLong(attachmentData.get(PRICE_NQT_PARAMETER));
+      this.goodsId = Convert.parseUnsignedLong(JSON.getAsString(attachmentData.get(GOODS_PARAMETER)));
+      this.priceNQT = JSON.getAsLong(attachmentData.get(PRICE_NQT_PARAMETER));
     }
 
     public DigitalGoodsPriceChange(long goodsId, long priceNQT, int blockchainHeight) {
@@ -1115,9 +1115,9 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
-      attachment.put(GOODS_RESPONSE, Convert.toUnsignedLong(goodsId));
-      attachment.put(PRICE_NQT_RESPONSE, priceNQT);
+    void putMyJSON(JsonObject attachment) {
+      attachment.addProperty(GOODS_RESPONSE, Convert.toUnsignedLong(goodsId));
+      attachment.addProperty(PRICE_NQT_RESPONSE, priceNQT);
     }
 
     @Override
@@ -1142,10 +1142,10 @@ public interface Attachment extends Appendix {
       this.deltaQuantity = buffer.getInt();
     }
 
-    DigitalGoodsQuantityChange(JSONObject attachmentData) {
+    DigitalGoodsQuantityChange(JsonObject attachmentData) {
       super(attachmentData);
-      this.goodsId = Convert.parseUnsignedLong((String)attachmentData.get(GOODS_PARAMETER));
-      this.deltaQuantity = ((Long)attachmentData.get(DELTA_QUANTITY_PARAMETER)).intValue();
+      this.goodsId = Convert.parseUnsignedLong(JSON.getAsString(attachmentData.get(GOODS_PARAMETER)));
+      this.deltaQuantity = JSON.getAsInt(attachmentData.get(DELTA_QUANTITY_PARAMETER));
     }
 
     public DigitalGoodsQuantityChange(long goodsId, int deltaQuantity, int blockchainHeight) {
@@ -1171,9 +1171,9 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
-      attachment.put(GOODS_RESPONSE, Convert.toUnsignedLong(goodsId));
-      attachment.put(DELTA_QUANTITY_RESPONSE, deltaQuantity);
+    void putMyJSON(JsonObject attachment) {
+      attachment.addProperty(GOODS_RESPONSE, Convert.toUnsignedLong(goodsId));
+      attachment.addProperty(DELTA_QUANTITY_RESPONSE, deltaQuantity);
     }
 
     @Override
@@ -1202,12 +1202,12 @@ public interface Attachment extends Appendix {
       this.deliveryDeadlineTimestamp = buffer.getInt();
     }
 
-    DigitalGoodsPurchase(JSONObject attachmentData) {
+    DigitalGoodsPurchase(JsonObject attachmentData) {
       super(attachmentData);
-      this.goodsId = Convert.parseUnsignedLong((String)attachmentData.get(GOODS_PARAMETER));
-      this.quantity = ((Long)attachmentData.get(QUANTITY_PARAMETER)).intValue();
-      this.priceNQT = Convert.parseLong(attachmentData.get(PRICE_NQT_PARAMETER));
-      this.deliveryDeadlineTimestamp = ((Long)attachmentData.get(DELIVERY_DEADLINE_TIMESTAMP_PARAMETER)).intValue();
+      this.goodsId = Convert.parseUnsignedLong(JSON.getAsString(attachmentData.get(GOODS_PARAMETER)));
+      this.quantity = JSON.getAsInt(attachmentData.get(QUANTITY_PARAMETER));
+      this.priceNQT = JSON.getAsLong(attachmentData.get(PRICE_NQT_PARAMETER));
+      this.deliveryDeadlineTimestamp = JSON.getAsInt(attachmentData.get(DELIVERY_DEADLINE_TIMESTAMP_PARAMETER));
     }
 
     public DigitalGoodsPurchase(long goodsId, int quantity, long priceNQT, int deliveryDeadlineTimestamp, int blockchainHeight) {
@@ -1237,11 +1237,11 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
-      attachment.put(GOODS_RESPONSE, Convert.toUnsignedLong(goodsId));
-      attachment.put(QUANTITY_RESPONSE, quantity);
-      attachment.put(PRICE_NQT_RESPONSE, priceNQT);
-      attachment.put(DELIVERY_DEADLINE_TIMESTAMP_RESPONSE, deliveryDeadlineTimestamp);
+    void putMyJSON(JsonObject attachment) {
+      attachment.addProperty(GOODS_RESPONSE, Convert.toUnsignedLong(goodsId));
+      attachment.addProperty(QUANTITY_RESPONSE, quantity);
+      attachment.addProperty(PRICE_NQT_RESPONSE, priceNQT);
+      attachment.addProperty(DELIVERY_DEADLINE_TIMESTAMP_RESPONSE, deliveryDeadlineTimestamp);
     }
 
     @Override
@@ -1278,13 +1278,13 @@ public interface Attachment extends Appendix {
       this.discountNQT = buffer.getLong();
     }
 
-    DigitalGoodsDelivery(JSONObject attachmentData) {
+    DigitalGoodsDelivery(JsonObject attachmentData) {
       super(attachmentData);
-      this.purchaseId = Convert.parseUnsignedLong((String)attachmentData.get(PURCHASE_PARAMETER));
-      this.goods = new EncryptedData(Convert.parseHexString((String)attachmentData.get(GOODS_DATA_PARAMETER)),
-                                     Convert.parseHexString((String)attachmentData.get(GOODS_NONCE_PARAMETER)));
-      this.discountNQT = Convert.parseLong(attachmentData.get(DISCOUNT_NQT_PARAMETER));
-      this.goodsIsText = Boolean.TRUE.equals(attachmentData.get(GOODS_IS_TEXT_PARAMETER));
+      this.purchaseId = Convert.parseUnsignedLong(JSON.getAsString(attachmentData.get(PURCHASE_PARAMETER)));
+      this.goods = new EncryptedData(Convert.parseHexString(JSON.getAsString(attachmentData.get(GOODS_DATA_PARAMETER))),
+                                     Convert.parseHexString(JSON.getAsString(attachmentData.get(GOODS_NONCE_PARAMETER))));
+      this.discountNQT = JSON.getAsLong(attachmentData.get(DISCOUNT_NQT_PARAMETER));
+      this.goodsIsText = Boolean.TRUE.equals(JSON.getAsBoolean(attachmentData.get(GOODS_IS_TEXT_PARAMETER)));
     }
 
     public DigitalGoodsDelivery(long purchaseId, EncryptedData goods, boolean goodsIsText, long discountNQT, int blockchainHeight) {
@@ -1315,12 +1315,12 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
-      attachment.put(PURCHASE_RESPONSE, Convert.toUnsignedLong(purchaseId));
-      attachment.put(GOODS_DATA_RESPONSE, Convert.toHexString(goods.getData()));
-      attachment.put(GOODS_NONCE_RESPONSE, Convert.toHexString(goods.getNonce()));
-      attachment.put(DISCOUNT_NQT_RESPONSE, discountNQT);
-      attachment.put(GOODS_IS_TEXT_RESPONSE, goodsIsText);
+    void putMyJSON(JsonObject attachment) {
+      attachment.addProperty(PURCHASE_RESPONSE, Convert.toUnsignedLong(purchaseId));
+      attachment.addProperty(GOODS_DATA_RESPONSE, Convert.toHexString(goods.getData()));
+      attachment.addProperty(GOODS_NONCE_RESPONSE, Convert.toHexString(goods.getNonce()));
+      attachment.addProperty(DISCOUNT_NQT_RESPONSE, discountNQT);
+      attachment.addProperty(GOODS_IS_TEXT_RESPONSE, goodsIsText);
     }
 
     @Override
@@ -1349,9 +1349,9 @@ public interface Attachment extends Appendix {
       this.purchaseId = buffer.getLong();
     }
 
-    DigitalGoodsFeedback(JSONObject attachmentData) {
+    DigitalGoodsFeedback(JsonObject attachmentData) {
       super(attachmentData);
-      this.purchaseId = Convert.parseUnsignedLong((String)attachmentData.get(PURCHASE_PARAMETER));
+      this.purchaseId = Convert.parseUnsignedLong(JSON.getAsString(attachmentData.get(PURCHASE_PARAMETER)));
     }
 
     public DigitalGoodsFeedback(long purchaseId, int blockchainHeight) {
@@ -1375,8 +1375,8 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
-      attachment.put(PURCHASE_RESPONSE, Convert.toUnsignedLong(purchaseId));
+    void putMyJSON(JsonObject attachment) {
+      attachment.addProperty(PURCHASE_RESPONSE, Convert.toUnsignedLong(purchaseId));
     }
 
     @Override
@@ -1399,10 +1399,10 @@ public interface Attachment extends Appendix {
       this.refundNQT = buffer.getLong();
     }
 
-    DigitalGoodsRefund(JSONObject attachmentData) {
+    DigitalGoodsRefund(JsonObject attachmentData) {
       super(attachmentData);
-      this.purchaseId = Convert.parseUnsignedLong((String)attachmentData.get(PURCHASE_PARAMETER));
-      this.refundNQT = Convert.parseLong(attachmentData.get(REFUND_NQT_PARAMETER));
+      this.purchaseId = Convert.parseUnsignedLong(JSON.getAsString(attachmentData.get(PURCHASE_PARAMETER)));
+      this.refundNQT = JSON.getAsLong(attachmentData.get(REFUND_NQT_PARAMETER));
     }
 
     public DigitalGoodsRefund(long purchaseId, long refundNQT, int blockchainHeight) {
@@ -1428,9 +1428,9 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
-      attachment.put(PURCHASE_RESPONSE, Convert.toUnsignedLong(purchaseId));
-      attachment.put(REFUND_NQT_RESPONSE, refundNQT);
+    void putMyJSON(JsonObject attachment) {
+      attachment.addProperty(PURCHASE_RESPONSE, Convert.toUnsignedLong(purchaseId));
+      attachment.addProperty(REFUND_NQT_RESPONSE, refundNQT);
     }
 
     @Override
@@ -1453,9 +1453,9 @@ public interface Attachment extends Appendix {
       this.period = buffer.getShort();
     }
 
-    AccountControlEffectiveBalanceLeasing(JSONObject attachmentData) {
+    AccountControlEffectiveBalanceLeasing(JsonObject attachmentData) {
       super(attachmentData);
-      this.period = ((Long) attachmentData.get(PERIOD_PARAMETER)).shortValue();
+      this.period = JSON.getAsShort(attachmentData.get(PERIOD_PARAMETER));
     }
 
     public AccountControlEffectiveBalanceLeasing(short period, int blockchainHeight) {
@@ -1479,8 +1479,8 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
-      attachment.put(PERIOD_RESPONSE, period);
+    void putMyJSON(JsonObject attachment) {
+      attachment.addProperty(PERIOD_RESPONSE, period);
     }
 
     @Override
@@ -1499,7 +1499,7 @@ public interface Attachment extends Appendix {
       super(buffer, transactionVersion);
     }
 
-    BurstMiningRewardRecipientAssignment(JSONObject attachmentData) {
+    BurstMiningRewardRecipientAssignment(JsonObject attachmentData) {
       super(attachmentData);
     }
 
@@ -1522,7 +1522,7 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
+    void putMyJSON(JsonObject attachment) {
     }
 
     @Override
@@ -1556,21 +1556,21 @@ public interface Attachment extends Appendix {
       }
     }
 
-    AdvancedPaymentEscrowCreation(JSONObject attachmentData) throws BurstException.NotValidException {
+    AdvancedPaymentEscrowCreation(JsonObject attachmentData) throws BurstException.NotValidException {
       super(attachmentData);
-      this.amountNQT = Convert.parseUnsignedLong((String)attachmentData.get(AMOUNT_NQT_PARAMETER));
-      this.deadline = ((Long)attachmentData.get(DEADLINE_PARAMETER)).intValue();
-      this.deadlineAction = Escrow.stringToDecision((String)attachmentData.get(DEADLINE_ACTION_PARAMETER));
-      this.requiredSigners = ((Long)attachmentData.get(REQUIRED_SIGNERS_PARAMETER)).byteValue();
-      int totalSigners = ((JSONArray)attachmentData.get(SIGNERS_PARAMETER)).size();
+      this.amountNQT = Convert.parseUnsignedLong(JSON.getAsString(attachmentData.get(AMOUNT_NQT_PARAMETER)));
+      this.deadline = JSON.getAsInt(attachmentData.get(DEADLINE_PARAMETER));
+      this.deadlineAction = Escrow.stringToDecision(JSON.getAsString(attachmentData.get(DEADLINE_ACTION_PARAMETER)));
+      this.requiredSigners = JSON.getAsByte(attachmentData.get(REQUIRED_SIGNERS_PARAMETER));
+      int totalSigners = (JSON.getAsJsonArray(attachmentData.get(SIGNERS_PARAMETER))).size();
       if(totalSigners > 10 || totalSigners <= 0) {
         throw new BurstException.NotValidException("Invalid number of signers listed on create escrow transaction");
       }
-      JSONArray signersJson = (JSONArray)attachmentData.get(SIGNERS_PARAMETER);
-      for (Object aSignersJson : signersJson) {
-        this.signers.add(Convert.parseUnsignedLong((String) aSignersJson));
+      JsonArray signersJson = JSON.getAsJsonArray(attachmentData.get(SIGNERS_PARAMETER));
+      for (JsonElement aSignersJson : signersJson) {
+        this.signers.add(Convert.parseUnsignedLong(JSON.getAsString(aSignersJson)));
       }
-      if(this.signers.size() != ((JSONArray)attachmentData.get(SIGNERS_PARAMETER)).size()) {
+      if(this.signers.size() != (JSON.getAsJsonArray(attachmentData.get(SIGNERS_PARAMETER))).size()) {
         throw new BurstException.NotValidException("Duplicate signer on escrow creation");
       }
     }
@@ -1615,16 +1615,16 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
-      attachment.put(AMOUNT_NQT_RESPONSE, Convert.toUnsignedLong(this.amountNQT));
-      attachment.put(DEADLINE_RESPONSE, this.deadline);
-      attachment.put(DEADLINE_ACTION_RESPONSE, Escrow.decisionToString(this.deadlineAction));
-      attachment.put(REQUIRED_SIGNERS_RESPONSE, (int)this.requiredSigners);
-      JSONArray ids = new JSONArray();
+    void putMyJSON(JsonObject attachment) {
+      attachment.addProperty(AMOUNT_NQT_RESPONSE, Convert.toUnsignedLong(this.amountNQT));
+      attachment.addProperty(DEADLINE_RESPONSE, this.deadline);
+      attachment.addProperty(DEADLINE_ACTION_RESPONSE, Escrow.decisionToString(this.deadlineAction));
+      attachment.addProperty(REQUIRED_SIGNERS_RESPONSE, (int)this.requiredSigners);
+      JsonArray ids = new JsonArray();
       for(Long signer : this.signers) {
         ids.add(Convert.toUnsignedLong(signer));
       }
-      attachment.put(SIGNERS_RESPONSE, ids);
+      attachment.add(SIGNERS_RESPONSE, ids);
     }
 
     @Override
@@ -1656,10 +1656,10 @@ public interface Attachment extends Appendix {
       this.decision = Escrow.byteToDecision(buffer.get());
     }
 
-    AdvancedPaymentEscrowSign(JSONObject attachmentData) {
+    AdvancedPaymentEscrowSign(JsonObject attachmentData) {
       super(attachmentData);
-      this.escrowId = Convert.parseUnsignedLong((String)attachmentData.get(ESCROW_ID_PARAMETER));
-      this.decision = Escrow.stringToDecision((String)attachmentData.get(DECISION_PARAMETER));
+      this.escrowId = Convert.parseUnsignedLong(JSON.getAsString(attachmentData.get(ESCROW_ID_PARAMETER)));
+      this.decision = Escrow.stringToDecision(JSON.getAsString(attachmentData.get(DECISION_PARAMETER)));
     }
 
     public AdvancedPaymentEscrowSign(Long escrowId, Escrow.DecisionType decision, int blockchainHeight) {
@@ -1685,9 +1685,9 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
-      attachment.put(ESCROW_ID_RESPONSE, Convert.toUnsignedLong(this.escrowId));
-      attachment.put(DECISION_RESPONSE, Escrow.decisionToString(this.decision));
+    void putMyJSON(JsonObject attachment) {
+      attachment.addProperty(ESCROW_ID_RESPONSE, Convert.toUnsignedLong(this.escrowId));
+      attachment.addProperty(DECISION_RESPONSE, Escrow.decisionToString(this.decision));
     }
 
     @Override
@@ -1711,10 +1711,10 @@ public interface Attachment extends Appendix {
       this.decision = Escrow.byteToDecision(buffer.get());
     }
 
-    AdvancedPaymentEscrowResult(JSONObject attachmentData) {
+    AdvancedPaymentEscrowResult(JsonObject attachmentData) {
       super(attachmentData);
-      this.escrowId = Convert.parseUnsignedLong((String) attachmentData.get(ESCROW_ID_PARAMETER));
-      this.decision = Escrow.stringToDecision((String)attachmentData.get(DECISION_PARAMETER));
+      this.escrowId = Convert.parseUnsignedLong(JSON.getAsString(attachmentData.get(ESCROW_ID_PARAMETER)));
+      this.decision = Escrow.stringToDecision(JSON.getAsString(attachmentData.get(DECISION_PARAMETER)));
     }
 
     public AdvancedPaymentEscrowResult(Long escrowId, Escrow.DecisionType decision, int blockchainHeight) {
@@ -1740,9 +1740,9 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
-      attachment.put(ESCROW_ID_RESPONSE, Convert.toUnsignedLong(this.escrowId));
-      attachment.put(DECISION_RESPONSE, Escrow.decisionToString(this.decision));
+    void putMyJSON(JsonObject attachment) {
+      attachment.addProperty(ESCROW_ID_RESPONSE, Convert.toUnsignedLong(this.escrowId));
+      attachment.addProperty(DECISION_RESPONSE, Escrow.decisionToString(this.decision));
     }
 
     @Override
@@ -1760,9 +1760,9 @@ public interface Attachment extends Appendix {
       this.frequency = buffer.getInt();
     }
 
-    AdvancedPaymentSubscriptionSubscribe(JSONObject attachmentData) {
+    AdvancedPaymentSubscriptionSubscribe(JsonObject attachmentData) {
       super(attachmentData);
-      this.frequency = ((Long)attachmentData.get(FREQUENCY_PARAMETER)).intValue();
+      this.frequency = JSON.getAsInt(attachmentData.get(FREQUENCY_PARAMETER));
     }
 
     public AdvancedPaymentSubscriptionSubscribe(int frequency, int blockchainHeight) {
@@ -1786,8 +1786,8 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
-      attachment.put(FREQUENCY_RESPONSE, this.frequency);
+    void putMyJSON(JsonObject attachment) {
+      attachment.addProperty(FREQUENCY_RESPONSE, this.frequency);
     }
 
     @Override
@@ -1807,9 +1807,9 @@ public interface Attachment extends Appendix {
       this.subscriptionId = buffer.getLong();
     }
 
-    AdvancedPaymentSubscriptionCancel(JSONObject attachmentData) {
+    AdvancedPaymentSubscriptionCancel(JsonObject attachmentData) {
       super(attachmentData);
-      this.subscriptionId = Convert.parseUnsignedLong((String)attachmentData.get(SUBSCRIPTION_ID_PARAMETER));
+      this.subscriptionId = Convert.parseUnsignedLong(JSON.getAsString(attachmentData.get(SUBSCRIPTION_ID_PARAMETER)));
     }
 
     public AdvancedPaymentSubscriptionCancel(Long subscriptionId, int blockchainHeight) {
@@ -1833,8 +1833,8 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
-      attachment.put(SUBSCRIPTION_ID_RESPONSE, Convert.toUnsignedLong(this.subscriptionId));
+    void putMyJSON(JsonObject attachment) {
+      attachment.addProperty(SUBSCRIPTION_ID_RESPONSE, Convert.toUnsignedLong(this.subscriptionId));
     }
 
     @Override
@@ -1854,9 +1854,9 @@ public interface Attachment extends Appendix {
       this.subscriptionId = buffer.getLong();
     }
 
-    AdvancedPaymentSubscriptionPayment(JSONObject attachmentData) {
+    AdvancedPaymentSubscriptionPayment(JsonObject attachmentData) {
       super(attachmentData);
-      this.subscriptionId = Convert.parseUnsignedLong((String) attachmentData.get(SUBSCRIPTION_ID_PARAMETER));
+      this.subscriptionId = Convert.parseUnsignedLong(JSON.getAsString(attachmentData.get(SUBSCRIPTION_ID_PARAMETER)));
     }
 
     public AdvancedPaymentSubscriptionPayment(Long subscriptionId, int blockchainHeight) {
@@ -1880,8 +1880,8 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
-      attachment.put(SUBSCRIPTION_ID_RESPONSE, Convert.toUnsignedLong(this.subscriptionId));
+    void putMyJSON(JsonObject attachment) {
+      attachment.addProperty(SUBSCRIPTION_ID_RESPONSE, Convert.toUnsignedLong(this.subscriptionId));
     }
 
     @Override
@@ -1959,13 +1959,13 @@ public interface Attachment extends Appendix {
       this.creationBytes = dst;
     }
 
-    AutomatedTransactionsCreation(JSONObject attachmentData) {
+    AutomatedTransactionsCreation(JsonObject attachmentData) {
       super(attachmentData);
 
-      this.name = ( String ) attachmentData.get(NAME_PARAMETER);
-      this.description = ( String ) attachmentData.get(DESCRIPTION_PARAMETER);
+      this.name = JSON.getAsString(attachmentData.get(NAME_PARAMETER));
+      this.description = JSON.getAsString(attachmentData.get(DESCRIPTION_PARAMETER));
 
-      this.creationBytes = Convert.parseHexString( (String) attachmentData.get(CREATION_BYTES_PARAMETER));
+      this.creationBytes = Convert.parseHexString(JSON.getAsString(attachmentData.get(CREATION_BYTES_PARAMETER)));
 
     }
 
@@ -2003,10 +2003,10 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {
-      attachment.put(NAME_RESPONSE, name);
-      attachment.put(DESCRIPTION_RESPONSE, description);
-      attachment.put(CREATION_BYTES_RESPONSE, Convert.toHexString( creationBytes ) );
+    void putMyJSON(JsonObject attachment) {
+      attachment.addProperty(NAME_RESPONSE, name);
+      attachment.addProperty(DESCRIPTION_RESPONSE, description);
+      attachment.addProperty(CREATION_BYTES_RESPONSE, Convert.toHexString( creationBytes ) );
     }
 
     public String getName() { return name; }

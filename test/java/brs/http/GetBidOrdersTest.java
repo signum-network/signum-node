@@ -1,5 +1,21 @@
 package brs.http;
 
+import brs.Asset;
+import brs.BurstException;
+import brs.Order.Bid;
+import brs.assetexchange.AssetExchange;
+import brs.common.AbstractUnitTest;
+import brs.common.QuickMocker;
+import brs.common.QuickMocker.MockParam;
+import brs.db.BurstIterator;
+import brs.services.ParameterService;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import org.junit.Before;
+import org.junit.Test;
+
+import javax.servlet.http.HttpServletRequest;
+
 import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
 import static brs.http.common.ResultFields.BID_ORDERS_RESPONSE;
@@ -10,20 +26,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import brs.Asset;
-import brs.BurstException;
-import brs.Order.Bid;
-import brs.assetexchange.AssetExchange;
-import brs.common.AbstractUnitTest;
-import brs.common.QuickMocker;
-import brs.common.QuickMocker.MockParam;
-import brs.db.BurstIterator;
-import brs.services.ParameterService;
-import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
+;
 
 public class GetBidOrdersTest extends AbstractUnitTest {
 
@@ -63,14 +66,14 @@ public class GetBidOrdersTest extends AbstractUnitTest {
     when(mockParameterService.getAsset(req)).thenReturn(mockAsset);
     when(mockAssetExchange.getSortedBidOrders(eq(assetId), eq(firstIndex), eq(lastIndex))).thenReturn(mockBidIterator);
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
     assertNotNull(result);
 
-    final JSONArray resultBidOrdersList = (JSONArray) result.get(BID_ORDERS_RESPONSE);
+    final JsonArray resultBidOrdersList = (JsonArray) result.get(BID_ORDERS_RESPONSE);
     assertNotNull(resultBidOrdersList);
     assertEquals(1, resultBidOrdersList.size());
 
-    final JSONObject resultBidOrder = (JSONObject) resultBidOrdersList.get(0);
+    final JsonObject resultBidOrder = (JsonObject) resultBidOrdersList.get(0);
     assertNotNull(resultBidOrder);
 
     assertEquals("" + mockOrderId, resultBidOrder.get(ORDER_RESPONSE));

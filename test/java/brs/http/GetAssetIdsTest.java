@@ -1,5 +1,19 @@
 package brs.http;
 
+import brs.Asset;
+import brs.assetexchange.AssetExchange;
+import brs.common.AbstractUnitTest;
+import brs.common.QuickMocker;
+import brs.common.QuickMocker.MockParam;
+import brs.db.BurstIterator;
+import brs.util.JSON;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import org.junit.Before;
+import org.junit.Test;
+
+import javax.servlet.http.HttpServletRequest;
+
 import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
 import static brs.http.common.ResultFields.ASSET_IDS_RESPONSE;
@@ -9,17 +23,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import brs.Asset;
-import brs.assetexchange.AssetExchange;
-import brs.common.AbstractUnitTest;
-import brs.common.QuickMocker;
-import brs.common.QuickMocker.MockParam;
-import brs.db.BurstIterator;
-import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
+;
 
 public class GetAssetIdsTest extends AbstractUnitTest {
 
@@ -52,15 +56,15 @@ public class GetAssetIdsTest extends AbstractUnitTest {
         new MockParam(LAST_INDEX_PARAMETER, lastIndex)
     );
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
 
     assertNotNull(result);
 
-    final JSONArray resultAssetIds = (JSONArray) result.get(ASSET_IDS_RESPONSE);
+    final JsonArray resultAssetIds = (JsonArray) result.get(ASSET_IDS_RESPONSE);
     assertNotNull(resultAssetIds);
     assertEquals(1, resultAssetIds.size());
 
-    final String resultAssetId = (String) resultAssetIds.get(0);
+    final String resultAssetId = JSON.getAsString(resultAssetIds.get(0));
     assertEquals("5", resultAssetId);
   }
 

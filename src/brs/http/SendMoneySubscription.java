@@ -2,14 +2,16 @@ package brs.http;
 
 import brs.*;
 import brs.services.ParameterService;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.ERROR_CODE_RESPONSE;
 import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
+
+;
 
 final class SendMoneySubscription extends CreateTransaction {
 
@@ -23,7 +25,7 @@ final class SendMoneySubscription extends CreateTransaction {
   }
 	
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
     Account sender = parameterService.getSenderAccount(req);
     Long recipient = ParameterParser.getRecipientId(req);
     long amountNQT = ParameterParser.getAmountNQT(req);
@@ -33,17 +35,17 @@ final class SendMoneySubscription extends CreateTransaction {
       frequency = Integer.parseInt(req.getParameter(FREQUENCY_PARAMETER));
     }
     catch(Exception e) {
-      JSONObject response = new JSONObject();
-      response.put(ERROR_CODE_RESPONSE, 4);
-      response.put(ERROR_DESCRIPTION_RESPONSE, "Invalid or missing frequency parameter");
+      JsonObject response = new JsonObject();
+      response.addProperty(ERROR_CODE_RESPONSE, 4);
+      response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Invalid or missing frequency parameter");
       return response;
     }
 		
     if(frequency < Constants.BURST_SUBSCRIPTION_MIN_FREQ ||
        frequency > Constants.BURST_SUBSCRIPTION_MAX_FREQ) {
-      JSONObject response = new JSONObject();
-      response.put(ERROR_CODE_RESPONSE, 4);
-      response.put(ERROR_DESCRIPTION_RESPONSE, "Invalid frequency amount");
+      JsonObject response = new JsonObject();
+      response.addProperty(ERROR_CODE_RESPONSE, 4);
+      response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Invalid frequency amount");
       return response;
     }
 		

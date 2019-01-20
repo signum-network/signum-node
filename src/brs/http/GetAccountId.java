@@ -3,8 +3,8 @@ package brs.http;
 import brs.Account;
 import brs.crypto.Crypto;
 import brs.util.Convert;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -13,6 +13,8 @@ import static brs.http.common.Parameters.PUBLIC_KEY_PARAMETER;
 import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
 import static brs.http.common.ResultFields.ACCOUNT_RESPONSE;
 import static brs.http.common.ResultFields.PUBLIC_KEY_RESPONSE;
+
+;
 
 public final class GetAccountId extends APIServlet.APIRequestHandler {
 
@@ -23,7 +25,7 @@ public final class GetAccountId extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) {
+  JsonElement processRequest(HttpServletRequest req) {
 
     long accountId;
     String secretPhrase = Convert.emptyToNull(req.getParameter(SECRET_PHRASE_PARAMETER));
@@ -38,9 +40,9 @@ public final class GetAccountId extends APIServlet.APIRequestHandler {
       return MISSING_SECRET_PHRASE_OR_PUBLIC_KEY;
     }
 
-    JSONObject response = new JSONObject();
+    JsonObject response = new JsonObject();
     JSONData.putAccount(response, ACCOUNT_RESPONSE, accountId);
-    response.put(PUBLIC_KEY_RESPONSE, publicKeyString);
+    response.addProperty(PUBLIC_KEY_RESPONSE, publicKeyString);
 
     return response;
   }

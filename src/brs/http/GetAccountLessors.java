@@ -4,15 +4,18 @@ import brs.Account;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.services.ParameterService;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.HEIGHT_PARAMETER;
 import static brs.http.common.ResultFields.*;
+
+;
+;
 
 public final class GetAccountLessors extends APIServlet.APIRequestHandler {
 
@@ -26,7 +29,7 @@ public final class GetAccountLessors extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
 
     Account account = parameterService.getAccount(req);
     int height = parameterService.getHeight(req);
@@ -34,23 +37,23 @@ public final class GetAccountLessors extends APIServlet.APIRequestHandler {
       height = blockchain.getHeight();
     }
 
-    JSONObject response = new JSONObject();
+    JsonObject response = new JsonObject();
     JSONData.putAccount(response, ACCOUNT_RESPONSE, account.getId());
-    response.put(HEIGHT_RESPONSE, height);
-    JSONArray lessorsJSON = new JSONArray();
+    response.addProperty(HEIGHT_RESPONSE, height);
+    JsonArray lessorsJSON = new JsonArray();
 
     /*try (DbIterator<Account> lessors = account.getLessors(height)) {
       if (lessors.hasNext()) {
       while (lessors.hasNext()) {
       Account lessor = lessors.next();
-      JSONObject lessorJSON = new JSONObject();
+      JsonObject lessorJSON = new JsonObject();
       JSONData.putAccount(lessorJSON, "lessor", lessor.getId());
       lessorJSON.put("guaranteedBalanceNQT", String.valueOf(account.getGuaranteedBalanceNQT(1440, height)));
       lessorsJSON.add(lessorJSON);
       }
       }
       }*/
-    response.put(LESSORS_RESPONSE, lessorsJSON);
+    response.add(LESSORS_RESPONSE, lessorsJSON);
     return response;
 
   }

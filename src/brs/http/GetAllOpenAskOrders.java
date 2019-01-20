@@ -3,15 +3,18 @@ package brs.http;
 import brs.Order;
 import brs.assetexchange.AssetExchange;
 import brs.db.BurstIterator;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
 import static brs.http.common.ResultFields.OPEN_ORDERS_RESPONSE;
+
+;
+;
 
 public final class GetAllOpenAskOrders extends APIServlet.APIRequestHandler {
 
@@ -23,10 +26,10 @@ public final class GetAllOpenAskOrders extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) {
+  JsonElement processRequest(HttpServletRequest req) {
 
-    JSONObject response = new JSONObject();
-    JSONArray ordersData = new JSONArray();
+    JsonObject response = new JsonObject();
+    JsonArray ordersData = new JsonArray();
 
     int firstIndex = ParameterParser.getFirstIndex(req);
     int lastIndex = ParameterParser.getLastIndex(req);
@@ -37,7 +40,7 @@ public final class GetAllOpenAskOrders extends APIServlet.APIRequestHandler {
       }
     }
 
-    response.put(OPEN_ORDERS_RESPONSE, ordersData);
+    response.add(OPEN_ORDERS_RESPONSE, ordersData);
     return response;
   }
 

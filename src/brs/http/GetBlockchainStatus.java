@@ -6,12 +6,14 @@ import brs.BlockchainProcessor;
 import brs.Burst;
 import brs.peer.Peer;
 import brs.services.TimeService;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.ResultFields.TIME_RESPONSE;
+
+;
 
 final class GetBlockchainStatus extends APIServlet.APIRequestHandler {
 
@@ -27,19 +29,19 @@ final class GetBlockchainStatus extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) {
-    JSONObject response = new JSONObject();
-    response.put("application", Burst.APPLICATION);
-    response.put("version", Burst.VERSION.toString());
-    response.put(TIME_RESPONSE, timeService.getEpochTime());
+  JsonElement processRequest(HttpServletRequest req) {
+    JsonObject response = new JsonObject();
+    response.addProperty("application", Burst.APPLICATION);
+    response.addProperty("version", Burst.VERSION.toString());
+    response.addProperty(TIME_RESPONSE, timeService.getEpochTime());
     Block lastBlock = blockchain.getLastBlock();
-    response.put("lastBlock", lastBlock.getStringId());
-    response.put("cumulativeDifficulty", lastBlock.getCumulativeDifficulty().toString());
-    response.put("numberOfBlocks", lastBlock.getHeight() + 1);
+    response.addProperty("lastBlock", lastBlock.getStringId());
+    response.addProperty("cumulativeDifficulty", lastBlock.getCumulativeDifficulty().toString());
+    response.addProperty("numberOfBlocks", lastBlock.getHeight() + 1);
     Peer lastBlockchainFeeder = blockchainProcessor.getLastBlockchainFeeder();
-    response.put("lastBlockchainFeeder", lastBlockchainFeeder == null ? null : lastBlockchainFeeder.getAnnouncedAddress());
-    response.put("lastBlockchainFeederHeight", blockchainProcessor.getLastBlockchainFeederHeight());
-    response.put("isScanning", blockchainProcessor.isScanning());
+    response.addProperty("lastBlockchainFeeder", lastBlockchainFeeder == null ? null : lastBlockchainFeeder.getAnnouncedAddress());
+    response.addProperty("lastBlockchainFeederHeight", blockchainProcessor.getLastBlockchainFeederHeight());
+    response.addProperty("isScanning", blockchainProcessor.isScanning());
     return response;
   }
 

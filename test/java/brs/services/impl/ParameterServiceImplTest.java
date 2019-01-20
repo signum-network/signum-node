@@ -1,44 +1,7 @@
 package brs.services.impl;
 
-import static brs.common.TestConstants.TEST_SECRET_PHRASE;
-import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
-import static brs.http.common.Parameters.ALIAS_NAME_PARAMETER;
-import static brs.http.common.Parameters.ALIAS_PARAMETER;
-import static brs.http.common.Parameters.ASSET_PARAMETER;
-import static brs.http.common.Parameters.AT_PARAMETER;
-import static brs.http.common.Parameters.ENCRYPTED_MESSAGE_DATA_PARAMETER;
-import static brs.http.common.Parameters.ENCRYPTED_MESSAGE_NONCE_PARAMETER;
-import static brs.http.common.Parameters.ENCRYPT_TO_SELF_MESSAGE_DATA;
-import static brs.http.common.Parameters.ENCRYPT_TO_SELF_MESSAGE_NONCE;
-import static brs.http.common.Parameters.GOODS_PARAMETER;
-import static brs.http.common.Parameters.HEIGHT_PARAMETER;
-import static brs.http.common.Parameters.MESSAGE_TO_ENCRYPT_IS_TEXT_PARAMETER;
-import static brs.http.common.Parameters.MESSAGE_TO_ENCRYPT_PARAMETER;
-import static brs.http.common.Parameters.MESSAGE_TO_ENCRYPT_TO_SELF_IS_TEXT_PARAMETER;
-import static brs.http.common.Parameters.MESSAGE_TO_ENCRYPT_TO_SELF_PARAMETER;
-import static brs.http.common.Parameters.NUMBER_OF_CONFIRMATIONS_PARAMETER;
-import static brs.http.common.Parameters.PUBLIC_KEY_PARAMETER;
-import static brs.http.common.Parameters.PURCHASE_PARAMETER;
-import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
-
-import brs.AT;
-import brs.Account;
-import brs.Alias;
-import brs.Asset;
-import brs.Blockchain;
-import brs.BlockchainProcessor;
-import brs.BurstException;
+import brs.*;
 import brs.BurstException.ValidationException;
-import brs.DigitalGoodsStore;
-import brs.Transaction;
-import brs.TransactionProcessor;
 import brs.assetexchange.AssetExchange;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
@@ -50,11 +13,20 @@ import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.DGSGoodsStoreService;
 import brs.util.Convert;
-import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+
+import static brs.common.TestConstants.TEST_SECRET_PHRASE;
+import static brs.http.common.Parameters.*;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 public class ParameterServiceImplTest {
 
@@ -682,21 +654,21 @@ public class ParameterServiceImplTest {
   public void parseTransaction_transactionJSON() throws ValidationException, ParameterException {
     final Transaction mockTransaction = mock(Transaction.class);
 
-    when(transactionProcessorMock.parseTransaction(any(JSONObject.class))).thenReturn(mockTransaction);
+    when(transactionProcessorMock.parseTransaction(any(JsonObject.class))).thenReturn(mockTransaction);
 
     assertEquals(mockTransaction, t.parseTransaction(null, "{}"));
   }
 
   @Test(expected = ParameterException.class)
   public void parseTransaction_transactionJSON_validationExceptionOccurs() throws ParameterException, ValidationException {
-    when(transactionProcessorMock.parseTransaction(any(JSONObject.class))).thenThrow(new BurstException.NotValidException(""));
+    when(transactionProcessorMock.parseTransaction(any(JsonObject.class))).thenThrow(new BurstException.NotValidException(""));
 
     t.parseTransaction(null, "{}");
   }
 
   @Test(expected = ParameterException.class)
   public void parseTransaction_transactionJSON_runTimeExceptionOccurs() throws ParameterException, ValidationException {
-    when(transactionProcessorMock.parseTransaction(any(JSONObject.class))).thenThrow(new RuntimeException());
+    when(transactionProcessorMock.parseTransaction(any(JsonObject.class))).thenThrow(new RuntimeException());
 
     t.parseTransaction(null, "{}");
   }

@@ -1,5 +1,21 @@
 package brs.http;
 
+import brs.*;
+import brs.Escrow.DecisionType;
+import brs.common.QuickMocker;
+import brs.common.QuickMocker.MockParam;
+import brs.fluxcapacitor.FluxCapacitor;
+import brs.services.EscrowService;
+import brs.services.ParameterService;
+import com.google.gson.JsonObject;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import javax.servlet.http.HttpServletRequest;
+
 import static brs.TransactionType.AdvancedPayment.ESCROW_SIGN;
 import static brs.fluxcapacitor.FeatureToggle.DIGITAL_GOODS_STORE;
 import static brs.http.common.Parameters.DECISION_PARAMETER;
@@ -11,26 +27,6 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
-
-import brs.Account;
-import brs.Attachment;
-import brs.Blockchain;
-import brs.Burst;
-import brs.BurstException;
-import brs.Escrow;
-import brs.Escrow.DecisionType;
-import brs.common.QuickMocker;
-import brs.common.QuickMocker.MockParam;
-import brs.fluxcapacitor.FluxCapacitor;
-import brs.services.EscrowService;
-import brs.services.ParameterService;
-import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Burst.class)
@@ -157,7 +153,7 @@ public class EscrowSignTest extends AbstractTransactionTest {
         new MockParam(ESCROW_PARAMETER, "NotANumber")
     );
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
 
     assertEquals(3, result.get(ERROR_CODE_RESPONSE));
   }
@@ -172,7 +168,7 @@ public class EscrowSignTest extends AbstractTransactionTest {
 
     when(escrowServiceMock.getEscrowTransaction(eq(escrowId))).thenReturn(null);
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
 
     assertEquals(5, result.get(ERROR_CODE_RESPONSE));
   }
@@ -190,7 +186,7 @@ public class EscrowSignTest extends AbstractTransactionTest {
 
     when(escrowServiceMock.getEscrowTransaction(eq(escrowId))).thenReturn(escrow);
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
 
     assertEquals(5, result.get(ERROR_CODE_RESPONSE));
   }
@@ -217,7 +213,7 @@ public class EscrowSignTest extends AbstractTransactionTest {
     when(escrowServiceMock.getEscrowTransaction(eq(escrowId))).thenReturn(escrow);
     when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(sender);
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
 
     assertEquals(5, result.get(ERROR_CODE_RESPONSE));
   }
@@ -241,7 +237,7 @@ public class EscrowSignTest extends AbstractTransactionTest {
     when(escrowServiceMock.getEscrowTransaction(eq(escrowId))).thenReturn(escrow);
     when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(sender);
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
 
     assertEquals(4, result.get(ERROR_CODE_RESPONSE));
   }
@@ -265,7 +261,7 @@ public class EscrowSignTest extends AbstractTransactionTest {
     when(escrowServiceMock.getEscrowTransaction(eq(escrowId))).thenReturn(escrow);
     when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(sender);
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
 
     assertEquals(4, result.get(ERROR_CODE_RESPONSE));
   }

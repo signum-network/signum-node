@@ -1,20 +1,19 @@
 package brs.common;
 
-import static brs.http.common.Parameters.DEADLINE_PARAMETER;
-import static brs.http.common.Parameters.FEE_NQT_PARAMETER;
-import static brs.http.common.Parameters.PUBLIC_KEY_PARAMETER;
-import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import brs.fluxcapacitor.FeatureToggle;
 import brs.fluxcapacitor.FluxCapacitor;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONObject;
+
+import static brs.http.common.Parameters.*;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class QuickMocker {
 
@@ -49,8 +48,8 @@ public class QuickMocker {
     return httpServletRequest(paramsWithKeys.toArray(new MockParam[paramsWithKeys.size()]));
   }
 
-  public static JSONObject jsonObject(JSONParam... parameters) {
-    final JSONObject mockedRequest = mock(JSONObject.class);
+  public static JsonObject jsonObject(JSONParam... parameters) {
+    final JsonObject mockedRequest = mock(JsonObject.class);
 
     for (JSONParam mp : parameters) {
       when(mockedRequest.get(mp.key)).thenReturn(mp.value);
@@ -85,9 +84,9 @@ public class QuickMocker {
   public static class JSONParam {
 
     private final String key;
-    private final Object value;
+    private final JsonElement value;
 
-    public JSONParam(String key, Object value) {
+    public JSONParam(String key, JsonElement value) {
       this.key = key;
       this.value = value;
     }

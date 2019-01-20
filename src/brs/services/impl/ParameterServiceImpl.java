@@ -8,9 +8,8 @@ import brs.http.ParameterException;
 import brs.http.common.Parameters;
 import brs.services.*;
 import brs.util.Convert;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
-import org.json.simple.parser.ParseException;
+import brs.util.JSON;
+import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -305,20 +304,20 @@ public class ParameterServiceImpl implements ParameterService {
         return transactionProcessor.parseTransaction(bytes);
       } catch (BurstException.ValidationException | RuntimeException e) {
         logger.debug(e.getMessage(), e);
-        JSONObject response = new JSONObject();
-        response.put(ERROR_CODE_RESPONSE, 4);
-        response.put(ERROR_DESCRIPTION_RESPONSE, "Incorrect transactionBytes: " + e.toString());
+        JsonObject response = new JsonObject();
+        response.addProperty(ERROR_CODE_RESPONSE, 4);
+        response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Incorrect transactionBytes: " + e.toString());
         throw new ParameterException(response);
       }
     } else {
       try {
-        JSONObject json = (JSONObject) JSONValue.parseWithException(transactionJSON);
+        JsonObject json = JSON.getAsJsonObject(JSON.parse(transactionJSON));
         return transactionProcessor.parseTransaction(json);
-      } catch (BurstException.ValidationException | RuntimeException | ParseException e) {
+      } catch (BurstException.ValidationException | RuntimeException e) {
         logger.debug(e.getMessage(), e);
-        JSONObject response = new JSONObject();
-        response.put(ERROR_CODE_RESPONSE, 4);
-        response.put(ERROR_DESCRIPTION_RESPONSE, "Incorrect transactionJSON: " + e.toString());
+        JsonObject response = new JsonObject();
+        response.addProperty(ERROR_CODE_RESPONSE, 4);
+        response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Incorrect transactionJSON: " + e.toString());
         throw new ParameterException(response);
       }
     }

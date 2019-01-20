@@ -6,14 +6,17 @@ import brs.db.BurstIterator;
 import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.util.Convert;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.ACCOUNTS_RESPONSE;
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
+
+;
+;
 
 public final class GetAccountsWithRewardRecipient extends APIServlet.APIRequestHandler {
 
@@ -27,12 +30,12 @@ public final class GetAccountsWithRewardRecipient extends APIServlet.APIRequestH
   }
 	
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
-    JSONObject response = new JSONObject();
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
+    JsonObject response = new JsonObject();
 		
     Account targetAccount = parameterService.getAccount(req);
 
-    JSONArray accounts = new JSONArray();
+    JsonArray accounts = new JsonArray();
 
     BurstIterator<Account.RewardRecipientAssignment> assignments = accountService.getAccountsWithRewardRecipient(targetAccount.getId());
     while(assignments.hasNext()) {
@@ -43,7 +46,7 @@ public final class GetAccountsWithRewardRecipient extends APIServlet.APIRequestH
       accounts.add(Convert.toUnsignedLong(targetAccount.getId()));
     }
 		
-    response.put(ACCOUNTS_RESPONSE, accounts);
+    response.add(ACCOUNTS_RESPONSE, accounts);
 		
     return response;
   }

@@ -1,15 +1,5 @@
 package brs.http;
 
-import static brs.http.JSONResponses.MISSING_SELLER;
-import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
-import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
-import static brs.http.common.Parameters.SELLER_PARAMETER;
-import static brs.http.common.ResultFields.PURCHASES_RESPONSE;
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import brs.BurstException;
 import brs.DigitalGoodsStore.Purchase;
 import brs.common.AbstractUnitTest;
@@ -17,11 +7,23 @@ import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
 import brs.services.DGSGoodsStoreService;
-import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
+
+import javax.servlet.http.HttpServletRequest;
+
+import static brs.http.JSONResponses.MISSING_SELLER;
+import static brs.http.common.Parameters.*;
+import static brs.http.common.ResultFields.PURCHASES_RESPONSE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+;
 
 public class GetDGSPendingPurchasesTest extends AbstractUnitTest {
 
@@ -53,10 +55,10 @@ public class GetDGSPendingPurchasesTest extends AbstractUnitTest {
     final BurstIterator<Purchase> mockPurchaseIterator = mockBurstIterator(mockPurchase);
     when(mockDGSGoodStoreService.getPendingSellerPurchases(eq(sellerId), eq(firstIndex), eq(lastIndex))).thenReturn(mockPurchaseIterator);
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
     assertNotNull(result);
 
-    final JSONArray resultPurchases = (JSONArray) result.get(PURCHASES_RESPONSE);
+    final JsonArray resultPurchases = (JsonArray) result.get(PURCHASES_RESPONSE);
 
     assertNotNull(resultPurchases);
     assertEquals(1, resultPurchases.size());

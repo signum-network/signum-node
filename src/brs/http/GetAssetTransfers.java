@@ -11,14 +11,17 @@ import brs.http.common.Parameters;
 import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.util.Convert;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.TRANSFERS_RESPONSE;
+
+;
+;
 
 public final class GetAssetTransfers extends APIServlet.APIRequestHandler {
 
@@ -34,7 +37,7 @@ public final class GetAssetTransfers extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
 
     String assetId = Convert.emptyToNull(req.getParameter(ASSET_PARAMETER));
     String accountId = Convert.emptyToNull(req.getParameter(ACCOUNT_PARAMETER));
@@ -43,8 +46,8 @@ public final class GetAssetTransfers extends APIServlet.APIRequestHandler {
     int lastIndex = ParameterParser.getLastIndex(req);
     boolean includeAssetInfo = !Parameters.isFalse(req.getParameter(INCLUDE_ASSET_INFO_PARAMETER));
 
-    JSONObject response = new JSONObject();
-    JSONArray transfersData = new JSONArray();
+    JsonObject response = new JsonObject();
+    JsonArray transfersData = new JsonArray();
     BurstIterator<AssetTransfer> transfers = null;
     try {
       if (accountId == null) {
@@ -68,7 +71,7 @@ public final class GetAssetTransfers extends APIServlet.APIRequestHandler {
       DbUtils.close(transfers);
     }
 
-    response.put(TRANSFERS_RESPONSE, transfersData);
+    response.add(TRANSFERS_RESPONSE, transfersData);
 
     return response;
   }

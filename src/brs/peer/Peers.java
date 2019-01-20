@@ -9,6 +9,9 @@ import brs.util.JSON;
 import brs.util.Listener;
 import brs.util.Listeners;
 import brs.util.ThreadPool;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.bitlet.weupnp.GatewayDevice;
 import org.bitlet.weupnp.GatewayDiscover;
 import org.bitlet.weupnp.PortMappingEntry;
@@ -20,9 +23,6 @@ import org.eclipse.jetty.servlet.FilterMapping;
 import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.DoSFilter;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -44,6 +44,9 @@ import static brs.peer.PeerImpl.isHigherOrEqualVersion;
 import static brs.props.Props.P2P_ENABLE_TX_REBROADCAST;
 import static brs.props.Props.P2P_SEND_TO_LIMIT;
 import static brs.util.JSON.prepareRequest;
+
+;
+;
 
 public final class Peers {
 
@@ -103,10 +106,10 @@ public final class Peers {
   private static String dumpPeersVersion;
   private static int lastSavedPeers;
 
-  static JSONStreamAware myPeerInfoRequest;
-  static JSONStreamAware myPeerInfoRequestBackwardsCompatible;
-  static JSONStreamAware myPeerInfoResponse;
-  static JSONStreamAware myPeerInfoResponseBackwardsCompatible;
+  static JsonElement myPeerInfoRequest;
+  static JsonElement myPeerInfoRequestBackwardsCompatible;
+  static JsonElement myPeerInfoResponse;
+  static JsonElement myPeerInfoResponseBackwardsCompatible;
 
   private static final Listeners<Peer,Event> listeners = new Listeners<>();
 
@@ -153,7 +156,7 @@ public final class Peers {
     useUpnp = propertyService.getBoolean(Props.P2P_UPNP);
     shareMyAddress = propertyService.getBoolean(Props.P2P_SHARE_MY_ADDRESS) && ! Burst.getPropertyService().getBoolean(Props.DEV_OFFLINE);
 
-    JSONObject json = new JSONObject();
+    JsonObject json = new JsonObject();
     if (myAddress != null && ! myAddress.isEmpty()) {
       try {
         URI uri = new URI("http://" + myAddress.trim());
@@ -161,14 +164,14 @@ public final class Peers {
         int port = uri.getPort();
         if (!Burst.getPropertyService().getBoolean(Props.DEV_TESTNET)) {
           if (port >= 0) {
-            json.put("announcedAddress", myAddress);
+            json.addProperty("announcedAddress", myAddress);
           }
           else {
-            json.put("announcedAddress", host + (myPeerServerPort != DEFAULT_PEER_PORT ? ":" + myPeerServerPort : ""));
+            json.addProperty("announcedAddress", host + (myPeerServerPort != DEFAULT_PEER_PORT ? ":" + myPeerServerPort : ""));
           }
         }
         else {
-          json.put("announcedAddress", host);
+          json.addProperty("announcedAddress", host);
         }
       }
       catch (URISyntaxException e) {
@@ -177,16 +180,16 @@ public final class Peers {
       }
     }
 
-    json.put("application",  Burst.APPLICATION);
-    json.put("version",      Burst.VERSION.toBackwardsCompatibleString());
-    json.put("platform",     Peers.myPlatform);
-    json.put("shareAddress", Peers.shareMyAddress);
-    logger.debug("My peer info:\n" + json.toJSONString());
-    myPeerInfoResponseBackwardsCompatible = JSON.prepare(json);
-    json.put("requestType", "getInfo");
-    myPeerInfoRequestBackwardsCompatible = prepareRequest(json);
-    json.put("version", Burst.VERSION.toString());
-    myPeerInfoResponse = JSON.prepare(json);
+    json.addProperty("application",  Burst.APPLICATION);
+    json.addProperty("version",      Burst.VERSION.toBackwardsCompatibleString());
+    json.addProperty("platform",     Peers.myPlatform);
+    json.addProperty("shareAddress", Peers.shareMyAddress);
+    logger.debug("My peer info:\n" + JSON.toJsonString(json));
+    myPeerInfoResponseBackwardsCompatible = JSON.cloneJson(json);
+    json.addProperty("requestType", "getInfo");
+    myPeerInfoRequestBackwardsCompatible = prepareRequest(JSON.getAsJsonObject(JSON.cloneJson(json)));
+    json.addProperty("version", Burst.VERSION.toString());
+    myPeerInfoResponse = json;
     myPeerInfoRequest = prepareRequest(json);
 
 
@@ -526,10 +529,10 @@ public final class Peers {
 
   private static final Runnable getMorePeersThread = new Runnable() {
 
-      private final JSONStreamAware getPeersRequest;
+      private final JsonElement getPeersRequest;
       {
-        JSONObject request = new JSONObject();
-        request.put("requestType", "getPeers");
+        JsonObject request = new JsonObject();
+        request.addProperty("requestType", "getPeers");
         getPeersRequest = prepareRequest(request);
       }
 
@@ -559,16 +562,16 @@ public final class Peers {
             if (peer == null) {
               return;
             }
-            JSONObject response = peer.send(getPeersRequest);
+            JsonObject response = peer.send(getPeersRequest);
             if (response == null) {
               return;
             }
-            JSONArray peers = (JSONArray)response.get("peers");
+            JsonArray peers = JSON.getAsJsonArray(response.get("peers"));
             Set<String> addedAddresses = new HashSet<>();
             if (peers != null) {
-              for (Object announcedAddress : peers) {
-                if (addPeer((String) announcedAddress) != null) {
-                  addedAddresses.add((String) announcedAddress);
+              for (JsonElement announcedAddress : peers) {
+                if (addPeer(JSON.getAsString(announcedAddress)) != null) {
+                  addedAddresses.add(JSON.getAsString(announcedAddress));
                 }
               }
               if (savePeers && addedNewPeer) {
@@ -576,7 +579,7 @@ public final class Peers {
               }
             }
 
-            JSONArray myPeers = new JSONArray();
+            JsonArray myPeers = new JsonArray();
             for (Peer myPeer : Peers.getAllPeers()) {
               if (! myPeer.isBlacklisted() && myPeer.getAnnouncedAddress() != null
                   && myPeer.getState() == Peer.State.CONNECTED && myPeer.shareAddress()
@@ -593,9 +596,9 @@ public final class Peers {
             }
 
             if (myPeers.size() > 0) {
-              JSONObject request = new JSONObject();
-              request.put("requestType", "addPeers");
-              request.put("peers", myPeers);
+              JsonObject request = new JsonObject();
+              request.addProperty("requestType", "addPeers");
+              request.add("peers", myPeers);
               peer.send(prepareRequest(request));
             }
 
@@ -769,24 +772,24 @@ public final class Peers {
   }
 
   public static void sendToSomePeers(Block block) {
-    JSONObject request = block.getJSONObject();
-    request.put("requestType", "processBlock");
+    JsonObject request = block.getJsonObject();
+    request.addProperty("requestType", "processBlock");
 
     blocksSendingService.submit(() -> {
-      final JSONStreamAware jsonRequest = prepareRequest(request);
+      final JsonElement jsonRequest = prepareRequest(request);
 
       int successful = 0;
-      List<Future<JSONObject>> expectedResponses = new ArrayList<>();
+      List<Future<JsonObject>> expectedResponses = new ArrayList<>();
       for (final Peer peer : peers.values()) {
 
         if (peerEligibleForSending(peer, false)) {
-          Future<JSONObject> futureResponse = sendBlocksToPeersService.submit(() -> peer.send(jsonRequest));
+          Future<JsonObject> futureResponse = sendBlocksToPeersService.submit(() -> peer.send(jsonRequest));
           expectedResponses.add(futureResponse);
         }
         if (expectedResponses.size() >= Peers.sendToPeersLimit - successful) {
-          for (Future<JSONObject> future : expectedResponses) {
+          for (Future<JsonObject> future : expectedResponses) {
             try {
-              JSONObject response = future.get();
+              JsonObject response = future.get();
               if (response != null && response.get("error") == null) {
                 successful += 1;
               }
@@ -806,16 +809,16 @@ public final class Peers {
     });
   }
 
-  private static final JSONStreamAware getUnconfirmedTransactionsRequest;
+  private static final JsonElement getUnconfirmedTransactionsRequest;
   static {
-    JSONObject request = new JSONObject();
-    request.put("requestType", "getUnconfirmedTransactions");
+    JsonObject request = new JsonObject();
+    request.addProperty("requestType", "getUnconfirmedTransactions");
     getUnconfirmedTransactionsRequest = prepareRequest(request);
   }
 
   private static final ExecutorService utReceivingService = Executors.newCachedThreadPool();
 
-  public static CompletableFuture<JSONObject> readUnconfirmedTransactionsNonBlocking(Peer peer) {
+  public static CompletableFuture<JsonObject> readUnconfirmedTransactionsNonBlocking(Peer peer) {
     return CompletableFuture.supplyAsync(() -> peer.send(getUnconfirmedTransactionsRequest), utReceivingService);
   }
 
@@ -838,7 +841,7 @@ public final class Peers {
 
     if(! transactionsToSend.isEmpty()) {
       logger.trace("Feeding {} {} transactions", peer.getPeerAddress(), transactionsToSend.size());
-      JSONObject response = peer.send(sendUnconfirmedTransactionsRequest(transactionsToSend));
+      JsonObject response = peer.send(sendUnconfirmedTransactionsRequest(transactionsToSend));
 
       if(response != null && response.get("error") == null) {
         doneFeedingLog.accept(peer, transactionsToSend);
@@ -858,16 +861,16 @@ public final class Peers {
     }
   }
 
-  private static JSONStreamAware sendUnconfirmedTransactionsRequest(List<Transaction> transactions) {
-    JSONObject request = new JSONObject();
-    JSONArray transactionsData = new JSONArray();
+  private static JsonElement sendUnconfirmedTransactionsRequest(List<Transaction> transactions) {
+    JsonObject request = new JsonObject();
+    JsonArray transactionsData = new JsonArray();
 
     for (Transaction transaction : transactions) {
-      transactionsData.add(transaction.getJSONObject());
+      transactionsData.add(transaction.getJsonObject());
     }
 
-    request.put("requestType", "processTransactions");
-    request.put("transactions", transactionsData);
+    request.addProperty("requestType", "processTransactions");
+    request.add("transactions", transactionsData);
 
     return prepareRequest(request);
   }

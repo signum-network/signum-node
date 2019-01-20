@@ -5,14 +5,17 @@ import brs.BurstException;
 import brs.db.BurstIterator;
 import brs.services.AccountService;
 import brs.util.Convert;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.ACCOUNTS_RESPONSE;
 import static brs.http.common.Parameters.NAME_PARAMETER;
+
+;
+;
 
 public class GetAccountsWithName extends APIServlet.APIRequestHandler {
 
@@ -24,9 +27,9 @@ public class GetAccountsWithName extends APIServlet.APIRequestHandler {
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest request) throws BurstException {
+    JsonElement processRequest(HttpServletRequest request) throws BurstException {
         BurstIterator<Account> accounts = accountService.getAccountsWithName(request.getParameter(NAME_PARAMETER));
-        JSONArray accountIds = new JSONArray();
+        JsonArray accountIds = new JsonArray();
 
         while (accounts.hasNext()) {
             accountIds.add(Convert.toUnsignedLong(accounts.next().id));
@@ -34,8 +37,8 @@ public class GetAccountsWithName extends APIServlet.APIRequestHandler {
 
         accounts.close();
 
-        JSONObject response = new JSONObject();
-        response.put(ACCOUNTS_RESPONSE, accountIds);
+        JsonObject response = new JsonObject();
+        response.add(ACCOUNTS_RESPONSE, accountIds);
         return response;
     }
 }

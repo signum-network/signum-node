@@ -1,8 +1,9 @@
 package brs;
 
 import brs.peer.Peer;
+import brs.util.JSON;
 import brs.util.Observable;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonObject;
 
 import java.util.List;
 
@@ -23,7 +24,7 @@ public interface BlockchainProcessor extends Observable<Block, BlockchainProcess
 
   int getMinRollbackHeight();
 
-  void processPeerBlock(JSONObject request, Peer peer) throws BurstException;
+  void processPeerBlock(JsonObject request, Peer peer) throws BurstException;
 
   void fullReset();
 
@@ -53,7 +54,7 @@ public interface BlockchainProcessor extends Observable<Block, BlockchainProcess
     private final Transaction transaction;
 
     public TransactionNotAcceptedException(String message, Transaction transaction) {
-      super(message  + " transaction: " + transaction.getJSONObject().toJSONString());
+      super(message  + " transaction: " + JSON.toJsonString(transaction.getJsonObject()));
       this.transaction = transaction;
     }
 

@@ -3,8 +3,8 @@ package brs.http;
 import brs.Subscription;
 import brs.services.SubscriptionService;
 import brs.util.Convert;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -22,24 +22,24 @@ final class GetSubscription extends APIServlet.APIRequestHandler {
   }
 	
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) {
+  JsonElement processRequest(HttpServletRequest req) {
     long subscriptionId;
     try {
       subscriptionId = Convert.parseUnsignedLong(Convert.emptyToNull(req.getParameter(SUBSCRIPTION_PARAMETER)));
     }
     catch(Exception e) {
-      JSONObject response = new JSONObject();
-      response.put(ERROR_CODE_RESPONSE, 3);
-      response.put(ERROR_DESCRIPTION_RESPONSE, "Invalid or not specified subscription");
+      JsonObject response = new JsonObject();
+      response.addProperty(ERROR_CODE_RESPONSE, 3);
+      response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Invalid or not specified subscription");
       return response;
     }
 		
     Subscription subscription = subscriptionService.getSubscription(subscriptionId);
 
     if(subscription == null) {
-      JSONObject response = new JSONObject();
-      response.put(ERROR_CODE_RESPONSE, 5);
-      response.put(ERROR_DESCRIPTION_RESPONSE, "Subscription not found");
+      JsonObject response = new JsonObject();
+      response.addProperty(ERROR_CODE_RESPONSE, 5);
+      response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Subscription not found");
       return response;
     }
 		

@@ -6,8 +6,8 @@ import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -19,6 +19,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+;
 
 public class GetAllOpenAskOrdersTest extends AbstractUnitTest {
 
@@ -49,18 +51,18 @@ public class GetAllOpenAskOrdersTest extends AbstractUnitTest {
     when(mockAssetExchange.getAllAskOrders(eq(firstIndex), eq(lastIndex)))
         .thenReturn(mockIterator);
 
-    final JSONObject result = (JSONObject) t.processRequest(QuickMocker.httpServletRequest(
+    final JsonObject result = (JsonObject) t.processRequest(QuickMocker.httpServletRequest(
         new MockParam(FIRST_INDEX_PARAMETER, "" + firstIndex),
         new MockParam(LAST_INDEX_PARAMETER, "" + lastIndex)
     ));
 
     assertNotNull(result);
-    final JSONArray openOrdersResult = (JSONArray) result.get(OPEN_ORDERS_RESPONSE);
+    final JsonArray openOrdersResult = (JsonArray) result.get(OPEN_ORDERS_RESPONSE);
 
     assertNotNull(openOrdersResult);
     assertEquals(1, openOrdersResult.size());
 
-    final JSONObject openOrderResult = (JSONObject) openOrdersResult.get(0);
+    final JsonObject openOrderResult = (JsonObject) openOrdersResult.get(0);
     assertEquals("" + mockAskOrder.getId(), openOrderResult.get(ORDER_RESPONSE));
     assertEquals("" + mockAskOrder.getAssetId(), openOrderResult.get(ASSET_RESPONSE));
     assertEquals("" + mockAskOrder.getQuantityQNT(), openOrderResult.get(QUANTITY_QNT_RESPONSE));

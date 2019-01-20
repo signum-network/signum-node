@@ -9,8 +9,8 @@ import brs.props.Props;
 import brs.services.*;
 import brs.util.JSON;
 import brs.util.Subnet;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -193,7 +193,7 @@ public final class APIServlet extends HttpServlet {
       return apiTags;
     }
 
-    abstract JSONStreamAware processRequest(HttpServletRequest request) throws BurstException;
+    abstract JsonElement processRequest(HttpServletRequest request) throws BurstException;
 
     final void validateRequest(HttpServletRequest req) throws ParameterException {
       if (acceptSurplusParams) {
@@ -220,12 +220,11 @@ public final class APIServlet extends HttpServlet {
 
     protected abstract void processRequest(HttpServletRequest req, HttpServletResponse resp);
 
-    void addErrorMessage(HttpServletResponse resp, JSONStreamAware msg) throws IOException {
+    void addErrorMessage(HttpServletResponse resp, JsonElement msg) throws IOException {
       try (Writer writer = resp.getWriter()) {
         resp.setContentType("text/plain; charset=UTF-8");
         resp.setStatus(500);
-
-        msg.writeJSONString(writer);
+        JSON.writeTo(msg, writer);
       }
     }
 
@@ -252,7 +251,7 @@ public final class APIServlet extends HttpServlet {
     resp.setHeader("Pragma", "no-cache");
     resp.setDateHeader("Expires", 0);
 
-    JSONStreamAware response = JSON.emptyJSON;
+    JsonElement response = JSON.emptyJSON;
 
     try {
 
@@ -313,15 +312,15 @@ public final class APIServlet extends HttpServlet {
         }
       }
 
-      if (response instanceof JSONObject) {
-        ((JSONObject) response).put("requestProcessingTime", System.currentTimeMillis() - startTime);
+      if (response instanceof JsonObject) {
+        JSON.getAsJsonObject(response).addProperty("requestProcessingTime", System.currentTimeMillis() - startTime);
       }
 
     } finally {
       if(resp.getContentType() == null || resp.getContentType().isEmpty()) {
         resp.setContentType("text/plain; charset=UTF-8");
         try (Writer writer = resp.getWriter()) {
-          response.writeJSONString(writer);
+          JSON.writeTo(response, writer);
         }
       }
     }

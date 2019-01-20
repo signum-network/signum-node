@@ -3,9 +3,9 @@ package brs.http;
 import brs.Transaction;
 import brs.TransactionProcessor;
 import brs.util.Convert;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -13,6 +13,9 @@ import java.util.List;
 import static brs.http.JSONResponses.INCORRECT_ACCOUNT;
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.ResultFields.UNCONFIRMED_TRANSACTIONS_IDS_RESPONSE;
+
+;
+;
 
 final class GetUnconfirmedTransactionIds extends APIServlet.APIRequestHandler {
 
@@ -24,7 +27,7 @@ final class GetUnconfirmedTransactionIds extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) {
+  JsonElement processRequest(HttpServletRequest req) {
     final String accountIdString = Convert.emptyToNull(req.getParameter(ACCOUNT_PARAMETER));
 
     long accountId = 0;
@@ -37,7 +40,7 @@ final class GetUnconfirmedTransactionIds extends APIServlet.APIRequestHandler {
       }
     }
 
-    final JSONArray transactionIds = new JSONArray();
+    final JsonArray transactionIds = new JsonArray();
 
     final List<Transaction> unconfirmedTransactions = transactionProcessor.getAllUnconfirmedTransactions();
 
@@ -48,9 +51,9 @@ final class GetUnconfirmedTransactionIds extends APIServlet.APIRequestHandler {
       transactionIds.add(transaction.getStringId());
     }
 
-    JSONObject response = new JSONObject();
+    JsonObject response = new JsonObject();
 
-    response.put(UNCONFIRMED_TRANSACTIONS_IDS_RESPONSE, transactionIds);
+    response.add(UNCONFIRMED_TRANSACTIONS_IDS_RESPONSE, transactionIds);
 
     return response;
   }

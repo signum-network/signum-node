@@ -6,13 +6,16 @@ import brs.BurstException;
 import brs.assetexchange.AssetExchange;
 import brs.db.BurstIterator;
 import brs.services.ParameterService;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.*;
+
+;
+;
 
 final class GetAssetAccounts extends APIServlet.APIRequestHandler {
 
@@ -26,14 +29,14 @@ final class GetAssetAccounts extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
 
     Asset asset = parameterService.getAsset(req);
     int firstIndex = ParameterParser.getFirstIndex(req);
     int lastIndex = ParameterParser.getLastIndex(req);
     int height = parameterService.getHeight(req);
 
-    JSONArray accountAssets = new JSONArray();
+    JsonArray accountAssets = new JsonArray();
     try (BurstIterator<Account.AccountAsset> iterator = assetExchange.getAccountAssetsOverview(asset.getId(), height, firstIndex, lastIndex)) {
       while (iterator.hasNext()) {
         Account.AccountAsset accountAsset = iterator.next();
@@ -41,8 +44,8 @@ final class GetAssetAccounts extends APIServlet.APIRequestHandler {
       }
     }
 
-    JSONObject response = new JSONObject();
-    response.put("accountAssets", accountAssets);
+    JsonObject response = new JsonObject();
+    response.add("accountAssets", accountAssets);
     return response;
 
   }

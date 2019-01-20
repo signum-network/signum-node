@@ -4,8 +4,10 @@ import brs.crypto.Crypto;
 import brs.fluxcapacitor.FluxInt;
 import brs.peer.Peer;
 import brs.util.Convert;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import brs.util.JSON;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -246,69 +248,62 @@ public class Block {
     return (int) (getId() ^ (getId() >>> 32));
   }
 
-  public JSONObject getJSONObject() {
-    JSONObject json = new JSONObject();
-    json.put("version", version);
-    json.put("timestamp", timestamp);
-    json.put("previousBlock", Convert.toUnsignedLong(previousBlockId));
-    json.put("totalAmountNQT", totalAmountNQT);
-    json.put("totalFeeNQT", totalFeeNQT);
-    json.put("payloadLength", payloadLength);
-    json.put("payloadHash", Convert.toHexString(payloadHash));
-    json.put("generatorPublicKey", Convert.toHexString(generatorPublicKey));
-    json.put("generationSignature", Convert.toHexString(generationSignature));
+  public JsonObject getJsonObject() {
+    JsonObject json = new JsonObject();
+    json.addProperty("version", version);
+    json.addProperty("timestamp", timestamp);
+    json.addProperty("previousBlock", Convert.toUnsignedLong(previousBlockId));
+    json.addProperty("totalAmountNQT", totalAmountNQT);
+    json.addProperty("totalFeeNQT", totalFeeNQT);
+    json.addProperty("payloadLength", payloadLength);
+    json.addProperty("payloadHash", Convert.toHexString(payloadHash));
+    json.addProperty("generatorPublicKey", Convert.toHexString(generatorPublicKey));
+    json.addProperty("generationSignature", Convert.toHexString(generationSignature));
     if (version > 1) {
-      json.put("previousBlockHash", Convert.toHexString(previousBlockHash));
+      json.addProperty("previousBlockHash", Convert.toHexString(previousBlockHash));
     }
-    json.put("blockSignature", Convert.toHexString(blockSignature));
-    JSONArray transactionsData = new JSONArray();
-    getTransactions().forEach(transaction -> transactionsData.add(transaction.getJSONObject()));
-    json.put("transactions", transactionsData);
-    json.put("nonce", Convert.toUnsignedLong(nonce));
-    json.put("blockATs", Convert.toHexString(blockATs));
+    json.addProperty("blockSignature", Convert.toHexString(blockSignature));
+    JsonArray transactionsData = new JsonArray();
+    getTransactions().forEach(transaction -> transactionsData.add(transaction.getJsonObject()));
+    json.add("transactions", transactionsData);
+    json.addProperty("nonce", Convert.toUnsignedLong(nonce));
+    json.addProperty("blockATs", Convert.toHexString(blockATs));
     return json;
   }
 
-  static Block parseBlock(JSONObject blockData, int height) throws BurstException.ValidationException {
+  static Block parseBlock(JsonObject blockData, int height) throws BurstException.ValidationException {
     try {
-      int version = ((Long) blockData.get("version")).intValue();
-      int timestamp = ((Long) blockData.get("timestamp")).intValue();
-      long previousBlock = Convert.parseUnsignedLong((String) blockData.get("previousBlock"));
-      long totalAmountNQT = Convert.parseLong(blockData.get("totalAmountNQT"));
-      long totalFeeNQT = Convert.parseLong(blockData.get("totalFeeNQT"));
-      int payloadLength = ((Long) blockData.get("payloadLength")).intValue();
-      byte[] payloadHash = Convert.parseHexString((String) blockData.get("payloadHash"));
-      byte[] generatorPublicKey =
-          Convert.parseHexString((String) blockData.get("generatorPublicKey"));
-      byte[] generationSignature =
-          Convert.parseHexString((String) blockData.get("generationSignature"));
-      byte[] blockSignature = Convert.parseHexString((String) blockData.get("blockSignature"));
-      byte[] previousBlockHash =
-          version == 1 ? null : Convert.parseHexString((String) blockData.get("previousBlockHash"));
-      long nonce = Convert.parseUnsignedLong((String) blockData.get("nonce"));
+      int version = JSON.getAsInt(blockData.get("version"));
+      int timestamp = JSON.getAsInt(blockData.get("timestamp"));
+      long previousBlock = Convert.parseUnsignedLong(JSON.getAsString(blockData.get("previousBlock")));
+      long totalAmountNQT = JSON.getAsLong(blockData.get("totalAmountNQT"));
+      long totalFeeNQT = JSON.getAsLong(blockData.get("totalFeeNQT"));
+      int payloadLength = JSON.getAsInt(blockData.get("payloadLength"));
+      byte[] payloadHash = Convert.parseHexString(JSON.getAsString(blockData.get("payloadHash")));
+      byte[] generatorPublicKey = Convert.parseHexString(JSON.getAsString(blockData.get("generatorPublicKey")));
+      byte[] generationSignature = Convert.parseHexString(JSON.getAsString(blockData.get("generationSignature")));
+      byte[] blockSignature = Convert.parseHexString(JSON.getAsString(blockData.get("blockSignature")));
+      byte[] previousBlockHash = version == 1 ? null : Convert.parseHexString(JSON.getAsString(blockData.get("previousBlockHash")));
+      long nonce = Convert.parseUnsignedLong(JSON.getAsString(blockData.get("nonce")));
 
       SortedMap<Long, Transaction> blockTransactions = new TreeMap<>();
-      JSONArray transactionsData = (JSONArray) blockData.get("transactions");
+      JsonArray transactionsData = JSON.getAsJsonArray(blockData.get("transactions"));
     
-      for (Object transactionData : transactionsData) {
-        Transaction transaction =
-                    Transaction.parseTransaction((JSONObject) transactionData, height);
+      for (JsonElement transactionData : transactionsData) {
+        Transaction transaction = Transaction.parseTransaction(JSON.getAsJsonObject(transactionData), height);
           if (transaction.getSignature() != null) {
             if (blockTransactions.put(transaction.getId(), transaction) != null) {
-              throw new BurstException.NotValidException(
-                  "Block contains duplicate transactions: " + transaction.getStringId());
+              throw new BurstException.NotValidException("Block contains duplicate transactions: " + transaction.getStringId());
             }
           }
         }
-      
-      
     
-      byte[] blockATs = Convert.parseHexString((String) blockData.get("blockATs"));
+      byte[] blockATs = Convert.parseHexString(JSON.getAsString(blockData.get("blockATs")));
       return new Block(version, timestamp, previousBlock, totalAmountNQT, totalFeeNQT,
           payloadLength, payloadHash, generatorPublicKey, generationSignature, blockSignature,
           previousBlockHash, new ArrayList<>(blockTransactions.values()), nonce, blockATs, height);
     } catch (BurstException.ValidationException | RuntimeException e) {
-      logger.debug("Failed to parse block: " + blockData.toJSONString());
+      logger.debug("Failed to parse block: " + JSON.toJsonString(blockData));
       throw e;
     }
   }

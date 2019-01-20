@@ -4,7 +4,7 @@ import brs.Account;
 import brs.Attachment;
 import brs.Burst;
 import brs.BurstException;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
@@ -42,17 +42,17 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
     this.apiTransactionManager = apiTransactionManager;
   }
 
-  final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, Attachment attachment)
+  final JsonElement createTransaction(HttpServletRequest req, Account senderAccount, Attachment attachment)
     throws BurstException {
     return createTransaction(req, senderAccount, null, 0, attachment);
   }
 
-  final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, Long recipientId, long amountNQT)
+  final JsonElement createTransaction(HttpServletRequest req, Account senderAccount, Long recipientId, long amountNQT)
     throws BurstException {
     return createTransaction(req, senderAccount, recipientId, amountNQT, Attachment.ORDINARY_PAYMENT);
   }
 
-  final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, Long recipientId, long amountNQT, Attachment attachment) throws BurstException {
+  final JsonElement createTransaction(HttpServletRequest req, Account senderAccount, Long recipientId, long amountNQT, Attachment attachment) throws BurstException {
     return apiTransactionManager.createTransaction(req, senderAccount, recipientId, amountNQT, attachment, minimumFeeNQT());
   }
 

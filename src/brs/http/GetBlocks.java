@@ -5,13 +5,16 @@ import brs.Blockchain;
 import brs.db.BurstIterator;
 import brs.http.common.Parameters;
 import brs.services.BlockService;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.*;
+
+;
+;
 
 final class GetBlocks extends APIServlet.APIRequestHandler {
 
@@ -25,7 +28,7 @@ final class GetBlocks extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) {
+  JsonElement processRequest(HttpServletRequest req) {
 
     int firstIndex = ParameterParser.getFirstIndex(req);
     int lastIndex = ParameterParser.getLastIndex(req);
@@ -35,7 +38,7 @@ final class GetBlocks extends APIServlet.APIRequestHandler {
 
     boolean includeTransactions = Parameters.isTrue(req.getParameter(Parameters.INCLUDE_TRANSACTIONS_PARAMETER));
 
-    JSONArray blocks = new JSONArray();
+    JsonArray blocks = new JsonArray();
     try (BurstIterator<? extends Block> iterator = blockchain.getBlocks(firstIndex, lastIndex)) {
       while (iterator.hasNext()) {
         Block block = iterator.next();
@@ -43,8 +46,8 @@ final class GetBlocks extends APIServlet.APIRequestHandler {
       }
     }
 
-    JSONObject response = new JSONObject();
-    response.put("blocks", blocks);
+    JsonObject response = new JsonObject();
+    response.add("blocks", blocks);
 
     return response;
   }

@@ -1,23 +1,20 @@
 package brs.http;
 
-import static brs.http.common.ResultFields.BALANCE_NQT_RESPONSE;
-import static brs.http.common.ResultFields.EFFECTIVE_BALANCE_NQT_RESPONSE;
-import static brs.http.common.ResultFields.FORGED_BALANCE_NQT_RESPONSE;
-import static brs.http.common.ResultFields.GUARANTEED_BALANCE_NQT_RESPONSE;
-import static brs.http.common.ResultFields.UNCONFIRMED_BALANCE_NQT_RESPONSE;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import brs.Account;
 import brs.BurstException;
 import brs.common.QuickMocker;
 import brs.services.ParameterService;
-import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
+
+import javax.servlet.http.HttpServletRequest;
+
+import static brs.http.common.ResultFields.*;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class GetBalanceTest {
 
@@ -42,7 +39,7 @@ public class GetBalanceTest {
 
     when(parameterServiceMock.getAccount(eq(req))).thenReturn(mockAccount);
 
-    JSONObject result = (JSONObject) t.processRequest(req);
+    JsonObject result = (JsonObject) t.processRequest(req);
 
     assertEquals("1", result.get(BALANCE_NQT_RESPONSE));
     assertEquals("2", result.get(UNCONFIRMED_BALANCE_NQT_RESPONSE));
@@ -57,7 +54,7 @@ public class GetBalanceTest {
 
     when(parameterServiceMock.getAccount(eq(req))).thenReturn(null);
 
-    JSONObject result = (JSONObject) t.processRequest(req);
+    JsonObject result = (JsonObject) t.processRequest(req);
 
     assertEquals("0", result.get(BALANCE_NQT_RESPONSE));
     assertEquals("0", result.get(UNCONFIRMED_BALANCE_NQT_RESPONSE));

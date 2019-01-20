@@ -5,13 +5,15 @@ import brs.BurstException;
 import brs.services.ParameterService;
 import brs.util.Convert;
 import brs.util.JSON;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.ResultFields.PUBLIC_KEY_RESPONSE;
+
+;
 
 public final class GetAccountPublicKey extends APIServlet.APIRequestHandler {
 
@@ -23,13 +25,13 @@ public final class GetAccountPublicKey extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
 
     Account account = parameterService.getAccount(req);
 
     if (account.getPublicKey() != null) {
-      JSONObject response = new JSONObject();
-      response.put(PUBLIC_KEY_RESPONSE, Convert.toHexString(account.getPublicKey()));
+      JsonObject response = new JsonObject();
+      response.addProperty(PUBLIC_KEY_RESPONSE, Convert.toHexString(account.getPublicKey()));
       return response;
     } else {
       return JSON.emptyJSON;

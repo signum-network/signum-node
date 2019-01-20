@@ -22,10 +22,10 @@ import brs.statistics.StatisticsManagerImpl;
 import brs.transactionduplicates.TransactionDuplicatesCheckerImpl;
 import brs.unconfirmedtransactions.UnconfirmedTransactionStore;
 import brs.util.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.jooq.DSLContext;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +41,9 @@ import java.util.stream.Collectors;
 import static brs.Constants.FEE_QUANT;
 import static brs.Constants.ONE_BURST;
 import static brs.fluxcapacitor.FeatureToggle.PRE_DYMAXION;
+
+;
+;
 
 public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
@@ -220,11 +223,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     // if we did not push any blocks we try to restore chain.
     // Reset and set cached vars to chaindata.
     Runnable getMoreBlocksThread = new Runnable() {
-      private final JSONStreamAware getCumulativeDifficultyRequest;
+      private final JsonElement getCumulativeDifficultyRequest;
 
       {
-        JSONObject request = new JSONObject();
-        request.put("requestType", "getCumulativeDifficulty");
+        JsonObject request = new JsonObject();
+        request.addProperty("requestType", "getCumulativeDifficulty");
         getCumulativeDifficultyRequest = JSON.prepareRequest(request);
       }
 
@@ -255,14 +258,14 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 logger.debug("No peer connected.");
                 return;
               }
-              JSONObject response = peer.send(getCumulativeDifficultyRequest);
+              JsonObject response = peer.send(getCumulativeDifficultyRequest);
               if (response == null) {
                 // logger.debug("Peer Response is null");
                 return;
               }
               if (response.get("blockchainHeight") != null) {
                 lastBlockchainFeeder = peer;
-                lastBlockchainFeederHeight = ((Long) response.get("blockchainHeight")).intValue();
+                lastBlockchainFeederHeight = JSON.getAsInt(response.get("blockchainHeight"));
               } else {
                 logger.debug("Peer has no chainheight");
                 return;
@@ -271,7 +274,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               /* Cache now contains Cumulative Difficulty */
 
               BigInteger curCumulativeDifficulty = downloadCache.getCumulativeDifficulty();
-              String peerCumulativeDifficulty = (String) response.get("cumulativeDifficulty");
+              String peerCumulativeDifficulty = JSON.getAsString(response.get("cumulativeDifficulty"));
               if (peerCumulativeDifficulty == null) {
                 logger.debug("Peer CumulativeDifficulty is null");
                 return;
@@ -324,8 +327,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               }
 
               //   List<Block> forkBlocks = new ArrayList<>();
-              JSONArray nextBlocks = getNextBlocks(peer, commonBlockId);
-              if (nextBlocks == null || nextBlocks.isEmpty()) {
+              JsonArray nextBlocks = getNextBlocks(peer, commonBlockId);
+              if (nextBlocks == null || nextBlocks.size() == 0) {
                 logger.debug("Peer did not feed us any blocks");
                 return;
               }
@@ -339,12 +342,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               // loop blocks and make sure they fit in chain
 
               Block block;
-              JSONObject blockData;
+              JsonObject blockData;
               List<Block> blocks = new ArrayList<>();
 
-              for (Object o : nextBlocks) {
+              for (JsonElement o : nextBlocks) {
                 int height = lastBlock.getHeight() + 1;
-                blockData = (JSONObject) o;
+                blockData = JSON.getAsJsonObject(o);
                 try {
                   block = Block.parseBlock(blockData, height);
                   if (block == null) {
@@ -362,7 +365,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                   // set height and cumulative difficulty to block
                   block.setHeight(height);
                   block.setPeer(peer);
-                  block.setByteLength(blockData.toString().length());
+                  block.setByteLength(JSON.toJsonString(blockData).length());
                   blockService.calculateBaseTarget(block, lastBlock);
                   if (saveInCache) {
                     if (downloadCache.getLastBlockId() == block.getPreviousBlockId()) { //still maps back? we might have got announced/forged blocks
@@ -428,26 +431,26 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         String lastMilestoneBlockId = null;
 
         while (!Thread.currentThread().isInterrupted() && ThreadPool.running.get()) {
-          JSONObject milestoneBlockIdsRequest = new JSONObject();
-          milestoneBlockIdsRequest.put("requestType", "getMilestoneBlockIds");
+          JsonObject milestoneBlockIdsRequest = new JsonObject();
+          milestoneBlockIdsRequest.addProperty("requestType", "getMilestoneBlockIds");
           if (lastMilestoneBlockId == null) {
-            milestoneBlockIdsRequest.put("lastBlockId",
+            milestoneBlockIdsRequest.addProperty("lastBlockId",
                     Convert.toUnsignedLong(downloadCache.getLastBlockId()));
           } else {
-            milestoneBlockIdsRequest.put("lastMilestoneBlockId", lastMilestoneBlockId);
+            milestoneBlockIdsRequest.addProperty("lastMilestoneBlockId", lastMilestoneBlockId);
           }
 
-          JSONObject response = peer.send(JSON.prepareRequest(milestoneBlockIdsRequest));
+          JsonObject response = peer.send(JSON.prepareRequest(milestoneBlockIdsRequest));
           if (response == null) {
             logger.debug("Got null response in getCommonMilestoneBlockId");
             return 0;
           }
-          JSONArray milestoneBlockIds = (JSONArray) response.get("milestoneBlockIds");
+          JsonArray milestoneBlockIds = JSON.getAsJsonArray(response.get("milestoneBlockIds"));
           if (milestoneBlockIds == null) {
             logger.debug("MilestoneArray is null");
             return 0;
           }
-          if (milestoneBlockIds.isEmpty()) {
+          if (milestoneBlockIds.size() == 0) {
             return Genesis.GENESIS_BLOCK_ID;
           }
           // prevent overloading with blockIds
@@ -455,12 +458,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             peer.blacklist("obsolete or rogue peer sends too many milestoneBlockIds");
             return 0;
           }
-          if (Boolean.TRUE.equals(response.get("last"))) {
+          if (Boolean.TRUE.equals(JSON.getAsBoolean(response.get("last")))) {
             peerHasMore = false;
           }
 
-          for (Object milestoneBlockId : milestoneBlockIds) {
-            long blockId = Convert.parseUnsignedLong((String) milestoneBlockId);
+          for (JsonElement milestoneBlockId : milestoneBlockIds) {
+            long blockId = Convert.parseUnsignedLong(JSON.getAsString(milestoneBlockId));
 
             if (downloadCache.hasBlock(blockId)) {
               if (lastMilestoneBlockId == null && milestoneBlockIds.size() > 1) {
@@ -469,7 +472,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               }
               return blockId;
             }
-            lastMilestoneBlockId = (String) milestoneBlockId;
+            lastMilestoneBlockId = JSON.getAsString(milestoneBlockId);
           }
         }
         throw new InterruptedException("interrupted");
@@ -478,15 +481,15 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       private long getCommonBlockId(Peer peer, long commonBlockId) throws InterruptedException {
 
         while (!Thread.currentThread().isInterrupted() && ThreadPool.running.get()) {
-          JSONObject request = new JSONObject();
-          request.put("requestType", "getNextBlockIds");
-          request.put("blockId", Convert.toUnsignedLong(commonBlockId));
-          JSONObject response = peer.send(JSON.prepareRequest(request));
+          JsonObject request = new JsonObject();
+          request.addProperty("requestType", "getNextBlockIds");
+          request.addProperty("blockId", Convert.toUnsignedLong(commonBlockId));
+          JsonObject response = peer.send(JSON.prepareRequest(request));
           if (response == null) {
             return 0;
           }
-          JSONArray nextBlockIds = (JSONArray) response.get("nextBlockIds");
-          if (nextBlockIds == null || nextBlockIds.isEmpty()) {
+          JsonArray nextBlockIds = JSON.getAsJsonArray(response.get("nextBlockIds"));
+          if (nextBlockIds == null || nextBlockIds.size() == 0) {
             return 0;
           }
           // prevent overloading with blockIds
@@ -495,8 +498,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             return 0;
           }
 
-          for (Object nextBlockId : nextBlockIds) {
-            long blockId = Convert.parseUnsignedLong((String) nextBlockId);
+          for (JsonElement nextBlockId : nextBlockIds) {
+            long blockId = Convert.parseUnsignedLong(JSON.getAsString(nextBlockId));
             if (!downloadCache.hasBlock(blockId)) {
               return commonBlockId;
             }
@@ -507,18 +510,18 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         throw new InterruptedException("interrupted");
       }
 
-      private JSONArray getNextBlocks(Peer peer, long curBlockId) {
+      private JsonArray getNextBlocks(Peer peer, long curBlockId) {
 
-        JSONObject request = new JSONObject();
-        request.put("requestType", "getNextBlocks");
-        request.put("blockId", Convert.toUnsignedLong(curBlockId));
+        JsonObject request = new JsonObject();
+        request.addProperty("requestType", "getNextBlocks");
+        request.addProperty("blockId", Convert.toUnsignedLong(curBlockId));
         logger.debug("Getting next Blocks after " + curBlockId + " from " + peer.getPeerAddress());
-        JSONObject response = peer.send(JSON.prepareRequest(request));
+        JsonObject response = peer.send(JSON.prepareRequest(request));
         if (response == null) {
           return null;
         }
 
-        JSONArray nextBlocks = (JSONArray) response.get("nextBlocks");
+        JsonArray nextBlocks = JSON.getAsJsonArray(response.get("nextBlocks"));
         if (nextBlocks == null) {
           return null;
         }
@@ -601,7 +604,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 } catch (InterruptedException e) {
                   Thread.currentThread().interrupt();
                 } catch (BlockNotAcceptedException e) {
-                  logger.warn("Popped off block no longer acceptable: " + block.getJSONObject().toJSONString(), e);
+                  logger.warn("Popped off block no longer acceptable: " + JSON.toJsonString(block.getJsonObject()), e);
                   break;
                 }
               }
@@ -773,7 +776,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   }
 
   @Override
-  public void processPeerBlock(JSONObject request, Peer peer) throws BurstException {
+  public void processPeerBlock(JsonObject request, Peer peer) throws BurstException {
     Block newBlock = Block.parseBlock(request, blockchain.getHeight());
     if (newBlock == null) {
       logger.debug("Peer {} has announced an unprocessable block.", peer.getPeerAddress());

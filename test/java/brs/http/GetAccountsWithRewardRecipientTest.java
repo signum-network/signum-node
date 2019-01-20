@@ -1,13 +1,5 @@
 package brs.http;
 
-import static brs.http.common.Parameters.ACCOUNTS_RESPONSE;
-import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import brs.Account;
 import brs.Account.RewardRecipientAssignment;
 import brs.BurstException;
@@ -17,11 +9,22 @@ import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
 import brs.services.AccountService;
 import brs.services.ParameterService;
-import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
+
+import javax.servlet.http.HttpServletRequest;
+
+import static brs.http.common.Parameters.ACCOUNTS_RESPONSE;
+import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+;
 
 public class GetAccountsWithRewardRecipientTest extends AbstractUnitTest {
 
@@ -58,10 +61,10 @@ public class GetAccountsWithRewardRecipientTest extends AbstractUnitTest {
 
     when(accountService.getAccountsWithRewardRecipient(eq(targetAccountId))).thenReturn(assignmentIterator);
 
-    final JSONObject resultOverview = (JSONObject) t.processRequest(req);
+    final JsonObject resultOverview = (JsonObject) t.processRequest(req);
     assertNotNull(resultOverview);
 
-    final JSONArray resultList = (JSONArray) resultOverview.get(ACCOUNTS_RESPONSE);
+    final JsonArray resultList = (JsonArray) resultOverview.get(ACCOUNTS_RESPONSE);
     assertNotNull(resultList);
     assertEquals(2, resultList.size());
   }
@@ -87,10 +90,10 @@ public class GetAccountsWithRewardRecipientTest extends AbstractUnitTest {
     when(accountService.getAccountsWithRewardRecipient(eq(targetAccountId))).thenReturn(assignmentIterator);
     when(accountService.getRewardRecipientAssignment(eq(targetAccount))).thenReturn(assignment);
 
-    final JSONObject resultOverview = (JSONObject) t.processRequest(req);
+    final JsonObject resultOverview = (JsonObject) t.processRequest(req);
     assertNotNull(resultOverview);
 
-    final JSONArray resultList = (JSONArray) resultOverview.get(ACCOUNTS_RESPONSE);
+    final JsonArray resultList = (JsonArray) resultOverview.get(ACCOUNTS_RESPONSE);
     assertNotNull(resultList);
     assertEquals(1, resultList.size());
   }

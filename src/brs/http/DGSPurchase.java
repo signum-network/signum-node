@@ -5,12 +5,14 @@ import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.services.TimeService;
 import brs.util.Convert;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.*;
 import static brs.http.common.Parameters.*;
+
+;
 
 public final class DGSPurchase extends CreateTransaction {
 
@@ -28,7 +30,7 @@ public final class DGSPurchase extends CreateTransaction {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
 
     DigitalGoodsStore.Goods goods = parameterService.getGoods(req);
     if (goods.isDelisted()) {

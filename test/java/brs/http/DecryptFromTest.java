@@ -1,29 +1,27 @@
 package brs.http;
 
-import static brs.common.TestConstants.TEST_PUBLIC_KEY_BYTES;
-import static brs.common.TestConstants.TEST_SECRET_PHRASE;
-import static brs.http.JSONResponses.INCORRECT_ACCOUNT;
-import static brs.http.common.Parameters.DATA_PARAMETER;
-import static brs.http.common.Parameters.DECRYPTED_MESSAGE_IS_TEXT_PARAMETER;
-import static brs.http.common.Parameters.NONCE_PARAMETER;
-import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
-import static brs.http.common.ResultFields.DECRYPTED_MESSAGE_RESPONSE;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import brs.Account;
 import brs.BurstException;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.crypto.EncryptedData;
 import brs.services.ParameterService;
-import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
+
+import javax.servlet.http.HttpServletRequest;
+
+import static brs.common.TestConstants.TEST_PUBLIC_KEY_BYTES;
+import static brs.common.TestConstants.TEST_SECRET_PHRASE;
+import static brs.http.JSONResponses.INCORRECT_ACCOUNT;
+import static brs.http.common.Parameters.*;
+import static brs.http.common.ResultFields.DECRYPTED_MESSAGE_RESPONSE;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class DecryptFromTest {
 
@@ -56,7 +54,7 @@ public class DecryptFromTest {
 
     when(mockParameterService.getAccount(req)).thenReturn(mockAccount);
 
-    assertEquals("\u0001", ((JSONObject) t.processRequest(req)).get(DECRYPTED_MESSAGE_RESPONSE));
+    assertEquals("\u0001", ((JsonObject) t.processRequest(req)).get(DECRYPTED_MESSAGE_RESPONSE));
   }
 
   @Test

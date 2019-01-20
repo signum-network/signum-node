@@ -1,13 +1,15 @@
 package brs.http;
 
 import brs.Generator;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.MISSING_SECRET_PHRASE;
 import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
+
+;
 
 
 final class StopForging extends APIServlet.APIRequestHandler {
@@ -19,7 +21,7 @@ final class StopForging extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) {
+  JsonElement processRequest(HttpServletRequest req) {
 
     String secretPhrase = req.getParameter(SECRET_PHRASE_PARAMETER);
     if (secretPhrase == null) {
@@ -29,8 +31,8 @@ final class StopForging extends APIServlet.APIRequestHandler {
     //Generator generator = Generator.stopForging(secretPhrase);
     Generator.GeneratorState generator = null;
 
-    JSONObject response = new JSONObject();
-    response.put("foundAndStopped", generator != null);
+    JsonObject response = new JsonObject();
+    response.addProperty("foundAndStopped", generator != null);
     return response;
 
   }

@@ -6,14 +6,17 @@ import brs.BurstException;
 import brs.services.AliasService;
 import brs.services.ParameterService;
 import brs.util.FilteringIterator;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.ALIASES_RESPONSE;
+
+;
+;
 
 public final class GetAliases extends APIServlet.APIRequestHandler {
 
@@ -27,13 +30,13 @@ public final class GetAliases extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
     final int timestamp = ParameterParser.getTimestamp(req);
     final long accountId = parameterService.getAccount(req).getId();
     int firstIndex = ParameterParser.getFirstIndex(req);
     int lastIndex = ParameterParser.getLastIndex(req);
 
-    JSONArray aliases = new JSONArray();
+    JsonArray aliases = new JsonArray();
     try (FilteringIterator<Alias> aliasIterator = new FilteringIterator<>(
       aliasService.getAliasesByOwner(accountId, 0, -1),
       alias -> alias.getTimestamp() >= timestamp, firstIndex, lastIndex)) {
@@ -45,8 +48,8 @@ public final class GetAliases extends APIServlet.APIRequestHandler {
       }
     }
 
-    JSONObject response = new JSONObject();
-    response.put(ALIASES_RESPONSE, aliases);
+    JsonObject response = new JsonObject();
+    response.add(ALIASES_RESPONSE, aliases);
     return response;
   }
 

@@ -1,12 +1,14 @@
 package brs.http;
 
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.MISSING_SECRET_PHRASE;
 import static brs.http.JSONResponses.UNKNOWN_ACCOUNT;
 import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
+
+;
 
 
 public final class StartForging extends APIServlet.APIRequestHandler {
@@ -18,7 +20,7 @@ public final class StartForging extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) {
+  JsonElement processRequest(HttpServletRequest req) {
 
     String secretPhrase = req.getParameter(SECRET_PHRASE_PARAMETER);
     if (secretPhrase == null) {
@@ -30,7 +32,7 @@ public final class StartForging extends APIServlet.APIRequestHandler {
     return UNKNOWN_ACCOUNT;
     //}
 
-    //JSONObject response = new JSONObject();
+    //JsonObject response = new JsonObject();
     //response.put("deadline", generator.getDeadline());
     //return response;
 

@@ -6,12 +6,14 @@ import brs.Generator;
 import brs.crypto.Crypto;
 import brs.services.AccountService;
 import brs.util.Convert;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.*;
+
+;
 
 
 final class SubmitNonce extends APIServlet.APIRequestHandler {
@@ -29,7 +31,7 @@ final class SubmitNonce extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) {
+  JsonElement processRequest(HttpServletRequest req) {
     String secret = req.getParameter(SECRET_PHRASE_PARAMETER);
     long nonce = Convert.parseUnsignedLong(req.getParameter(NONCE_PARAMETER));
 
@@ -37,23 +39,23 @@ final class SubmitNonce extends APIServlet.APIRequestHandler {
 
     String submissionHeight = Convert.emptyToNull(req.getParameter(BLOCK_HEIGHT_PARAMETER));
 
-    JSONObject response = new JSONObject();
+    JsonObject response = new JsonObject();
 
     if (submissionHeight != null) {
       try {
         int height = Integer.parseInt(submissionHeight);
         if (height != blockchain.getHeight() + 1) {
-          response.put("result", "Given block height does not match current blockchain height");
+          response.addProperty("result", "Given block height does not match current blockchain height");
           return response;
         }
       } catch (NumberFormatException e) {
-        response.put("result", "Given block height is not a number");
+        response.addProperty("result", "Given block height is not a number");
         return response;
       }
     }
 
     if(secret == null) {
-      response.put("result", "Missing Passphrase");
+      response.addProperty("result", "Missing Passphrase");
       return response;
     }
 
@@ -81,12 +83,12 @@ final class SubmitNonce extends APIServlet.APIRequestHandler {
           rewardId = assignment.getRecipientId();
         }
         if(rewardId != secretAccount.getId()) {
-          response.put("result", "Passphrase does not match reward recipient");
+          response.addProperty("result", "Passphrase does not match reward recipient");
           return response;
         }
       }
       else {
-        response.put("result", "Passphrase is for a different account");
+        response.addProperty("result", "Passphrase is for a different account");
         return response;
       }
     }
@@ -98,7 +100,7 @@ final class SubmitNonce extends APIServlet.APIRequestHandler {
     else {
       Account genAccount = accountService.getAccount(Convert.parseUnsignedLong(accountId));
       if(genAccount == null || genAccount.getPublicKey() == null) {
-        response.put("result", "Passthrough mining requires public key in blockchain");
+        response.addProperty("result", "Passthrough mining requires public key in blockchain");
       }
       else {
         byte[] publicKey = genAccount.getPublicKey();
@@ -107,13 +109,13 @@ final class SubmitNonce extends APIServlet.APIRequestHandler {
     }
 
     if(generatorState == null) {
-      response.put("result", "failed to create generator");
+      response.addProperty("result", "failed to create generator");
       return response;
     }
 
-    //response.put("result", "deadline: " + generator.getDeadline());
-    response.put("result", "success");
-    response.put("deadline", generatorState.getDeadline());
+    //response.addProperty("result", "deadline: " + generator.getDeadline());
+    response.addProperty("result", "success");
+    response.addProperty("deadline", generatorState.getDeadline());
 
     return response;
   }

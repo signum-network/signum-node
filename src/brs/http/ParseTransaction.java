@@ -5,8 +5,8 @@ import brs.Transaction;
 import brs.services.ParameterService;
 import brs.services.TransactionService;
 import brs.util.Convert;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,6 +15,8 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.common.Parameters.TRANSACTION_BYTES_PARAMETER;
 import static brs.http.common.Parameters.TRANSACTION_JSON_PARAMETER;
 import static brs.http.common.ResultFields.*;
+
+;
 
 final class ParseTransaction extends APIServlet.APIRequestHandler {
 
@@ -30,22 +32,22 @@ final class ParseTransaction extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
 
     String transactionBytes = Convert.emptyToNull(req.getParameter(TRANSACTION_BYTES_PARAMETER));
     String transactionJSON = Convert.emptyToNull(req.getParameter(TRANSACTION_JSON_PARAMETER));
     Transaction transaction = parameterService.parseTransaction(transactionBytes, transactionJSON);
-    JSONObject response = JSONData.unconfirmedTransaction(transaction);
+    JsonObject response = JSONData.unconfirmedTransaction(transaction);
     try {
       transactionService.validate(transaction);
     } catch (BurstException.ValidationException|RuntimeException e) {
       logger.debug(e.getMessage(), e);
-      response.put(VALIDATE_RESPONSE, false);
-      response.put(ERROR_CODE_RESPONSE, 4);
-      response.put(ERROR_DESCRIPTION_RESPONSE, "Invalid transaction: " + e.toString());
-      response.put(ERROR_RESPONSE, e.getMessage());
+      response.addProperty(VALIDATE_RESPONSE, false);
+      response.addProperty(ERROR_CODE_RESPONSE, 4);
+      response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Invalid transaction: " + e.toString());
+      response.addProperty(ERROR_RESPONSE, e.getMessage());
     }
-    response.put(VERIFY_RESPONSE, transaction.verifySignature() && transactionService.verifyPublicKey(transaction));
+    response.addProperty(VERIFY_RESPONSE, transaction.verifySignature() && transactionService.verifyPublicKey(transaction));
     return response;
   }
 

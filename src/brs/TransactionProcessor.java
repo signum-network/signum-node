@@ -2,7 +2,7 @@ package brs;
 
 import brs.peer.Peer;
 import brs.util.Observable;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonObject;
 
 import java.util.List;
 
@@ -29,11 +29,11 @@ public interface TransactionProcessor extends Observable<List<? extends Transact
 
   Integer broadcast(Transaction transaction) throws BurstException.ValidationException;
 
-  void processPeerTransactions(JSONObject request, Peer peer) throws BurstException.ValidationException;
+  void processPeerTransactions(JsonObject request, Peer peer) throws BurstException.ValidationException;
 
   Transaction parseTransaction(byte[] bytes) throws BurstException.ValidationException;
 
-  Transaction parseTransaction(JSONObject json) throws BurstException.ValidationException;
+  Transaction parseTransaction(JsonObject json) throws BurstException.ValidationException;
 
   Transaction.Builder newTransactionBuilder(byte[] senderPublicKey, long amountNQT, long feeNQT, short deadline, Attachment attachment);
 

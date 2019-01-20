@@ -3,7 +3,9 @@ package brs.http;
 import brs.Asset;
 import brs.assetexchange.AssetExchange;
 import brs.db.BurstIterator;
-import org.json.simple.JSONArray;
+import com.google.gson.JsonArray;
+
+;
 
 abstract class AbstractAssetsRetrieval extends APIServlet.APIRequestHandler  {
 
@@ -14,8 +16,8 @@ abstract class AbstractAssetsRetrieval extends APIServlet.APIRequestHandler  {
     this.assetExchange = assetExchange;
   }
 
-  JSONArray assetsToJson(BurstIterator<Asset> assets) {
-    final JSONArray assetsJSONArray = new JSONArray();
+  JsonArray assetsToJson(BurstIterator<Asset> assets) {
+    final JsonArray assetsJsonArray = new JsonArray();
 
     while (assets.hasNext()) {
       final Asset asset = assets.next();
@@ -24,9 +26,9 @@ abstract class AbstractAssetsRetrieval extends APIServlet.APIRequestHandler  {
       int transferCount = assetExchange.getTransferCount(asset.getId());
       int accountsCount = assetExchange.getAssetAccountsCount(asset.getId());
 
-      assetsJSONArray.add(JSONData.asset(asset, tradeCount, transferCount, accountsCount));
+      assetsJsonArray.add(JSONData.asset(asset, tradeCount, transferCount, accountsCount));
     }
 
-    return assetsJSONArray;
+    return assetsJsonArray;
   }
 }

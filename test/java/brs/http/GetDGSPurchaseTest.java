@@ -1,36 +1,24 @@
 package brs.http;
 
-import static brs.http.common.ResultFields.BUYER_RESPONSE;
-import static brs.http.common.ResultFields.DELIVERY_DEADLINE_TIMESTAMP_RESPONSE;
-import static brs.http.common.ResultFields.DISCOUNT_NQT_RESPONSE;
-import static brs.http.common.ResultFields.GOODS_RESPONSE;
-import static brs.http.common.ResultFields.NAME_RESPONSE;
-import static brs.http.common.ResultFields.NOTE_RESPONSE;
-import static brs.http.common.ResultFields.PENDING_RESPONSE;
-import static brs.http.common.ResultFields.PRICE_NQT_RESPONSE;
-import static brs.http.common.ResultFields.PURCHASE_RESPONSE;
-import static brs.http.common.ResultFields.QUANTITY_RESPONSE;
-import static brs.http.common.ResultFields.REFUND_NOTE_RESPONSE;
-import static brs.http.common.ResultFields.REFUND_NQT_RESPONSE;
-import static brs.http.common.ResultFields.SELLER_RESPONSE;
-import static brs.http.common.ResultFields.TIMESTAMP_RESPONSE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import brs.BurstException;
 import brs.DigitalGoodsStore.Purchase;
 import brs.common.QuickMocker;
 import brs.crypto.EncryptedData;
 import brs.services.ParameterService;
-import java.util.Arrays;
-import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
+import java.util.List;
+
+import static brs.http.common.ResultFields.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class GetDGSPurchaseTest {
 
@@ -79,7 +67,7 @@ public class GetDGSPurchaseTest {
 
     when(mockParameterService.getPurchase(eq(req))).thenReturn(mockPurchase);
 
-    final JSONObject result = (JSONObject) t.processRequest(req);
+    final JsonObject result = (JsonObject) t.processRequest(req);
 
     assertNotNull(result);
 

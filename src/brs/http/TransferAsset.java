@@ -3,12 +3,14 @@ package brs.http;
 import brs.*;
 import brs.services.AccountService;
 import brs.services.ParameterService;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.NOT_ENOUGH_ASSETS;
 import static brs.http.common.Parameters.*;
+
+;
 
 public final class TransferAsset extends CreateTransaction {
 
@@ -24,7 +26,7 @@ public final class TransferAsset extends CreateTransaction {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
 
     long recipient = ParameterParser.getRecipientId(req);
 

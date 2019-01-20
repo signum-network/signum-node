@@ -4,13 +4,15 @@ import brs.Blockchain;
 import brs.Transaction;
 import brs.TransactionProcessor;
 import brs.util.Convert;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.*;
 import static brs.http.common.Parameters.FULL_HASH_PARAMETER;
 import static brs.http.common.Parameters.TRANSACTION_PARAMETER;
+
+;
 
 final class GetTransaction extends APIServlet.APIRequestHandler {
 
@@ -24,7 +26,7 @@ final class GetTransaction extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) {
+  JsonElement processRequest(HttpServletRequest req) {
 
     String transactionIdString = Convert.emptyToNull(req.getParameter(TRANSACTION_PARAMETER));
     String transactionFullHash = Convert.emptyToNull(req.getParameter(FULL_HASH_PARAMETER));

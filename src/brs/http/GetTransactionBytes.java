@@ -4,13 +4,15 @@ import brs.Blockchain;
 import brs.Transaction;
 import brs.TransactionProcessor;
 import brs.util.Convert;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.*;
 import static brs.http.common.Parameters.TRANSACTION_PARAMETER;
+
+;
 
 final class GetTransactionBytes extends APIServlet.APIRequestHandler {
 
@@ -24,7 +26,7 @@ final class GetTransactionBytes extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) {
+  JsonElement processRequest(HttpServletRequest req) {
 
     String transactionValue = req.getParameter(TRANSACTION_PARAMETER);
     if (transactionValue == null) {
@@ -40,18 +42,18 @@ final class GetTransactionBytes extends APIServlet.APIRequestHandler {
     }
 
     transaction = blockchain.getTransaction(transactionId);
-    JSONObject response = new JSONObject();
+    JsonObject response = new JsonObject();
     if (transaction == null) {
       transaction = transactionProcessor.getUnconfirmedTransaction(transactionId);
       if (transaction == null) {
         return UNKNOWN_TRANSACTION;
       }
     } else {
-      response.put("confirmations", blockchain.getHeight() - transaction.getHeight());
+      response.addProperty("confirmations", blockchain.getHeight() - transaction.getHeight());
     }
 
-    response.put("transactionBytes", Convert.toHexString(transaction.getBytes()));
-    response.put("unsignedTransactionBytes", Convert.toHexString(transaction.getUnsignedBytes()));
+    response.addProperty("transactionBytes", Convert.toHexString(transaction.getBytes()));
+    response.addProperty("unsignedTransactionBytes", Convert.toHexString(transaction.getUnsignedBytes()));
 
     return response;
   }

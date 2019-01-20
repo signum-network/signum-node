@@ -4,8 +4,8 @@ import brs.*;
 import brs.at.AT_Constants;
 import brs.services.ParameterService;
 import brs.util.Convert;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 import java.nio.ByteBuffer;
@@ -29,7 +29,7 @@ final class CreateATProgram extends CreateTransaction {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JsonElement processRequest(HttpServletRequest req) throws BurstException {
     //String atVersion = req.getParameter("atVersion");		
     String name = req.getParameter(NAME_PARAMETER);
     String description = req.getParameter(DESCRIPTION_PARAMETER);
@@ -124,9 +124,9 @@ final class CreateATProgram extends CreateTransaction {
         creationBytes = creation.array();
       } catch (Exception e) {
         e.printStackTrace(System.out);
-        JSONObject response = new JSONObject();
-        response.put(ERROR_CODE_RESPONSE, 5);
-        response.put(ERROR_DESCRIPTION_RESPONSE, "Invalid or not specified parameters");
+        JsonObject response = new JsonObject();
+        response.addProperty(ERROR_CODE_RESPONSE, 5);
+        response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Invalid or not specified parameters");
         return response;
       }
     }

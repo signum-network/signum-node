@@ -1,21 +1,21 @@
 package it.common;
 
-import static org.junit.Assert.assertEquals;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-
 import brs.Burst;
-import brs.props.Props;
 import brs.common.TestInfrastructure;
 import brs.peer.Peers;
 import brs.peer.ProcessBlock;
-import java.util.Properties;
-import org.json.simple.JSONObject;
+import brs.props.Props;
+import com.google.gson.JsonObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import java.util.Properties;
+
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Peers.class)
@@ -56,7 +56,7 @@ public abstract class AbstractIT {
     return props;
   }
 
-  public void processBlock(JSONObject jsonFirstBlock) {
+  public void processBlock(JsonObject jsonFirstBlock) {
     processBlock.processRequest(jsonFirstBlock, null);
   }
 }

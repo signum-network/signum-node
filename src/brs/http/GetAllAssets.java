@@ -3,14 +3,16 @@ package brs.http;
 import brs.Asset;
 import brs.assetexchange.AssetExchange;
 import brs.db.BurstIterator;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
 import static brs.http.common.ResultFields.ASSETS_RESPONSE;
+
+;
 
 public final class GetAllAssets extends AbstractAssetsRetrieval {
 
@@ -22,14 +24,14 @@ public final class GetAllAssets extends AbstractAssetsRetrieval {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) {
+  JsonElement processRequest(HttpServletRequest req) {
     int firstIndex = ParameterParser.getFirstIndex(req);
     int lastIndex = ParameterParser.getLastIndex(req);
 
-    JSONObject response = new JSONObject();
+    JsonObject response = new JsonObject();
 
     try (BurstIterator<Asset> assets = assetExchange.getAllAssets(firstIndex, lastIndex)) {
-      response.put(ASSETS_RESPONSE, assetsToJson(assets));
+      response.add(ASSETS_RESPONSE, assetsToJson(assets));
     }
 
     return response;

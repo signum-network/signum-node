@@ -378,7 +378,6 @@ final class PeerImpl implements Peer {
       }
 
     } catch (RuntimeException|IOException e) {
-      e.printStackTrace();
       if (! (e instanceof UnknownHostException || e instanceof SocketTimeoutException || e instanceof SocketException)) {
         logger.debug("Error sending JSON request", e);
       }

@@ -59,7 +59,7 @@ public final class JSON {
     }
 
     public static String getAsString(JsonElement jsonElement) {
-        return jsonElement != null && jsonElement.isJsonPrimitive() ? jsonElement.getAsString() : "";
+        return jsonElement != null && jsonElement.isJsonPrimitive() ? jsonElement.getAsString() : null;
     }
 
     public static long getAsLong(JsonElement jsonElement) {

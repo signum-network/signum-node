@@ -140,7 +140,7 @@ public class SqlAliasStore implements AliasStore {
 
   @Override
   public Alias getAlias(String aliasName) {
-    return aliasTable.getBy(brs.schema.Tables.ALIAS.ALIAS_NAME_LOWER.eq(aliasName.toLowerCase()));
+    return aliasTable.getBy(brs.schema.Tables.ALIAS.ALIAS_NAME_LOWER.equalIgnoreCase(aliasName.toLowerCase()));
   }
 
 }

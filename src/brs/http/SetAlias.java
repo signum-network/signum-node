@@ -4,6 +4,7 @@ import brs.*;
 import brs.services.AliasService;
 import brs.services.ParameterService;
 import brs.util.Convert;
+import brs.util.TextUtils;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -44,11 +45,8 @@ public final class SetAlias extends CreateTransaction {
       return INCORRECT_ALIAS_LENGTH;
     }
 
-    String normalizedAlias = aliasName.toLowerCase();
-    for (int i = 0; i < normalizedAlias.length(); i++) {
-      if (Constants.ALPHABET.indexOf(normalizedAlias.charAt(i)) < 0) {
-        return INCORRECT_ALIAS_NAME;
-      }
+    if (!TextUtils.isInAlphabet(aliasName)) {
+      return INCORRECT_ALIAS_NAME;
     }
 
     aliasURI = aliasURI.trim();
@@ -58,7 +56,7 @@ public final class SetAlias extends CreateTransaction {
 
     Account account = parameterService.getSenderAccount(req);
 
-    Alias alias = aliasService.getAlias(normalizedAlias);
+    Alias alias = aliasService.getAlias(aliasName);
     if (alias != null && alias.getAccountId() != account.getId()) {
       JsonObject response = new JsonObject();
       response.addProperty(ERROR_CODE_RESPONSE, 8);

@@ -3,6 +3,7 @@ package brs.http;
 import brs.*;
 import brs.services.ParameterService;
 import brs.util.Convert;
+import brs.util.TextUtils;
 import com.google.gson.JsonElement;
 
 import javax.servlet.http.HttpServletRequest;
@@ -39,11 +40,9 @@ public final class IssueAsset extends CreateTransaction {
     if (name.length() < Constants.MIN_ASSET_NAME_LENGTH || name.length() > Constants.MAX_ASSET_NAME_LENGTH) {
       return INCORRECT_ASSET_NAME_LENGTH;
     }
-    String normalizedName = name.toLowerCase();
-    for (int i = 0; i < normalizedName.length(); i++) {
-      if (Constants.ALPHABET.indexOf(normalizedName.charAt(i)) < 0) {
-        return INCORRECT_ASSET_NAME;
-      }
+
+    if (!TextUtils.isInAlphabet(name)) {
+      return INCORRECT_ASSET_NAME;
     }
 
     if (description != null && description.length() > Constants.MAX_ASSET_DESCRIPTION_LENGTH) {

@@ -4,6 +4,7 @@ import brs.*;
 import brs.at.AT_Constants;
 import brs.services.ParameterService;
 import brs.util.Convert;
+import brs.util.TextUtils;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -42,11 +43,9 @@ final class CreateATProgram extends CreateTransaction {
     if (name.length() > Constants.MAX_AUTOMATED_TRANSACTION_NAME_LENGTH) {
       return INCORRECT_AUTOMATED_TRANSACTION_NAME_LENGTH;
     }
-    String normalizedName = name.toLowerCase();
-    for (int i = 0; i < normalizedName.length(); i++) {
-      if (Constants.ALPHABET.indexOf(normalizedName.charAt(i)) < 0) {
-        return INCORRECT_AUTOMATED_TRANSACTION_NAME;
-      }
+
+    if (!TextUtils.isInAlphabet(name)) {
+      return INCORRECT_AUTOMATED_TRANSACTION_NAME;
     }
 
     if (description != null && description.length() > Constants.MAX_AUTOMATED_TRANSACTION_DESCRIPTION_LENGTH) {

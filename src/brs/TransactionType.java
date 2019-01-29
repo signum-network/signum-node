@@ -14,6 +14,7 @@ import brs.services.*;
 import brs.transactionduplicates.TransactionDuplicationKey;
 import brs.util.Convert;
 import brs.util.JSON;
+import brs.util.TextUtils;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -598,15 +599,12 @@ public abstract class TransactionType {
               || attachment.getAliasURI().length() > Constants.MAX_ALIAS_URI_LENGTH) {
             throw new BurstException.NotValidException("Invalid alias assignment: " + JSON.toJsonString(attachment.getJsonObject()));
           }
-          String normalizedAlias = attachment.getAliasName().toLowerCase();
-          for (int i = 0; i < normalizedAlias.length(); i++) {
-            if (Constants.ALPHABET.indexOf(normalizedAlias.charAt(i)) < 0) {
-              throw new BurstException.NotValidException("Invalid alias name: " + normalizedAlias);
-            }
+          if (!TextUtils.isInAlphabet(attachment.getAliasName())) {
+            throw new BurstException.NotValidException("Invalid alias name: " + attachment.getAliasName());
           }
-          Alias alias = aliasService.getAlias(normalizedAlias);
+          Alias alias = aliasService.getAlias(attachment.getAliasName());
           if (alias != null && alias.getAccountId() != transaction.getSenderId()) {
-            throw new BurstException.NotCurrentlyValidException("Alias already owned by another account: " + normalizedAlias);
+            throw new BurstException.NotCurrentlyValidException("Alias already owned by another account: " + attachment.getAliasName());
           }
         }
 
@@ -860,11 +858,8 @@ public abstract class TransactionType {
               ) {
             throw new BurstException.NotValidException("Invalid asset issuance: " + JSON.toJsonString(attachment.getJsonObject()));
           }
-          String normalizedName = attachment.getName().toLowerCase();
-          for (int i = 0; i < normalizedName.length(); i++) {
-            if (Constants.ALPHABET.indexOf(normalizedName.charAt(i)) < 0) {
-              throw new BurstException.NotValidException("Invalid asset name: " + normalizedName);
-            }
+          if (!TextUtils.isInAlphabet(attachment.getName())) {
+            throw new BurstException.NotValidException("Invalid asset name: " + attachment.getName());
           }
         }
 

@@ -1,5 +1,6 @@
 package brs;
 
+import java.util.Locale;
 import java.util.Objects;
 import java.util.StringTokenizer;
 
@@ -22,7 +23,7 @@ public final class Version {
 
     public static Version parse(String version) throws IllegalArgumentException {
         try {
-            version = version.replace("-", ".").toLowerCase();
+            version = version.replace("-", ".").toLowerCase(Locale.ENGLISH);
             if (version.startsWith("v")) version = version.substring(1);
             StringTokenizer tokenizer = new StringTokenizer(version, ".", false);
             int major = Integer.parseInt(tokenizer.nextToken());

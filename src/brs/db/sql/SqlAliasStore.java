@@ -14,6 +14,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import static brs.schema.Tables.ALIAS;
 import static brs.schema.Tables.ALIAS_OFFER;
@@ -125,7 +126,7 @@ public class SqlAliasStore implements AliasStore {
       set(ALIAS.ID, alias.getId()).
       set(ALIAS.ACCOUNT_ID, alias.getAccountId()).
       set(ALIAS.ALIAS_NAME, alias.getAliasName()).
-      set(ALIAS.ALIAS_NAME_LOWER, alias.getAliasName().toLowerCase()).
+      set(ALIAS.ALIAS_NAME_LOWER, alias.getAliasName().toLowerCase(Locale.ENGLISH)).
       set(ALIAS.ALIAS_URI, alias.getAliasURI()).
       set(ALIAS.TIMESTAMP, alias.getTimestamp()).
       set(ALIAS.HEIGHT, Burst.getBlockchain().getHeight()).execute();
@@ -140,7 +141,7 @@ public class SqlAliasStore implements AliasStore {
 
   @Override
   public Alias getAlias(String aliasName) {
-    return aliasTable.getBy(brs.schema.Tables.ALIAS.ALIAS_NAME_LOWER.equalIgnoreCase(aliasName.toLowerCase()));
+    return aliasTable.getBy(brs.schema.Tables.ALIAS.ALIAS_NAME_LOWER.equalIgnoreCase(aliasName.toLowerCase(Locale.ENGLISH)));
   }
 
 }

@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Locale;
 
 import static brs.Constants.FEE_QUANT;
 import static brs.Constants.ONE_BURST;
@@ -588,7 +589,7 @@ public abstract class TransactionType {
         @Override
         public TransactionDuplicationKey getDuplicationKey(Transaction transaction) {
           Attachment.MessagingAliasAssignment attachment = (Attachment.MessagingAliasAssignment) transaction.getAttachment();
-          return new TransactionDuplicationKey(Messaging.ALIAS_ASSIGNMENT, attachment.getAliasName().toLowerCase());
+          return new TransactionDuplicationKey(Messaging.ALIAS_ASSIGNMENT, attachment.getAliasName().toLowerCase(Locale.ENGLISH));
         }
 
         @Override
@@ -643,7 +644,7 @@ public abstract class TransactionType {
         public TransactionDuplicationKey getDuplicationKey(Transaction transaction) {
           Attachment.MessagingAliasSell attachment = (Attachment.MessagingAliasSell) transaction.getAttachment();
           // not a bug, uniqueness is based on Messaging.ALIAS_ASSIGNMENT
-          return new TransactionDuplicationKey(Messaging.ALIAS_ASSIGNMENT, attachment.getAliasName().toLowerCase());
+          return new TransactionDuplicationKey(Messaging.ALIAS_ASSIGNMENT, attachment.getAliasName().toLowerCase(Locale.ENGLISH));
         }
 
         @Override
@@ -715,7 +716,7 @@ public abstract class TransactionType {
         public TransactionDuplicationKey getDuplicationKey(Transaction transaction) {
           Attachment.MessagingAliasBuy attachment = (Attachment.MessagingAliasBuy) transaction.getAttachment();
           // not a bug, uniqueness is based on Messaging.ALIAS_ASSIGNMENT
-          return new TransactionDuplicationKey(Messaging.ALIAS_ASSIGNMENT, attachment.getAliasName().toLowerCase());
+          return new TransactionDuplicationKey(Messaging.ALIAS_ASSIGNMENT, attachment.getAliasName().toLowerCase(Locale.ENGLISH));
         }
 
         @Override

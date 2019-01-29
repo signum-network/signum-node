@@ -14,6 +14,7 @@ import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.Locale;
 
 import static org.jocl.CL.*;
 
@@ -417,7 +418,7 @@ final class OCLPoC {
           continue;
         }
 
-        if (bestResult != null && platformName.toLowerCase().contains("intel")) {
+        if (bestResult != null && platformName.toLowerCase(Locale.ENGLISH).contains("intel")) {
           continue;
         }
 
@@ -433,7 +434,7 @@ final class OCLPoC {
         if (bestResult == null || score > bestScore || intel) {
           bestResult = new AutoChooseResult(pfi, dvi);
           bestScore = score;
-          if (platformName.toLowerCase().contains("intel")) {
+          if (platformName.toLowerCase(Locale.ENGLISH).contains("intel")) {
             intel = true;
           }
         }

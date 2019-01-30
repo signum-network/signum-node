@@ -232,7 +232,7 @@ public final class APIServlet extends HttpServlet {
 
   private static boolean enforcePost;
 
-  static Map<String, APIRequestHandler> apiRequestHandlers;
+  public static Map<String, APIRequestHandler> apiRequestHandlers;
   private static Map<String, PrimitiveRequestHandler> primitiveRequestHandlers;
 
   @Override

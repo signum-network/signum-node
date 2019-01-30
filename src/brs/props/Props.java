@@ -6,6 +6,7 @@ public class Props {
   public static final Prop<Boolean> DEV_OFFLINE = new Prop<>("DEV.Offline", false);
   public static final Prop<Boolean> DEV_TESTNET = new Prop<>("DEV.TestNet", false);
   public static final Prop<Integer> DEV_API_PORT = new Prop<>("DEV.API.Port", 6876);
+  public static final Prop<Integer> DEV_API_V2_PORT = new Prop<>("DEV.API.V2.Port", 6877);
 
   public static final Prop<Integer> DEV_TIMEWARP    = new Prop<>("DEV.TimeWarp", 1);
   public static final Prop<Boolean> DEV_MOCK_MINING = new Prop<>("DEV.mockMining", false);
@@ -115,6 +116,7 @@ public class Props {
 
   public static final Prop<String> API_LISTEN  = new Prop<>("API.Listen", "127.0.0.1");
   public static final Prop<Integer> API_PORT    = new Prop<>("API.Port", 8125);
+  public static final Prop<Integer> API_V2_PORT    = new Prop<>("API.V2.Port", 8126);
 
   public static final Prop<String> API_UI_DIR  = new Prop<>("API.UI_Dir", "html/ui");
   public static final Prop<Boolean> API_CROSS_ORIGIN_FILTER = new Prop<>("API.CrossOriginFilter", false);

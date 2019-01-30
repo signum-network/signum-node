@@ -16,6 +16,7 @@ import brs.deeplink.DeeplinkQRCodeGenerator;
 import brs.feesuggestions.FeeSuggestionCalculator;
 import brs.fluxcapacitor.FluxCapacitor;
 import brs.fluxcapacitor.FluxCapacitorImpl;
+import brs.grpc.proto.BrsService;
 import brs.http.API;
 import brs.http.APITransactionManager;
 import brs.http.APITransactionManagerImpl;
@@ -30,6 +31,8 @@ import brs.util.DownloadCacheImpl;
 import brs.util.LoggerConfigurator;
 import brs.util.ThreadPool;
 import brs.util.Time;
+import io.grpc.Server;
+import io.grpc.ServerBuilder;
 import org.jooq.DSLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +69,8 @@ public final class Burst {
   private static DBCacheManagerImpl dbCacheManager;
 
   private static API api;
+  private static BrsService apiV2;
+  private static Server apiV2Server;
 
   private static PropertyService loadProperties() {
     final Properties defaultProperties = new Properties();
@@ -226,6 +231,10 @@ public final class Burst {
           subscriptionService, atService, timeService, economicClustering, propertyService, threadPool,
           transactionService, blockService, generator, apiTransactionManager, feeSuggestionCalculator, deepLinkQRCodeGenerator);
 
+      apiV2 = new BrsService(blockchain);
+
+      apiV2Server = ServerBuilder.forPort(propertyService.getBoolean(Props.DEV_TESTNET) ? propertyService.getInt(Props.DEV_API_V2_PORT) : propertyService.getInt(Props.API_V2_PORT)).addService(apiV2).build();
+
       DebugTrace.init(propertyService, blockchainProcessor, accountService, assetExchange, digitalGoodsStoreService);
 
       // backward compatibility for those who have some unconfirmed transactions in their db
@@ -316,6 +325,8 @@ public final class Burst {
     logger.info("Shutting down...");
     if (api != null)
       api.shutdown();
+    if (apiV2Server != null)
+      apiV2Server.shutdownNow();
     Peers.shutdown(threadPool);
     threadPool.shutdown();
     if(! ignoreDBShutdown) {

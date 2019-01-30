@@ -1,0 +1,130 @@
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+import "google/protobuf/any.proto";
+option java_package = "brs.grpc";
+
+
+service BRS {
+    rpc GetBlock(GetBlockRequest) returns (Block) {}
+    rpc GetAccount(GetAccountRequest) returns (Account) {}
+    rpc GetAccounts(GetAccountsRequest) returns (AccountIDs) {}
+    rpc GetMiningInfo(google.protobuf.Empty) returns (stream MiningInfo) {}
+    rpc GetTransaction(GetTransactionRequest) returns (Transaction) {}
+    rpc GetTransactionBytes(GetTransactionBytesRequest) returns (TransactionBytes) {}
+    rpc SubmitNonce(SubmitNonceRequest) returns (SubmitNonceResponse) {}
+}
+
+message GetBlockRequest {
+    uint64 id = 1;
+    uint32 height = 2;
+}
+
+message GetAccountRequest {
+    uint64 id = 1;
+}
+
+message GetAccountsRequest {
+    uint64 rewardRecipient = 1;
+    string name = 2;
+}
+
+message GetTransactionRequest {
+    uint64 id = 1;
+    bytes fullHash = 2;
+}
+
+message GetTransactionBytesRequest {
+    uint64 id = 1;
+}
+
+message SubmitNonceRequest {
+    string secretPhrase = 1;
+    uint64 nonce = 2;
+    uint64 account = 3;
+    uint32 blockHeight = 4;
+}
+
+message SubmitNonceResponse {
+    string result = 1;
+    uint64 deadline = 2;
+}
+
+message Block {
+    uint64 id = 1;
+    uint32 height = 2;
+    uint32 numberOfTransactions = 3;
+    uint64 totalAmount = 4;
+    uint64 totalFee = 5;
+    uint32 blockReward = 6;
+    uint64 payloadLength = 7;
+    int32 version = 8;
+    uint64 baseTarget = 9;
+    uint64 timestamp = 10;
+    bytes generationSignature = 11;
+    bytes blockSignature = 12;
+    bytes payloadHash = 13;
+    repeated Transaction transactions = 14;
+    uint64 generator = 15;
+    bytes generatorPublicKey = 16;
+    uint64 nonce = 17;
+    uint32 scoop = 18;
+    uint64 previousBlock = 19;
+    uint64 nextBlock = 20;
+}
+
+message Transaction {
+    uint64 id = 1;
+    int32 version = 2;
+    uint32 type = 3;
+    uint32 subtype = 4;
+    uint64 timestamp = 5;
+    uint32 deadline = 6;
+    bytes sender = 7;
+    uint64 recipient = 8;
+    uint64 amount = 9;
+    uint64 fee = 10;
+    uint64 block = 11;
+    uint32 blockHeight = 12;
+    uint64 blockTimestamp = 13;
+    google.protobuf.Any attachment = 14;
+    bytes signature = 15;
+    bytes signatureHash = 16;
+    bytes fullHash = 17;
+    uint32 confirmations = 18;
+    uint64 ecBlockId = 19;
+    uint32 ecBlockHeight = 20;
+}
+
+message AccountIDs {
+    repeated uint64 accountIDs = 1;
+}
+
+message Account {
+    uint64 id = 1;
+    bytes publicKey = 2;
+    uint64 balance = 3;
+    uint64 guaranteedBalance = 4;
+    uint64 effectiveBalance = 5;
+    uint64 unconfirmedBalance = 6;
+    uint64 forgedBalance = 7;
+    string name = 8;
+    string description = 9;
+    uint64 rewardRecipient = 10;
+    repeated AssetBalance assetBalances = 11;
+    repeated AssetBalance unconfirmedAssetBalances = 12;
+}
+
+message AssetBalance {
+    uint64 id = 1;
+    uint64 balance = 2;
+}
+
+message MiningInfo {
+    uint32 height = 1;
+    bytes generationSignature = 2;
+    uint64 baseTarget = 3;
+}
+
+message TransactionBytes {
+    bytes transactionBytes = 1;
+}

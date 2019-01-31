@@ -57,14 +57,6 @@ public final class Convert {
     return id.toString();
   }
 
-  public static long parseUnsignedLong(long number) {
-    BigInteger bigInt = BigInteger.valueOf(number);
-    if (bigInt.signum() < 0 || bigInt.compareTo(two64) > -1) {
-      throw new IllegalArgumentException("overflow: " + number);
-    }
-    return bigInt.longValue();
-  }
-
   public static long parseUnsignedLong(String number) {
     if (number == null) {
       return 0;

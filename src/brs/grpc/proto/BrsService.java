@@ -1,6 +1,6 @@
 package brs.grpc.proto;
 
-import brs.Blockchain;
+import brs.BlockchainProcessor;
 import brs.grpc.GrpcApiHandler;
 import brs.grpc.handlers.GetMiningInfoHandler;
 import com.google.protobuf.Empty;
@@ -10,8 +10,8 @@ public class BrsService extends BRSGrpc.BRSImplBase {
 
     private final GrpcApiHandler<Empty, Brs.MiningInfo> getMiningInfoHandler;
 
-    public BrsService(Blockchain blockchain) {
-        getMiningInfoHandler = new GetMiningInfoHandler(blockchain);
+    public BrsService(BlockchainProcessor blockchainProcessor) {
+        getMiningInfoHandler = new GetMiningInfoHandler(blockchainProcessor);
     }
 
     @Override

@@ -45,8 +45,7 @@ message SubmitNonceRequest {
 }
 
 message SubmitNonceResponse {
-    string result = 1;
-    uint64 deadline = 2;
+    uint64 deadline = 1;
 }
 
 message Block {

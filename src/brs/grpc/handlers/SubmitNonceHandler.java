@@ -8,7 +8,6 @@ import brs.grpc.GrpcApiHandler;
 import brs.grpc.proto.ApiException;
 import brs.grpc.proto.Brs;
 import brs.services.AccountService;
-import brs.util.Convert;
 
 import java.util.Objects;
 
@@ -28,9 +27,7 @@ public class SubmitNonceHandler implements GrpcApiHandler<Brs.SubmitNonceRequest
     public Brs.SubmitNonceResponse handleRequest(Brs.SubmitNonceRequest request) throws Exception {
         String secret = request.getSecretPhrase();
         long nonce = request.getNonce();
-
-        String accountId = Convert.toUnsignedLong(request.getAccount());
-
+        long accountId = request.getAccount();
         int submissionHeight = request.getBlockHeight();
 
         if (submissionHeight != 0) {
@@ -47,8 +44,8 @@ public class SubmitNonceHandler implements GrpcApiHandler<Brs.SubmitNonceRequest
         Account secretAccount = accountService.getAccount(secretPublicKey);
         if(secretAccount != null) {
             Account genAccount;
-            if(accountId != null) {
-                genAccount = accountService.getAccount(Convert.parseAccountId(accountId));
+            if(accountId != 0) {
+                genAccount = accountService.getAccount(accountId);
             }
             else {
                 genAccount = secretAccount;
@@ -76,11 +73,11 @@ public class SubmitNonceHandler implements GrpcApiHandler<Brs.SubmitNonceRequest
         }
 
         Generator.GeneratorState generatorState;
-        if (accountId == null || secretAccount == null) {
+        if (accountId == 0 || secretAccount == null) {
             generatorState = generator.addNonce(secret, nonce);
         }
         else {
-            Account genAccount = accountService.getAccount(Convert.parseUnsignedLong(accountId));
+            Account genAccount = accountService.getAccount(accountId);
             if (genAccount == null || genAccount.getPublicKey() == null) {
                 throw new ApiException("Passthrough mining requires public key in blockchain");
             }

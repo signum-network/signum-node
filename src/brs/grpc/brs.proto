@@ -71,6 +71,7 @@ message Block {
     uint32 scoop = 18;
     uint64 previousBlock = 19;
     uint64 nextBlock = 20;
+    bytes previousBlockHash = 21;
 }
 
 message Transaction {

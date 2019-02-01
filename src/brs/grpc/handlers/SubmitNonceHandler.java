@@ -39,7 +39,7 @@ public class SubmitNonceHandler implements GrpcApiHandler<Brs.SubmitNonceRequest
             }
         }
 
-        if (secret == null || Objects.equals(secret, "")) {
+        if (Objects.equals(secret, "")) {
             throw new ApiException("Missing Passphrase");
         }
 
@@ -66,7 +66,7 @@ public class SubmitNonceHandler implements GrpcApiHandler<Brs.SubmitNonceRequest
                 else {
                     rewardId = assignment.getRecipientId();
                 }
-                if(rewardId != secretAccount.getId()) {
+                if (rewardId != secretAccount.getId()) {
                     throw new ApiException("Passphrase does not match reward recipient");
                 }
             }

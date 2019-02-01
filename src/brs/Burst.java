@@ -231,9 +231,9 @@ public final class Burst {
           subscriptionService, atService, timeService, economicClustering, propertyService, threadPool,
           transactionService, blockService, generator, apiTransactionManager, feeSuggestionCalculator, deepLinkQRCodeGenerator);
 
-      apiV2 = new BrsService(blockchainProcessor, blockchain, accountService, generator);
+      apiV2 = new BrsService(blockchainProcessor, blockchain, blockService, accountService, generator);
 
-      apiV2Server = ServerBuilder.forPort(propertyService.getBoolean(Props.DEV_TESTNET) ? propertyService.getInt(Props.DEV_API_V2_PORT) : propertyService.getInt(Props.API_V2_PORT)).addService(apiV2).build();
+      apiV2Server = ServerBuilder.forPort(propertyService.getBoolean(Props.DEV_TESTNET) ? propertyService.getInt(Props.DEV_API_V2_PORT) : propertyService.getInt(Props.API_V2_PORT)).addService(apiV2).build().start();
 
       DebugTrace.init(propertyService, blockchainProcessor, accountService, assetExchange, digitalGoodsStoreService);
 

@@ -17,6 +17,8 @@ service BRS {
 message GetBlockRequest {
     uint64 id = 1;
     uint32 height = 2;
+    uint32 timestamp = 3;
+    bool includeTransactions = 4;
 }
 
 message GetAccountRequest {
@@ -54,16 +56,16 @@ message Block {
     uint32 numberOfTransactions = 3;
     uint64 totalAmount = 4;
     uint64 totalFee = 5;
-    uint32 blockReward = 6;
+    uint64 blockReward = 6;
     uint64 payloadLength = 7;
     int32 version = 8;
     uint64 baseTarget = 9;
-    uint64 timestamp = 10;
+    uint32 timestamp = 10;
     bytes generationSignature = 11;
     bytes blockSignature = 12;
     bytes payloadHash = 13;
     repeated Transaction transactions = 14;
-    uint64 generator = 15;
+    repeated uint64 transactionIds = 15;
     bytes generatorPublicKey = 16;
     uint64 nonce = 17;
     uint32 scoop = 18;
@@ -73,10 +75,10 @@ message Block {
 
 message Transaction {
     uint64 id = 1;
-    int32 version = 2;
+    uint32 version = 2;
     uint32 type = 3;
     uint32 subtype = 4;
-    uint64 timestamp = 5;
+    uint32 timestamp = 5;
     uint32 deadline = 6;
     bytes sender = 7;
     uint64 recipient = 8;
@@ -84,14 +86,228 @@ message Transaction {
     uint64 fee = 10;
     uint64 block = 11;
     uint32 blockHeight = 12;
-    uint64 blockTimestamp = 13;
-    google.protobuf.Any attachment = 14;
+    uint32 blockTimestamp = 13;
+    repeated google.protobuf.Any appendices = 14;
     bytes signature = 15;
-    bytes signatureHash = 16;
+    bytes referencedTransactionFullHash = 16;
     bytes fullHash = 17;
-    uint32 confirmations = 18;
+    sint32 confirmations = 18;
     uint64 ecBlockId = 19;
     uint32 ecBlockHeight = 20;
+}
+
+message MessageAppendix {
+    uint32 version = 1;
+    bytes message = 2;
+    bool isText = 3;
+}
+
+message EncryptedMessageAppendix {
+    uint32 version = 1;
+    bytes data = 2;
+    bytes nonce = 3;
+    bool isText = 4;
+    Type type = 5;
+
+    enum Type {
+        TO_RECIPIENT = 0;
+        TO_SELF = 1;
+    }
+}
+
+message PublicKeyAnnouncementAppendix {
+    uint32 version = 1;
+    bytes recipientPublicKey = 2;
+}
+
+message MultiOutAttachment {
+    uint32 version = 1;
+    repeated MultiOutRecipient recipients = 2;
+
+    message MultiOutRecipient {
+        uint64 recipient = 1;
+        uint64 amount = 2;
+    }
+}
+
+message MultiOutSameAttachment {
+    uint32 version = 1;
+    repeated uint64 recipients = 2;
+}
+
+message AliasAssignmentAttachment {
+    uint32 version = 1;
+    string name = 2;
+    string uri = 3;
+}
+
+message AliasSellAttachment {
+    uint32 version = 1;
+    string name = 2;
+    uint64 price = 3;
+}
+
+message AliasBuyAttachment {
+    uint32 version = 1;
+    string name = 2;
+}
+
+message AccountInfoAttachment {
+    uint32 version = 1;
+    string name = 2;
+    string description = 3;
+}
+
+message AssetIssuanceAttachment {
+    uint32 version = 1;
+    string name = 2;
+    string description = 3;
+    uint64 quantity = 4;
+    uint32 decimals = 5;
+}
+
+message AssetTransferAttachment {
+    uint32 version = 1;
+    uint64 id = 2;
+    uint64 quantity = 3;
+    string comment = 4;
+}
+
+message AssetOrderPlacementAttachment {
+    uint32 version = 1;
+    uint64 id = 2;
+    uint64 quantity = 3;
+    uint64 price = 4;
+    Type type = 5;
+
+    enum Type {
+        ASK = 0;
+        BID = 1;
+    }
+}
+
+message AssetOrderCancellationAttachment {
+    uint32 version = 1;
+    uint64 orderId = 2;
+    Type type = 3;
+
+    enum Type {
+        ASK = 0;
+        BID = 1;
+    }
+}
+
+message DigitalGoodsListingAttachment {
+    uint32 version = 1;
+    string name = 2;
+    string description = 3;
+    string tags = 4;
+    uint32 quantity = 5;
+    uint64 price = 6;
+}
+
+message DigitalGoodsDelistingAttachment {
+    uint32 version = 1;
+    uint64 goodsId = 2;
+}
+
+message DigitalGoodsPriceChangeAttachment {
+    uint32 version = 1;
+    uint64 goodsId = 2;
+    uint64 price = 3;
+}
+
+message DigitalGoodsQuantityChangeAttachment {
+    uint32 version = 1;
+    uint64 goodsId = 2;
+    sint32 deltaQuantity = 3;
+}
+
+message DigitalGoodsPurchaseAttachment {
+    uint32 version = 1;
+    uint64 goodsId = 2;
+    uint32 quantity = 3;
+    uint64 price = 4;
+    uint32 deliveryDeadlineTimestmap = 5;
+}
+
+message DigitalGoodsDeliveryAttachment {
+    uint32 version = 1;
+    uint64 purchaseId = 2;
+    uint64 discount = 3;
+    bytes data = 4;
+    bytes nonce = 5;
+    bool isText = 6;
+}
+
+message DigitalGoodsFeedbackAttachment {
+    uint32 version = 1;
+    uint64 purchaseId = 2;
+}
+
+message DigitalGoodsRefundAttachment {
+    uint32 version = 1;
+    uint64 purchaseId = 2;
+    uint64 refund = 3;
+}
+
+message EffectiveBalanceLeasingAttachment {
+    uint32 version = 1;
+    uint32 period = 2;
+}
+
+message RewardRecipientAssignmentAttachment {
+    uint32 version = 1;
+}
+
+message EscrowCreationAttachment {
+    uint32 version = 1;
+    uint64 amount = 2;
+    uint32 requiredSigners = 3;
+    repeated uint64 signers = 4;
+    uint32 deadline = 5;
+    EscrowDecisionType deadlineAction = 6;
+}
+
+message EscrowSignAttachment {
+    uint32 version = 1;
+    uint64 escrowId = 2;
+    EscrowDecisionType decision = 3;
+}
+
+message EscrowResultAttachment {
+    uint32 version = 1;
+    uint64 escrowId = 2;
+    EscrowDecisionType decision = 3;
+}
+
+message SubscriptionSubscribeAttachment {
+    uint32 version = 1;
+    uint32 frequency = 2;
+}
+
+message SubscriptionCancelAttachment {
+    uint32 version = 1;
+    uint64 subscriptionId = 2;
+}
+
+message SubscriptionPaymentAttachment {
+    uint32 version = 1;
+    uint64 sucscriptionId = 2;
+}
+
+message ATCreationAttachment {
+    uint32 version = 1;
+    string name = 2;
+    string description = 3;
+    bytes creationBytes = 4;
+}
+
+enum EscrowDecisionType {
+    UNDECIDED = 0;
+    RELEASE = 1;
+    REFUND = 2;
+    SPLIT = 3;
 }
 
 message AccountIDs {

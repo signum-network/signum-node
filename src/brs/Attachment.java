@@ -3,11 +3,15 @@ package brs;
 import brs.TransactionType.Payment;
 import brs.at.AT_Constants;
 import brs.crypto.EncryptedData;
+import brs.grpc.proto.Brs;
 import brs.util.Convert;
 import brs.util.JSON;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.Empty;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -71,6 +75,11 @@ public interface Attachment extends Appendix {
     }
 
     @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Empty.newBuilder().build());
+    }
+
+    @Override
     final boolean verifyVersion(byte transactionVersion) {
       return true;
     }
@@ -79,17 +88,17 @@ public interface Attachment extends Appendix {
 
   EmptyAttachment ORDINARY_PAYMENT = new EmptyAttachment() {
 
-      @Override
-      String getAppendixName() {
-        return "OrdinaryPayment";
-      }
+    @Override
+    String getAppendixName() {
+      return "OrdinaryPayment";
+    }
 
-      @Override
-      public TransactionType getTransactionType() {
-        return TransactionType.Payment.ORDINARY;
-      }
+    @Override
+    public TransactionType getTransactionType() {
+      return TransactionType.Payment.ORDINARY;
+    }
 
-    };
+  };
 
   final class PaymentMultiOutCreation extends AbstractAttachment {
 
@@ -213,6 +222,18 @@ public interface Attachment extends Appendix {
     public Collection<ArrayList<Long>> getRecipients() {
       return Collections.unmodifiableCollection(recipients);
     }
+
+    @Override
+    public Any getProtobufMessage() {
+      Brs.MultiOutAttachment.Builder builder =  Brs.MultiOutAttachment.newBuilder()
+              .setVersion(getVersion());
+      for (ArrayList<Long> recipient : recipients) {
+        builder.addRecipients(Brs.MultiOutAttachment.MultiOutRecipient.newBuilder()
+                .setRecipient(recipient.get(0))
+                .setAmount(recipient.get(1)));
+      }
+      return Any.pack(builder.build());
+    }
   }
 
   final class PaymentMultiSameOutCreation extends AbstractAttachment {
@@ -308,6 +329,14 @@ public interface Attachment extends Appendix {
     public Collection<Long> getRecipients() {
       return Collections.unmodifiableCollection(recipients);
     }
+
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Brs.MultiOutSameAttachment.newBuilder()
+              .setVersion(getVersion())
+              .addAllRecipients(recipients)
+              .build());
+    }
   }
 
   // the message payload is in the Appendix
@@ -401,6 +430,15 @@ public interface Attachment extends Appendix {
     public String getAliasURI() {
       return aliasURI;
     }
+
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Brs.AliasAssignmentAttachment.newBuilder()
+              .setVersion(getVersion())
+              .setName(aliasName)
+              .setUri(aliasURI)
+              .build());
+    }
   }
 
   class MessagingAliasSell extends AbstractAttachment {
@@ -462,6 +500,15 @@ public interface Attachment extends Appendix {
     public long getPriceNQT(){
       return priceNQT;
     }
+
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Brs.AliasSellAttachment.newBuilder()
+              .setVersion(getVersion())
+              .setName(aliasName)
+              .setPrice(priceNQT)
+              .build());
+    }
   }
 
   final class MessagingAliasBuy extends AbstractAttachment {
@@ -512,6 +559,14 @@ public interface Attachment extends Appendix {
 
     public String getAliasName(){
       return aliasName;
+    }
+
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Brs.AliasBuyAttachment.newBuilder()
+              .setVersion(getVersion())
+              .setName(aliasName)
+              .build());
     }
   }
 
@@ -577,6 +632,14 @@ public interface Attachment extends Appendix {
       return description;
     }
 
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Brs.AccountInfoAttachment.newBuilder()
+              .setVersion(getVersion())
+              .setName(name)
+              .setDescription(description)
+              .build());
+    }
   }
 
   class ColoredCoinsAssetIssuance extends AbstractAttachment {
@@ -660,6 +723,17 @@ public interface Attachment extends Appendix {
     public byte getDecimals() {
       return decimals;
     }
+
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Brs.AssetIssuanceAttachment.newBuilder()
+              .setVersion(getVersion())
+              .setName(name)
+              .setDescription(description)
+              .setQuantity(quantityQNT)
+              .setDecimals(decimals)
+              .build());
+    }
   }
 
   final class ColoredCoinsAssetTransfer extends AbstractAttachment {
@@ -736,6 +810,15 @@ public interface Attachment extends Appendix {
       return comment;
     }
 
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Brs.AssetTransferAttachment.newBuilder()
+              .setVersion(getVersion())
+              .setId(assetId)
+              .setQuantity(quantityQNT)
+              .setComment(comment)
+              .build());
+    }
   }
 
   abstract class ColoredCoinsOrderPlacement extends AbstractAttachment {
@@ -784,6 +867,17 @@ public interface Attachment extends Appendix {
       attachment.addProperty(PRICE_NQT_RESPONSE, priceNQT);
     }
 
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Brs.AssetOrderPlacementAttachment.newBuilder()
+              .setVersion(getVersion())
+              .setId(assetId)
+              .setQuantity(quantityQNT)
+              .setPrice(priceNQT)
+              .setType(getType())
+              .build());
+    }
+
     public long getAssetId() {
       return assetId;
     }
@@ -795,6 +889,8 @@ public interface Attachment extends Appendix {
     public long getPriceNQT() {
       return priceNQT;
     }
+
+    protected abstract Brs.AssetOrderPlacementAttachment.Type getType();
   }
 
   final class ColoredCoinsAskOrderPlacement extends ColoredCoinsOrderPlacement {
@@ -809,6 +905,11 @@ public interface Attachment extends Appendix {
 
     public ColoredCoinsAskOrderPlacement(long assetId, long quantityQNT, long priceNQT, int blockchainHeight) {
       super(assetId, quantityQNT, priceNQT, blockchainHeight);
+    }
+
+    @Override
+    protected Brs.AssetOrderPlacementAttachment.Type getType() {
+      return Brs.AssetOrderPlacementAttachment.Type.ASK;
     }
 
     @Override
@@ -835,6 +936,11 @@ public interface Attachment extends Appendix {
 
     public ColoredCoinsBidOrderPlacement(long assetId, long quantityQNT, long priceNQT, int blockchainHeight) {
       super(assetId, quantityQNT, priceNQT, blockchainHeight);
+    }
+
+    @Override
+    protected Brs.AssetOrderPlacementAttachment.Type getType() {
+      return Brs.AssetOrderPlacementAttachment.Type.BID;
     }
 
     @Override
@@ -883,9 +989,20 @@ public interface Attachment extends Appendix {
       attachment.addProperty(ORDER_RESPONSE, Convert.toUnsignedLong(orderId));
     }
 
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Brs.AssetOrderCancellationAttachment.newBuilder()
+              .setVersion(getVersion())
+              .setOrderId(orderId)
+              .setType(getType())
+              .build());
+    }
+
     public long getOrderId() {
       return orderId;
     }
+
+    protected abstract Brs.AssetOrderCancellationAttachment.Type getType();
   }
 
   final class ColoredCoinsAskOrderCancellation extends ColoredCoinsOrderCancellation {
@@ -900,6 +1017,11 @@ public interface Attachment extends Appendix {
 
     public ColoredCoinsAskOrderCancellation(long orderId, int blockchainHeight) {
       super(orderId, blockchainHeight);
+    }
+
+    @Override
+    protected Brs.AssetOrderCancellationAttachment.Type getType() {
+      return Brs.AssetOrderCancellationAttachment.Type.ASK;
     }
 
     @Override
@@ -926,6 +1048,11 @@ public interface Attachment extends Appendix {
 
     public ColoredCoinsBidOrderCancellation(long orderId, int blockchainHeight) {
       super(orderId, blockchainHeight);
+    }
+
+    @Override
+    protected Brs.AssetOrderCancellationAttachment.Type getType() {
+      return Brs.AssetOrderCancellationAttachment.Type.BID;
     }
 
     @Override
@@ -1025,6 +1152,17 @@ public interface Attachment extends Appendix {
 
     public long getPriceNQT() { return priceNQT; }
 
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Brs.DigitalGoodsListingAttachment.newBuilder()
+              .setVersion(getVersion())
+              .setName(name)
+              .setDescription(description)
+              .setTags(tags)
+              .setQuantity(quantity)
+              .setPrice(priceNQT)
+              .build());
+    }
   }
 
   final class DigitalGoodsDelisting extends AbstractAttachment {
@@ -1073,6 +1211,13 @@ public interface Attachment extends Appendix {
 
     public long getGoodsId() { return goodsId; }
 
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Brs.DigitalGoodsDelistingAttachment.newBuilder()
+              .setVersion(getVersion())
+              .setGoodsId(goodsId)
+              .build());
+    }
   }
 
   final class DigitalGoodsPriceChange extends AbstractAttachment {
@@ -1129,6 +1274,14 @@ public interface Attachment extends Appendix {
 
     public long getPriceNQT() { return priceNQT; }
 
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Brs.DigitalGoodsPriceChangeAttachment.newBuilder()
+              .setVersion(getVersion())
+              .setGoodsId(goodsId)
+              .setPrice(priceNQT)
+              .build());
+    }
   }
 
   final class DigitalGoodsQuantityChange extends AbstractAttachment {
@@ -1185,6 +1338,14 @@ public interface Attachment extends Appendix {
 
     public int getDeltaQuantity() { return deltaQuantity; }
 
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Brs.DigitalGoodsQuantityChangeAttachment.newBuilder()
+              .setVersion(getVersion())
+              .setGoodsId(goodsId)
+              .setDeltaQuantity(deltaQuantity)
+              .build());
+    }
   }
 
   final class DigitalGoodsPurchase extends AbstractAttachment {
@@ -1257,6 +1418,16 @@ public interface Attachment extends Appendix {
 
     public int getDeliveryDeadlineTimestamp() { return deliveryDeadlineTimestamp; }
 
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Brs.DigitalGoodsPurchaseAttachment.newBuilder()
+              .setVersion(getVersion())
+              .setGoodsId(goodsId)
+              .setQuantity(quantity)
+              .setPrice(priceNQT)
+              .setDeliveryDeadlineTimestmap(deliveryDeadlineTimestamp)
+              .build());
+    }
   }
 
   final class DigitalGoodsDelivery extends AbstractAttachment {
@@ -1338,6 +1509,17 @@ public interface Attachment extends Appendix {
       return goodsIsText;
     }
 
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Brs.DigitalGoodsDeliveryAttachment.newBuilder()
+              .setVersion(getVersion())
+              .setPurchaseId(purchaseId)
+              .setDiscount(discountNQT)
+              .setData(ByteString.copyFrom(goods.getData()))
+              .setNonce(ByteString.copyFrom(goods.getNonce()))
+              .setIsText(goodsIsText)
+              .build());
+    }
   }
 
   final class DigitalGoodsFeedback extends AbstractAttachment {
@@ -1386,6 +1568,13 @@ public interface Attachment extends Appendix {
 
     public long getPurchaseId() { return purchaseId; }
 
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Brs.DigitalGoodsFeedbackAttachment.newBuilder()
+              .setVersion(getVersion())
+              .setPurchaseId(purchaseId)
+              .build());
+    }
   }
 
   final class DigitalGoodsRefund extends AbstractAttachment {
@@ -1442,6 +1631,14 @@ public interface Attachment extends Appendix {
 
     public long getRefundNQT() { return refundNQT; }
 
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Brs.DigitalGoodsRefundAttachment.newBuilder()
+              .setVersion(getVersion())
+              .setPurchaseId(purchaseId)
+              .setRefund(refundNQT)
+              .build());
+    }
   }
 
   final class AccountControlEffectiveBalanceLeasing extends AbstractAttachment {
@@ -1491,6 +1688,14 @@ public interface Attachment extends Appendix {
     public short getPeriod() {
       return period;
     }
+
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Brs.EffectiveBalanceLeasingAttachment.newBuilder()
+              .setVersion(getVersion())
+              .setPeriod(period)
+              .build());
+    }
   }
 
   final class BurstMiningRewardRecipientAssignment extends AbstractAttachment {
@@ -1528,6 +1733,13 @@ public interface Attachment extends Appendix {
     @Override
     public TransactionType getTransactionType() {
       return TransactionType.BurstMining.REWARD_RECIPIENT_ASSIGNMENT;
+    }
+
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Brs.RewardRecipientAssignmentAttachment.newBuilder()
+              .setVersion(getVersion())
+              .build());
     }
   }
 
@@ -1643,6 +1855,18 @@ public interface Attachment extends Appendix {
     public Collection<Long> getSigners() { return Collections.unmodifiableCollection(signers); }
 
     public int getTotalSigners() { return signers.size(); }
+
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Brs.EscrowCreationAttachment.newBuilder()
+              .setVersion(getVersion())
+              .setAmount(amountNQT)
+              .setRequiredSigners(requiredSigners)
+              .addAllSigners(signers)
+              .setDeadline(deadline)
+              .setDeadlineAction(Escrow.decisionToProtobuf(deadlineAction))
+              .build());
+    }
   }
 
   final class AdvancedPaymentEscrowSign extends AbstractAttachment {
@@ -1698,6 +1922,15 @@ public interface Attachment extends Appendix {
     public Long getEscrowId() { return this.escrowId; }
 
     public Escrow.DecisionType getDecision() { return this.decision; }
+
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Brs.EscrowSignAttachment.newBuilder()
+              .setVersion(getVersion())
+              .setEscrowId(escrowId)
+              .setDecision(Escrow.decisionToProtobuf(decision))
+              .build());
+    }
   }
 
   final class AdvancedPaymentEscrowResult extends AbstractAttachment {
@@ -1749,6 +1982,15 @@ public interface Attachment extends Appendix {
     public TransactionType getTransactionType() {
       return TransactionType.AdvancedPayment.ESCROW_RESULT;
     }
+
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Brs.EscrowResultAttachment.newBuilder()
+              .setVersion(getVersion())
+              .setEscrowId(2)
+              .setDecision(Escrow.decisionToProtobuf(decision))
+              .build());
+    }
   }
 
   final class AdvancedPaymentSubscriptionSubscribe extends AbstractAttachment {
@@ -1796,6 +2038,14 @@ public interface Attachment extends Appendix {
     }
 
     public Integer getFrequency() { return this.frequency; }
+
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Brs.SubscriptionSubscribeAttachment.newBuilder()
+              .setVersion(getVersion())
+              .setFrequency(frequency)
+              .build());
+    }
   }
 
   final class AdvancedPaymentSubscriptionCancel extends AbstractAttachment {
@@ -1843,6 +2093,14 @@ public interface Attachment extends Appendix {
     }
 
     public Long getSubscriptionId() { return this.subscriptionId; }
+
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Brs.SubscriptionCancelAttachment.newBuilder()
+              .setVersion(getVersion())
+              .setSubscriptionId(subscriptionId)
+              .build());
+    }
   }
 
   final class AdvancedPaymentSubscriptionPayment extends AbstractAttachment {
@@ -1887,6 +2145,14 @@ public interface Attachment extends Appendix {
     @Override
     public TransactionType getTransactionType() {
       return TransactionType.AdvancedPayment.SUBSCRIPTION_PAYMENT;
+    }
+
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Brs.SubscriptionPaymentAttachment.newBuilder()
+              .setVersion(getVersion())
+              .setSucscriptionId(subscriptionId)
+              .build());
     }
   }
 
@@ -2018,6 +2284,15 @@ public interface Attachment extends Appendix {
     }
 
 
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(Brs.ATCreationAttachment.newBuilder()
+              .setVersion(getVersion())
+              .setName(name)
+              .setDescription(description)
+              .setCreationBytes(ByteString.copyFrom(creationBytes))
+              .build());
+    }
   }
 
 }

@@ -12,30 +12,56 @@ import brs.services.BlockService;
 import com.google.protobuf.Empty;
 import io.grpc.stub.StreamObserver;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 public class BrsService extends BRSGrpc.BRSImplBase {
 
-    private final GrpcApiHandler<Empty, Brs.MiningInfo> getMiningInfoHandler;
-    private final GrpcApiHandler<Brs.SubmitNonceRequest, Brs.SubmitNonceResponse> submitNonceHandler;
-    private final GrpcApiHandler<Brs.GetBlockRequest, Brs.Block> getBlockHandler;
+    private final Map<Class<? extends GrpcApiHandler<?,?>>, GrpcApiHandler<?,?>> handlers;
 
     public BrsService(BlockchainProcessor blockchainProcessor, Blockchain blockchain, BlockService blockService, AccountService accountService, Generator generator) {
-        getMiningInfoHandler = new GetMiningInfoHandler(blockchainProcessor);
-        submitNonceHandler = new SubmitNonceHandler(blockchain, accountService, generator);
-        getBlockHandler = new GetBlockHandler(blockchain, blockService);
+        Map<Class<? extends GrpcApiHandler<?,?>>, GrpcApiHandler<?,?>> handlers = new HashMap<>();
+        handlers.put(GetMiningInfoHandler.class, new GetMiningInfoHandler(blockchainProcessor));
+        handlers.put(SubmitNonceHandler.class, new SubmitNonceHandler(blockchain, accountService, generator));
+        handlers.put(GetBlockHandler.class, new GetBlockHandler(blockchain, blockService));
+        this.handlers = Collections.unmodifiableMap(handlers);
+    }
+
+    private <T extends GrpcApiHandler<?,?>> T getHandler(Class<T> handlerClass) throws HandlerNotFoundException {
+        GrpcApiHandler<?, ?> handler = handlers.get(handlerClass);
+        if (!handlerClass.isInstance(handler)) {
+            throw new HandlerNotFoundException();
+        }
+        return handlerClass.cast(handler);
     }
 
     @Override
     public void getMiningInfo(Empty request, StreamObserver<Brs.MiningInfo> responseObserver) {
-        getMiningInfoHandler.handleRequest(request, responseObserver);
+        try {
+            getHandler(GetMiningInfoHandler.class).handleRequest(request, responseObserver);
+        } catch (HandlerNotFoundException e) {
+            responseObserver.onError(e);
+        }
     }
 
     @Override
     public void submitNonce(Brs.SubmitNonceRequest request, StreamObserver<Brs.SubmitNonceResponse> responseObserver) {
-        submitNonceHandler.handleRequest(request, responseObserver);
+        try {
+            getHandler(SubmitNonceHandler.class).handleRequest(request, responseObserver);
+        } catch (HandlerNotFoundException e) {
+            responseObserver.onError(e);
+        }
     }
 
     @Override
     public void getBlock(Brs.GetBlockRequest request, StreamObserver<Brs.Block> responseObserver) {
-        getBlockHandler.handleRequest(request, responseObserver);
+        try {
+            getHandler(GetBlockHandler.class).handleRequest(request, responseObserver);
+        } catch (HandlerNotFoundException e) {
+            responseObserver.onError(e);
+        }
     }
+
+    private class HandlerNotFoundException extends Exception {}
 }

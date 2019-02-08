@@ -1,7 +1,6 @@
 package brs;
 
 import brs.AT.HandleATBlockTransactionsListener;
-import brs.GeneratorImpl.MockGeneratorImpl;
 import brs.assetexchange.AssetExchange;
 import brs.assetexchange.AssetExchangeImpl;
 import brs.blockchainlistener.DevNullListener;
@@ -180,7 +179,7 @@ public final class Burst {
 
       EconomicClustering economicClustering = new EconomicClustering(blockchain);
 
-      final Generator generator = propertyService.getBoolean(Props.DEV_MOCK_MINING) ? new MockGeneratorImpl() : new GeneratorImpl(blockchain, timeService, fluxCapacitor);
+      final Generator generator = propertyService.getBoolean(Props.DEV_MOCK_MINING) ? new GeneratorImpl.MockGenerator(propertyService, blockchain, timeService, fluxCapacitor) : new GeneratorImpl(blockchain, timeService, fluxCapacitor);
 
       final AccountService accountService = new AccountServiceImpl(stores.getAccountStore(), stores.getAssetTransferStore());
 

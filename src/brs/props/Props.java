@@ -9,6 +9,7 @@ public class Props {
 
   public static final Prop<Integer> DEV_TIMEWARP    = new Prop<>("DEV.TimeWarp", 1);
   public static final Prop<Boolean> DEV_MOCK_MINING = new Prop<>("DEV.mockMining", false);
+  public static final Prop<Integer> DEV_MOCK_MINING_DEADLINE = new Prop<>("DEV.mockMining.deadline", 10);
 
   public static final Prop<String> DEV_DB_URL      = new Prop<>("DEV.DB.Url", "");
   public static final Prop<String> DEV_DB_USERNAME = new Prop<>("DEV.DB.Username", "");

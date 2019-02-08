@@ -8,8 +8,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.GOODS_PARAMETER;
 
-;
-
 public final class GetDGSGood extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;

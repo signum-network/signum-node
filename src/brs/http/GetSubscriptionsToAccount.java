@@ -14,9 +14,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 
-;
-;
-
 final class GetSubscriptionsToAccount extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;

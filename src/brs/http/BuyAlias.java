@@ -10,8 +10,6 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.JSONResponses.INCORRECT_ALIAS_NOTFORSALE;
 import static brs.http.common.Parameters.*;
 
-;
-
 public final class BuyAlias extends CreateTransaction {
 
   private final ParameterService parameterService;

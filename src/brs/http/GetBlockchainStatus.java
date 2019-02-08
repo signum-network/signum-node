@@ -13,8 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.ResultFields.TIME_RESPONSE;
 
-;
-
 final class GetBlockchainStatus extends APIServlet.APIRequestHandler {
 
   private final BlockchainProcessor blockchainProcessor;

@@ -6,8 +6,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.HEX_STRING_PARAMETER;
 
-;
-
 final class GetATLong extends APIServlet.APIRequestHandler {
 
   static final GetATLong instance = new GetATLong();

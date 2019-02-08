@@ -15,9 +15,6 @@ import java.util.List;
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.ASSETS_RESPONSE;
 
-;
-;
-
 public final class GetAssetsByIssuer extends AbstractAssetsRetrieval {
 
   private final ParameterService parameterService;

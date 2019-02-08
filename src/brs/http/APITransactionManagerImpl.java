@@ -24,8 +24,6 @@ import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.*;
 import static brs.http.common.ResultFields.FULL_HASH_RESPONSE;
 
-;
-
 public class APITransactionManagerImpl implements APITransactionManager {
 
   private final ParameterService parameterService;

@@ -8,8 +8,6 @@ import static brs.http.JSONResponses.MISSING_SECRET_PHRASE;
 import static brs.http.JSONResponses.UNKNOWN_ACCOUNT;
 import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
 
-;
-
 
 public final class StartForging extends APIServlet.APIRequestHandler {
 

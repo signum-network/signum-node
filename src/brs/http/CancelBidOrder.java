@@ -10,8 +10,6 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.JSONResponses.UNKNOWN_ORDER;
 import static brs.http.common.Parameters.ORDER_PARAMETER;
 
-;
-
 public final class CancelBidOrder extends CreateTransaction {
 
   private final ParameterService parameterService;

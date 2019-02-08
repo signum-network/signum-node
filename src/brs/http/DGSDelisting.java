@@ -9,8 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.JSONResponses.UNKNOWN_GOODS;
 import static brs.http.common.Parameters.GOODS_PARAMETER;
 
-;
-
 public final class DGSDelisting extends CreateTransaction {
 
   private final ParameterService parameterService;

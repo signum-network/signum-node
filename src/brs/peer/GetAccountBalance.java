@@ -7,8 +7,6 @@ import brs.util.JSON;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-;
-
 public class GetAccountBalance extends PeerServlet.PeerRequestHandler {
 
   private final AccountService accountService;

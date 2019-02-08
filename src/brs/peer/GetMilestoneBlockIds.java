@@ -10,9 +10,6 @@ import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-;
-;
-
 final class GetMilestoneBlockIds extends PeerServlet.PeerRequestHandler {
 
   private static final Logger logger = LoggerFactory.getLogger(GetMilestoneBlockIds.class);

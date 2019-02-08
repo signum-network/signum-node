@@ -11,8 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.common.Parameters.ALIAS_NAME_PARAMETER;
 import static brs.http.common.Parameters.ALIAS_PARAMETER;
 
-;
-
 public final class GetAlias extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;

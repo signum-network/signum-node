@@ -10,8 +10,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.ASSET_PARAMETER;
 
-;
-
 public final class GetAsset extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;

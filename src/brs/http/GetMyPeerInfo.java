@@ -7,8 +7,6 @@ import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
-;
-
 final class GetMyPeerInfo extends APIServlet.APIRequestHandler {
 
   private final BlockchainProcessor blockchainProcessor;

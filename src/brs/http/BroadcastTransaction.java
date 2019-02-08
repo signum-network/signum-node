@@ -17,8 +17,6 @@ import static brs.http.common.Parameters.TRANSACTION_BYTES_PARAMETER;
 import static brs.http.common.Parameters.TRANSACTION_JSON_PARAMETER;
 import static brs.http.common.ResultFields.*;
 
-;
-
 public final class BroadcastTransaction extends APIServlet.APIRequestHandler {
 
   private static final Logger logger = Logger.getLogger(BroadcastTransaction.class.getSimpleName());

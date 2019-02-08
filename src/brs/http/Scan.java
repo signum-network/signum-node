@@ -11,8 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.*;
 
-;
-
 final class Scan extends APIServlet.APIRequestHandler {
 
   private final BlockchainProcessor blockchainProcessor;

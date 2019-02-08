@@ -9,8 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.common.ResultFields.DONE_RESPONSE;
 import static brs.http.common.ResultFields.ERROR_RESPONSE;
 
-;
-
 public final class FullReset extends APIServlet.APIRequestHandler {
 
   private final BlockchainProcessor blockchainProcessor;

@@ -9,9 +9,6 @@ import com.google.gson.JsonObject;
 
 import java.util.List;
 
-;
-;
-
 final class GetNextBlockIds extends PeerServlet.PeerRequestHandler {
 
   private final Blockchain blockchain;

@@ -6,8 +6,6 @@ import brs.util.JSON;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-;
-
 final class ProcessTransactions extends PeerServlet.PeerRequestHandler {
 
   private final TransactionProcessor transactionProcessor;

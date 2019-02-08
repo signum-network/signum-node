@@ -11,8 +11,6 @@ import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.ERROR_CODE_RESPONSE;
 import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
 
-;
-
 final class SendMoneySubscription extends CreateTransaction {
 
   private final ParameterService parameterService;

@@ -11,9 +11,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-;
-;
-
 public class GetAccountRecentTransactions extends PeerServlet.PeerRequestHandler {
 
   private final AccountService accountService;

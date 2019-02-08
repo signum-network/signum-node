@@ -16,8 +16,6 @@ import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.ERROR_CODE_RESPONSE;
 import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
 
-;
-
 final class SendMoneyMulti extends CreateTransaction {
 
   private static final String[] commonParameters = new String[] {

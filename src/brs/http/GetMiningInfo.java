@@ -11,8 +11,6 @@ import com.google.gson.JsonObject;
 import javax.servlet.http.HttpServletRequest;
 import java.nio.ByteBuffer;
 
-;
-
 final class GetMiningInfo extends APIServlet.APIRequestHandler {
 
   private final Blockchain blockchain;

@@ -14,9 +14,6 @@ import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.HEIGHT_PARAMETER;
 import static brs.http.common.ResultFields.*;
 
-;
-;
-
 public final class GetAccountLessors extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;

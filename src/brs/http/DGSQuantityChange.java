@@ -11,8 +11,6 @@ import static brs.http.JSONResponses.*;
 import static brs.http.common.Parameters.DELTA_QUANTITY_PARAMETER;
 import static brs.http.common.Parameters.GOODS_PARAMETER;
 
-;
-
 public final class DGSQuantityChange extends CreateTransaction {
 
   private final ParameterService parameterService;

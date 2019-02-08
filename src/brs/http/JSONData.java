@@ -19,8 +19,6 @@ import java.nio.ByteOrder;
 
 import static brs.http.common.ResultFields.*;
 
-;
-
 public final class JSONData {
 
   static JsonObject alias(Alias alias, Offer offer) {

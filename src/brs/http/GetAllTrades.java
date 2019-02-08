@@ -15,9 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.TRADES_RESPONSE;
 
-;
-;
-
 public final class GetAllTrades extends APIServlet.APIRequestHandler {
 
   private final AssetExchange assetExchange;

@@ -15,9 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.ResultFields.*;
 
-;
-;
-
 public final class GetAccount extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;

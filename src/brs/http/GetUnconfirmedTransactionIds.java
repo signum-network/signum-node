@@ -14,9 +14,6 @@ import static brs.http.JSONResponses.INCORRECT_ACCOUNT;
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.ResultFields.UNCONFIRMED_TRANSACTIONS_IDS_RESPONSE;
 
-;
-;
-
 final class GetUnconfirmedTransactionIds extends APIServlet.APIRequestHandler {
 
   private final TransactionProcessor transactionProcessor;

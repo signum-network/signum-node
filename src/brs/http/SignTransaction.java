@@ -19,8 +19,6 @@ import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.*;
 import static brs.http.common.ResultFields.FULL_HASH_RESPONSE;
 
-;
-
 final class SignTransaction extends APIServlet.APIRequestHandler {
 
   private static final Logger logger = LoggerFactory.getLogger(SignTransaction.class);

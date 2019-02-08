@@ -11,8 +11,6 @@ import static brs.http.JSONResponses.GOODS_NOT_DELIVERED;
 import static brs.http.JSONResponses.INCORRECT_PURCHASE;
 import static brs.http.common.Parameters.PURCHASE_PARAMETER;
 
-;
-
 public final class DGSFeedback extends CreateTransaction {
 
   private final ParameterService parameterService;

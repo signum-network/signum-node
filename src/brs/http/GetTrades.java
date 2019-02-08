@@ -19,9 +19,6 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.TRADES_RESPONSE;
 
-;
-;
-
 public final class GetTrades extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;

@@ -9,8 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.AT_PARAMETER;
 
-;
-
 class GetATDetails extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;

@@ -12,8 +12,6 @@ import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.NUMBER_OF_CONFIRMATIONS_PARAMETER;
 import static brs.http.common.ResultFields.GUARANTEED_BALANCE_NQT_RESPONSE;
 
-;
-
 final class GetGuaranteedBalance extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;

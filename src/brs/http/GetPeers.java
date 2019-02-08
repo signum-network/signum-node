@@ -12,9 +12,6 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.common.Parameters.ACTIVE_PARAMETER;
 import static brs.http.common.Parameters.STATE_PARAMETER;
 
-;
-;
-
 final class GetPeers extends APIServlet.APIRequestHandler {
 
   static final GetPeers instance = new GetPeers();

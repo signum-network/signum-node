@@ -9,8 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.ResultFields.*;
 
-;
-
 public class SuggestFee extends APIServlet.APIRequestHandler {
 
   private final FeeSuggestionCalculator feeSuggestionCalculator;

@@ -13,8 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.ResultFields.PUBLIC_KEY_RESPONSE;
 
-;
-
 public final class GetAccountPublicKey extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;

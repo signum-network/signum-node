@@ -15,9 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.BLOCK_IDS_RESPONSE;
 
-;
-;
-
 public final class GetAccountBlockIds extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;

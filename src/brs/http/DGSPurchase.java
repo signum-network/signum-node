@@ -12,8 +12,6 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.JSONResponses.*;
 import static brs.http.common.Parameters.*;
 
-;
-
 public final class DGSPurchase extends CreateTransaction {
 
   private final ParameterService parameterService;

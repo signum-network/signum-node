@@ -42,9 +42,6 @@ import static brs.Constants.FEE_QUANT;
 import static brs.Constants.ONE_BURST;
 import static brs.fluxcapacitor.FeatureToggle.PRE_DYMAXION;
 
-;
-;
-
 public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
   private final Logger logger = LoggerFactory.getLogger(BlockchainProcessorImpl.class);

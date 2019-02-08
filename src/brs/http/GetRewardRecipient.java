@@ -14,8 +14,6 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.ResultFields.REWARD_RECIPIENT_RESPONSE;
 
-;
-
 final class GetRewardRecipient extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;

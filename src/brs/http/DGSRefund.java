@@ -12,8 +12,6 @@ import static brs.http.JSONResponses.*;
 import static brs.http.common.Parameters.PURCHASE_PARAMETER;
 import static brs.http.common.Parameters.REFUND_NQT_PARAMETER;
 
-;
-
 public final class DGSRefund extends CreateTransaction {
 
   private final ParameterService parameterService;

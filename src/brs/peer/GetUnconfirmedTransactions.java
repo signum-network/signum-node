@@ -12,8 +12,6 @@ import java.util.List;
 
 import static brs.http.common.ResultFields.UNCONFIRMED_TRANSACTIONS_RESPONSE;
 
-;
-
 final class GetUnconfirmedTransactions extends PeerServlet.ExtendedPeerRequestHandler {
 
   private final TransactionProcessor transactionProcessor;

@@ -10,8 +10,6 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.JSONResponses.NOT_ENOUGH_ASSETS;
 import static brs.http.common.Parameters.*;
 
-;
-
 final class PlaceAskOrder extends CreateTransaction {
 
   private final ParameterService parameterService;

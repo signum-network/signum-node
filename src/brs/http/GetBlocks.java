@@ -13,9 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.*;
 
-;
-;
-
 final class GetBlocks extends APIServlet.APIRequestHandler {
 
   private final Blockchain blockchain;

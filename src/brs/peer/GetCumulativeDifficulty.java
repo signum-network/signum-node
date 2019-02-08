@@ -5,8 +5,6 @@ import brs.Blockchain;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-;
-
 final class GetCumulativeDifficulty extends PeerServlet.PeerRequestHandler {
 
   private final Blockchain blockchain;

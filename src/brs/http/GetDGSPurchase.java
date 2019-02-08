@@ -8,8 +8,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.PURCHASE_PARAMETER;
 
-;
-
 public final class GetDGSPurchase extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;

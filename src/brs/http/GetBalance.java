@@ -7,8 +7,6 @@ import com.google.gson.JsonElement;
 
 import javax.servlet.http.HttpServletRequest;
 
-;
-
 public final class GetBalance extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;

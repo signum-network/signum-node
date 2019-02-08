@@ -18,8 +18,6 @@ import static brs.http.JSONResponses.INCORRECT_ACCOUNT;
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.DECRYPTED_MESSAGE_RESPONSE;
 
-;
-
 public final class DecryptFrom extends APIServlet.APIRequestHandler {
 
   private static final Logger logger = LoggerFactory.getLogger(DecryptFrom.class);

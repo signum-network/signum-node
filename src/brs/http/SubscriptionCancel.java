@@ -13,8 +13,6 @@ import static brs.http.common.Parameters.SUBSCRIPTION_PARAMETER;
 import static brs.http.common.ResultFields.ERROR_CODE_RESPONSE;
 import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
 
-;
-
 public final class SubscriptionCancel extends CreateTransaction {
 
   private final ParameterService parameterService;

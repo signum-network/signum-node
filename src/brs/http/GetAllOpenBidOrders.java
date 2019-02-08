@@ -12,9 +12,6 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
 
-;
-;
-
 public final class GetAllOpenBidOrders extends APIServlet.APIRequestHandler {
 
   private final AssetExchange assetExchange;

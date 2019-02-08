@@ -5,8 +5,6 @@ import brs.assetexchange.AssetExchange;
 import brs.db.BurstIterator;
 import com.google.gson.JsonArray;
 
-;
-
 abstract class AbstractAssetsRetrieval extends APIServlet.APIRequestHandler  {
 
   private final AssetExchange assetExchange;

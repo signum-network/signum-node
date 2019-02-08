@@ -12,8 +12,6 @@ import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
 import static brs.http.common.ResultFields.ASSETS_RESPONSE;
 
-;
-
 public final class GetAllAssets extends AbstractAssetsRetrieval {
 
   private final AssetExchange assetExchange;

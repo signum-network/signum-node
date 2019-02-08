@@ -13,8 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.*;
 
-;
-
 
 final class SubmitNonce extends APIServlet.APIRequestHandler {
 

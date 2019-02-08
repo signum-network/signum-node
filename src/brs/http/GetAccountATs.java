@@ -15,9 +15,6 @@ import java.util.List;
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.ResultFields.ATS_RESPONSE;
 
-;
-;
-
 public final class GetAccountATs extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;

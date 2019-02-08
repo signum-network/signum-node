@@ -18,8 +18,6 @@ import static brs.http.JSONResponses.*;
 import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
 import static brs.http.common.Parameters.TRANSACTION_PARAMETER;
 
-;
-
 final class ReadMessage extends APIServlet.APIRequestHandler {
 
   private static final Logger logger = LoggerFactory.getLogger(ReadMessage.class);

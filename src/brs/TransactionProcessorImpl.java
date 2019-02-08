@@ -33,8 +33,6 @@ import java.util.stream.Collectors;
 
 import static brs.http.common.ResultFields.UNCONFIRMED_TRANSACTIONS_RESPONSE;
 
-;
-
 public class TransactionProcessorImpl implements TransactionProcessor {
 
   private static final Logger logger = LoggerFactory.getLogger(TransactionProcessorImpl.class);

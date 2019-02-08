@@ -10,8 +10,6 @@ import static brs.http.JSONResponses.MISSING_PEER;
 import static brs.http.JSONResponses.UNKNOWN_PEER;
 import static brs.http.common.Parameters.PEER_PARAMETER;
 
-;
-
 final class GetPeer extends APIServlet.APIRequestHandler {
 
   static final GetPeer instance = new GetPeer();

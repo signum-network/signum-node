@@ -45,9 +45,6 @@ import static brs.props.Props.P2P_ENABLE_TX_REBROADCAST;
 import static brs.props.Props.P2P_SEND_TO_LIMIT;
 import static brs.util.JSON.prepareRequest;
 
-;
-;
-
 public final class Peers {
 
   private static final Logger logger = LoggerFactory.getLogger(Peers.class);

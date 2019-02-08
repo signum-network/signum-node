@@ -15,9 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.ASK_ORDERS_RESPONSE;
 
-;
-;
-
 public final class GetAccountCurrentAskOrders extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;

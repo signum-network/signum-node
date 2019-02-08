@@ -15,8 +15,6 @@ import static brs.http.common.Parameters.ALIAS_URI_PARAMETER;
 import static brs.http.common.ResultFields.ERROR_CODE_RESPONSE;
 import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
 
-;
-
 public final class SetAlias extends CreateTransaction {
 
   private final ParameterService parameterService;

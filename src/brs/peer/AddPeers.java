@@ -5,9 +5,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-;
-;
-
 final class AddPeers extends PeerServlet.PeerRequestHandler {
 
   static final AddPeers instance = new AddPeers();

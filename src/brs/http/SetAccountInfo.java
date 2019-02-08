@@ -12,8 +12,6 @@ import static brs.http.JSONResponses.INCORRECT_ACCOUNT_NAME_LENGTH;
 import static brs.http.common.Parameters.DESCRIPTION_PARAMETER;
 import static brs.http.common.Parameters.NAME_PARAMETER;
 
-;
-
 final class SetAccountInfo extends CreateTransaction {
 
   private final ParameterService parameterService;

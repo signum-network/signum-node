@@ -12,8 +12,6 @@ import static brs.http.JSONResponses.MISSING_SIGNATURE_HASH;
 import static brs.http.JSONResponses.MISSING_UNSIGNED_BYTES;
 import static brs.http.common.Parameters.*;
 
-;
-
 public final class CalculateFullHash extends APIServlet.APIRequestHandler {
 
   public CalculateFullHash() {

@@ -10,9 +10,6 @@ import com.google.gson.JsonObject;
 import java.util.ArrayList;
 import java.util.List;
 
-;
-;
-
 final class GetBlocksFromHeight extends PeerServlet.PeerRequestHandler {
 
   private final Blockchain blockchain;

@@ -11,8 +11,6 @@ import static brs.http.JSONResponses.INCORRECT_HEIGHT;
 import static brs.http.JSONResponses.MISSING_HEIGHT;
 import static brs.http.common.Parameters.HEIGHT_PARAMETER;
 
-;
-
 final class GetBlockId extends APIServlet.APIRequestHandler {
 
   private final Blockchain blockchain;

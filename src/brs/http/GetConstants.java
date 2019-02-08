@@ -12,9 +12,6 @@ import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
-;
-;
-
 final class GetConstants extends APIServlet.APIRequestHandler {
 
   static final GetConstants instance = new GetConstants();

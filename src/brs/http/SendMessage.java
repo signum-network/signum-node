@@ -10,8 +10,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.RECIPIENT_PARAMETER;
 
-;
-
 final class SendMessage extends CreateTransaction {
 
   private final ParameterService parameterService;

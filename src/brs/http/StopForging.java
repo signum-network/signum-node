@@ -9,8 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.JSONResponses.MISSING_SECRET_PHRASE;
 import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
 
-;
-
 
 final class StopForging extends APIServlet.APIRequestHandler {
 

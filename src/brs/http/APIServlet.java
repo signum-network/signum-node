@@ -236,13 +236,23 @@ public final class APIServlet extends HttpServlet {
   private static Map<String, PrimitiveRequestHandler> primitiveRequestHandlers;
 
   @Override
-  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    process(req, resp);
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
+    try {
+      process(req, resp);
+    } catch (Throwable t) { // We don't want to send exception information to client...
+      resp.setStatus(500);
+      logger.warn("Error handling GET request", t);
+    }
   }
 
   @Override
-  protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    process(req, resp);
+  protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
+    try {
+      process(req, resp);
+    } catch (Throwable t) { // We don't want to send exception information to client...
+      resp.setStatus(500);
+      logger.warn("Error handling GET request", t);
+    }
   }
 
   private void process(HttpServletRequest req, HttpServletResponse resp) throws IOException {

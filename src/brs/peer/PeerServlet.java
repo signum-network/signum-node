@@ -96,7 +96,16 @@ public final class PeerServlet extends HttpServlet {
   }
 
   @Override
-  protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+  protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
+    try {
+      process(req, resp);
+    } catch (Throwable t) { // We don't want to send exception information to client...
+      resp.setStatus(500);
+      logger.warn("Error handling peer request", t);
+    }
+  }
+
+  private void process(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     if(! Peers.isSupportedUserAgent(req.getHeader("User-Agent"))) {
       return;
     }
@@ -176,7 +185,7 @@ public final class PeerServlet extends HttpServlet {
       if (peer != null) {
         peer.blacklist(e, "can't respond to requestType=" + requestType);
       }
-      throw e;
+      return;
     }
 
     if(extendedProcessRequest != null) {

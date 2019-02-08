@@ -244,7 +244,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               //unlocking cache for writing.
               //This must be done before we query where to add blocks.
               //We sync the cache in event of popoff
-              synchronized (downloadCache) {
+              synchronized (BlockchainProcessorImpl.this.downloadCache) {
                 downloadCache.unlockCache();
               }
 
@@ -549,7 +549,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             Thread.currentThread().interrupt();
           }
         }
-        synchronized (downloadCache) {
+        synchronized (BlockchainProcessorImpl.this.downloadCache) {
           synchronized (transactionProcessor.getUnconfirmedTransactionsSyncObj()) {
             logger.warn("Cache is now processed. Starting to process fork.");
             Block forkBlock = blockchain.getBlock(forkBlockId);

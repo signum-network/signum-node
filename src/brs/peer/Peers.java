@@ -471,6 +471,7 @@ public final class Peers {
             }
           }
           catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
             return;
           }
         }

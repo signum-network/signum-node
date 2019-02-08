@@ -140,7 +140,7 @@ final class PeerImpl implements Peer {
   void setVersion(String version) {
     this.version.set(Version.EMPTY);
     isOldVersion.set(false);
-    if (Burst.APPLICATION.equals(application) && version != null) {
+    if (Burst.APPLICATION.equals(getApplication()) && version != null) {
       try {
         this.version.set(Version.parse(version));
         isOldVersion.set(Constants.MIN_VERSION.isGreaterThan(this.version.get()));
@@ -205,12 +205,12 @@ final class PeerImpl implements Peer {
 
   @Override
   public boolean isWellKnown() {
-    return announcedAddress.get() != null && Peers.wellKnownPeers.contains(announcedAddress);
+    return announcedAddress.get() != null && Peers.wellKnownPeers.contains(announcedAddress.get());
   }
 
   @Override
   public boolean isRebroadcastTarget() {
-    return announcedAddress.get() != null && Peers.rebroadcastPeers.contains(announcedAddress);
+    return announcedAddress.get() != null && Peers.rebroadcastPeers.contains(announcedAddress.get());
   }
 
   @Override
@@ -420,7 +420,7 @@ final class PeerImpl implements Peer {
       platform.set(JSON.getAsString(response.get("platform")));
       shareAddress.set(Boolean.TRUE.equals(JSON.getAsBoolean(response.get("shareAddress"))));
       String newAnnouncedAddress = Convert.emptyToNull(JSON.getAsString(response.get("announcedAddress")));
-      if (newAnnouncedAddress != null && ! newAnnouncedAddress.equals(announcedAddress)) {
+      if (newAnnouncedAddress != null && ! newAnnouncedAddress.equals(announcedAddress.get())) {
         // force verification of changed announced address
         setState(Peer.State.NON_CONNECTED);
         setAnnouncedAddress(newAnnouncedAddress);

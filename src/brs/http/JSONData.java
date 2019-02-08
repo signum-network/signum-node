@@ -11,6 +11,7 @@ import brs.services.AccountService;
 import brs.util.Convert;
 import brs.util.JSON;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.nio.ByteBuffer;
@@ -374,21 +375,21 @@ public final class JSONData {
 
   // ugly, hopefully temporary
   private static void modifyAttachmentJSON(JsonObject json) {
-    Long quantityQNT = JSON.getAsLong(json.remove(QUANTITY_QNT_RESPONSE));
-    if (quantityQNT != null) {
-      json.addProperty(QUANTITY_QNT_RESPONSE, String.valueOf(quantityQNT));
+    JsonElement quantityQNT = json.remove(QUANTITY_QNT_RESPONSE);
+    if (quantityQNT != null && quantityQNT.isJsonPrimitive()) {
+      json.addProperty(QUANTITY_QNT_RESPONSE, quantityQNT.getAsString());
     }
-    Long priceNQT = JSON.getAsLong(json.remove(PRICE_NQT_RESPONSE));
-    if (priceNQT != null) {
-      json.addProperty(PRICE_NQT_RESPONSE, String.valueOf(priceNQT));
+    JsonElement priceNQT = json.remove(PRICE_NQT_RESPONSE);
+    if (priceNQT != null && priceNQT.isJsonPrimitive()) {
+      json.addProperty(PRICE_NQT_RESPONSE, priceNQT.getAsString());
     }
-    Long discountNQT = JSON.getAsLong(json.remove(DISCOUNT_NQT_RESPONSE));
-    if (discountNQT != null) {
-      json.addProperty(DISCOUNT_NQT_RESPONSE, String.valueOf(discountNQT));
+    JsonElement discountNQT = json.remove(DISCOUNT_NQT_RESPONSE);
+    if (discountNQT != null && discountNQT.isJsonPrimitive()) {
+      json.addProperty(DISCOUNT_NQT_RESPONSE, discountNQT.getAsString());
     }
-    Long refundNQT = JSON.getAsLong(json.remove(REFUND_NQT_RESPONSE));
-    if (refundNQT != null) {
-      json.addProperty(REFUND_NQT_RESPONSE, String.valueOf(refundNQT));
+    JsonElement refundNQT = json.remove(REFUND_NQT_RESPONSE);
+    if (refundNQT != null && refundNQT.isJsonPrimitive()) {
+      json.addProperty(REFUND_NQT_RESPONSE, refundNQT.getAsString());
     }
   }
 

@@ -31,7 +31,7 @@ final class GetNextBlocks extends PeerServlet.PeerRequestHandler {
 
     List<Block> nextBlocks = new ArrayList<>();
     int totalLength = 0;
-    long blockId = Convert.parseUnsignedLong(JSON.toJsonString(request.get("blockId")));
+    long blockId = Convert.parseUnsignedLong(JSON.getAsString(request.get("blockId")));
     List<? extends Block> blocks = blockchain.getBlocksAfter(blockId, 100);
 
     for (Block block : blocks) {

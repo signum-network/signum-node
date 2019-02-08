@@ -51,7 +51,7 @@ public final class JSON {
     }
 
     public static JsonObject getAsJsonObject(JsonElement jsonElement) {
-        return jsonElement != null /*&& jsonElement.isJsonPrimitive()*/ ? jsonElement.getAsJsonObject() : new JsonObject();
+        return jsonElement != null && jsonElement.isJsonObject() ? jsonElement.getAsJsonObject() : new JsonObject();
     }
 
     public static JsonArray getAsJsonArray(JsonElement jsonElement) {

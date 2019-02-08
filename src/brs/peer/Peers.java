@@ -35,6 +35,7 @@ import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -537,14 +538,9 @@ public final class Peers {
         getPeersRequest = prepareRequest(request);
       }
 
-      private volatile boolean addedNewPeer;
+      private final AtomicBoolean addedNewPeer = new AtomicBoolean(false);
       {
-        Peers.addListener(new Listener<Peer>() {
-            @Override
-            public void notify(Peer peer) {
-              addedNewPeer = true;
-            }
-          }, Event.NEW_PEER);
+        Peers.addListener(peer -> addedNewPeer.set(true), Event.NEW_PEER);
       }
 
       @Override
@@ -575,8 +571,8 @@ public final class Peers {
                   addedAddresses.add(JSON.getAsString(announcedAddress));
                 }
               }
-              if (savePeers && addedNewPeer) {
-                addedNewPeer = false;
+              if (savePeers && addedNewPeer.get()) {
+                addedNewPeer.set(false);
               }
             }
 

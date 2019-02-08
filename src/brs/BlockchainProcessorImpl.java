@@ -36,6 +36,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static brs.Constants.FEE_QUANT;
@@ -74,14 +77,14 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   private final Semaphore gpuUsage = new Semaphore(2);
 
   private final boolean trimDerivedTables;
-  private volatile int lastTrimHeight;
+  private final AtomicInteger lastTrimHeight = new AtomicInteger();
 
   private final Listeners<Block, Event> blockListeners = new Listeners<>();
-  private volatile Peer lastBlockchainFeeder;
-  private volatile int lastBlockchainFeederHeight;
-  private volatile boolean getMoreBlocks = true;
+  private final AtomicReference<Peer> lastBlockchainFeeder = new AtomicReference<Peer>();
+  private final AtomicInteger lastBlockchainFeederHeight = new AtomicInteger();
+  private final AtomicBoolean getMoreBlocks = new AtomicBoolean(true);
 
-  private volatile boolean isScanning;
+  private final AtomicBoolean isScanning = new AtomicBoolean(false);
   private boolean forceScan;
   private boolean validateAtScan;
 
@@ -153,9 +156,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     if (trimDerivedTables) {
       blockListeners.addListener(block -> {
         if (block.getHeight() % 1440 == 0) {
-          lastTrimHeight = Math.max(block.getHeight() - Constants.MAX_ROLLBACK, 0);
-          if (lastTrimHeight > 0) {
-            this.derivedTableManager.getDerivedTables().forEach(table -> table.trim(lastTrimHeight));
+          lastTrimHeight.set(Math.max(block.getHeight() - Constants.MAX_ROLLBACK, 0));
+          if (lastTrimHeight.get() > 0) {
+            this.derivedTableManager.getDerivedTables().forEach(table -> table.trim(lastTrimHeight.get()));
           }
         }
       }, Event.AFTER_BLOCK_APPLY);
@@ -238,7 +241,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         while (!Thread.currentThread().isInterrupted() && ThreadPool.running.get()) {
           try {
             try {
-              if (!getMoreBlocks) {
+              if (!getMoreBlocks.get()) {
                 return;
               }
               //unlocking cache for writing.
@@ -264,8 +267,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 return;
               }
               if (response.get("blockchainHeight") != null) {
-                lastBlockchainFeeder = peer;
-                lastBlockchainFeederHeight = JSON.getAsInt(response.get("blockchainHeight"));
+                lastBlockchainFeeder.set(peer);
+                lastBlockchainFeederHeight.set(JSON.getAsInt(response.get("blockchainHeight")));
               } else {
                 logger.debug("Peer has no chainheight");
                 return;
@@ -756,22 +759,22 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
   @Override
   public Peer getLastBlockchainFeeder() {
-    return lastBlockchainFeeder;
+    return lastBlockchainFeeder.get();
   }
 
   @Override
   public int getLastBlockchainFeederHeight() {
-    return lastBlockchainFeederHeight;
+    return lastBlockchainFeederHeight.get();
   }
 
   @Override
   public boolean isScanning() {
-    return isScanning;
+    return isScanning.get();
   }
 
   @Override
   public int getMinRollbackHeight() {
-    return trimDerivedTables ? (lastTrimHeight > 0 ? lastTrimHeight
+    return trimDerivedTables ? (lastTrimHeight.get() > 0 ? lastTrimHeight.get()
         : Math.max(blockchain.getHeight() - Constants.MAX_ROLLBACK, 0)) : 0;
   }
 
@@ -829,7 +832,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   }
 
   void setGetMoreBlocks(boolean getMoreBlocks) {
-    this.getMoreBlocks = getMoreBlocks;
+    this.getMoreBlocks.set(getMoreBlocks);
   }
 
   private void addBlock(Block block) {

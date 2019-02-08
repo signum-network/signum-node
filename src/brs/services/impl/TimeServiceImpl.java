@@ -4,23 +4,25 @@ import brs.services.TimeService;
 import brs.util.Time;
 import brs.util.Time.FasterTime;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 public class TimeServiceImpl implements TimeService {
 
-  private static volatile Time time = new Time.EpochTime();
+  private static final AtomicReference<Time> time = new AtomicReference<>(new Time.EpochTime());
 
   @Override
   public int getEpochTime() {
-    return time.getTime();
+    return time.get().getTime();
   }
 
   @Override
   public long getEpochTimeMillis() {
-    return time.getTimeInMillis();
+    return time.get().getTimeInMillis();
   }
 
   @Override
   public void setTime(FasterTime t) {
-    time = t;
+    time.set(t);
   }
 
 }

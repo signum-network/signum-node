@@ -17,6 +17,10 @@ import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.GZIPInputStream;
 
 final class PeerImpl implements Peer {
@@ -24,30 +28,30 @@ final class PeerImpl implements Peer {
   private static final Logger logger = LoggerFactory.getLogger(PeerImpl.class);
 
   private final String peerAddress;
-  private volatile String announcedAddress;
-  private volatile int port;
-  private volatile boolean shareAddress;
-  private volatile String platform;
-  private volatile String application;
-  private volatile Version version;
-  private volatile boolean isOldVersion;
-  private volatile long blacklistingTime;
-  private volatile State state;
-  private volatile long downloadedVolume;
-  private volatile long uploadedVolume;
-  private volatile int lastUpdated;
-  private volatile Long lastUnconfirmedTransactionTimestamp = null;
+  private final AtomicReference<String> announcedAddress = new AtomicReference<>();
+  private final AtomicInteger port = new AtomicInteger();
+  private final AtomicBoolean shareAddress = new AtomicBoolean(false);
+  private final AtomicReference<String> platform = new AtomicReference<>();
+  private final AtomicReference<String> application = new AtomicReference<>();
+  private final AtomicReference<Version> version = new AtomicReference<>();
+  private final AtomicBoolean isOldVersion = new AtomicBoolean(false);
+  private final AtomicLong blacklistingTime = new AtomicLong();
+  private final AtomicReference<State> state = new AtomicReference<>();
+  private final AtomicLong downloadedVolume = new AtomicLong();
+  private final AtomicLong uploadedVolume = new AtomicLong();
+  private final AtomicInteger lastUpdated = new AtomicInteger();
+  private final AtomicReference<Long> lastUnconfirmedTransactionTimestamp = new AtomicReference<>();
   private volatile byte[] lastDownloadedTransactionsDigest;
 
   PeerImpl(String peerAddress, String announcedAddress) {
     this.peerAddress = peerAddress;
-    this.announcedAddress = announcedAddress;
+    this.announcedAddress.set(announcedAddress);
     try {
-      this.port = new URL("http://" + announcedAddress).getPort();
+      this.port.set(new URL("http://" + announcedAddress).getPort());
     } catch (MalformedURLException ignore) {}
-    this.state = State.NON_CONNECTED;
-    this.version = Version.EMPTY; //not null
-    this.shareAddress = true;
+    this.state.set(State.NON_CONNECTED);
+    this.version.set(Version.EMPTY); //not null
+    this.shareAddress.set(true);
   }
 
   @Override
@@ -57,30 +61,30 @@ final class PeerImpl implements Peer {
 
   @Override
   public State getState() {
-    return state;
+    return state.get();
   }
 
   public boolean isState(State cmp_state) {
-    return state == cmp_state;
+    return state.get() == cmp_state;
   }
 
   void setState(State state) {
-    if (this.state == state) {
+    if (this.state.get() == state) {
       return;
     }
-    if (this.state == State.NON_CONNECTED) {
-      this.state = state;
+    if (this.state.get() == State.NON_CONNECTED) {
+      this.state.set(state);
       Peers.notifyListeners(this, Peers.Event.ADDED_ACTIVE_PEER);
     }
     else if (state != State.NON_CONNECTED) {
-      this.state = state;
+      this.state.set(state);
       Peers.notifyListeners(this, Peers.Event.CHANGED_ACTIVE_PEER);
     }
   }
 
   @Override
   public long getDownloadedVolume() {
-    return downloadedVolume;
+    return downloadedVolume.get();
   }
 
   public boolean diffLastDownloadedTransactions( byte[] data ) {
@@ -94,31 +98,31 @@ final class PeerImpl implements Peer {
 
   void updateDownloadedVolume(long volume) {
     synchronized (this) {
-      downloadedVolume += volume;
+      downloadedVolume.addAndGet(volume);
     }
     Peers.notifyListeners(this, Peers.Event.DOWNLOADED_VOLUME);
   }
 
   @Override
   public long getUploadedVolume() {
-    return uploadedVolume;
+    return uploadedVolume.get();
   }
 
   void updateUploadedVolume(long volume) {
     synchronized (this) {
-      uploadedVolume += volume;
+      uploadedVolume.addAndGet(volume);
     }
     Peers.notifyListeners(this, Peers.Event.UPLOADED_VOLUME);
   }
 
   @Override
   public Version getVersion() {
-    return version;
+    return version.get();
   }
 
   // semantic versioning for peer versions. here: ">=" negate it for "<"
   public boolean isHigherOrEqualVersionThan(Version ourVersion) {
-    return isHigherOrEqualVersion(ourVersion, version);
+    return isHigherOrEqualVersion(ourVersion, version.get());
   }
 
   public static boolean isHigherOrEqualVersion(Version ourVersion, Version possiblyLowerVersion) {
@@ -134,85 +138,85 @@ final class PeerImpl implements Peer {
   }
   
   void setVersion(String version) {
-    this.version = Version.EMPTY;
-    isOldVersion = false;
+    this.version.set(Version.EMPTY);
+    isOldVersion.set(false);
     if (Burst.APPLICATION.equals(application) && version != null) {
       try {
-        this.version = Version.parse(version);
-        isOldVersion = Constants.MIN_VERSION.isGreaterThan(this.version);
+        this.version.set(Version.parse(version));
+        isOldVersion.set(Constants.MIN_VERSION.isGreaterThan(this.version.get()));
       } catch (IllegalArgumentException e) {
-        isOldVersion = true;
+        isOldVersion.set(true);
       }
     }
   }
 
   @Override
   public String getApplication() {
-    return application;
+    return application.get();
   }
 
   void setApplication(String application) {
-    this.application = application;
+    this.application.set(application);
   }
 
   @Override
   public String getPlatform() {
-    return platform;
+    return platform.get();
   }
 
   void setPlatform(String platform) {
-    this.platform = platform;
+    this.platform.set(platform);
   }
 
   @Override
   public String getSoftware() {
-    return Convert.truncate(application, "?", 10, false)
+    return Convert.truncate(application.get(), "?", 10, false)
         + " (" + Convert.truncate(version.toString(), "?", 10, false) + ")"
-        + " @ " + Convert.truncate(platform, "?", 10, false);
+        + " @ " + Convert.truncate(platform.get(), "?", 10, false);
   }
 
   @Override
   public boolean shareAddress() {
-    return shareAddress;
+    return shareAddress.get();
   }
 
   void setShareAddress(boolean shareAddress) {
-    this.shareAddress = shareAddress;
+    this.shareAddress.set(shareAddress);
   }
 
   @Override
   public String getAnnouncedAddress() {
-    return announcedAddress;
+    return announcedAddress.get();
   }
 
   void setAnnouncedAddress(String announcedAddress) {
     String announcedPeerAddress = Peers.normalizeHostAndPort(announcedAddress);
     if (announcedPeerAddress != null) {
-      this.announcedAddress = announcedPeerAddress;
+      this.announcedAddress.set(announcedPeerAddress);
       try {
-        this.port = new URL("http://" + announcedPeerAddress).getPort();
+        this.port.set(new URL("http://" + announcedPeerAddress).getPort());
       } catch (MalformedURLException ignore) {}
     }
   }
 
   int getPort() {
-    return port;
+    return port.get();
   }
 
   @Override
   public boolean isWellKnown() {
-    return announcedAddress != null && Peers.wellKnownPeers.contains(announcedAddress);
+    return announcedAddress.get() != null && Peers.wellKnownPeers.contains(announcedAddress);
   }
 
   @Override
   public boolean isRebroadcastTarget() {
-    return announcedAddress != null && Peers.rebroadcastPeers.contains(announcedAddress);
+    return announcedAddress.get() != null && Peers.rebroadcastPeers.contains(announcedAddress);
   }
 
   @Override
   public boolean isBlacklisted() {
     // logger.debug("isBlacklisted - BL time: " + blacklistingTime + " Oldvers: " + isOldVersion + " PeerAddr: " + peerAddress);
-    return blacklistingTime > 0 || isOldVersion || Peers.knownBlacklistedPeers.contains(peerAddress);
+    return blacklistingTime.get() > 0 || isOldVersion.get() || Peers.knownBlacklistedPeers.contains(peerAddress);
   }
 
   @Override
@@ -247,7 +251,7 @@ final class PeerImpl implements Peer {
 
   @Override
   public void blacklist() {
-    blacklistingTime = System.currentTimeMillis();
+    blacklistingTime.set(System.currentTimeMillis());
     setState(State.NON_CONNECTED);
     Peers.notifyListeners(this, Peers.Event.BLACKLIST);
   }
@@ -255,12 +259,12 @@ final class PeerImpl implements Peer {
   @Override
   public void unBlacklist() {
     setState(State.NON_CONNECTED);
-    blacklistingTime = 0;
+    blacklistingTime.set(0);
     Peers.notifyListeners(this, Peers.Event.UNBLACKLIST);
   }
 
   void updateBlacklistedStatus(long curTime) {
-    if (blacklistingTime > 0 && blacklistingTime + Peers.blacklistingPeriod <= curTime) {
+    if (blacklistingTime.get() > 0 && blacklistingTime.get() + Peers.blacklistingPeriod <= curTime) {
       unBlacklist();
     }
   }
@@ -273,7 +277,7 @@ final class PeerImpl implements Peer {
 
   @Override
   public int getLastUpdated() {
-    return lastUpdated;
+    return lastUpdated.get();
   }
 /*
   @Override
@@ -288,7 +292,7 @@ final class PeerImpl implements Peer {
 */
 
   void setLastUpdated(int lastUpdated) {
-    this.lastUpdated = lastUpdated;
+    this.lastUpdated.set(lastUpdated);
   }
 
   @Override
@@ -302,10 +306,10 @@ final class PeerImpl implements Peer {
 
     try {
 
-      String address = announcedAddress != null ? announcedAddress : peerAddress;
+      String address = announcedAddress.get() != null ? announcedAddress.get() : peerAddress;
       StringBuilder buf = new StringBuilder("http://");
       buf.append(address);
-      if (port <= 0) {
+      if (port.get() <= 0) {
         buf.append(':');
         buf.append(Burst.getPropertyService().getBoolean(Props.DEV_TESTNET) ? Peers.TESTNET_PEER_PORT : Peers.DEFAULT_PEER_PORT);
       }
@@ -323,7 +327,7 @@ final class PeerImpl implements Peer {
       connection.setDoOutput(true);
       connection.setConnectTimeout(Peers.connectTimeout);
       connection.setReadTimeout(Peers.readTimeout);
-      connection.addRequestProperty("User-Agent", "BRS/" + Burst.VERSION.toBackwardsCompatibleStringIfNeeded(this.version));
+      connection.addRequestProperty("User-Agent", "BRS/" + Burst.VERSION.toBackwardsCompatibleStringIfNeeded(this.version.get()));
       connection.setRequestProperty("Accept-Encoding", "gzip");
       connection.setRequestProperty("Connection", "close");
 
@@ -369,7 +373,7 @@ final class PeerImpl implements Peer {
           log += " >>> Peer responded with HTTP " + connection.getResponseCode() + " code!";
           showLog = true;
         }
-        if (state == State.CONNECTED) {
+        if (state.get() == State.CONNECTED) {
           setState(State.DISCONNECTED);
         } else {
           setState(State.NON_CONNECTED);
@@ -385,7 +389,7 @@ final class PeerImpl implements Peer {
         log += " >>> " + e.toString();
         showLog = true;
       }
-      if (state == State.CONNECTED) {
+      if (state.get() == State.CONNECTED) {
         setState(State.DISCONNECTED);
       }
       response = null;
@@ -409,12 +413,12 @@ final class PeerImpl implements Peer {
   }
 
   void connect(int currentTime) {
-    JsonObject response = send(version.backwardsCompatibilityNeeded() ? Peers.myPeerInfoRequestBackwardsCompatible : Peers.myPeerInfoRequest);
+    JsonObject response = send(version.get().backwardsCompatibilityNeeded() ? Peers.myPeerInfoRequestBackwardsCompatible : Peers.myPeerInfoRequest);
     if (response != null) {
-      application = JSON.getAsString(response.get("application"));
+      application.set(JSON.getAsString(response.get("application")));
       setVersion(JSON.getAsString(response.get("version")));
-      platform = JSON.getAsString(response.get("platform"));
-      shareAddress = Boolean.TRUE.equals(JSON.getAsBoolean(response.get("shareAddress")));
+      platform.set(JSON.getAsString(response.get("platform")));
+      shareAddress.set(Boolean.TRUE.equals(JSON.getAsBoolean(response.get("shareAddress"))));
       String newAnnouncedAddress = Convert.emptyToNull(JSON.getAsString(response.get("announcedAddress")));
       if (newAnnouncedAddress != null && ! newAnnouncedAddress.equals(announcedAddress)) {
         // force verification of changed announced address
@@ -422,14 +426,14 @@ final class PeerImpl implements Peer {
         setAnnouncedAddress(newAnnouncedAddress);
         return;
       }
-      if (announcedAddress == null) {
+      if (announcedAddress.get() == null) {
         setAnnouncedAddress(peerAddress);
         //logger.debug("Connected to peer without announced address, setting to " + peerAddress);
       }
 
       setState(State.CONNECTED);
       Peers.updateAddress(this);
-      lastUpdated = currentTime;
+      lastUpdated.set(currentTime);
     }
     else {
       setState(State.NON_CONNECTED);

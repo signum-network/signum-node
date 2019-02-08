@@ -16,6 +16,8 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Entity
 public class Block {
@@ -31,18 +33,18 @@ public class Block {
   private final int payloadLength;
   private final byte[] generationSignature;
   private final byte[] payloadHash;
-  private volatile List<Transaction> blockTransactions;
+  private final AtomicReference<List<Transaction>> blockTransactions = new AtomicReference<List<Transaction>>();
 
   private byte[] blockSignature;
 
   private BigInteger cumulativeDifficulty = BigInteger.ZERO;
 
   private long baseTarget = Constants.INITIAL_BASE_TARGET;
-  private volatile long nextBlockId;
+  private final AtomicLong nextBlockId = new AtomicLong();
   private int height = -1;
-  private volatile long id;
-  private volatile String stringId = null;
-  private volatile long generatorId;
+  private final AtomicLong id = new AtomicLong();
+  private final AtomicReference<String> stringId = new AtomicReference<>();
+  private final AtomicLong generatorId = new AtomicLong();
   private long nonce;
 
   private BigInteger pocTime = null;
@@ -75,13 +77,13 @@ public class Block {
 
     this.previousBlockHash = previousBlockHash;
     if (transactions != null) {
-      this.blockTransactions = Collections.unmodifiableList(transactions);
-      if (blockTransactions.size() > (Burst.getFluxCapacitor().getInt(FluxInt.MAX_NUMBER_TRANSACTIONS, height))) {
+      this.blockTransactions.set(Collections.unmodifiableList(transactions));
+      if (blockTransactions.get().size() > (Burst.getFluxCapacitor().getInt(FluxInt.MAX_NUMBER_TRANSACTIONS, height))) {
         throw new BurstException.NotValidException(
-            "attempted to create a block with " + blockTransactions.size() + " transactions");
+            "attempted to create a block with " + blockTransactions.get().size() + " transactions");
       }
       long previousId = 0;
-      for (Transaction transaction : this.blockTransactions) {
+      for (Transaction transaction : this.blockTransactions.get()) {
         if (transaction.getId() <= previousId && previousId != 0) {
           throw new BurstException.NotValidException("Block transactions are not sorted!");
         }
@@ -99,9 +101,9 @@ public class Block {
 
     this.cumulativeDifficulty = cumulativeDifficulty == null ? BigInteger.ZERO : cumulativeDifficulty;
     this.baseTarget = baseTarget;
-    this.nextBlockId = nextBlockId;
+    this.nextBlockId.set(nextBlockId);
     this.height = height;
-    this.id = id;
+    this.id.set(id);
   }
 
   private TransactionDb transactionDb() {
@@ -177,12 +179,11 @@ public class Block {
   }
 
   public List<Transaction> getTransactions() {
-    if (blockTransactions == null) {
-      this.blockTransactions =
-          Collections.unmodifiableList(transactionDb().findBlockTransactions(getId()));
-      this.blockTransactions.forEach(transaction -> transaction.setBlock(this));
+    if (blockTransactions.get() == null) {
+      this.blockTransactions.set(Collections.unmodifiableList(transactionDb().findBlockTransactions(getId())));
+      this.blockTransactions.get().forEach(transaction -> transaction.setBlock(this));
     }
-    return blockTransactions;
+    return blockTransactions.get();
   }
 
   public long getBaseTarget() {
@@ -194,7 +195,7 @@ public class Block {
   }
 
   public long getNextBlockId() {
-    return nextBlockId;
+    return nextBlockId.get();
   }
 
   public int getHeight() {
@@ -206,34 +207,34 @@ public class Block {
   }
 
   public long getId() {
-    if (id == 0) {
+    if (id.get() == 0) {
       if (blockSignature == null) {
         throw new IllegalStateException("Block is not signed yet");
       }
       byte[] hash = Crypto.sha256().digest(getBytes());
       BigInteger bigInteger = new BigInteger(1,
           new byte[] {hash[7], hash[6], hash[5], hash[4], hash[3], hash[2], hash[1], hash[0]});
-      id = bigInteger.longValue();
-      stringId = bigInteger.toString();
+      id.set(bigInteger.longValue());
+      stringId.set(bigInteger.toString());
     }
-    return id;
+    return id.get();
   }
 
   public String getStringId() {
-    if (stringId == null) {
+    if (stringId.get() == null) {
       getId();
-      if (stringId == null) {
-        stringId = Convert.toUnsignedLong(id);
+      if (stringId.get() == null) {
+        stringId.set(Convert.toUnsignedLong(id.get()));
       }
     }
-    return stringId;
+    return stringId.get();
   }
 
   public long getGeneratorId() {
-    if (generatorId == 0) {
-      generatorId = Account.getId(generatorPublicKey);
+    if (generatorId.get() == 0) {
+      generatorId.set(Account.getId(generatorPublicKey));
     }
-    return generatorId;
+    return generatorId.get();
   }
 
   public Long getNonce() {

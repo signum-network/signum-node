@@ -39,4 +39,9 @@ public class FluxCapacitorImpl implements FluxCapacitor {
     return intCapacitor.getValueAtHeight(fluxInt.getFlux(), height);
   }
 
+  @Override
+  public Integer getStartingHeight(FeatureToggle featureToggle) {
+    return featureCapacitor.getStartingHeight(featureToggle.getFlux());
+  }
+
 }

@@ -22,6 +22,7 @@ public class Props {
   public static final Prop<String> DEV_P2P_REBROADCAST_TO  = new Prop<>("DEV.P2P.rebroadcastTo", "");
   public static final Prop<String> DEV_P2P_BOOTSTRAP_PEERS = new Prop<>("DEV.P2P.BootstrapPeers", "");
 
+  public static final Prop<Integer> DEV_REWARD_RECIPIENT_ENABLE_BLOCK_HEIGHT = new Prop<>("DEV.rewardRecipient.startBlock", -1);
   public static final Prop<Integer> DEV_DIGITAL_GOODS_STORE_BLOCK_HEIGHT = new Prop<>("DEV.digitalGoodsStore.startBlock", -1);
   public static final Prop<Integer> DEV_AUTOMATED_TRANSACTION_BLOCK_HEIGHT = new Prop<>("DEV.automatedTransactions.startBlock", -1);
   public static final Prop<Integer> DEV_AT_FIX_BLOCK_2_BLOCK_HEIGHT = new Prop<>("DEV.atFixBlock2.startBlock", -1);

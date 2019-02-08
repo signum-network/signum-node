@@ -4,6 +4,7 @@ import brs.fluxcapacitor.FluxHistory.Element;
 
 public enum FeatureToggle {
 
+  REWARD_RECIPIENT_ENABLE(new FluxHistory<>(false, new Element<>(HistoricalMoments.REWARD_RECIPIENT_ENABLE, true))),
   DIGITAL_GOODS_STORE(new FluxHistory<>(false, new Element<>(HistoricalMoments.DIGITAL_GOODS_STORE_BLOCK, true))),
   AUTOMATED_TRANSACTION_BLOCK(new FluxHistory<>(false, new Element<>(HistoricalMoments.AUTOMATED_TRANSACTION_BLOCK, true))),
   AT_FIX_BLOCK_2(new FluxHistory<>(false, new Element<>(HistoricalMoments.AT_FIX_BLOCK_2, true))),

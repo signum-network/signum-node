@@ -21,4 +21,14 @@ abstract class TypeCapacitor<T> {
     return flux.getDefaultValue();
   }
 
+  public Integer getStartingHeight(FluxHistory<T> flux) {
+    int lowestStartingHeight = -1;
+    for (Element<T> historicalElement : flux.getHistory()) {
+      int startingHeight = historian.getStartingHeight(historicalElement.getMoment());
+      if (lowestStartingHeight == -1 || startingHeight < lowestStartingHeight) {
+        lowestStartingHeight = startingHeight;
+      }
+    }
+    return lowestStartingHeight;
+  }
 }

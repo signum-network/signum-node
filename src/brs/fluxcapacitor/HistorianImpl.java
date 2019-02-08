@@ -40,4 +40,8 @@ public class HistorianImpl {
     return currentBlockHeight >= startingHeights.get(moment);
   }
 
+  public Integer getStartingHeight(HistoricalMoments historicalMoments) {
+    return startingHeights.get(historicalMoments);
+  }
+
 }

@@ -10,4 +10,6 @@ public interface FluxCapacitor {
 
   Integer getInt(FluxInt fluxInt, int height);
 
+  Integer getStartingHeight(FeatureToggle featureToggle);
+
 }

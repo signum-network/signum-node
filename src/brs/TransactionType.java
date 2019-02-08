@@ -1787,7 +1787,7 @@ public abstract class TransactionType {
 
         @Override
         void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
-          long height = (long)blockchain.getLastBlock().getHeight() + 1;
+          int height = blockchain.getLastBlock().getHeight() + 1;
           Account sender = accountService.getAccount(transaction.getSenderId());
 
           if (sender == null) {
@@ -1813,8 +1813,8 @@ public abstract class TransactionType {
             }
           }
 
-          if (height < Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK) {
-            throw new BurstException.NotCurrentlyValidException("Reward recipient assignment not allowed before block " + Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK);
+          if (!Burst.getFluxCapacitor().isActive(FeatureToggle.REWARD_RECIPIENT_ENABLE, height)) {
+            throw new BurstException.NotCurrentlyValidException("Reward recipient assignment not allowed before block " + Burst.getFluxCapacitor().getStartingHeight(FeatureToggle.REWARD_RECIPIENT_ENABLE));
           }
         }
 

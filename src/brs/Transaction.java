@@ -3,7 +3,6 @@ package brs;
 import brs.Appendix.AbstractAppendix;
 import brs.TransactionType.Payment;
 import brs.crypto.Crypto;
-import brs.db.BurstKey;
 import brs.fluxcapacitor.FeatureToggle;
 import brs.transactionduplicates.TransactionDuplicationKey;
 import brs.util.Convert;
@@ -191,7 +190,6 @@ public class Transaction implements Comparable<Transaction> {
   private final AtomicReference<String> stringId = new AtomicReference<>();
   private final AtomicLong senderId = new AtomicLong();
   private final AtomicReference<String> fullHash = new AtomicReference<>();
-  private final AtomicReference<BurstKey> dbKey = new AtomicReference<>();
 
   private Transaction(Builder builder) throws BurstException.NotValidException {
 

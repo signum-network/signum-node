@@ -80,7 +80,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   private final AtomicInteger lastTrimHeight = new AtomicInteger();
 
   private final Listeners<Block, Event> blockListeners = new Listeners<>();
-  private final AtomicReference<Peer> lastBlockchainFeeder = new AtomicReference<Peer>();
+  private final AtomicReference<Peer> lastBlockchainFeeder = new AtomicReference<>();
   private final AtomicInteger lastBlockchainFeederHeight = new AtomicInteger();
   private final AtomicBoolean getMoreBlocks = new AtomicBoolean(true);
 
@@ -774,8 +774,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
   @Override
   public int getMinRollbackHeight() {
-    return trimDerivedTables ? (lastTrimHeight.get() > 0 ? lastTrimHeight.get()
-        : Math.max(blockchain.getHeight() - Constants.MAX_ROLLBACK, 0)) : 0;
+    int trimHeight = (lastTrimHeight.get() > 0
+            ? lastTrimHeight.get()
+            : Math.max(blockchain.getHeight() - Constants.MAX_ROLLBACK, 0));
+    return trimDerivedTables ? trimHeight : 0;
   }
 
   @Override

@@ -40,14 +40,13 @@ final class PeerImpl implements Peer {
   private final AtomicLong downloadedVolume = new AtomicLong();
   private final AtomicLong uploadedVolume = new AtomicLong();
   private final AtomicInteger lastUpdated = new AtomicInteger();
-  private final AtomicReference<Long> lastUnconfirmedTransactionTimestamp = new AtomicReference<>();
   private volatile byte[] lastDownloadedTransactionsDigest;
 
   PeerImpl(String peerAddress, String announcedAddress) {
     this.peerAddress = peerAddress;
     this.announcedAddress.set(announcedAddress);
     try {
-      this.port.set(new URL("http://" + announcedAddress).getPort());
+      this.port.set(new URL(Constants.HTTP + announcedAddress).getPort());
     } catch (MalformedURLException ignore) {}
     this.state.set(State.NON_CONNECTED);
     this.version.set(Version.EMPTY); //not null
@@ -194,7 +193,7 @@ final class PeerImpl implements Peer {
     if (announcedPeerAddress != null) {
       this.announcedAddress.set(announcedPeerAddress);
       try {
-        this.port.set(new URL("http://" + announcedPeerAddress).getPort());
+        this.port.set(new URL(Constants.HTTP + announcedPeerAddress).getPort());
       } catch (MalformedURLException ignore) {}
     }
   }
@@ -307,7 +306,7 @@ final class PeerImpl implements Peer {
     try {
 
       String address = announcedAddress.get() != null ? announcedAddress.get() : peerAddress;
-      StringBuilder buf = new StringBuilder("http://");
+      StringBuilder buf = new StringBuilder(Constants.HTTP);
       buf.append(address);
       if (port.get() <= 0) {
         buf.append(':');

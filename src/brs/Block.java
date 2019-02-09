@@ -33,7 +33,7 @@ public class Block {
   private final int payloadLength;
   private final byte[] generationSignature;
   private final byte[] payloadHash;
-  private final AtomicReference<List<Transaction>> blockTransactions = new AtomicReference<List<Transaction>>();
+  private final AtomicReference<List<Transaction>> blockTransactions = new AtomicReference<>();
 
   private byte[] blockSignature;
 

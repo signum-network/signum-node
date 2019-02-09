@@ -5,10 +5,12 @@ import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Arrays;
 
 public class BurstLauncher {
     public static void main(String[] args) {
@@ -17,19 +19,39 @@ public class BurstLauncher {
 
         addToClasspath(logger, "./conf");
 
-        try {
-            Class.forName("javafx.application.Application");
-        } catch (ClassNotFoundException e) {
-            logger.error("Could not start GUI as your JRE does not seem to have JavaFX installed. To install please install the \"openjfx\" package (eg. \"sudo apt install openjfx\")");
+        if (Arrays.asList(args).contains("--headless")) {
+            logger.info("Running in headless mode as specified by argument");
             canRunGui = false;
         }
 
-        if (GraphicsEnvironment.isHeadless()) {
-            logger.error("Cannot start GUI as running in headless environment");
-            canRunGui = false;
+        if (canRunGui) {
+            if (GraphicsEnvironment.isHeadless()) {
+                logger.error("Cannot start GUI as running in headless environment");
+                canRunGui = false;
+            }
         }
 
-        if (canRunGui) BurstGUI.main(args); else Burst.main(args);
+        if (canRunGui) {
+            try {
+                Class.forName("javafx.application.Application");
+            } catch (ClassNotFoundException e) {
+                logger.error("Could not start GUI as your JRE does not seem to have JavaFX installed. To install please install the \"openjfx\" package (eg. \"sudo apt install openjfx\")");
+                canRunGui = false;
+            }
+        }
+
+        if (canRunGui) {
+            try {
+                Class.forName("brs.BurstGUI")
+                        .getDeclaredMethod("main", String[].class)
+                        .invoke(null, new Object[]{args});
+            } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                logger.warn("Your build does not seem to include the BurstGUI extension or it cannot be run. Running as headless...");
+                Burst.main(args);
+            }
+        } else {
+            Burst.main(args);
+        }
     }
 
     public static void addToClasspath(Logger logger, String path) {
@@ -42,7 +64,7 @@ public class BurstLauncher {
             method.setAccessible(true);
             method.invoke(urlClassLoader, u.toURL());
         } catch (Exception e) {
-            logger.error("Could not add path \"" + path + "\" to classpath", e);
+            logger.warn("Could not add path \"" + path + "\" to classpath", e);
         }
     }
 }

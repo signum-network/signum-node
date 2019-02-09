@@ -12,8 +12,6 @@ import static brs.Constants.PROTOCOL;
 
 public final class JSON {
 
-    private static final Gson gson = new GsonBuilder().create();
-
     private JSON() {} //never
 
     public static final JsonElement emptyJSON = new JsonObject();

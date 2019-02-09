@@ -249,7 +249,7 @@ public final class APIServlet extends HttpServlet {
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
     try {
       process(req, resp);
-    } catch (Throwable e) { // We don't want to send exception information to client...
+    } catch (Exception e) { // We don't want to send exception information to client...
       resp.setStatus(500);
       logger.warn("Error handling GET request", e);
     }

@@ -354,6 +354,7 @@
             <version>0.5.1</version>
             <configuration>
               <protoSourceRoot>${grpc.source.dir}</protoSourceRoot>
+              <pluginId>grpc-java</pluginId>
             </configuration>
             <executions>
               <execution>
@@ -367,9 +368,10 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.8.0</version>
             <configuration>
               <excludes>
-                <exclude>src/brs/BurstGUI.java</exclude>
+                <exclude>brs/BurstGUI.java</exclude>
               </excludes>
             </configuration>
           </plugin>

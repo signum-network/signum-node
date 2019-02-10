@@ -342,8 +342,8 @@
       <id>headlessBuild</id>
       <activation>
         <property>
-          <name>headlessBuild</name>
-          <value>true</value>
+          <name>os.detected.release</name>
+          <value>alpine</value>
         </property>
       </activation>
       <build>

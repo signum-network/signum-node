@@ -1,13 +1,16 @@
 FROM maven:3-jdk-8-alpine as builder
+RUN apk update && apk add protobuf
+RUN apk add grpc-java --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing
 WORKDIR /app
 COPY . .
-RUN ./burst.sh compile
+RUN mvn -DskipTests=true -P headlessBuild package
+RUN mkdir -p html/ui/doc && mvn javadoc:javadoc-no-fork && cp -r target/site/apidocs/* html/ui/doc
 
-FROM openjdk:8-jdk-alpine
+FROM openjdk:8-jre-alpine
 RUN apk update && apk upgrade && apk add --no-cache bash
 WORKDIR /app
-COPY --from=builder /app/burst.jar .
-COPY html html
+COPY --from=builder /app/dist/tmp/burst.jar .
+COPY --from=builder /app/html html
 VOLUME ["/conf"]
 COPY conf/brs.properties.mariadb /conf/brs.properties
 COPY conf/brs-default.properties /conf/brs-default.properties

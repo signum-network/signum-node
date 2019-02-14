@@ -16,7 +16,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class BrsService extends BRSGrpc.BRSImplBase {
+public class BrsService extends BrsApiServiceGrpc.BrsApiServiceImplBase {
 
     private final Map<Class<? extends GrpcApiHandler<?,?>>, GrpcApiHandler<?,?>> handlers;
 
@@ -37,7 +37,7 @@ public class BrsService extends BRSGrpc.BRSImplBase {
     }
 
     @Override
-    public void getMiningInfo(Empty request, StreamObserver<Brs.MiningInfo> responseObserver) {
+    public void getMiningInfo(Empty request, StreamObserver<BrsApi.MiningInfo> responseObserver) {
         try {
             getHandler(GetMiningInfoHandler.class).handleRequest(request, responseObserver);
         } catch (HandlerNotFoundException e) {
@@ -46,7 +46,7 @@ public class BrsService extends BRSGrpc.BRSImplBase {
     }
 
     @Override
-    public void submitNonce(Brs.SubmitNonceRequest request, StreamObserver<Brs.SubmitNonceResponse> responseObserver) {
+    public void submitNonce(BrsApi.SubmitNonceRequest request, StreamObserver<BrsApi.SubmitNonceResponse> responseObserver) {
         try {
             getHandler(SubmitNonceHandler.class).handleRequest(request, responseObserver);
         } catch (HandlerNotFoundException e) {
@@ -55,7 +55,7 @@ public class BrsService extends BRSGrpc.BRSImplBase {
     }
 
     @Override
-    public void getBlock(Brs.GetBlockRequest request, StreamObserver<Brs.Block> responseObserver) {
+    public void getBlock(BrsApi.GetBlockRequest request, StreamObserver<BrsApi.Block> responseObserver) {
         try {
             getHandler(GetBlockHandler.class).handleRequest(request, responseObserver);
         } catch (HandlerNotFoundException e) {

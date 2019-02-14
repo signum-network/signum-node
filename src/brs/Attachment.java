@@ -3,7 +3,7 @@ package brs;
 import brs.TransactionType.Payment;
 import brs.at.AT_Constants;
 import brs.crypto.EncryptedData;
-import brs.grpc.proto.Brs;
+import brs.grpc.proto.BrsApi;
 import brs.util.Convert;
 import brs.util.JSON;
 import com.google.gson.JsonArray;
@@ -225,10 +225,10 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      Brs.MultiOutAttachment.Builder builder =  Brs.MultiOutAttachment.newBuilder()
+      BrsApi.MultiOutAttachment.Builder builder =  BrsApi.MultiOutAttachment.newBuilder()
               .setVersion(getVersion());
       for (ArrayList<Long> recipient : recipients) {
-        builder.addRecipients(Brs.MultiOutAttachment.MultiOutRecipient.newBuilder()
+        builder.addRecipients(BrsApi.MultiOutAttachment.MultiOutRecipient.newBuilder()
                 .setRecipient(recipient.get(0))
                 .setAmount(recipient.get(1)));
       }
@@ -332,7 +332,7 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.MultiOutSameAttachment.newBuilder()
+      return Any.pack(BrsApi.MultiOutSameAttachment.newBuilder()
               .setVersion(getVersion())
               .addAllRecipients(recipients)
               .build());
@@ -433,7 +433,7 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.AliasAssignmentAttachment.newBuilder()
+      return Any.pack(BrsApi.AliasAssignmentAttachment.newBuilder()
               .setVersion(getVersion())
               .setName(aliasName)
               .setUri(aliasURI)
@@ -503,7 +503,7 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.AliasSellAttachment.newBuilder()
+      return Any.pack(BrsApi.AliasSellAttachment.newBuilder()
               .setVersion(getVersion())
               .setName(aliasName)
               .setPrice(priceNQT)
@@ -563,7 +563,7 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.AliasBuyAttachment.newBuilder()
+      return Any.pack(BrsApi.AliasBuyAttachment.newBuilder()
               .setVersion(getVersion())
               .setName(aliasName)
               .build());
@@ -634,7 +634,7 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.AccountInfoAttachment.newBuilder()
+      return Any.pack(BrsApi.AccountInfoAttachment.newBuilder()
               .setVersion(getVersion())
               .setName(name)
               .setDescription(description)
@@ -726,7 +726,7 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.AssetIssuanceAttachment.newBuilder()
+      return Any.pack(BrsApi.AssetIssuanceAttachment.newBuilder()
               .setVersion(getVersion())
               .setName(name)
               .setDescription(description)
@@ -812,7 +812,7 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.AssetTransferAttachment.newBuilder()
+      return Any.pack(BrsApi.AssetTransferAttachment.newBuilder()
               .setVersion(getVersion())
               .setId(assetId)
               .setQuantity(quantityQNT)
@@ -869,7 +869,7 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.AssetOrderPlacementAttachment.newBuilder()
+      return Any.pack(BrsApi.AssetOrderPlacementAttachment.newBuilder()
               .setVersion(getVersion())
               .setId(assetId)
               .setQuantity(quantityQNT)
@@ -890,7 +890,7 @@ public interface Attachment extends Appendix {
       return priceNQT;
     }
 
-    protected abstract Brs.AssetOrderPlacementAttachment.Type getType();
+    protected abstract BrsApi.AssetOrderPlacementAttachment.Type getType();
   }
 
   final class ColoredCoinsAskOrderPlacement extends ColoredCoinsOrderPlacement {
@@ -908,8 +908,8 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    protected Brs.AssetOrderPlacementAttachment.Type getType() {
-      return Brs.AssetOrderPlacementAttachment.Type.ASK;
+    protected BrsApi.AssetOrderPlacementAttachment.Type getType() {
+      return BrsApi.AssetOrderPlacementAttachment.Type.ASK;
     }
 
     @Override
@@ -939,8 +939,8 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    protected Brs.AssetOrderPlacementAttachment.Type getType() {
-      return Brs.AssetOrderPlacementAttachment.Type.BID;
+    protected BrsApi.AssetOrderPlacementAttachment.Type getType() {
+      return BrsApi.AssetOrderPlacementAttachment.Type.BID;
     }
 
     @Override
@@ -991,7 +991,7 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.AssetOrderCancellationAttachment.newBuilder()
+      return Any.pack(BrsApi.AssetOrderCancellationAttachment.newBuilder()
               .setVersion(getVersion())
               .setOrderId(orderId)
               .setType(getType())
@@ -1002,7 +1002,7 @@ public interface Attachment extends Appendix {
       return orderId;
     }
 
-    protected abstract Brs.AssetOrderCancellationAttachment.Type getType();
+    protected abstract BrsApi.AssetOrderCancellationAttachment.Type getType();
   }
 
   final class ColoredCoinsAskOrderCancellation extends ColoredCoinsOrderCancellation {
@@ -1020,8 +1020,8 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    protected Brs.AssetOrderCancellationAttachment.Type getType() {
-      return Brs.AssetOrderCancellationAttachment.Type.ASK;
+    protected BrsApi.AssetOrderCancellationAttachment.Type getType() {
+      return BrsApi.AssetOrderCancellationAttachment.Type.ASK;
     }
 
     @Override
@@ -1051,8 +1051,8 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    protected Brs.AssetOrderCancellationAttachment.Type getType() {
-      return Brs.AssetOrderCancellationAttachment.Type.BID;
+    protected BrsApi.AssetOrderCancellationAttachment.Type getType() {
+      return BrsApi.AssetOrderCancellationAttachment.Type.BID;
     }
 
     @Override
@@ -1154,7 +1154,7 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.DigitalGoodsListingAttachment.newBuilder()
+      return Any.pack(BrsApi.DigitalGoodsListingAttachment.newBuilder()
               .setVersion(getVersion())
               .setName(name)
               .setDescription(description)
@@ -1213,7 +1213,7 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.DigitalGoodsDelistingAttachment.newBuilder()
+      return Any.pack(BrsApi.DigitalGoodsDelistingAttachment.newBuilder()
               .setVersion(getVersion())
               .setGoodsId(goodsId)
               .build());
@@ -1276,7 +1276,7 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.DigitalGoodsPriceChangeAttachment.newBuilder()
+      return Any.pack(BrsApi.DigitalGoodsPriceChangeAttachment.newBuilder()
               .setVersion(getVersion())
               .setGoodsId(goodsId)
               .setPrice(priceNQT)
@@ -1340,7 +1340,7 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.DigitalGoodsQuantityChangeAttachment.newBuilder()
+      return Any.pack(BrsApi.DigitalGoodsQuantityChangeAttachment.newBuilder()
               .setVersion(getVersion())
               .setGoodsId(goodsId)
               .setDeltaQuantity(deltaQuantity)
@@ -1420,7 +1420,7 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.DigitalGoodsPurchaseAttachment.newBuilder()
+      return Any.pack(BrsApi.DigitalGoodsPurchaseAttachment.newBuilder()
               .setVersion(getVersion())
               .setGoodsId(goodsId)
               .setQuantity(quantity)
@@ -1511,7 +1511,7 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.DigitalGoodsDeliveryAttachment.newBuilder()
+      return Any.pack(BrsApi.DigitalGoodsDeliveryAttachment.newBuilder()
               .setVersion(getVersion())
               .setPurchaseId(purchaseId)
               .setDiscount(discountNQT)
@@ -1570,7 +1570,7 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.DigitalGoodsFeedbackAttachment.newBuilder()
+      return Any.pack(BrsApi.DigitalGoodsFeedbackAttachment.newBuilder()
               .setVersion(getVersion())
               .setPurchaseId(purchaseId)
               .build());
@@ -1633,7 +1633,7 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.DigitalGoodsRefundAttachment.newBuilder()
+      return Any.pack(BrsApi.DigitalGoodsRefundAttachment.newBuilder()
               .setVersion(getVersion())
               .setPurchaseId(purchaseId)
               .setRefund(refundNQT)
@@ -1691,7 +1691,7 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.EffectiveBalanceLeasingAttachment.newBuilder()
+      return Any.pack(BrsApi.EffectiveBalanceLeasingAttachment.newBuilder()
               .setVersion(getVersion())
               .setPeriod(period)
               .build());
@@ -1737,7 +1737,7 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.RewardRecipientAssignmentAttachment.newBuilder()
+      return Any.pack(BrsApi.RewardRecipientAssignmentAttachment.newBuilder()
               .setVersion(getVersion())
               .build());
     }
@@ -1858,7 +1858,7 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.EscrowCreationAttachment.newBuilder()
+      return Any.pack(BrsApi.EscrowCreationAttachment.newBuilder()
               .setVersion(getVersion())
               .setAmount(amountNQT)
               .setRequiredSigners(requiredSigners)
@@ -1925,7 +1925,7 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.EscrowSignAttachment.newBuilder()
+      return Any.pack(BrsApi.EscrowSignAttachment.newBuilder()
               .setVersion(getVersion())
               .setEscrowId(escrowId)
               .setDecision(Escrow.decisionToProtobuf(decision))
@@ -1985,7 +1985,7 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.EscrowResultAttachment.newBuilder()
+      return Any.pack(BrsApi.EscrowResultAttachment.newBuilder()
               .setVersion(getVersion())
               .setEscrowId(2)
               .setDecision(Escrow.decisionToProtobuf(decision))
@@ -2041,7 +2041,7 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.SubscriptionSubscribeAttachment.newBuilder()
+      return Any.pack(BrsApi.SubscriptionSubscribeAttachment.newBuilder()
               .setVersion(getVersion())
               .setFrequency(frequency)
               .build());
@@ -2096,7 +2096,7 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.SubscriptionCancelAttachment.newBuilder()
+      return Any.pack(BrsApi.SubscriptionCancelAttachment.newBuilder()
               .setVersion(getVersion())
               .setSubscriptionId(subscriptionId)
               .build());
@@ -2149,7 +2149,7 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.SubscriptionPaymentAttachment.newBuilder()
+      return Any.pack(BrsApi.SubscriptionPaymentAttachment.newBuilder()
               .setVersion(getVersion())
               .setSucscriptionId(subscriptionId)
               .build());
@@ -2286,7 +2286,7 @@ public interface Attachment extends Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.ATCreationAttachment.newBuilder()
+      return Any.pack(BrsApi.ATCreationAttachment.newBuilder()
               .setVersion(getVersion())
               .setName(name)
               .setDescription(description)

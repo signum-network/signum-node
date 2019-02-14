@@ -4,11 +4,11 @@ import brs.Block;
 import brs.Blockchain;
 import brs.grpc.GrpcApiHandler;
 import brs.grpc.proto.ApiException;
-import brs.grpc.proto.Brs;
+import brs.grpc.proto.BrsApi;
 import brs.grpc.proto.ProtoBuilder;
 import brs.services.BlockService;
 
-public class GetBlockHandler implements GrpcApiHandler<Brs.GetBlockRequest, Brs.Block> {
+public class GetBlockHandler implements GrpcApiHandler<BrsApi.GetBlockRequest, BrsApi.Block> {
 
     private final Blockchain blockchain;
     private final BlockService blockService;
@@ -19,7 +19,7 @@ public class GetBlockHandler implements GrpcApiHandler<Brs.GetBlockRequest, Brs.
     }
 
     @Override
-    public Brs.Block handleRequest(Brs.GetBlockRequest request) throws Exception {
+    public BrsApi.Block handleRequest(BrsApi.GetBlockRequest request) throws Exception {
         long blockId = request.getId();
         int blockHeight = request.getHeight();
         int timestamp = request.getTimestamp();

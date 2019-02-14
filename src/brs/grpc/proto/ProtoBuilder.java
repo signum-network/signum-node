@@ -8,8 +8,8 @@ import com.google.protobuf.ByteString;
 import java.util.stream.Collectors;
 
 public class ProtoBuilder {
-    public static Brs.Block buildBlock(Blockchain blockchain, BlockService blockService, Block block, boolean includeTransactions) {
-        Brs.Block.Builder builder = Brs.Block.newBuilder()
+    public static BrsApi.Block buildBlock(Blockchain blockchain, BlockService blockService, Block block, boolean includeTransactions) {
+        BrsApi.Block.Builder builder = BrsApi.Block.newBuilder()
                 .setId(block.getId())
                 .setHeight(block.getHeight())
                 .setNumberOfTransactions(block.getTransactions().size())
@@ -42,8 +42,8 @@ public class ProtoBuilder {
         return builder.build();
     }
 
-    public static Brs.Transaction buildTransaction(Blockchain blockchain, Transaction transaction) {
-        Brs.Transaction.Builder builder = Brs.Transaction.newBuilder()
+    public static BrsApi.Transaction buildTransaction(Blockchain blockchain, Transaction transaction) {
+        BrsApi.Transaction.Builder builder = BrsApi.Transaction.newBuilder()
                 .setId(transaction.getId())
                 .setVersion(transaction.getVersion())
                 .setType(transaction.getType().getType())

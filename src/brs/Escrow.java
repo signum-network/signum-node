@@ -2,7 +2,7 @@ package brs;
 
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
-import brs.grpc.proto.Brs;
+import brs.grpc.proto.BrsApi;
 
 public class Escrow {
 
@@ -73,22 +73,22 @@ public class Escrow {
     return null;
   }
 
-  public static Brs.EscrowDecisionType decisionToProtobuf(DecisionType decision) {
+  public static BrsApi.EscrowDecisionType decisionToProtobuf(DecisionType decision) {
     switch (decision) {
       case UNDECIDED:
-        return Brs.EscrowDecisionType.UNDECIDED;
+        return BrsApi.EscrowDecisionType.UNDECIDED;
       case RELEASE:
-        return Brs.EscrowDecisionType.RELEASE;
+        return BrsApi.EscrowDecisionType.RELEASE;
       case REFUND:
-        return Brs.EscrowDecisionType.REFUND;
+        return BrsApi.EscrowDecisionType.REFUND;
       case SPLIT:
-        return Brs.EscrowDecisionType.SPLIT;
+        return BrsApi.EscrowDecisionType.SPLIT;
     }
 
     return null;
   }
 
-  public static DecisionType protoBufToDecision(Brs.EscrowDecisionType decision) {
+  public static DecisionType protoBufToDecision(BrsApi.EscrowDecisionType decision) {
     switch (decision) {
       case UNDECIDED:
         return DecisionType.UNDECIDED;

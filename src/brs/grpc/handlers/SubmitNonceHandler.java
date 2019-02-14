@@ -6,12 +6,12 @@ import brs.Generator;
 import brs.crypto.Crypto;
 import brs.grpc.GrpcApiHandler;
 import brs.grpc.proto.ApiException;
-import brs.grpc.proto.Brs;
+import brs.grpc.proto.BrsApi;
 import brs.services.AccountService;
 
 import java.util.Objects;
 
-public class SubmitNonceHandler implements GrpcApiHandler<Brs.SubmitNonceRequest, Brs.SubmitNonceResponse> {
+public class SubmitNonceHandler implements GrpcApiHandler<BrsApi.SubmitNonceRequest, BrsApi.SubmitNonceResponse> {
 
     private final Blockchain blockchain;
     private final AccountService accountService;
@@ -24,7 +24,7 @@ public class SubmitNonceHandler implements GrpcApiHandler<Brs.SubmitNonceRequest
     }
 
     @Override
-    public Brs.SubmitNonceResponse handleRequest(Brs.SubmitNonceRequest request) throws Exception {
+    public BrsApi.SubmitNonceResponse handleRequest(BrsApi.SubmitNonceRequest request) throws Exception {
         String secret = request.getSecretPhrase();
         long nonce = request.getNonce();
         long accountId = request.getAccount();
@@ -91,6 +91,6 @@ public class SubmitNonceHandler implements GrpcApiHandler<Brs.SubmitNonceRequest
             throw new ApiException("Failed to create generator");
         }
 
-        return Brs.SubmitNonceResponse.newBuilder().setDeadline(generatorState.getDeadline().longValueExact()).build();
+        return BrsApi.SubmitNonceResponse.newBuilder().setDeadline(generatorState.getDeadline().longValueExact()).build();
     }
 }

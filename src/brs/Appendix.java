@@ -2,7 +2,7 @@ package brs;
 
 import brs.crypto.EncryptedData;
 import brs.fluxcapacitor.FeatureToggle;
-import brs.grpc.proto.Brs;
+import brs.grpc.proto.BrsApi;
 import brs.util.Convert;
 import brs.util.JSON;
 import com.google.gson.JsonObject;
@@ -179,7 +179,7 @@ public interface Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.MessageAppendix.newBuilder()
+      return Any.pack(BrsApi.MessageAppendix.newBuilder()
               .setVersion(getVersion())
               .setMessage(ByteString.copyFrom(message))
               .setIsText(isText)
@@ -237,7 +237,7 @@ public interface Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.EncryptedMessageAppendix.newBuilder()
+      return Any.pack(BrsApi.EncryptedMessageAppendix.newBuilder()
               .setVersion(getVersion())
               .setData(ByteString.copyFrom(encryptedData.getData()))
               .setNonce(ByteString.copyFrom(encryptedData.getNonce()))
@@ -266,7 +266,7 @@ public interface Appendix {
       return isText;
     }
 
-    protected abstract Brs.EncryptedMessageAppendix.Type getType();
+    protected abstract BrsApi.EncryptedMessageAppendix.Type getType();
   }
 
   class EncryptedMessage extends AbstractEncryptedMessage {
@@ -314,8 +314,8 @@ public interface Appendix {
     }
 
     @Override
-    protected Brs.EncryptedMessageAppendix.Type getType() {
-      return Brs.EncryptedMessageAppendix.Type.TO_RECIPIENT;
+    protected BrsApi.EncryptedMessageAppendix.Type getType() {
+      return BrsApi.EncryptedMessageAppendix.Type.TO_RECIPIENT;
     }
 
   }
@@ -362,8 +362,8 @@ public interface Appendix {
     }
 
     @Override
-    protected Brs.EncryptedMessageAppendix.Type getType() {
-      return Brs.EncryptedMessageAppendix.Type.TO_SELF;
+    protected BrsApi.EncryptedMessageAppendix.Type getType() {
+      return BrsApi.EncryptedMessageAppendix.Type.TO_SELF;
     }
 
   }
@@ -449,7 +449,7 @@ public interface Appendix {
 
     @Override
     public Any getProtobufMessage() {
-      return Any.pack(Brs.PublicKeyAnnouncementAppendix.newBuilder()
+      return Any.pack(BrsApi.PublicKeyAnnouncementAppendix.newBuilder()
               .setVersion(getVersion())
               .setRecipientPublicKey(ByteString.copyFrom(publicKey))
               .build());

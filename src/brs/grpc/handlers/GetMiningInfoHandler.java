@@ -4,7 +4,7 @@ import brs.Block;
 import brs.BlockchainProcessor;
 import brs.crypto.hash.Shabal256;
 import brs.grpc.StreamResponseGrpcApiHandler;
-import brs.grpc.proto.Brs;
+import brs.grpc.proto.BrsApi;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Empty;
 import io.grpc.stub.StreamObserver;
@@ -16,14 +16,14 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
-public class GetMiningInfoHandler implements StreamResponseGrpcApiHandler<Empty, Brs.MiningInfo> {
+public class GetMiningInfoHandler implements StreamResponseGrpcApiHandler<Empty, BrsApi.MiningInfo> {
 
     /**
      * Listener should close connection if it receives null.
      */
-    private final Set<Consumer<Brs.MiningInfo>> listeners = new HashSet<>();
+    private final Set<Consumer<BrsApi.MiningInfo>> listeners = new HashSet<>();
 
-    private final AtomicReference<Brs.MiningInfo> currentMiningInfo = new AtomicReference<>();
+    private final AtomicReference<BrsApi.MiningInfo> currentMiningInfo = new AtomicReference<>();
 
     public GetMiningInfoHandler(BlockchainProcessor blockchainProcessor) {
         blockchainProcessor.addListener(this::onBlock, BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
@@ -32,9 +32,9 @@ public class GetMiningInfoHandler implements StreamResponseGrpcApiHandler<Empty,
     private void onBlock(Block block) {
         synchronized (currentMiningInfo) {
             byte[] nextGenSig = calculateGenerationSignature(block);
-            Brs.MiningInfo miningInfo = currentMiningInfo.get();
+            BrsApi.MiningInfo miningInfo = currentMiningInfo.get();
             if (miningInfo == null || !Arrays.equals(miningInfo.getGenerationSignature().toByteArray(), nextGenSig) || miningInfo.getHeight() - 1 != block.getHeight() || miningInfo.getBaseTarget() != block.getBaseTarget()) {
-                currentMiningInfo.set(Brs.MiningInfo.newBuilder()
+                currentMiningInfo.set(BrsApi.MiningInfo.newBuilder()
                         .setGenerationSignature(ByteString.copyFrom(nextGenSig))
                         .setHeight(block.getHeight() + 1)
                         .setBaseTarget(block.getBaseTarget())
@@ -44,7 +44,7 @@ public class GetMiningInfoHandler implements StreamResponseGrpcApiHandler<Empty,
         }
     }
 
-    private void notifyListeners(Brs.MiningInfo miningInfo) {
+    private void notifyListeners(BrsApi.MiningInfo miningInfo) {
         synchronized (listeners) {
             listeners.removeIf(listener -> {
                 try {
@@ -61,14 +61,14 @@ public class GetMiningInfoHandler implements StreamResponseGrpcApiHandler<Empty,
         }
     }
 
-    private void addListener(Consumer<Brs.MiningInfo> listener) {
+    private void addListener(Consumer<BrsApi.MiningInfo> listener) {
         synchronized (listeners) {
             listeners.add(listener);
         }
     }
 
     @Override
-    public void handleStreamRequest(Empty input, StreamObserver<Brs.MiningInfo> responseObserver) {
+    public void handleStreamRequest(Empty input, StreamObserver<BrsApi.MiningInfo> responseObserver) {
         responseObserver.onNext(currentMiningInfo.get());
         addListener(miningInfo -> {
             if (miningInfo == null) {

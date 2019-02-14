@@ -50,22 +50,14 @@ public final class Convert {
   }
 
   public static String toUnsignedLong(long objectId) {
-    if (objectId >= 0) {
-      return String.valueOf(objectId);
-    }
-    BigInteger id = BigInteger.valueOf(objectId).add(two64);
-    return id.toString();
+    return Long.toUnsignedString(objectId);
   }
 
   public static long parseUnsignedLong(String number) {
     if (number == null) {
       return 0;
     }
-    BigInteger bigInt = new BigInteger(number.trim());
-    if (bigInt.signum() < 0 || bigInt.compareTo(two64) > -1) {
-      throw new IllegalArgumentException("overflow: " + number);
-    }
-    return bigInt.longValue();
+    return Long.parseUnsignedLong(number);
   }
 
   public static long parseAccountId(String account) {
@@ -88,8 +80,12 @@ public final class Convert {
     if (hash == null || hash.length < 8) {
       throw new IllegalArgumentException("Invalid hash: " + Arrays.toString(hash));
     }
-    BigInteger bigInteger = new BigInteger(1, new byte[] {hash[7], hash[6], hash[5], hash[4], hash[3], hash[2], hash[1], hash[0]});
-    return bigInteger.longValue();
+    long result = 0;
+    for (int i = 0; i < 8; i++) {
+      result <<= 8;
+      result |= (hash[7-i] & 0xFF);
+    }
+    return result;
   }
 
   public static long fullHashToId(String hash) {

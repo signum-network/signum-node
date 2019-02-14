@@ -192,7 +192,7 @@ public final class Crypto {
         throw new RuntimeException("ERROR: Reed-Solomon decoding of " + rsString + " not reversible, decoded to " + id);
       }
       return id;
-    } catch (ReedSolomon.DecodeException e) {
+    } catch (ReedSolomon.DecodeException | NumberFormatException e) {
       logger.debug("Reed-Solomon decoding failed for " + rsString + ": " + e.toString());
       throw new RuntimeException(e.toString(), e);
     }

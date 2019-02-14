@@ -8,8 +8,6 @@ package brs.crypto;
 
 import brs.util.Convert;
 
-import java.math.BigInteger;
-
 final class ReedSolomon {
 
   private static final int[] initial_codeword = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -129,8 +127,7 @@ final class ReedSolomon {
       plain_string_builder.append((char)(digit_10 + (int)'0'));
     } while (length > 0);
 
-    BigInteger bigInt = new BigInteger(plain_string_builder.reverse().toString());
-    return bigInt.longValue();
+    return Long.parseUnsignedLong(plain_string_builder.reverse().toString());
   }
 
   private static int gmult(int a, int b) {

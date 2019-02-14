@@ -212,10 +212,9 @@ public class Block {
         throw new IllegalStateException("Block is not signed yet");
       }
       byte[] hash = Crypto.sha256().digest(getBytes());
-      BigInteger bigInteger = new BigInteger(1,
-          new byte[] {hash[7], hash[6], hash[5], hash[4], hash[3], hash[2], hash[1], hash[0]});
-      id.set(bigInteger.longValue());
-      stringId.set(bigInteger.toString());
+      long longId = Convert.fullHashToId(hash);
+      id.set(longId);
+      stringId.set(Convert.toUnsignedLong(longId));
     }
     return id.get();
   }

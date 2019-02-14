@@ -11,7 +11,6 @@ import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.MessageDigest;
@@ -378,9 +377,9 @@ public class Transaction implements Comparable<Transaction> {
       } else {
         hash = Crypto.sha256().digest(getBytes());
       }
-      BigInteger bigInteger = new BigInteger(1, new byte[] {hash[7], hash[6], hash[5], hash[4], hash[3], hash[2], hash[1], hash[0]});
-      id.set(bigInteger.longValue());
-      stringId.set(bigInteger.toString());
+      long longId = Convert.fullHashToId(hash);
+      id.set(longId);
+      stringId.set(Convert.toUnsignedLong(longId));
       fullHash.set(Convert.toHexString(hash));
     }
     return id.get();

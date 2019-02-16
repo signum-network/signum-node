@@ -26,7 +26,7 @@ public class GetMiningInfoHandler implements StreamResponseGrpcApiHandler<Empty,
     private final AtomicReference<BrsApi.MiningInfo> currentMiningInfo = new AtomicReference<>();
 
     public GetMiningInfoHandler(BlockchainProcessor blockchainProcessor) {
-        blockchainProcessor.addListener(this::onBlock, BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
+        blockchainProcessor.addListener(this::onBlock, BlockchainProcessor.Event.BLOCK_PUSHED);
     }
 
     private void onBlock(Block block) {

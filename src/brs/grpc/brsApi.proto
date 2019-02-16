@@ -7,10 +7,10 @@ option java_package = "brs.grpc.proto";
 service BrsApiService {
     rpc GetBlock(GetBlockRequest) returns (Block) {}
     rpc GetAccount(GetAccountRequest) returns (Account) {}
-    rpc GetAccounts(GetAccountsRequest) returns (AccountIDs) {}
+    rpc GetAccounts(GetAccountsRequest) returns (Accounts) {}
     rpc GetMiningInfo(google.protobuf.Empty) returns (stream MiningInfo) {}
     rpc GetTransaction(GetTransactionRequest) returns (Transaction) {}
-    rpc GetTransactionBytes(GetTransactionBytesRequest) returns (TransactionBytes) {}
+    rpc GetTransactionBytes(GetTransactionRequest) returns (TransactionBytes) {}
     rpc SubmitNonce(SubmitNonceRequest) returns (SubmitNonceResponse) {}
 }
 
@@ -28,15 +28,12 @@ message GetAccountRequest {
 message GetAccountsRequest {
     uint64 rewardRecipient = 1;
     string name = 2;
+    bool includeAccounts = 3;
 }
 
 message GetTransactionRequest {
     uint64 id = 1;
     bytes fullHash = 2;
-}
-
-message GetTransactionBytesRequest {
-    uint64 id = 1;
 }
 
 message SubmitNonceRequest {
@@ -311,28 +308,27 @@ enum EscrowDecisionType {
     SPLIT = 3;
 }
 
-message AccountIDs {
+message Accounts {
     repeated uint64 accountIDs = 1;
+    repeated Account accounts = 2;
 }
 
 message Account {
     uint64 id = 1;
     bytes publicKey = 2;
     uint64 balance = 3;
-    uint64 guaranteedBalance = 4;
-    uint64 effectiveBalance = 5;
-    uint64 unconfirmedBalance = 6;
-    uint64 forgedBalance = 7;
-    string name = 8;
-    string description = 9;
-    uint64 rewardRecipient = 10;
-    repeated AssetBalance assetBalances = 11;
-    repeated AssetBalance unconfirmedAssetBalances = 12;
+    uint64 unconfirmedBalance = 4;
+    uint64 forgedBalance = 5;
+    string name = 6;
+    string description = 7;
+    uint64 rewardRecipient = 8;
+    repeated AssetBalance assetBalances = 9;
 }
 
 message AssetBalance {
     uint64 id = 1;
     uint64 balance = 2;
+    uint64 unconfirmedBalance = 3;
 }
 
 message MiningInfo {

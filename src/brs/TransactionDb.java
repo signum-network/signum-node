@@ -9,11 +9,11 @@ import java.util.List;
 public interface TransactionDb {
   Transaction findTransaction(long transactionId);
 
-  Transaction findTransactionByFullHash(String fullHash);
+  Transaction findTransactionByFullHash(String fullHash); // TODO add byte[] method
 
   boolean hasTransaction(long transactionId);
 
-  boolean hasTransactionByFullHash(String fullHash);
+  boolean hasTransactionByFullHash(String fullHash); // TODO add byte[] method
 
   Transaction loadTransaction(TransactionRecord transactionRecord) throws BurstException.ValidationException;
 

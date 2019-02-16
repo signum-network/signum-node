@@ -34,11 +34,11 @@ public interface Blockchain {
 
   Transaction getTransaction(long transactionId);
 
-  Transaction getTransactionByFullHash(String fullHash);
+  Transaction getTransactionByFullHash(String fullHash); // TODO add byte[] method
 
   boolean hasTransaction(long transactionId);
 
-  boolean hasTransactionByFullHash(String fullHash);
+  boolean hasTransactionByFullHash(String fullHash); // TODO add byte[] method
 
   int getTransactionCount();
 

@@ -3,10 +3,9 @@ package brs.grpc.proto;
 import brs.Blockchain;
 import brs.BlockchainProcessor;
 import brs.Generator;
+import brs.TransactionProcessor;
 import brs.grpc.GrpcApiHandler;
-import brs.grpc.handlers.GetBlockHandler;
-import brs.grpc.handlers.GetMiningInfoHandler;
-import brs.grpc.handlers.SubmitNonceHandler;
+import brs.grpc.handlers.*;
 import brs.services.AccountService;
 import brs.services.BlockService;
 import com.google.protobuf.Empty;
@@ -20,11 +19,15 @@ public class BrsService extends BrsApiServiceGrpc.BrsApiServiceImplBase {
 
     private final Map<Class<? extends GrpcApiHandler<?,?>>, GrpcApiHandler<?,?>> handlers;
 
-    public BrsService(BlockchainProcessor blockchainProcessor, Blockchain blockchain, BlockService blockService, AccountService accountService, Generator generator) {
+    public BrsService(BlockchainProcessor blockchainProcessor, Blockchain blockchain, BlockService blockService, AccountService accountService, Generator generator, TransactionProcessor transactionProcessor) {
         Map<Class<? extends GrpcApiHandler<?,?>>, GrpcApiHandler<?,?>> handlers = new HashMap<>();
         handlers.put(GetMiningInfoHandler.class, new GetMiningInfoHandler(blockchainProcessor));
         handlers.put(SubmitNonceHandler.class, new SubmitNonceHandler(blockchain, accountService, generator));
         handlers.put(GetBlockHandler.class, new GetBlockHandler(blockchain, blockService));
+        handlers.put(GetAccountHandler.class, new GetAccountHandler(accountService));
+        handlers.put(GetAccountsHandler.class, new GetAccountsHandler(accountService));
+        handlers.put(GetTransactionHandler.class, new GetTransactionHandler(blockchain, transactionProcessor));
+        handlers.put(GetTransactionBytesHandler.class, new GetTransactionBytesHandler(blockchain, transactionProcessor));
         this.handlers = Collections.unmodifiableMap(handlers);
     }
 
@@ -55,9 +58,45 @@ public class BrsService extends BrsApiServiceGrpc.BrsApiServiceImplBase {
     }
 
     @Override
+    public void getAccount(BrsApi.GetAccountRequest request, StreamObserver<BrsApi.Account> responseObserver) {
+        try {
+            getHandler(GetAccountHandler.class).handleRequest(request, responseObserver);
+        } catch (HandlerNotFoundException e) {
+            responseObserver.onError(e);
+        }
+    }
+
+    @Override
+    public void getAccounts(BrsApi.GetAccountsRequest request, StreamObserver<BrsApi.Accounts> responseObserver) {
+        try {
+            getHandler(GetAccountsHandler.class).handleRequest(request, responseObserver);
+        } catch (HandlerNotFoundException e) {
+            responseObserver.onError(e);
+        }
+    }
+
+    @Override
     public void getBlock(BrsApi.GetBlockRequest request, StreamObserver<BrsApi.Block> responseObserver) {
         try {
             getHandler(GetBlockHandler.class).handleRequest(request, responseObserver);
+        } catch (HandlerNotFoundException e) {
+            responseObserver.onError(e);
+        }
+    }
+
+    @Override
+    public void getTransaction(BrsApi.GetTransactionRequest request, StreamObserver<BrsApi.Transaction> responseObserver) {
+        try {
+            getHandler(GetTransactionHandler.class).handleRequest(request, responseObserver);
+        } catch (HandlerNotFoundException e) {
+            responseObserver.onError(e);
+        }
+    }
+
+    @Override
+    public void getTransactionBytes(BrsApi.GetTransactionRequest request, StreamObserver<BrsApi.TransactionBytes> responseObserver) {
+        try {
+            getHandler(GetTransactionBytesHandler.class).handleRequest(request, responseObserver);
         } catch (HandlerNotFoundException e) {
             responseObserver.onError(e);
         }

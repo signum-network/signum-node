@@ -1,6 +1,8 @@
 package brs.grpc.proto;
 
 import brs.*;
+import brs.db.BurstIterator;
+import brs.services.AccountService;
 import brs.services.BlockService;
 import brs.util.Convert;
 import com.google.protobuf.ByteString;
@@ -8,6 +10,32 @@ import com.google.protobuf.ByteString;
 import java.util.stream.Collectors;
 
 public class ProtoBuilder {
+    public static BrsApi.Account buildAccount(Account account, AccountService accountService) {
+        BrsApi.Account.Builder builder = BrsApi.Account.newBuilder()
+                .setId(account.getId())
+                .setPublicKey(ByteString.copyFrom(account.getPublicKey()))
+                .setBalance(account.getBalanceNQT())
+                .setUnconfirmedBalance(account.getUnconfirmedBalanceNQT())
+                .setForgedBalance(account.getForgedBalanceNQT())
+                .setName(account.getName())
+                .setDescription(account.getDescription())
+                .setRewardRecipient(accountService.getRewardRecipientAssignment(account).accountId);
+
+        try (BurstIterator<Account.AccountAsset> assets = accountService.getAssets(account.id, 0, -1)) {
+            assets.forEachRemaining(asset -> builder.addAssetBalances(buildAssetBalance(asset)));
+        }
+
+        return builder.build();
+    }
+
+    private static BrsApi.AssetBalance buildAssetBalance(Account.AccountAsset asset) {
+        return BrsApi.AssetBalance.newBuilder()
+            .setId(asset.getAssetId())
+            .setBalance(asset.getQuantityQNT())
+            .setUnconfirmedBalance(asset.getUnconfirmedQuantityQNT())
+            .build();
+    }
+
     public static BrsApi.Block buildBlock(Blockchain blockchain, BlockService blockService, Block block, boolean includeTransactions) {
         BrsApi.Block.Builder builder = BrsApi.Block.newBuilder()
                 .setId(block.getId())

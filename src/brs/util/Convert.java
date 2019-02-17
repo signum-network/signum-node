@@ -32,6 +32,7 @@ public final class Convert {
   }
 
   public static String toHexString(byte[] bytes) {
+    if (bytes == null) return null;
     return Hex.toHexString(bytes);
   }
 

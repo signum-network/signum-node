@@ -112,6 +112,7 @@ public class Props {
   public static final Prop<Boolean> API_DEBUG   = new Prop<>("API.Debug", false);
   public static final Prop<Boolean> API_SSL     = new Prop<>("API.SSL", false);
   public static final Prop<Boolean> API_SERVER  = new Prop<>("API.Server", true);
+  public static final Prop<Boolean> API_V2_SERVER  = new Prop<>("API.V2.Server", true);
   public static final Prop<String> API_ALLOWED = new Prop<>("API.allowed", "127.0.0.1; localhost; [0:0:0:0:0:0:0:1];");
 
   public static final Prop<Boolean> API_ACCEPT_SURPLUS_PARAMS = new Prop<>("API.AcceptSurplusParams", false);

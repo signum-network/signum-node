@@ -381,7 +381,7 @@ final class PeerImpl implements Peer {
       }
 
     } catch (RuntimeException|IOException e) {
-      if (! (e instanceof UnknownHostException || e instanceof SocketTimeoutException || e instanceof SocketException)) {
+      if (!isConnectionException(e)) {
         logger.debug("Error sending JSON request", e);
       }
       if ((Peers.communicationLoggingMask & Peers.LOGGING_MASK_EXCEPTIONS) != 0) {
@@ -404,6 +404,12 @@ final class PeerImpl implements Peer {
 
     return response;
 
+  }
+
+  private boolean isConnectionException(Throwable e) {
+    if (e instanceof UnknownHostException || e instanceof SocketTimeoutException || e instanceof SocketException) return true;
+    if (e.getCause() == null) return false;
+    return isConnectionException(e.getCause());
   }
 
   @Override

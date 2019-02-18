@@ -7,7 +7,6 @@ import brs.crypto.Crypto;
 import brs.db.BlockDb;
 import brs.db.DerivedTable;
 import brs.db.cache.DBCacheManagerImpl;
-import brs.db.sql.Db;
 import brs.db.store.BlockchainStore;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.Stores;
@@ -25,7 +24,6 @@ import brs.util.*;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.jooq.DSLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -640,7 +638,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               blockService.preVerify(currentBlock);
               logger.debug("block was not preverified");
             }
-            lastId = currentBlock.getId();
             pushBlock(currentBlock); //pushblock removes the block from cache.
           } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -925,16 +922,14 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         MessageDigest digest = Crypto.sha256();
 
         ArrayList<Long> accountIds = new ArrayList<>();
-        try (DSLContext ctx = Db.getDSLContext()) {
-          block.getTransactions().forEach(t -> {
-            if (t.getRecipientId() != 0L)
-              accountIds.add(t.getRecipientId());
-            if (t.getSenderId() != 0L)
-              accountIds.add(t.getSenderId());
-          });
-          if (!accountIds.isEmpty()) {
-            stores.getAccountStore().getAccountTable().fillCache(accountIds);
-          }
+        block.getTransactions().forEach(t -> {
+          if (t.getRecipientId() != 0L)
+            accountIds.add(t.getRecipientId());
+          if (t.getSenderId() != 0L)
+            accountIds.add(t.getSenderId());
+        });
+        if (!accountIds.isEmpty()) {
+          stores.getAccountStore().getAccountTable().fillCache(accountIds);
         }
 
         for (Transaction transaction : block.getTransactions()) {
@@ -1025,7 +1020,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         transactionProcessor.requeueAllUnconfirmedTransactions();
         accountService.flushAccountTable();
         addBlock(block);
-        downloadCache.removeBlock(block); //We make sure downloadCache do not have this block anymore.
+        downloadCache.removeBlock(block); // We make sure downloadCache do not have this block anymore.
         accept(block, remainingAmount, remainingFee);
         derivedTableManager.getDerivedTables().forEach(DerivedTable::finish);
         stores.commitTransaction();

@@ -406,14 +406,15 @@ public abstract class TransactionType {
 
       @Override
       void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
-        if (! fluxCapacitor.isActive(FeatureToggle.PRE_DYMAXION) ) {
+        if (!fluxCapacitor.isActive(FeatureToggle.PRE_DYMAXION, transaction.getHeight())) {
           throw new BurstException.NotCurrentlyValidException("Multi Out Payments are not allowed before the Pre Dymaxion block");
         }
 
         Attachment.PaymentMultiOutCreation attachment = (Attachment.PaymentMultiOutCreation) transaction.getAttachment();
-        if (attachment.getAmountNQT() <= 0
-         || attachment.getAmountNQT() >= Constants.MAX_BALANCE_NQT
-         || attachment.getAmountNQT() != transaction.getAmountNQT()
+        Long amountNQT = attachment.getAmountNQT();
+        if (amountNQT <= 0
+         || amountNQT >= Constants.MAX_BALANCE_NQT
+         || amountNQT != transaction.getAmountNQT()
          || attachment.getRecipients().size() < 2) {
           throw new BurstException.NotValidException("Invalid multi out payment");
         }
@@ -454,12 +455,12 @@ public abstract class TransactionType {
 
       @Override
       void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
-        if (! fluxCapacitor.isActive(FeatureToggle.PRE_DYMAXION) ) {
+        if (!fluxCapacitor.isActive(FeatureToggle.PRE_DYMAXION, transaction.getHeight())) {
           throw new BurstException.NotCurrentlyValidException("Multi Same Out Payments are not allowed before the Pre Dymaxion block");
         }
 
         Attachment.PaymentMultiSameOutCreation attachment = (Attachment.PaymentMultiSameOutCreation) transaction.getAttachment();
-        if ( attachment.getRecipients().size() < 2 && ( transaction.getAmountNQT() % attachment.getRecipients().size() == 0 ) ) {
+        if (attachment.getRecipients().size() < 2 && (transaction.getAmountNQT() % attachment.getRecipients().size() == 0 ) ) {
           throw new BurstException.NotValidException("Invalid multi out payment");
         }
       }

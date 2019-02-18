@@ -21,6 +21,7 @@ public final class Convert {
   private Convert() {} //never
 
   public static byte[] parseHexString(String hex) {
+    if (hex == null) return null;
     try {
       if (hex.length() % 2 != 0) {
         hex = hex.substring(0, hex.length() - 1);

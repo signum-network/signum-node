@@ -93,7 +93,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
         itemOf.put(entry.getKey(), (T) entry.getValue());
       }
     }
-    if ( itemOf.size() > 0 ) {
+    if (itemOf.size() > 0 ) {
       bulkInsert(ctx, new ArrayList<>(itemOf.values()));
     }
     Db.getBatch(table).clear();

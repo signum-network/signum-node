@@ -83,9 +83,9 @@ public class Escrow {
         return BrsApi.EscrowDecisionType.REFUND;
       case SPLIT:
         return BrsApi.EscrowDecisionType.SPLIT;
+      default:
+        return null;
     }
-
-    return null;
   }
 
   public static DecisionType protoBufToDecision(BrsApi.EscrowDecisionType decision) {
@@ -98,9 +98,9 @@ public class Escrow {
         return DecisionType.REFUND;
       case SPLIT:
         return DecisionType.SPLIT;
+      default:
+        return null;
     }
-
-    return null;
   }
 
   public static class Decision {

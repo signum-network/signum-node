@@ -180,7 +180,7 @@ public interface Appendix {
     @Override
     public Any getProtobufMessage() {
       return Any.pack(BrsApi.MessageAppendix.newBuilder()
-              .setVersion(getVersion())
+              .setVersion(super.getVersion())
               .setMessage(ByteString.copyFrom(message))
               .setIsText(isText)
               .build());
@@ -238,7 +238,7 @@ public interface Appendix {
     @Override
     public Any getProtobufMessage() {
       return Any.pack(BrsApi.EncryptedMessageAppendix.newBuilder()
-              .setVersion(getVersion())
+              .setVersion(super.getVersion())
               .setData(ByteString.copyFrom(encryptedData.getData()))
               .setNonce(ByteString.copyFrom(encryptedData.getNonce()))
               .setType(getType())
@@ -450,7 +450,7 @@ public interface Appendix {
     @Override
     public Any getProtobufMessage() {
       return Any.pack(BrsApi.PublicKeyAnnouncementAppendix.newBuilder()
-              .setVersion(getVersion())
+              .setVersion(super.getVersion())
               .setRecipientPublicKey(ByteString.copyFrom(publicKey))
               .build());
     }

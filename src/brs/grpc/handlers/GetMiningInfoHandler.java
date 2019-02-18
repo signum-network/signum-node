@@ -50,10 +50,11 @@ public class GetMiningInfoHandler implements StreamResponseGrpcApiHandler<Empty,
                 try {
                     listener.accept(miningInfo);
                     return false;
-                } catch (Throwable e) {
+                } catch (Exception e) {
                     try {
                         listener.accept(null);
-                    } catch (Throwable ignored) {
+                    } catch (Exception ignored) {
+                        // Ignore any errors attempting to disconnect as we may already be disconnected
                     }
                     return true;
                 }

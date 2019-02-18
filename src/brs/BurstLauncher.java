@@ -24,11 +24,9 @@ public class BurstLauncher {
             canRunGui = false;
         }
 
-        if (canRunGui) {
-            if (GraphicsEnvironment.isHeadless()) {
-                logger.error("Cannot start GUI as running in headless environment");
-                canRunGui = false;
-            }
+        if (canRunGui && GraphicsEnvironment.isHeadless()) {
+            logger.error("Cannot start GUI as running in headless environment");
+            canRunGui = false;
         }
 
         if (canRunGui) {
@@ -44,7 +42,7 @@ public class BurstLauncher {
             try {
                 Class.forName("brs.BurstGUI")
                         .getDeclaredMethod("main", String[].class)
-                        .invoke(null, new Object[]{args});
+                        .invoke(null, (Object) args);
             } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                 logger.warn("Your build does not seem to include the BurstGUI extension or it cannot be run. Running as headless...");
                 Burst.main(args);

@@ -69,7 +69,6 @@ public final class Burst {
   private static DBCacheManagerImpl dbCacheManager;
 
   private static API api;
-  private static BrsService apiV2;
   private static Server apiV2Server;
 
   private static PropertyService loadProperties() {
@@ -231,7 +230,7 @@ public final class Burst {
           subscriptionService, atService, timeService, economicClustering, propertyService, threadPool,
           transactionService, blockService, generator, apiTransactionManager, feeSuggestionCalculator, deepLinkQRCodeGenerator);
 
-      apiV2 = new BrsService(blockchainProcessor, blockchain, blockService, accountService, generator, transactionProcessor);
+      BrsService apiV2 = new BrsService(blockchainProcessor, blockchain, blockService, accountService, generator, transactionProcessor);
 
       apiV2Server = ServerBuilder.forPort(propertyService.getBoolean(Props.DEV_TESTNET) ? propertyService.getInt(Props.DEV_API_V2_PORT) : propertyService.getInt(Props.API_V2_PORT)).addService(apiV2).build().start();
 

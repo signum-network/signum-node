@@ -4,6 +4,8 @@ import brs.Account;
 import brs.Blockchain;
 import brs.Generator;
 import brs.crypto.Crypto;
+import brs.grpc.handlers.SubmitNonceHandler;
+import brs.grpc.proto.ApiException;
 import brs.services.AccountService;
 import brs.util.Convert;
 import com.google.gson.JsonElement;
@@ -62,33 +64,10 @@ final class SubmitNonce extends APIServlet.APIRequestHandler {
     byte[] secretPublicKey = Crypto.getPublicKey(secret);
     Account secretAccount = accountService.getAccount(secretPublicKey);
     if(secretAccount != null) {
-      Account genAccount;
-      if(accountId != null) {
-        genAccount = accountService.getAccount(Convert.parseAccountId(accountId));
-      }
-      else {
-        genAccount = secretAccount;
-      }
-
-      if(genAccount != null) {
-        Account.RewardRecipientAssignment assignment = accountService.getRewardRecipientAssignment(genAccount);
-        long rewardId;
-        if(assignment == null) {
-          rewardId = genAccount.getId();
-        }
-        else if(assignment.getFromHeight() > blockchain.getLastBlock().getHeight() + 1) {
-          rewardId = assignment.getPrevRecipientId();
-        }
-        else {
-          rewardId = assignment.getRecipientId();
-        }
-        if(rewardId != secretAccount.getId()) {
-          response.addProperty("result", "Passphrase does not match reward recipient");
-          return response;
-        }
-      }
-      else {
-        response.addProperty("result", "Passphrase is for a different account");
+      try {
+        SubmitNonceHandler.verifySecretAccount(accountService, blockchain, secretAccount, Convert.parseUnsignedLong(accountId));
+      } catch (ApiException e) {
+        response.addProperty("result", e.getMessage());
         return response;
       }
     }

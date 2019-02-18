@@ -9,7 +9,11 @@ import com.google.protobuf.ByteString;
 
 import java.util.stream.Collectors;
 
-public class ProtoBuilder {
+public final class ProtoBuilder {
+
+    private ProtoBuilder() {
+    }
+
     public static BrsApi.Account buildAccount(Account account, AccountService accountService) {
         BrsApi.Account.Builder builder = BrsApi.Account.newBuilder()
                 .setId(account.getId())

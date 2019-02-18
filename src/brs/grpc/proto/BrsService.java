@@ -20,15 +20,15 @@ public class BrsService extends BrsApiServiceGrpc.BrsApiServiceImplBase {
     private final Map<Class<? extends GrpcApiHandler<?,?>>, GrpcApiHandler<?,?>> handlers;
 
     public BrsService(BlockchainProcessor blockchainProcessor, Blockchain blockchain, BlockService blockService, AccountService accountService, Generator generator, TransactionProcessor transactionProcessor) {
-        Map<Class<? extends GrpcApiHandler<?,?>>, GrpcApiHandler<?,?>> handlers = new HashMap<>();
-        handlers.put(GetMiningInfoHandler.class, new GetMiningInfoHandler(blockchainProcessor));
-        handlers.put(SubmitNonceHandler.class, new SubmitNonceHandler(blockchain, accountService, generator));
-        handlers.put(GetBlockHandler.class, new GetBlockHandler(blockchain, blockService));
-        handlers.put(GetAccountHandler.class, new GetAccountHandler(accountService));
-        handlers.put(GetAccountsHandler.class, new GetAccountsHandler(accountService));
-        handlers.put(GetTransactionHandler.class, new GetTransactionHandler(blockchain, transactionProcessor));
-        handlers.put(GetTransactionBytesHandler.class, new GetTransactionBytesHandler(blockchain, transactionProcessor));
-        this.handlers = Collections.unmodifiableMap(handlers);
+        Map<Class<? extends GrpcApiHandler<?,?>>, GrpcApiHandler<?,?>> handlerMap = new HashMap<>();
+        handlerMap.put(GetMiningInfoHandler.class, new GetMiningInfoHandler(blockchainProcessor));
+        handlerMap.put(SubmitNonceHandler.class, new SubmitNonceHandler(blockchain, accountService, generator));
+        handlerMap.put(GetBlockHandler.class, new GetBlockHandler(blockchain, blockService));
+        handlerMap.put(GetAccountHandler.class, new GetAccountHandler(accountService));
+        handlerMap.put(GetAccountsHandler.class, new GetAccountsHandler(accountService));
+        handlerMap.put(GetTransactionHandler.class, new GetTransactionHandler(blockchain, transactionProcessor));
+        handlerMap.put(GetTransactionBytesHandler.class, new GetTransactionBytesHandler(blockchain, transactionProcessor));
+        this.handlers = Collections.unmodifiableMap(handlerMap);
     }
 
     private <T extends GrpcApiHandler<?,?>> T getHandler(Class<T> handlerClass) throws HandlerNotFoundException {

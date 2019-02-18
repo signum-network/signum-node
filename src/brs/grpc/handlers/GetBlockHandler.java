@@ -25,26 +25,23 @@ public class GetBlockHandler implements GrpcApiHandler<BrsApi.GetBlockRequest, B
         int timestamp = request.getTimestamp();
 
         Block block;
-        if (blockId != 0) {
+        if (blockId > 0) {
             try {
                 block = blockchain.getBlock(blockId);
             } catch (RuntimeException e) {
                 throw new ApiException("Incorrect Block ID");
             }
-        } else if (blockHeight != 0) {
+        } else if (blockHeight > 0) {
             try {
-                if (blockHeight < 0 || blockHeight > blockchain.getHeight()) {
+                if (blockHeight > blockchain.getHeight()) {
                     throw new ApiException("Incorrect Block Height");
                 }
                 block = blockchain.getBlockAtHeight(blockHeight);
             } catch (RuntimeException e) {
                 throw new ApiException("Incorrect Block Height");
             }
-        } else if (timestamp != 0) {
+        } else if (timestamp > 0) {
             try {
-                if (timestamp < 0) {
-                    throw new ApiException("Incorrect Timestamp");
-                }
                 block = blockchain.getLastBlock(timestamp);
             } catch (RuntimeException e) {
                 throw new ApiException("Incorrect Timestamp");

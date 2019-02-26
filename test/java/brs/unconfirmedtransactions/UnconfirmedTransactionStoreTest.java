@@ -18,7 +18,6 @@ import brs.props.Props;
 import brs.services.TimeService;
 import brs.services.impl.TimeServiceImpl;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.runner.RunWith;
@@ -37,7 +36,6 @@ import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
-@Ignore // TODO Fix this test!
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Burst.class)
 public class UnconfirmedTransactionStoreTest {
@@ -60,6 +58,7 @@ public class UnconfirmedTransactionStoreTest {
     when(Burst.getPropertyService()).thenReturn(mockPropertyService);
     when(mockPropertyService.getInt(eq(Props.P2P_MAX_UNCONFIRMED_TRANSACTIONS))).thenReturn(8192);
     when(mockPropertyService.getInt(eq(Props.P2P_MAX_PERCENTAGE_UNCONFIRMED_TRANSACTIONS_FULL_HASH_REFERENCE))).thenReturn(5);
+    when(mockPropertyService.getInt(eq(Props.P2P_MAX_UNCONFIRMED_TRANSACTIONS_RAW_SIZE_BYTES_TO_SEND))).thenReturn(175000);
 
     mockBlockChain = mock(BlockchainImpl.class);
     when(Burst.getBlockchain()).thenReturn(mockBlockChain);

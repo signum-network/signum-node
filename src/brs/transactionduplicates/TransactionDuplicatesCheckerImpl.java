@@ -68,7 +68,7 @@ public class TransactionDuplicatesCheckerImpl {
 
     if (!transactionDuplicateKey.equals(TransactionDuplicationKey.IS_ALWAYS_DUPLICATE) && !transactionDuplicateKey.equals(TransactionDuplicationKey.IS_NEVER_DUPLICATE)) {
       if (duplicates.containsKey(transactionDuplicateKey.transactionType)) {
-        if(duplicates.get(transactionDuplicateKey.transactionType).get(transactionDuplicateKey.key) == transaction) {
+        if(Objects.equals(duplicates.get(transactionDuplicateKey.transactionType).get(transactionDuplicateKey.key), transaction)) {
           duplicates.get(transactionDuplicateKey.transactionType).remove(transactionDuplicateKey.key);
         }
       }

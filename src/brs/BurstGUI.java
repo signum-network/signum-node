@@ -1,6 +1,5 @@
 package brs;
 
-import brs.http.API;
 import brs.props.PropertyService;
 import brs.props.Props;
 import javafx.application.Application;
@@ -27,6 +26,8 @@ public class BurstGUI extends Application {
     private static final String failedToStartMessage = "BurstGUI caught exception starting BRS";
     private static final String unexpectedExitMessage = "BRS Quit unexpectedly! Exit code ";
 
+    private static final int OUTPUT_MAX_LINES = 500;
+
     private static String[] args;
     private static boolean userClosed = false;
     private static final Logger LOGGER = LoggerFactory.getLogger(BurstGUI.class);
@@ -43,7 +44,17 @@ public class BurstGUI extends Application {
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Burst Reference Software version " + Burst.VERSION);
-        TextArea textArea = new TextArea();
+        TextArea textArea = new TextArea() {
+            @Override
+            public void replaceText(int start, int end, String text) {
+                super.replaceText(start, end, text);
+                while(getText().split("\n", -1).length > OUTPUT_MAX_LINES) {
+                    int fle = getText().indexOf("\n");
+                    super.replaceText(0, fle+1, "");
+                }
+                positionCaret(getText().length());
+            }
+        };
         textArea.setEditable(false);
         sendJavaOutputToTextArea(textArea);
         primaryStage.setScene(new Scene(textArea, 800, 450));
@@ -176,6 +187,8 @@ public class BurstGUI extends Application {
         private final TextArea textArea;
         private final PrintStream actualOutput;
 
+        private StringBuilder lineBuilder = new StringBuilder();
+
         private TextAreaOutputStream(TextArea textArea, PrintStream actualOutput) {
             this.textArea = textArea;
             this.actualOutput = actualOutput;
@@ -192,9 +205,14 @@ public class BurstGUI extends Application {
         }
 
         private void writeString(String string) {
-            actualOutput.print(string);
-            if (textArea != null) {
-                Platform.runLater(() -> textArea.appendText(string));
+            lineBuilder.append(string);
+            String line = lineBuilder.toString();
+            if (line.contains("\n")) {
+                actualOutput.print(line);
+                if (textArea != null) {
+                    Platform.runLater(() -> textArea.appendText(line));
+                }
+                lineBuilder.delete(0, lineBuilder.length());
             }
         }
     }

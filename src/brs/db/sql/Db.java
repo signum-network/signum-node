@@ -66,7 +66,9 @@ public final class Db {
 
       config.setMaximumPoolSize(propertyService.getInt(Props.DB_CONNECTIONS));
 
-      FluentConfiguration flywayBuilder = Flyway.configure().dataSource(dbUrl, dbUsername, dbPassword);
+      FluentConfiguration flywayBuilder = Flyway.configure()
+              .dataSource(dbUrl, dbUsername, dbPassword)
+              .baselineOnMigrate(true);
       boolean runFlyway = false;
 
       switch (dialect) {

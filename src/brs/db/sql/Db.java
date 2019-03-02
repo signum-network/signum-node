@@ -2,17 +2,18 @@ package brs.db.sql;
 
 import brs.Burst;
 import brs.db.cache.DBCacheManagerImpl;
-import brs.db.h2.H2Dbs;
-import brs.db.mariadb.MariadbDbs;
 import brs.db.store.Dbs;
 import brs.props.PropertyService;
 import brs.props.Props;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.configuration.FluentConfiguration;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.conf.Settings;
 import org.jooq.impl.DSL;
+import org.jooq.tools.jdbc.JDBCUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +53,7 @@ public final class Db {
       dbUsername = propertyService.getString(Props.DB_USERNAME);
       dbPassword = propertyService.getString(Props.DB_PASSWORD);
     }
-    dialect = org.jooq.tools.jdbc.JDBCUtils.dialect(dbUrl);
+    dialect = JDBCUtils.dialect(dbUrl);
 
     logger.debug("Database jdbc url set to: " + dbUrl);
     try {
@@ -65,9 +66,14 @@ public final class Db {
 
       config.setMaximumPoolSize(propertyService.getInt(Props.DB_CONNECTIONS));
 
+      FluentConfiguration flywayBuilder = Flyway.configure().dataSource(dbUrl, dbUsername, dbPassword);
+      boolean runFlyway = false;
+
       switch (dialect) {
         case MYSQL:
         case MARIADB:
+          flywayBuilder.locations("classpath:/db/migration_mariadb");
+          runFlyway = true;
           config.setAutoCommit(true);
           config.addDataSourceProperty("cachePrepStmts", "true");
           config.addDataSourceProperty("prepStmtCacheSize", "250");
@@ -80,6 +86,8 @@ public final class Db {
           break;
         case H2:
           Class.forName("org.h2.Driver");
+          flywayBuilder.locations("classpath:/db/migration_h2");
+          runFlyway = true;
           config.setAutoCommit(true);
           config.addDataSourceProperty("cachePrepStmts", "true");
           config.addDataSourceProperty("prepStmtCacheSize", "250");
@@ -101,6 +109,12 @@ public final class Db {
         }
       }
 
+      if (runFlyway) {
+        logger.info("Running flyway migration");
+        Flyway flyway = flywayBuilder.load();
+        flyway.repair();
+        flyway.migrate();
+      }
     } catch (Exception e) {
       throw new RuntimeException(e.toString(), e);
     }
@@ -110,18 +124,8 @@ public final class Db {
   } // never
 
   public static Dbs getDbsByDatabaseType() {
-    switch (dialect) {
-      case MYSQL:
-      case MARIADB:
-        logger.info("Using mariadb Backend");
-        return new MariadbDbs();
-      case H2:
-        logger.info("Using h2 Backend");
-        return new H2Dbs();
-      default:
-        logger.info("Using generic Backend with Dialect " + dialect.getName());
-        return new SqlDbs();
-    }
+    logger.info("Using SQL Backend with Dialect " + dialect.getName());
+    return new SqlDbs();
   }
 
 

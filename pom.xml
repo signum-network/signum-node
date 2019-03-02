@@ -42,6 +42,7 @@
     <ehcache.version>3.5.0</ehcache.version>
     <apachehttpclient.version>4.5.2</apachehttpclient.version>
     <xzing.version>3.3.0</xzing.version>
+    <flywaydb.version>5.2.4</flywaydb.version>
 
     <junit-jupiter.version>5.2.0</junit-jupiter.version>
     <junit-platform.version>1.2.0</junit-platform.version>
@@ -305,6 +306,11 @@
       <groupId>io.grpc</groupId>
       <artifactId>grpc-stub</artifactId>
       <version>1.18.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-core</artifactId>
+      <version>${flywaydb.version}</version>
     </dependency>
   </dependencies>
 

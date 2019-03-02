@@ -12,13 +12,13 @@ import brs.util.ThreadPool;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.eclipse.jetty.servlets.DoSFilter;
-import org.eclipse.jetty.servlets.GzipFilter;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,14 +127,6 @@ public final class API {
                                                                          subscriptionService, atService, timeService, economicClustering, transactionService, blockService, generator, propertyService,
                                                                          apiTransactionManager, feeSuggestionCalculator, deepLinkQRCodeGenerator));
       apiHandler.addServlet(peerServletHolder, "/burst");
-
-      if (propertyService.getBoolean(Props.JETTY_API_GZIP_FILTER)) {
-        FilterHolder gzipFilterHolder = apiHandler.addFilter(GzipFilter.class, "/burst", null);
-        gzipFilterHolder.setInitParameter("methods",     propertyService.getString(Props.JETTY_API_GZIP_FILTER_METHODS));
-        gzipFilterHolder.setInitParameter("bufferSize",  propertyService.getString(Props.JETTY_API_GZIP_FILTER_BUFFER_SIZE));
-        gzipFilterHolder.setInitParameter("minGzipSize", propertyService.getString(Props.JETTY_API_GZIP_FILTER_MIN_GZIP_SIZE));
-        gzipFilterHolder.setAsyncSupported(true);
-      }
       
       if (propertyService.getBoolean(Props.JETTY_API_DOS_FILTER)) {
         FilterHolder dosFilterHolder = apiHandler.addFilter(DoSFilter.class, "/burst", null);
@@ -161,7 +153,17 @@ public final class API {
         filterHolder.setAsyncSupported(true);
       }
 
-      apiHandlers.addHandler(apiHandler);
+      if (propertyService.getBoolean(Props.JETTY_API_GZIP_FILTER)) {
+        GzipHandler gzipHandler = new GzipHandler();
+        gzipHandler.setIncludedPaths("/burst");
+        gzipHandler.setIncludedMethodList(propertyService.getString(Props.JETTY_API_GZIP_FILTER_METHODS));
+        gzipHandler.setInflateBufferSize(propertyService.getInt(Props.JETTY_API_GZIP_FILTER_BUFFER_SIZE));
+        gzipHandler.setMinGzipSize(propertyService.getInt(Props.JETTY_API_GZIP_FILTER_MIN_GZIP_SIZE));
+        gzipHandler.setHandler(apiHandler);
+        apiHandlers.addHandler(gzipHandler);
+      } else {
+        apiHandlers.addHandler(apiHandler);
+      }
       apiHandlers.addHandler(new DefaultHandler());
 
       apiServer.setHandler(apiHandlers);

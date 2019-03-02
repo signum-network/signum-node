@@ -130,8 +130,8 @@ public class Props {
 
   public static final Prop<Boolean> JETTY_API_GZIP_FILTER = new Prop<>("JETTY.API.GzipFilter", true);
   public static final Prop<String> JETTY_API_GZIP_FILTER_METHODS = new Prop<>("JETTY.API.GZIPFilter.methods", "GET, POST");
-  public static final Prop<String> JETTY_API_GZIP_FILTER_BUFFER_SIZE = new Prop<>("JETTY.API.GZIPFilter.bufferSize", "8192");
-  public static final Prop<String> JETTY_API_GZIP_FILTER_MIN_GZIP_SIZE = new Prop<>("JETTY.API.GZIPFilter.minGzipSize", "0");
+  public static final Prop<Integer> JETTY_API_GZIP_FILTER_BUFFER_SIZE = new Prop<>("JETTY.API.GZIPFilter.bufferSize", 8192);
+  public static final Prop<Integer> JETTY_API_GZIP_FILTER_MIN_GZIP_SIZE = new Prop<>("JETTY.API.GZIPFilter.minGzipSize", 0);
 
   public static final Prop<Boolean> JETTY_API_DOS_FILTER = new Prop<>("JETTY.API.DoSFilter", true);
   public static final Prop<String> JETTY_API_DOS_FILTER_MAX_REQUEST_PER_SEC = new Prop<>("JETTY.API.DoSFilter.maxRequestsPerSec", "30");

@@ -45,8 +45,6 @@ public final class APIServlet extends HttpServlet {
     map.put("calculateFullHash", new CalculateFullHash());
     map.put("cancelAskOrder", new CancelAskOrder(parameterService, blockchain, assetExchange, apiTransactionManager));
     map.put("cancelBidOrder", new CancelBidOrder(parameterService, blockchain, assetExchange, apiTransactionManager));
-    //map.put("castVote", CastVote.instance);
-    //map.put("createPoll", CreatePoll.instance);
     map.put("decryptFrom", new DecryptFrom(parameterService));
     map.put("dgsListing", new DGSListing(parameterService, blockchain, apiTransactionManager));
     map.put("dgsDelisting", new DGSDelisting(parameterService, blockchain, apiTransactionManager));
@@ -56,7 +54,6 @@ public final class APIServlet extends HttpServlet {
     map.put("dgsPurchase", new DGSPurchase(parameterService, blockchain, accountService, timeService, apiTransactionManager));
     map.put("dgsQuantityChange", new DGSQuantityChange(parameterService, blockchain, apiTransactionManager));
     map.put("dgsRefund", new DGSRefund(parameterService, blockchain, accountService, apiTransactionManager));
-    //map.put("decodeToken", new DecodeToken());
     map.put("encryptTo", new EncryptTo(parameterService, accountService));
     map.put("generateToken", new GenerateToken(timeService));
     map.put("getAccount", new GetAccount(parameterService, accountService));
@@ -92,12 +89,9 @@ public final class APIServlet extends HttpServlet {
     map.put("getGuaranteedBalance", new GetGuaranteedBalance(parameterService));
     map.put("getECBlock", new GetECBlock(blockchain, timeService, economicClustering));
     map.put("getMyInfo", GetMyInfo.instance);
-    //map.put("getNextBlockGenerators", GetNextBlockGenerators.instance);
     map.put("getPeer", GetPeer.instance);
     map.put("getMyPeerInfo", new GetMyPeerInfo(blockchainProcessor, transactionProcessor));
     map.put("getPeers", GetPeers.instance);
-    //map.put("getPoll", GetPoll.instance);
-    //map.put("getPollIds", GetPollIds.instance);
     map.put("getState", new GetState(blockchain, assetExchange, accountService, escrowService, aliasService, timeService, generator));
     map.put("getTime", new GetTime(timeService));
     map.put("getTrades", new GetTrades(parameterService, assetExchange));
@@ -121,7 +115,6 @@ public final class APIServlet extends HttpServlet {
     map.put("getBidOrders", new GetBidOrders(parameterService, assetExchange));
     map.put("suggestFee", new SuggestFee(feeSuggestionCalculator));
     map.put("issueAsset", new IssueAsset(parameterService, blockchain, apiTransactionManager));
-    // map.put("leaseBalance", new LeaseBalance(parameterService, blockchain, accountService, apiTransactionManager));
     map.put("longConvert", LongConvert.instance);
     map.put("parseTransaction", new ParseTransaction(parameterService, transactionService));
     map.put("placeAskOrder", new PlaceAskOrder(parameterService, blockchain, apiTransactionManager, accountService));
@@ -135,9 +128,6 @@ public final class APIServlet extends HttpServlet {
     map.put("setAccountInfo", new SetAccountInfo(parameterService, blockchain, apiTransactionManager));
     map.put("setAlias", new SetAlias(parameterService, blockchain, aliasService, apiTransactionManager));
     map.put("signTransaction", new SignTransaction(parameterService, transactionService));
-    //map.put("startForging", StartForging.instance);
-    //map.put("stopForging", StopForging.instance);
-    //map.put("getForging", GetForging.instance);
     map.put("transferAsset", new TransferAsset(parameterService, blockchain, apiTransactionManager, accountService));
     map.put("getMiningInfo", new GetMiningInfo(blockchain));
     map.put("submitNonce", new SubmitNonce(accountService, blockchain, generator));

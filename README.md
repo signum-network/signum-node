@@ -8,8 +8,8 @@
 The world's first HDD-mined cryptocurrency using an energy efficient
 and fair Proof-of-Capacity (PoC) consensus algorithm.
 
-This wallet version is developed and maintained by the PoC consortium
-(PoCC) and supports a multitude of database backends. The two builtin
+This wallet version is developed and maintained by the Burst Apps Team
+(BAT) and supports a multitude of database backends. The two builtin
 backends are:
 - MariaDB (recommended)
 - H2 (embedded, easier install)
@@ -120,7 +120,7 @@ version: '3'
 
 services:
   burstcoin:
-    image: pocconsortium/burstcoin:2-mariadb
+    image: burstappsteam/burstcoin:2-mariadb
     restart: always
     depends_on:
      - mariadb
@@ -141,19 +141,19 @@ services:
 ##### H2
 
 ```
-docker run -p 8123:8123 -p 8125:8125 -v "$(pwd)"/burst_db:/db -d pocconsortium/burstcoin:2-h2
+docker run -p 8123:8123 -p 8125:8125 -v "$(pwd)"/burst_db:/db -d burstappsteam/burstcoin:2-h2
 ```
 
 ## Upgrading
 
-Ensure the PoC-Consortium github is in your list of remotes: 
+Ensure the `burst-apps-team` github is in your list of remotes: 
 ```
 git remote -v
 ```
 
 If it's not, add it: 
 ```
-git remote add pocc https://github.com/PoC-Consortium/burstcoin.git
+git remote add burst-apps-team https://github.com/burst-apps-team/burstcoin.git
 ```
 
 Replacing `X.X.X` with the latest tag, run these commands:

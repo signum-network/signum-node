@@ -8,12 +8,12 @@
   <artifactId>burstcoin</artifactId>
   <version>2.3.0</version>
   <name>Burstcoin Reference Software</name>
-  <url>https://github.com/PoC-Consortium/burstcoin</url>
+  <url>https://github.com/burst-apps-team/burstcoin</url>
 
   <scm>
-    <connection>scm:git:git@github.com:PoC-Consortium/burstcoin.git</connection>
-    <developerConnection>scm:git:git@github.com:PoC-Consortium/burstcoin.git</developerConnection>
-    <url>https://github.com/PoC-Consortium/burstcoin</url>
+    <connection>scm:git:git@github.com:burst-apps-team/burstcoin.git</connection>
+    <developerConnection>scm:git:git@github.com:burst-apps-team/burstcoin.git</developerConnection>
+    <url>https://github.com/burst-apps-team/burstcoin</url>
   </scm>
 
   <packaging>jar</packaging>

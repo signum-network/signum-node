@@ -240,6 +240,8 @@ var BRS = (function(BRS, $, undefined) {
                         BRS.checkBlockHeight();
                     }
 
+                    BRS.getAccountInfo(true, null);
+
                     BRS.unlock();
 
                     if (BRS.isOutdated) {

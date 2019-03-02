@@ -126,7 +126,7 @@ public final class Db {
   } // never
 
   public static Dbs getDbsByDatabaseType() {
-    logger.info("Using SQL Backend with Dialect " + dialect.getName());
+    logger.info("Using SQL Backend with Dialect {}", dialect.getName());
     return new SqlDbs();
   }
 

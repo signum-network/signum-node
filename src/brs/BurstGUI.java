@@ -49,7 +49,7 @@ public class BurstGUI extends Application {
             public void replaceText(int start, int end, String text) {
                 super.replaceText(start, end, text);
                 while(getText().split("\n", -1).length > OUTPUT_MAX_LINES) {
-                    int fle = getText().indexOf("\n");
+                    int fle = getText().indexOf('\n');
                     super.replaceText(0, fle+1, "");
                 }
                 positionCaret(getText().length());
@@ -174,7 +174,7 @@ public class BurstGUI extends Application {
 
     private static void showMessage(String message) {
         Platform.runLater(() -> {
-            System.out.println("Showing message: " + message);
+            System.err.println("Showing message: " + message);
             Dialog dialog = new Alert(Alert.AlertType.ERROR, message, ButtonType.OK);
             dialog.setGraphic(null);
             dialog.setHeaderText(null);

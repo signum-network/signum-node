@@ -96,12 +96,7 @@ var BRS = (function(BRS, $, undefined) {
             BRS.getSettings();
         });
 
-        BRS.getState(function() {
-            setTimeout(function() {
-                BRS.checkAliasVersions();
-            }, 5000);
-        });
-
+        BRS.getState(null);
         BRS.showLockscreen();
 
         if ( BRS.getCookie("remember_passphrase") ) {
@@ -150,10 +145,6 @@ var BRS = (function(BRS, $, undefined) {
         }
 
         BRS.setStateInterval(30);
-
-        if (!BRS.isTestNet) {
-            setInterval(BRS.checkAliasVersions, 1000 * 60 * 60);
-        }
 
         BRS.allowLoginViaEnter();
 

@@ -166,7 +166,6 @@ var BRS = (function(BRS, $, undefined) {
                         y: 60
                         }
                     });
-                    BRS.checkAliasVersions();
                     BRS.checkIfOnAFork();
                 }
                 else {

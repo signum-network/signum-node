@@ -49,7 +49,7 @@ var BRS = (function(BRS, $, undefined) {
 
                                 var versionToCompare = (!BRS.isTestNet ? BRS.normalVersion.versionNr : BRS.state.version);
 
-                                if (BRS.versionCompare(peer.version, versionToCompare) >= 0) {
+                                if (BRS.versionCompare(peer.version, versionToCompare)) {
                                     upToDate++;
                                 }
 
@@ -62,7 +62,7 @@ var BRS = (function(BRS, $, undefined) {
                                     + "</td><td>"
                                     + BRS.formatVolume(peer.uploadedVolume)
                                     + "</td><td><span class='label label-"
-                                    + (BRS.versionCompare(peer.version, versionToCompare) >= 0 ? "success" : "danger")
+                                    + (BRS.versionCompare(peer.version, versionToCompare) ? "success" : "danger")
                                     + "'>"
                                     + (peer.application && peer.version ? String(peer.application).escapeHTML() + " " + String(peer.version).escapeHTML() : "?")
                                     + "</label></td><td>"

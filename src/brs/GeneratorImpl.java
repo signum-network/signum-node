@@ -101,7 +101,7 @@ public class GeneratorImpl implements Generator {
     GeneratorStateImpl curGen = generators.get(id);
     if (curGen == null || generator.getBlock() > curGen.getBlock() || generator.getDeadline().compareTo(curGen.getDeadline()) < 0) {
       generators.put(id, generator);
-      listeners.notify(generator, Event.START_FORGING);
+      listeners.notify(generator, Event.NONCE_SUBMITTED);
       logger.debug("Account " + Convert.toUnsignedLong(id) + " started mining, deadline " + generator.getDeadline() + " seconds");
     } else {
       logger.debug("Account " + Convert.toUnsignedLong(id) + " already has better nonce");

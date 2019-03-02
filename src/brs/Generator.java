@@ -9,7 +9,7 @@ import java.util.Collection;
 public interface Generator {
 
   enum Event {
-    GENERATION_DEADLINE, START_FORGING, STOP_FORGING
+    GENERATION_DEADLINE, NONCE_SUBMITTED
   }
 
   void generateForBlockchainProcessor(ThreadPool threadPool, BlockchainProcessor blockchainProcessor);

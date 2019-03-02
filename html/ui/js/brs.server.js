@@ -234,7 +234,7 @@ var BRS = (function(BRS, $, undefined) {
             }
         }
 
-        if (!BRS.isLocalHost && type == "POST" && requestType != "startForging" && requestType != "stopForging") {
+        if (!BRS.isLocalHost && type == "POST") {
             if (BRS.rememberPassword) {
                 secretPhrase = _password;
             } else {

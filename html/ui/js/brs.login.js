@@ -240,42 +240,6 @@ var BRS = (function(BRS, $, undefined) {
                         BRS.checkBlockHeight();
                     }
 
-                    BRS.getAccountInfo(true, function() {
-                        if (BRS.accountInfo.currentLeasingHeightFrom) {
-                            BRS.isLeased = (BRS.lastBlockHeight >= BRS.accountInfo.currentLeasingHeightFrom && BRS.lastBlockHeight <= BRS.accountInfo.currentLeasingHeightTo);
-                        }
-                        else {
-                            BRS.isLeased = false;
-                        }
-
-                        //forging requires password to be sent to the server, so we don't do it automatically if not localhost
-                        if (!BRS.accountInfo.publicKey || BRS.accountInfo.effectiveBalanceBURST === 0 || !BRS.isLocalHost || BRS.downloadingBlockchain || BRS.isLeased) {
-                            $("#forging_indicator").removeClass("forging");
-                            $("#forging_indicator span").html($.t("not_forging")).attr("data-i18n", "not_forging");
-                            $("#forging_indicator").show();
-                            BRS.isForging = false;
-                        }
-                        else if (BRS.isLocalHost) {
-                            BRS.sendRequest("startForging", {
-                                "secretPhrase": password
-                            }, function(response) {
-                                if ("deadline" in response) {
-                                    $("#forging_indicator").addClass("forging");
-                                    $("#forging_indicator span").html($.t("forging")).attr("data-i18n", "forging");
-                                    BRS.isForging = true;
-                                }
-                                else {
-                                    $("#forging_indicator").removeClass("forging");
-                                    $("#forging_indicator span").html($.t("not_forging")).attr("data-i18n", "not_forging");
-                                    BRS.isForging = false;
-                                }
-                                $("#forging_indicator").show();
-                            });
-                        }
-                    });
-
-                    //BRS.getAccountAliases();
-
                     BRS.unlock();
 
                     if (BRS.isOutdated) {
@@ -347,9 +311,7 @@ var BRS = (function(BRS, $, undefined) {
     };
 
     $("#logout_button_container").on("show.bs.dropdown", function(e) {
-        if (!BRS.isForging) {
-            e.preventDefault();
-        }
+        e.preventDefault();
     });
 
     BRS.showLockscreen = function() {
@@ -382,22 +344,14 @@ var BRS = (function(BRS, $, undefined) {
     };
 
     $("#logout_button").click(function(e) {
-        if (!BRS.isForging) {
-            e.preventDefault();
-            BRS.logout();
-        }
+        e.preventDefault();
+        BRS.logout();
     });
 
-    BRS.logout = function(stopForging) {
-        if (stopForging && BRS.isForging) {
-            $("#stop_forging_modal .show_logout").show();
-            $("#stop_forging_modal").modal("show");
-        }
-        else {
-            BRS.setDecryptionPassword("");
-            BRS.setPassword("");
-            window.location.reload();
-        }
+    BRS.logout = function() {
+        BRS.setDecryptionPassword("");
+        BRS.setPassword("");
+        window.location.reload();
     };
 
     BRS.setPassword = function(password) {

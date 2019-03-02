@@ -4,7 +4,6 @@
 var BRS = (function(BRS, $, undefined) {
     BRS.defaultSettings = {
 	"submit_on_enter": 0,
-	"animate_forging": 1,
 	"news": -1,
 	"console_log": 0,
 	"fee_warning": "100000000000",
@@ -109,15 +108,6 @@ var BRS = (function(BRS, $, undefined) {
 	    }
             else {
 		$(".modal form").off("submit.onEnter");
-	    }
-	}
-
-	if (!key || key == "animate_forging") {
-	    if (BRS.settings.animate_forging) {
-		$("#forging_indicator").addClass("animated");
-	    }
-            else {
-		$("#forging_indicator").removeClass("animated");
 	    }
 	}
 

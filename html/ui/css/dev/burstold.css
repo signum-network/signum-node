@@ -14,24 +14,6 @@ text-overflow:ellipsis;
 white-space:nowrap
 }
 
-#forging_indicator {
-font-size:14px
-}
-
-#forging_indicator i {
-color:#a94442
-}
-
-#forging_indicator.forging i {
-color:#3c763d
-}
-
-#forging_indicator.forging.animated i {
-animation-duration:2s;
-animation-iteration-count:infinite;
-animation-name:pulse
-}
-
 #message_text {
 height:65%;
 outline:none;

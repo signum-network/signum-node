@@ -26,7 +26,7 @@ var BRS = (function(BRS, $, undefined) {
 
     function getSuccessMessage(requestType) {
         var ignore = ["asset_exchange_change_group_name", "asset_exchange_group", "add_contact", "update_contact", "delete_contact",
-            "send_message", "decrypt_messages", "start_forging", "stop_forging", "generate_token", "send_money", "set_alias", "add_asset_bookmark", "sell_alias"
+            "send_message", "decrypt_messages", "generate_token", "send_money", "set_alias", "add_asset_bookmark", "sell_alias"
         ];
 
         if (ignore.indexOf(requestType) !== -1) {
@@ -43,7 +43,7 @@ var BRS = (function(BRS, $, undefined) {
     }
 
     function getErrorMessage(requestType) {
-        var ignore = ["start_forging", "stop_forging", "generate_token", "validate_token"];
+        var ignore = ["generate_token", "validate_token"];
 
         if (ignore.indexOf(requestType) !== -1) {
             return "";

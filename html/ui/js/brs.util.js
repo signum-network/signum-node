@@ -1391,13 +1391,7 @@ var BRS = (function(BRS, $, undefined) {
                         "name": BRS.getTranslatedFieldName(match[1]).toLowerCase()
                     }).capitalize();
                 }
-
-                if (response.errorDescription === "Account is not forging") {
-                    return $.t("error_not_forging");
-                } else {
-                    return response.errorDescription;
-                }
-                break;
+                return response.errorDescription;
             case 6:
                 switch (response.errorDescription) {
                     case "Not enough assets":

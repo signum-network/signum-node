@@ -146,14 +146,6 @@ public final class JSONResponses {
     ERROR_INCORRECT_REQUEST = response;
   }
 
-  private static final JsonElement NOT_FORGING;
-  static {
-    JsonObject response = new JsonObject();
-    response.addProperty(ERROR_CODE_RESPONSE, 5);
-    response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Account is not forging");
-    NOT_FORGING = response;
-  }
-
   public static final JsonElement POST_REQUIRED;
   static {
     JsonObject response = new JsonObject();

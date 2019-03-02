@@ -231,7 +231,7 @@ public final class Burst {
 
       if (propertyService.getBoolean(Props.API_V2_SERVER)) {
           int port = propertyService.getBoolean(Props.DEV_TESTNET) ? propertyService.getInt(Props.DEV_API_V2_PORT) : propertyService.getInt(Props.API_V2_PORT);
-          logger.info("Starting V2 API Server on port %d", port);
+          logger.info("Starting V2 API Server on port " + port);
           BrsService apiV2 = new BrsService(blockchainProcessor, blockchain, blockService, accountService, generator, transactionProcessor);
           apiV2Server = ServerBuilder.forPort(port).addService(apiV2).build().start();
       } else {

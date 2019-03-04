@@ -37,7 +37,7 @@ class Version {
         this.minor = parseInt(tokens[1]);
         this.patch = parseInt(tokens[2]);
         if (tokens.length > 3) {
-            var prereleaseTagAndIteration = tokens[3].split(/(?<=[a-z])(?=[0-9])/);
+            var prereleaseTagAndIteration = tokens[3].split(/([a-z]+)([0-9]+)/).filter(function(s) { return s !== ""; });
             this.prereleaseTag = new PreleaseTag(prereleaseTagAndIteration[0]);
             this.prereleaseIteration = prereleaseTagAndIteration.length === 2 ? parseInt(prereleaseTagAndIteration[1]) : -1;
         } else {
@@ -68,7 +68,7 @@ class Version {
         if (this.minor !== version.minor) return false;
         if (this.patch !== version.patch) return false;
         if (this.prereleaseIteration !== version.prereleaseIteration) return false;
-        return this.prereleaseTag === version.prereleaseTag;
+        return this.prereleaseTag.priority === version.prereleaseTag.priority;
     };
 }
 

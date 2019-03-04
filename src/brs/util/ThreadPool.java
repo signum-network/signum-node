@@ -154,7 +154,7 @@ public final class ThreadPool {
       Thread thread = new Thread(() -> {
         try {
           runnable.run();
-        } catch (Throwable t) {
+        } catch (Exception t) {
           errors.append(t.getMessage()).append('\n');
           throw t;
         }

@@ -52,7 +52,7 @@ public class GeneratorImpl implements Generator {
         } catch (BlockchainProcessor.BlockNotAcceptedException e) {
           logger.debug("Error in block generation thread", e);
         }
-      } catch (Throwable t) {
+      } catch (Exception t) {
         logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
         System.exit(1);
       }

@@ -417,7 +417,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             } catch (Exception e) {
               logger.info("Error in blockchain download thread", e);
             } // end second try
-          } catch (Throwable t) {
+          } catch (Exception t) {
             logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
             System.exit(1);
           } // end first try
@@ -647,7 +647,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                     "found invalid pull/push data during importing the block");
             break;
           }
-        } catch (Throwable exception) {
+        } catch (Exception exception) {
           logger.error("Uncaught exception in blockImporterThread", exception);
         }
       }

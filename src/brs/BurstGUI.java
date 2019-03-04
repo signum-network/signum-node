@@ -223,6 +223,7 @@ public class BurstGUI extends Application {
         public void checkExit(int status) {
             if (!userClosed) {
                 LOGGER.error(unexpectedExitMessage + String.valueOf(status));
+                Platform.runLater(() -> stage.show());
                 showMessage(unexpectedExitMessage + String.valueOf(status));
                 onBrsStopped();
                 throw new SecurityException();

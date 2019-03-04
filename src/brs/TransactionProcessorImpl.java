@@ -127,7 +127,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
                   logger.debug("Error processing unconfirmed transactions", e);
               }
 
-          } catch (Throwable t) {
+          } catch (Exception t) {
               logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
               System.exit(1);
           }

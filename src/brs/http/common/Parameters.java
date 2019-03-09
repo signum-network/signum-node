@@ -1,7 +1,6 @@
 package brs.http.common;
 
-public class Parameters {
-
+public final class Parameters {
   public static final String ALIAS_PARAMETER = "alias";
   public static final String AMOUNT_NQT_PARAMETER = "amountNQT";
   public static final String ALIAS_NAME_PARAMETER = "aliasName";
@@ -45,13 +44,11 @@ public class Parameters {
   public static final String NAME_PARAMETER = "name";
   public static final String DESCRIPTION_PARAMETER = "description";
   public static final String FREQUENCY_PARAMETER = "frequency";
-
   public static final String AT_PARAMETER = "at";
   public static final String CREATION_BYTES_PARAMETER = "creationBytes";
   public static final String HEX_STRING_PARAMETER = "hexString";
   public static final String TRANSACTION_BYTES_PARAMETER = "transactionBytes";
   public static final String TRANSACTION_JSON_PARAMETER = "transactionJSON";
-
   public static final String CODE_PARAMETER = "code";
   public static final String DPAGES_PARAMETER = "dpages";
   public static final String CSPAGES_PARAMETER = "cspages";
@@ -75,12 +72,9 @@ public class Parameters {
   public static final String INCLUDE_TRANSACTIONS_PARAMETER = "includeTransactions";
   public static final String TYPE_PARAMETER = "type";
   public static final String SUBTYPE_PARAMETER = "subtype";
-
   public static final String UNSIGNED_TRANSACTION_BYTES_PARAMETER = "unsignedTransactionBytes";
   public static final String SIGNATURE_HASH_PARAMETER = "signatureHash";
-
   public static final String FULL_HASH_RESPONSE = "fullHash";
-
   public static final String TRANSACTION_PARAMETER = "transaction";
   public static final String FULL_HASH_PARAMETER = "fullHash";
   public static final String ACCOUNT_ID_PARAMETER = "accountId";
@@ -125,8 +119,8 @@ public class Parameters {
   public static final String RECEIVER_ID_PARAMETER = "receiverId";
   public static final String FEE_SUGGESTION_TYPE_PARAMETER = "feeSuggestionType";
   public static final String IMMUTABLE_PARAMETER = "immutable";
-
   public static final String FEE_SUGGESTION_RESPONSE = "feeSuggestion";
+  public static final String INCLUDE_INDIRECT_PARAMETER = "includeIndirect";
 
   public static boolean isFalse(String text) {
     return "false".equalsIgnoreCase(text);

@@ -44,8 +44,7 @@ public interface Blockchain {
 
   BurstIterator<Transaction> getAllTransactions();
 
-  BurstIterator<Transaction> getTransactions(Account account, byte type, byte subtype, int blockImplTimestamp);
+  BurstIterator<Transaction> getTransactions(Account account, byte type, byte subtype, int blockImplTimestamp, boolean includeIndirectIncoming);
 
-  BurstIterator<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype, int blockImplTimestamp, int from, int to);
-
+  BurstIterator<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype, int blockImplTimestamp, int from, int to, boolean includeIndirectIncoming);
 }

@@ -31,7 +31,7 @@ public interface BlockchainStore {
   BurstIterator<Transaction> getAllTransactions();
 
   BurstIterator<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
-                                                 int blockTimestamp, int from, int to);
+                                                 int blockTimestamp, int from, int to, boolean includeIndirectIncoming);
 
   BurstIterator<Transaction> getTransactions(DSLContext ctx, ResultSet rs);
 

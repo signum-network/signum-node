@@ -6,14 +6,14 @@ import brs.db.BlockDb;
 import brs.db.BurstIterator;
 import brs.db.store.BlockchainStore;
 import brs.schema.tables.records.BlockRecord;
+import brs.schema.tables.records.TransactionRecord;
 import org.jooq.*;
 
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
-import static brs.schema.Tables.BLOCK;
-import static brs.schema.Tables.TRANSACTION;
+import static brs.schema.Tables.*;
 
 public class SqlBlockchainStore implements BlockchainStore {
 
@@ -117,7 +117,7 @@ public class SqlBlockchainStore implements BlockchainStore {
 
   @Override
   public BurstIterator<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
-                                                        int blockTimestamp, int from, int to) {
+                                                        int blockTimestamp, int from, int to, boolean includeIndirectIncoming) {
     int height = numberOfConfirmations > 0 ? Burst.getBlockchain().getHeight() - numberOfConfirmations : Integer.MAX_VALUE;
     if (height < 0) {
       throw new IllegalArgumentException("Number of confirmations required " + numberOfConfirmations
@@ -137,16 +137,31 @@ public class SqlBlockchainStore implements BlockchainStore {
     if (height < Integer.MAX_VALUE) {
       conditions.add(TRANSACTION.HEIGHT.le(height));
     }
-    SelectQuery selectQuery = ctx.selectFrom(TRANSACTION).where(conditions).and(
-        TRANSACTION.RECIPIENT_ID.eq(account.getId()).and(
-          TRANSACTION.SENDER_ID.ne(account.getId())
-        )
-      ).unionAll(
-        ctx.selectFrom(TRANSACTION).where(conditions).and(
-          TRANSACTION.SENDER_ID.eq(account.getId())
-        )
-      )
-      .orderBy(TRANSACTION.BLOCK_TIMESTAMP.desc(), TRANSACTION.ID.desc()).getQuery();
+
+    SelectOrderByStep<TransactionRecord> select = ctx.selectFrom(TRANSACTION).where(conditions).and(
+            TRANSACTION.RECIPIENT_ID.eq(account.getId()).and(
+                    TRANSACTION.SENDER_ID.ne(account.getId())
+            )
+    ).unionAll(
+            ctx.selectFrom(TRANSACTION).where(conditions).and(
+                    TRANSACTION.SENDER_ID.eq(account.getId())
+            )
+    );
+
+    if (includeIndirectIncoming) {
+      select = select.unionAll(ctx.selectFrom(TRANSACTION)
+              .where(conditions)
+              .and(TRANSACTION.ID.in(ctx.select(INDIRECT_INCOMING.TRANSACTION_ID)
+                      .from(INDIRECT_INCOMING)
+                      .where(INDIRECT_INCOMING.ACCOUNT_ID.eq(account.getId()))
+                      .fetch(result -> result.get(INDIRECT_INCOMING.TRANSACTION_ID)))));
+
+    }
+
+    SelectQuery selectQuery = select
+            .orderBy(TRANSACTION.BLOCK_TIMESTAMP.desc(), TRANSACTION.ID.desc())
+            .getQuery();
+
     DbUtils.applyLimits(selectQuery, from, to);
 
     return getTransactions(

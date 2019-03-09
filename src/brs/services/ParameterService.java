@@ -36,4 +36,6 @@ public interface ParameterService {
   Transaction parseTransaction(String transactionBytes, String transactionJSON) throws ParameterException;
 
   AT getAT(HttpServletRequest req) throws ParameterException;
+
+  boolean getIncludeIndirect(HttpServletRequest req);
 }

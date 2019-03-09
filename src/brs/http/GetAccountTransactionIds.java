@@ -21,7 +21,7 @@ final class GetAccountTransactionIds extends APIServlet.APIRequestHandler {
 
   GetAccountTransactionIds(ParameterService parameterService, Blockchain blockchain) {
     super(new APITag[]{APITag.ACCOUNTS}, ACCOUNT_PARAMETER, TIMESTAMP_PARAMETER, TYPE_PARAMETER, SUBTYPE_PARAMETER, ACCOUNT_PARAMETER, TIMESTAMP_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER,
-        NUMBER_OF_CONFIRMATIONS_PARAMETER);
+        NUMBER_OF_CONFIRMATIONS_PARAMETER, INCLUDE_INDIRECT_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
   }
@@ -51,7 +51,7 @@ final class GetAccountTransactionIds extends APIServlet.APIRequestHandler {
 
     JsonArray transactionIds = new JsonArray();
     try (BurstIterator<? extends Transaction> iterator = blockchain.getTransactions(account, numberOfConfirmations, type, subtype, timestamp,
-        firstIndex, lastIndex)) {
+        firstIndex, lastIndex, parameterService.getIncludeIndirect(req))) {
       while (iterator.hasNext()) {
         Transaction transaction = iterator.next();
         transactionIds.add(transaction.getStringId());

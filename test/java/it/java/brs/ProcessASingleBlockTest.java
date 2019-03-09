@@ -9,7 +9,6 @@ public class ProcessASingleBlockTest extends AbstractIT {
 
   @Test
   public void canProcessASingleBlock() throws InterruptedException {
-    System.out.println("Process block");
     super.processBlock(getJSONFirstBlock());
 
     Thread.sleep(200);

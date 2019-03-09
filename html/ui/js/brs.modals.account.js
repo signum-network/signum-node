@@ -118,7 +118,8 @@ var BRS = (function(BRS, $, undefined) {
 	BRS.sendRequest("getAccountTransactions", {
 	    "account": BRS.userInfoModal.user,
 	    "firstIndex": 0,
-	    "lastIndex": 99
+	    "lastIndex": 99,
+		"includeIndirect": true
 	}, function(response) {
 	    if (response.transactions && response.transactions.length) {
 		var rows = "";
@@ -129,13 +130,22 @@ var BRS = (function(BRS, $, undefined) {
 		    var transactionType = "Unknown";
 
 		    if (transaction.type == 0) {
-			transactionType = $.t("ordinary_payment");
+                switch (transaction.subtype) {
+                    case 0:
+                        transactionType = $.t("ordinary_payment");
+                        break;
+
+                    case 1:
+                        transactionType = "Multi-out payment";
+                        break;
+
+                    case 2:
+                        transactionType = "Multi-out Same payment";
+                        break;
+                }
 		    }
                     else if (transaction.type == 1) {
 			switch (transaction.subtype) {
-			case 0:
-			    transactionType = $.t("arbitrary_message");
-			    break;
 			case 1:
 			    transactionType = $.t("alias_assignment");
 			    break;

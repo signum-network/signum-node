@@ -93,24 +93,92 @@ var BRS = (function(BRS, $, undefined) {
 	}
 
 	if (transaction.type == 0) {
-	    switch (transaction.subtype) {
-	    case 0:
-		data = {
-		    "type": $.t("ordinary_payment"),
-		    "amount": transaction.amountNQT,
-		    "fee": transaction.feeNQT,
-		    "recipient": BRS.getAccountTitle(transaction, "recipient"),
-		    "sender": BRS.getAccountTitle(transaction, "sender")
-		};
+        switch (transaction.subtype) {
+            case 0:
+                data = {
+                    "type": $.t("ordinary_payment"),
+                    "amount": transaction.amountNQT,
+                    "fee": transaction.feeNQT,
+                    "recipient": BRS.getAccountTitle(transaction, "recipient"),
+                    "sender": BRS.getAccountTitle(transaction, "sender")
+                };
 
-		$("#transaction_info_table tbody").append(BRS.createInfoTable(data));
-		$("#transaction_info_table").show();
+                $("#transaction_info_table tbody").append(BRS.createInfoTable(data));
+                $("#transaction_info_table").show();
 
-		break;
-	    default:
-		incorrect = true;
-		break;
-	    }
+                break;
+			case 1:
+				if (transaction.attachment == null || transaction.attachment.recipients == null) {
+					incorrect = true;
+					return;
+				}
+				var recipientHtml = "";
+				var nxtAddress = new NxtAddress();
+				for (var i = 0; i < transaction.attachment.recipients.length; i++) {
+					var recipient = transaction.attachment.recipients[i];
+					nxtAddress.set(recipient[0]);
+					var address = nxtAddress.toString();
+					var amount = BRS.formatAmount(recipient[1]) + " BURST";
+					if (i !== 0) {
+						recipientHtml += "<br />";
+					}
+					if (address === BRS.accountRS) {
+                        recipientHtml += "<b>"+address+": "+amount+"</b>";
+					} else {
+                        recipientHtml += address+": "+amount;
+					}
+				}
+
+                data = {
+                    "type": "Multi-out Payment",
+                    "amount": transaction.amountNQT,
+                    "fee": transaction.feeNQT,
+                    "recipient_formatted_html": recipientHtml,
+                    "sender": BRS.getAccountTitle(transaction, "sender")
+                };
+
+                $("#transaction_info_table tbody").append(BRS.createInfoTable(data));
+                $("#transaction_info_table").show();
+
+                break;
+			case 2:
+                if (transaction.attachment == null || transaction.attachment.recipients == null) {
+                    incorrect = true;
+                    return;
+                }
+                var amountEach = parseInt(transaction.amountNQT) / transaction.attachment.recipients.length;
+                var recipientHtml = "";
+                var nxtAddress = new NxtAddress();
+                for (var i = 0; i < transaction.attachment.recipients.length; i++) {
+                    var recipient = transaction.attachment.recipients[i];
+                    nxtAddress.set(recipient);
+                    var address = nxtAddress.toString();
+                    if (i !== 0) {
+                        recipientHtml += "<br />";
+                    }
+                    if (address === BRS.accountRS) {
+                        recipientHtml += "<b>"+address+"</b>";
+                    } else {
+                        recipientHtml += address;
+                    }
+                }
+
+                data = {
+                    "type": "Multi-out Same Payment",
+                    "amount_formatted_html": BRS.formatAmount(transaction.amountNQT) + " BURST (" + BRS.formatAmount(amountEach.toString()) + " BURST for each recipient)",
+                    "fee": transaction.feeNQT,
+                    "recipient_formatted_html": recipientHtml,
+                    "sender": BRS.getAccountTitle(transaction, "sender")
+                };
+
+                $("#transaction_info_table tbody").append(BRS.createInfoTable(data));
+                $("#transaction_info_table").show();
+
+                break;
+            default:
+                incorrect = true;
+                break;
+        }
 	}
         else if (transaction.type == 1) {
 	    switch (transaction.subtype) {

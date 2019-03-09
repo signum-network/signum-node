@@ -23,7 +23,8 @@ var BRS = (function(BRS, $, undefined) {
 	    "firstIndex": 0,
 	    "lastIndex": 74,
 	    "type": 1,
-	    "subtype": 0
+	    "subtype": 0,
+        "includeIndirect": false
 	}, function(response) {
 	    if (response.transactions && response.transactions.length) {
 		for (var i = 0; i < response.transactions.length; i++) {

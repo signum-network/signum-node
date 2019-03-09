@@ -16,7 +16,7 @@ import static brs.schema.Tables.INDIRECT_INCOMING;
 
 public class SqlIndirectIncomingStore implements IndirectIncomingStore {
 
-    private final VersionedEntitySqlTable<IndirectIncoming> indirectIncomingTable;
+    private final EntitySqlTable<IndirectIncoming> indirectIncomingTable;
 
     public SqlIndirectIncomingStore(DerivedTableManager derivedTableManager) {
         BurstKey.LinkKeyFactory<IndirectIncoming> indirectIncomingDbKeyFactory = new DbKey.LinkKeyFactory<IndirectIncoming>("account_id", "transaction_id") {
@@ -26,7 +26,7 @@ public class SqlIndirectIncomingStore implements IndirectIncomingStore {
             }
         };
 
-        this.indirectIncomingTable = new VersionedEntitySqlTable<IndirectIncoming>("indirect_incoming", INDIRECT_INCOMING, indirectIncomingDbKeyFactory, derivedTableManager) {
+        this.indirectIncomingTable = new EntitySqlTable<IndirectIncoming>("indirect_incoming", INDIRECT_INCOMING, indirectIncomingDbKeyFactory, derivedTableManager) {
             @Override
             protected IndirectIncoming load(DSLContext ctx, ResultSet rs) throws SQLException {
                 return new IndirectIncoming(rs.getLong("account_id"), rs.getLong("transaction_id"), rs.getInt("height"));

@@ -201,7 +201,7 @@ public final class Burst {
 
       final DownloadCacheImpl downloadCache = new DownloadCacheImpl(propertyService, fluxCapacitor, blockchain);
 
-      final IndirectIncomingService indirectIncomingService = new IndirectIncomingServiceImpl(stores.getIndirectIncomingStore());
+      final IndirectIncomingService indirectIncomingService = new IndirectIncomingServiceImpl(stores.getIndirectIncomingStore(), propertyService);
 
       final BlockService blockService = new BlockServiceImpl(accountService, transactionService, blockchain, downloadCache, generator);
       blockchainProcessor = new BlockchainProcessorImpl(threadPool, blockService, transactionProcessor, blockchain, propertyService, subscriptionService,

@@ -5,6 +5,8 @@ import brs.assetexchange.AssetExchange;
 import brs.db.BurstIterator;
 import brs.peer.Peer;
 import brs.peer.Peers;
+import brs.props.PropertyService;
+import brs.props.Props;
 import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.EscrowService;
@@ -26,9 +28,10 @@ final class GetState extends APIServlet.APIRequestHandler {
   private final AliasService aliasService;
   private final TimeService timeService;
   private final Generator generator;
+  private final PropertyService propertyService;
 
   GetState(Blockchain blockchain, AssetExchange assetExchange, AccountService accountService, EscrowService escrowService,
-      AliasService aliasService, TimeService timeService, Generator generator) {
+           AliasService aliasService, TimeService timeService, Generator generator, PropertyService propertyService) {
     super(new APITag[] {APITag.INFO}, INCLUDE_COUNTS_PARAMETER);
     this.blockchain = blockchain;
     this.assetExchange = assetExchange;
@@ -37,6 +40,7 @@ final class GetState extends APIServlet.APIRequestHandler {
     this.aliasService = aliasService;
     this.timeService = timeService;
     this.generator = generator;
+    this.propertyService = propertyService;
   }
 
   @Override
@@ -94,6 +98,7 @@ final class GetState extends APIServlet.APIRequestHandler {
     response.addProperty("maxMemory", Runtime.getRuntime().maxMemory());
     response.addProperty("totalMemory", Runtime.getRuntime().totalMemory());
     response.addProperty("freeMemory", Runtime.getRuntime().freeMemory());
+    response.addProperty("indirectIncomingServiceEnabled", propertyService.getBoolean(Props.INDIRECT_INCOMING_SERVICE_ENABLE));
 
     return response;
   }

@@ -30,7 +30,7 @@ import java.util.List;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class IndirectIncoming extends TableImpl<IndirectIncomingRecord> {
 
-    private static final long serialVersionUID = -1151998912;
+    private static final long serialVersionUID = -732282913;
 
     /**
      * The reference instance of <code>DB.indirect_incoming</code>
@@ -59,6 +59,11 @@ public class IndirectIncoming extends TableImpl<IndirectIncomingRecord> {
      * The column <code>DB.indirect_incoming.transaction_id</code>.
      */
     public final TableField<IndirectIncomingRecord, Long> TRANSACTION_ID = createField("transaction_id", org.jooq.impl.SQLDataType.BIGINT.nullable(false), this, "");
+
+    /**
+     * The column <code>DB.indirect_incoming.height</code>.
+     */
+    public final TableField<IndirectIncomingRecord, Integer> HEIGHT = createField("height", org.jooq.impl.SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
      * Create a <code>DB.indirect_incoming</code> table reference

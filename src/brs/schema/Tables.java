@@ -88,6 +88,11 @@ public class Tables {
     public static final EscrowDecision ESCROW_DECISION = brs.schema.tables.EscrowDecision.ESCROW_DECISION;
 
     /**
+     * The table <code>DB.flyway_schema_history</code>.
+     */
+    public static final FlywaySchemaHistory FLYWAY_SCHEMA_HISTORY = brs.schema.tables.FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY;
+
+    /**
      * The table <code>DB.goods</code>.
      */
     public static final Goods GOODS = brs.schema.tables.Goods.GOODS;

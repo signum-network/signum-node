@@ -64,6 +64,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   private final StatisticsManagerImpl statisticsManager;
   private final Generator generator;
   private final DBCacheManagerImpl dbCacheManager;
+  private final IndirectIncomingService indirectIncomingService;
 
   private static final int MAX_TIMESTAMP_DIFFERENCE = 15;
   private boolean oclVerify;
@@ -96,11 +97,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   }
 
   public BlockchainProcessorImpl(ThreadPool threadPool, BlockService blockService, TransactionProcessorImpl transactionProcessor, BlockchainImpl blockchain,
-      PropertyService propertyService,
-      SubscriptionService subscriptionService, TimeService timeService, DerivedTableManager derivedTableManager,
-      BlockDb blockDb, TransactionDb transactionDb, EconomicClustering economicClustering, BlockchainStore blockchainStore, Stores stores, EscrowService escrowService,
-      TransactionService transactionService, DownloadCacheImpl downloadCache, Generator generator, StatisticsManagerImpl statisticsManager, DBCacheManagerImpl dbCacheManager,
-      AccountService accountService) {
+                                 PropertyService propertyService,
+                                 SubscriptionService subscriptionService, TimeService timeService, DerivedTableManager derivedTableManager,
+                                 BlockDb blockDb, TransactionDb transactionDb, EconomicClustering economicClustering, BlockchainStore blockchainStore, Stores stores, EscrowService escrowService,
+                                 TransactionService transactionService, DownloadCacheImpl downloadCache, Generator generator, StatisticsManagerImpl statisticsManager, DBCacheManagerImpl dbCacheManager,
+                                 AccountService accountService, IndirectIncomingService indirectIncomingService) {
     this.blockService = blockService;
     this.transactionProcessor = transactionProcessor;
     this.timeService = timeService;
@@ -119,6 +120,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     this.statisticsManager = statisticsManager;
     this.dbCacheManager = dbCacheManager;
     this.accountService = accountService;
+    this.indirectIncomingService = indirectIncomingService;
 
     oclVerify = propertyService.getBoolean(Props.GPU_ACCELERATION); // use GPU acceleration ?
     oclUnverifiedQueue = propertyService.getInt(Props.GPU_UNVERIFIED_QUEUE);
@@ -1000,6 +1002,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           calculatedTotalAmount += transaction.getAmountNQT();
           calculatedTotalFee += transaction.getFeeNQT();
           digest.update(transaction.getBytes());
+          indirectIncomingService.processTransaction(transaction);
         }
 
         if (calculatedTotalAmount > block.getTotalAmountNQT()

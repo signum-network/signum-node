@@ -82,6 +82,8 @@ public class Indexes {
     public static final Index ESCROW_DECISION_ESCROW_DECISION_ESCROW_ID_ACCOUNT_ID_HEIGHT_IDX = Indexes0.ESCROW_DECISION_ESCROW_DECISION_ESCROW_ID_ACCOUNT_ID_HEIGHT_IDX;
     public static final Index ESCROW_DECISION_ESCROW_DECISION_ESCROW_ID_HEIGHT_IDX = Indexes0.ESCROW_DECISION_ESCROW_DECISION_ESCROW_ID_HEIGHT_IDX;
     public static final Index ESCROW_DECISION_PRIMARY = Indexes0.ESCROW_DECISION_PRIMARY;
+    public static final Index FLYWAY_SCHEMA_HISTORY_FLYWAY_SCHEMA_HISTORY_S_IDX = Indexes0.FLYWAY_SCHEMA_HISTORY_FLYWAY_SCHEMA_HISTORY_S_IDX;
+    public static final Index FLYWAY_SCHEMA_HISTORY_PRIMARY = Indexes0.FLYWAY_SCHEMA_HISTORY_PRIMARY;
     public static final Index GOODS_GOODS_ID_HEIGHT_IDX = Indexes0.GOODS_GOODS_ID_HEIGHT_IDX;
     public static final Index GOODS_GOODS_SELLER_ID_NAME_IDX = Indexes0.GOODS_GOODS_SELLER_ID_NAME_IDX;
     public static final Index GOODS_GOODS_TIMESTAMP_IDX = Indexes0.GOODS_GOODS_TIMESTAMP_IDX;
@@ -181,11 +183,13 @@ public class Indexes {
         public static Index ESCROW_DECISION_ESCROW_DECISION_ESCROW_ID_ACCOUNT_ID_HEIGHT_IDX = Internal.createIndex("escrow_decision_escrow_id_account_id_height_idx", EscrowDecision.ESCROW_DECISION, new OrderField[] { EscrowDecision.ESCROW_DECISION.ESCROW_ID, EscrowDecision.ESCROW_DECISION.ACCOUNT_ID, EscrowDecision.ESCROW_DECISION.HEIGHT }, true);
         public static Index ESCROW_DECISION_ESCROW_DECISION_ESCROW_ID_HEIGHT_IDX = Internal.createIndex("escrow_decision_escrow_id_height_idx", EscrowDecision.ESCROW_DECISION, new OrderField[] { EscrowDecision.ESCROW_DECISION.ESCROW_ID, EscrowDecision.ESCROW_DECISION.HEIGHT }, false);
         public static Index ESCROW_DECISION_PRIMARY = Internal.createIndex("PRIMARY", EscrowDecision.ESCROW_DECISION, new OrderField[] { EscrowDecision.ESCROW_DECISION.DB_ID }, true);
+        public static Index FLYWAY_SCHEMA_HISTORY_FLYWAY_SCHEMA_HISTORY_S_IDX = Internal.createIndex("flyway_schema_history_s_idx", FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY, new OrderField[] { FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY.SUCCESS }, false);
+        public static Index FLYWAY_SCHEMA_HISTORY_PRIMARY = Internal.createIndex("PRIMARY", FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY, new OrderField[] { FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY.INSTALLED_RANK }, true);
         public static Index GOODS_GOODS_ID_HEIGHT_IDX = Internal.createIndex("goods_id_height_idx", Goods.GOODS, new OrderField[] { Goods.GOODS.ID, Goods.GOODS.HEIGHT }, true);
         public static Index GOODS_GOODS_SELLER_ID_NAME_IDX = Internal.createIndex("goods_seller_id_name_idx", Goods.GOODS, new OrderField[] { Goods.GOODS.SELLER_ID, Goods.GOODS.NAME }, false);
         public static Index GOODS_GOODS_TIMESTAMP_IDX = Internal.createIndex("goods_timestamp_idx", Goods.GOODS, new OrderField[] { Goods.GOODS.TIMESTAMP, Goods.GOODS.HEIGHT }, false);
         public static Index GOODS_PRIMARY = Internal.createIndex("PRIMARY", Goods.GOODS, new OrderField[] { Goods.GOODS.DB_ID }, true);
-        public static Index INDIRECT_INCOMING_INDIRECT_INCOMING_DB_ID_UINDEX = Internal.createIndex("indirect_incoming_db_id_uindex", IndirectIncoming.INDIRECT_INCOMING, new OrderField[] { IndirectIncoming.INDIRECT_INCOMING.DB_ID }, true);
+        public static Index INDIRECT_INCOMING_INDIRECT_INCOMING_DB_ID_UINDEX = Internal.createIndex("indirect_incoming_db_id_uindex", IndirectIncoming.INDIRECT_INCOMING, new OrderField[] { IndirectIncoming.INDIRECT_INCOMING.ACCOUNT_ID, IndirectIncoming.INDIRECT_INCOMING.TRANSACTION_ID }, true);
         public static Index INDIRECT_INCOMING_PRIMARY = Internal.createIndex("PRIMARY", IndirectIncoming.INDIRECT_INCOMING, new OrderField[] { IndirectIncoming.INDIRECT_INCOMING.DB_ID }, true);
         public static Index PEER_PRIMARY = Internal.createIndex("PRIMARY", Peer.PEER, new OrderField[] { Peer.PEER.ADDRESS }, true);
         public static Index PURCHASE_PRIMARY = Internal.createIndex("PRIMARY", Purchase.PURCHASE, new OrderField[] { Purchase.PURCHASE.DB_ID }, true);

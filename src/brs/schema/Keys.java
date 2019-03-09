@@ -88,6 +88,7 @@ public class Keys {
     public static final UniqueKey<EscrowRecord> KEY_ESCROW_ESCROW_ID_HEIGHT_IDX = UniqueKeys0.KEY_ESCROW_ESCROW_ID_HEIGHT_IDX;
     public static final UniqueKey<EscrowDecisionRecord> KEY_ESCROW_DECISION_PRIMARY = UniqueKeys0.KEY_ESCROW_DECISION_PRIMARY;
     public static final UniqueKey<EscrowDecisionRecord> KEY_ESCROW_DECISION_ESCROW_DECISION_ESCROW_ID_ACCOUNT_ID_HEIGHT_IDX = UniqueKeys0.KEY_ESCROW_DECISION_ESCROW_DECISION_ESCROW_ID_ACCOUNT_ID_HEIGHT_IDX;
+    public static final UniqueKey<FlywaySchemaHistoryRecord> KEY_FLYWAY_SCHEMA_HISTORY_PRIMARY = UniqueKeys0.KEY_FLYWAY_SCHEMA_HISTORY_PRIMARY;
     public static final UniqueKey<GoodsRecord> KEY_GOODS_PRIMARY = UniqueKeys0.KEY_GOODS_PRIMARY;
     public static final UniqueKey<GoodsRecord> KEY_GOODS_GOODS_ID_HEIGHT_IDX = UniqueKeys0.KEY_GOODS_GOODS_ID_HEIGHT_IDX;
     public static final UniqueKey<IndirectIncomingRecord> KEY_INDIRECT_INCOMING_PRIMARY = UniqueKeys0.KEY_INDIRECT_INCOMING_PRIMARY;
@@ -176,10 +177,11 @@ public class Keys {
         public static final UniqueKey<EscrowRecord> KEY_ESCROW_ESCROW_ID_HEIGHT_IDX = Internal.createUniqueKey(Escrow.ESCROW, "KEY_escrow_escrow_id_height_idx", Escrow.ESCROW.ID, Escrow.ESCROW.HEIGHT);
         public static final UniqueKey<EscrowDecisionRecord> KEY_ESCROW_DECISION_PRIMARY = Internal.createUniqueKey(EscrowDecision.ESCROW_DECISION, "KEY_escrow_decision_PRIMARY", EscrowDecision.ESCROW_DECISION.DB_ID);
         public static final UniqueKey<EscrowDecisionRecord> KEY_ESCROW_DECISION_ESCROW_DECISION_ESCROW_ID_ACCOUNT_ID_HEIGHT_IDX = Internal.createUniqueKey(EscrowDecision.ESCROW_DECISION, "KEY_escrow_decision_escrow_decision_escrow_id_account_id_height_idx", EscrowDecision.ESCROW_DECISION.ESCROW_ID, EscrowDecision.ESCROW_DECISION.ACCOUNT_ID, EscrowDecision.ESCROW_DECISION.HEIGHT);
+        public static final UniqueKey<FlywaySchemaHistoryRecord> KEY_FLYWAY_SCHEMA_HISTORY_PRIMARY = Internal.createUniqueKey(FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY, "KEY_flyway_schema_history_PRIMARY", FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY.INSTALLED_RANK);
         public static final UniqueKey<GoodsRecord> KEY_GOODS_PRIMARY = Internal.createUniqueKey(Goods.GOODS, "KEY_goods_PRIMARY", Goods.GOODS.DB_ID);
         public static final UniqueKey<GoodsRecord> KEY_GOODS_GOODS_ID_HEIGHT_IDX = Internal.createUniqueKey(Goods.GOODS, "KEY_goods_goods_id_height_idx", Goods.GOODS.ID, Goods.GOODS.HEIGHT);
         public static final UniqueKey<IndirectIncomingRecord> KEY_INDIRECT_INCOMING_PRIMARY = Internal.createUniqueKey(IndirectIncoming.INDIRECT_INCOMING, "KEY_indirect_incoming_PRIMARY", IndirectIncoming.INDIRECT_INCOMING.DB_ID);
-        public static final UniqueKey<IndirectIncomingRecord> KEY_INDIRECT_INCOMING_INDIRECT_INCOMING_DB_ID_UINDEX = Internal.createUniqueKey(IndirectIncoming.INDIRECT_INCOMING, "KEY_indirect_incoming_indirect_incoming_db_id_uindex", IndirectIncoming.INDIRECT_INCOMING.DB_ID);
+        public static final UniqueKey<IndirectIncomingRecord> KEY_INDIRECT_INCOMING_INDIRECT_INCOMING_DB_ID_UINDEX = Internal.createUniqueKey(IndirectIncoming.INDIRECT_INCOMING, "KEY_indirect_incoming_indirect_incoming_db_id_uindex", IndirectIncoming.INDIRECT_INCOMING.ACCOUNT_ID, IndirectIncoming.INDIRECT_INCOMING.TRANSACTION_ID);
         public static final UniqueKey<PeerRecord> KEY_PEER_PRIMARY = Internal.createUniqueKey(Peer.PEER, "KEY_peer_PRIMARY", Peer.PEER.ADDRESS);
         public static final UniqueKey<PurchaseRecord> KEY_PURCHASE_PRIMARY = Internal.createUniqueKey(Purchase.PURCHASE, "KEY_purchase_PRIMARY", Purchase.PURCHASE.DB_ID);
         public static final UniqueKey<PurchaseRecord> KEY_PURCHASE_PURCHASE_ID_HEIGHT_IDX = Internal.createUniqueKey(Purchase.PURCHASE, "KEY_purchase_purchase_id_height_idx", Purchase.PURCHASE.ID, Purchase.PURCHASE.HEIGHT);

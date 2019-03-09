@@ -28,7 +28,7 @@ import java.util.List;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Db extends SchemaImpl {
 
-    private static final long serialVersionUID = -1010997060;
+    private static final long serialVersionUID = -471554061;
 
     /**
      * The reference instance of <code>DB</code>
@@ -99,6 +99,11 @@ public class Db extends SchemaImpl {
      * The table <code>DB.escrow_decision</code>.
      */
     public final EscrowDecision ESCROW_DECISION = brs.schema.tables.EscrowDecision.ESCROW_DECISION;
+
+    /**
+     * The table <code>DB.flyway_schema_history</code>.
+     */
+    public final FlywaySchemaHistory FLYWAY_SCHEMA_HISTORY = brs.schema.tables.FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY;
 
     /**
      * The table <code>DB.goods</code>.
@@ -193,6 +198,7 @@ public class Db extends SchemaImpl {
             Block.BLOCK,
             Escrow.ESCROW,
             EscrowDecision.ESCROW_DECISION,
+            FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY,
             Goods.GOODS,
             IndirectIncoming.INDIRECT_INCOMING,
             Peer.PEER,

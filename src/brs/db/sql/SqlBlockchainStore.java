@@ -5,6 +5,7 @@ import brs.Transaction;
 import brs.db.BlockDb;
 import brs.db.BurstIterator;
 import brs.db.store.BlockchainStore;
+import brs.db.store.IndirectIncomingStore;
 import brs.schema.tables.records.BlockRecord;
 import brs.schema.tables.records.TransactionRecord;
 import org.jooq.*;
@@ -13,12 +14,18 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
-import static brs.schema.Tables.*;
+import static brs.schema.Tables.BLOCK;
+import static brs.schema.Tables.TRANSACTION;
 
 public class SqlBlockchainStore implements BlockchainStore {
 
   private final TransactionDb transactionDb = Burst.getDbs().getTransactionDb();
   private final BlockDb blockDb = Burst.getDbs().getBlockDb();
+  private final IndirectIncomingStore indirectIncomingStore;
+
+  public SqlBlockchainStore(IndirectIncomingStore indirectIncomingStore) {
+    this.indirectIncomingStore = indirectIncomingStore;
+  }
 
   @Override
   public BurstIterator<Block> getBlocks(int from, int to) {
@@ -151,10 +158,7 @@ public class SqlBlockchainStore implements BlockchainStore {
     if (includeIndirectIncoming) {
       select = select.unionAll(ctx.selectFrom(TRANSACTION)
               .where(conditions)
-              .and(TRANSACTION.ID.in(ctx.select(INDIRECT_INCOMING.TRANSACTION_ID)
-                      .from(INDIRECT_INCOMING)
-                      .where(INDIRECT_INCOMING.ACCOUNT_ID.eq(account.getId()))
-                      .fetch(result -> result.get(INDIRECT_INCOMING.TRANSACTION_ID)))));
+              .and(TRANSACTION.ID.in(indirectIncomingStore.getIndirectIncomings(account.getId(), from, to))));
 
     }
 

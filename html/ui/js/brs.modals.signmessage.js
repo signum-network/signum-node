@@ -30,7 +30,7 @@ var BRS = (function(BRS, $, undefined) {
                 $("#sign_message_error").show();
             }
             signature = BRS.signBytes(data, passphrase);
-            $("#sign_message_output").text("Signature is " + signature);
+            $("#sign_message_output").text("Signature is " + signature + ". Your public key is " + BRS.getPublicKey(passphrase));
             $("#sign_message_output").show();
         }, false);
     };

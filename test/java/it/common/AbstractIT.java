@@ -44,8 +44,7 @@ public abstract class AbstractIT {
 
     props.setProperty(Props.DEV_TESTNET.getName(), "true");
     props.setProperty(Props.DEV_OFFLINE.getName(), "true");
-    props.setProperty(Props.DEV_DB_URL.getName(), /*TestInfrastructure.IN_MEMORY_DB_URL*/ "jdbc:mariadb://localhost:3306/burstwallet");
-    props.setProperty(Props.DEV_DB_USERNAME.getName(), /*TestInfrastructure.IN_MEMORY_DB_URL*/ "root");
+    props.setProperty(Props.DEV_DB_URL.getName(), TestInfrastructure.IN_MEMORY_DB_URL);
     props.setProperty(Props.DB_MAX_ROLLBACK.getName(), "1440");
     props.setProperty(Props.DB_CONNECTIONS.getName(), "1");
 

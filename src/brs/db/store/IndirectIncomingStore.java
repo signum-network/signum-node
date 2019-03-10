@@ -29,5 +29,25 @@ public interface IndirectIncomingStore {
         public int getHeight() {
             return height;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            IndirectIncoming that = (IndirectIncoming) o;
+
+            if (accountId != that.accountId) return false;
+            if (transactionId != that.transactionId) return false;
+            return height == that.height;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = (int) (accountId ^ (accountId >>> 32));
+            result = 31 * result + (int) (transactionId ^ (transactionId >>> 32));
+            result = 31 * result + height;
+            return result;
+        }
     }
 }

@@ -100,7 +100,7 @@ public interface Attachment extends Appendix {
 
   };
 
-  final class PaymentMultiOutCreation extends AbstractAttachment {
+  class PaymentMultiOutCreation extends AbstractAttachment {
 
     private final ArrayList<ArrayList<Long>> recipients = new ArrayList<>();
 
@@ -219,7 +219,7 @@ public interface Attachment extends Appendix {
       return amountNQT;
     }
 
-    public Collection<ArrayList<Long>> getRecipients() {
+    public Collection<List<Long>> getRecipients() {
       return Collections.unmodifiableCollection(recipients);
     }
 
@@ -236,7 +236,7 @@ public interface Attachment extends Appendix {
     }
   }
 
-  final class PaymentMultiSameOutCreation extends AbstractAttachment {
+  class PaymentMultiSameOutCreation extends AbstractAttachment {
 
     private final ArrayList<Long> recipients = new ArrayList<>();
 

@@ -19,7 +19,9 @@ var BRS = (function(BRS, $, undefined) {
 
     $(".modal button.btn-primary:not([data-dismiss=modal]):not([data-ignore=true])").click(function() {
         // ugly hack - this whole ui is hack, got a big urge to vomit
-        if (!$(this).hasClass("multi-out")) {
+        if ($(this)[0].id === "sign_message_modal_button") { // hack hackity hack!
+            BRS.forms.signModalButtonClicked();
+        } else if (!$(this).hasClass("multi-out")) {
             BRS.submitForm($(this).closest(".modal"), $(this));
         }
     });

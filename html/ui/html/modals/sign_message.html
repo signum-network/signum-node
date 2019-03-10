@@ -1,0 +1,57 @@
+<div class="modal fade modal-no-hide" id="sign_message_modal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">Arbitrary Message Signature / Verification</h4>
+      </div>
+      <div class="modal-body">
+        <ul class="nav nav-pills nav-justified" style="margin-bottom:10px">
+          <li class="active" id="sign_message_nav" data-tab="sign_message"><a href="#">Sign Message</a></li>
+          <li data-tab="verify_message"><a href="#">Verify Message Signature</a></li>
+        </ul>
+        <div id="sign_message_modal_sign_message" class="sign_message_modal_content" style="display:none">
+          <form role="form" id="sign_message_form" class="sign_message_form" autocomplete="off">
+            <div class="callout callout-danger error_message" id="sign_message_error" style="display:none"></div>
+            <div class="callout callout-warning"><b>WARNING: Before signing an arbitrary message, think. Someone may be actually asking you to sign a transaction, which would let them spend your funds (A transaction looks like a long hex-encoded string). Think before blindly signing a message that someone has asked you to sign.</b></div>
+            <div class="callout callout-info" id="sign_message_output" style="display:none;word-wrap:break-word;"></div>
+            <div class="form-group">
+              <label for="sign_message_data">Message</label>
+              <textarea class="form-control" name="message" id="sign_message_data" placeholder="Message" tabindex="1" rows="10"></textarea>
+              <label for="sign_message_data_is_hex">Hex Encoded</label>
+              <input type="checkbox" name="messageIsHex" id="sign_message_data_is_hex" />
+            </div>
+            <div class="form-group">
+              <label for="sign_message_passphrase" data-i18n="passphrase">Passphrase</label>
+              <input type="password" name="secretPhrase" id="sign_message_passphrase" class="form-control" placeholder="" tabindex="5" autocomplete="">
+            </div>
+          </form>
+        </div>
+        <div id="sign_message_modal_verify_message" class="sign_message_modal_content" style="display:none">
+          <form role="form" id="verify_message_form" class="verify_message_form" autocomplete="off">
+            <div class="callout callout-danger error_message" id="verify_message_error" style="display:none"></div>
+            <div class="callout callout-info" id="verify_message_output" style="display:none;"></div>
+            <div class="form-group">
+              <label for="verify_message_data">Message</label>
+              <textarea class="form-control" name="website" id="verify_message_data" placeholder="Message" tabindex="1" rows="10"></textarea>
+              <label for="verify_message_data_is_hex">Hex Encoded</label>
+              <input type="checkbox" name="messageIsHex" id="verify_message_data_is_hex" />
+            </div>
+            <div class="form-group">
+              <label for="verify_message_public_key">Signer's Public Key</label>
+              <input type="text" class="form-control" name="publicKey" id="verify_message_public_key" placeholder="Public Key(Hex encoded)" tabindex="2" value="" />
+            </div>
+            <div class="form-group">
+              <label for="verify_message_signature">Signature</label>
+              <input type="text" class="form-control" name="signature" id="verify_message_signature" placeholder="Signature (Hex encoded)" tabindex="2" value="" />
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="modal-footer" style="margin-top:0;">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="sign_message_modal_button">Sign</button>
+      </div>
+    </div>
+  </div>
+</div>

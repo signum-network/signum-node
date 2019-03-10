@@ -26,7 +26,7 @@ var BRS = (function(BRS, $, undefined) {
         BRS.sendRequest("parseTransaction", { "transactionBytes": data }, function(result) {
             console.log(result);
             if (result.errorCode == null) {
-                $("#sign_message_error").text("WARNING: YOU ARE SIGNING A TRANSACTION. IF YOU WERE NOT TRYING TO SIGN A TRANSACTION MANUALLY, DO NOT GIVE THIS SIGNATURE OUT AS IF YOU WERE ASKED TO SIGN THIS MESSAGE. IT COULD ALLOW OTHERS TO SPEND YOUR FUNDS.");
+                $("#sign_message_error").text("WARNING: YOU ARE SIGNING A TRANSACTION. IF YOU WERE NOT TRYING TO SIGN A TRANSACTION MANUALLY, DO NOT GIVE THIS SIGNATURE OUT. IT COULD ALLOW OTHERS TO SPEND YOUR FUNDS.");
                 $("#sign_message_error").show();
             }
             signature = BRS.signBytes(data, passphrase);

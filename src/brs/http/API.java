@@ -17,7 +17,6 @@ import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.eclipse.jetty.servlets.DoSFilter;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.slf4j.Logger;
@@ -146,12 +145,6 @@ public final class API {
       }
 
       apiHandler.addServlet(APITestServlet.class, "/test");
-
-      if (propertyService.getBoolean(Props.API_CROSS_ORIGIN_FILTER)) {
-        FilterHolder filterHolder = apiHandler.addFilter(CrossOriginFilter.class, "/*", null);
-        filterHolder.setInitParameter("allowedHeaders", "*");
-        filterHolder.setAsyncSupported(true);
-      }
 
       if (propertyService.getBoolean(Props.JETTY_API_GZIP_FILTER)) {
         GzipHandler gzipHandler = new GzipHandler();

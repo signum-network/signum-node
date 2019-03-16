@@ -37,6 +37,7 @@ public final class APIServlet extends HttpServlet {
 
     enforcePost = propertyService.getBoolean(Props.API_SERVER_ENFORCE_POST);
     acceptSurplusParams = propertyService.getBoolean(Props.API_ACCEPT_SURPLUS_PARAMS);
+    allowedOrigins = propertyService.getString(Props.API_ALLOWED_ORIGINS);
     
     final Map<String, APIRequestHandler> map = new HashMap<>();
     final Map<String, PrimitiveRequestHandler> primitiveMap = new HashMap<>();
@@ -220,6 +221,7 @@ public final class APIServlet extends HttpServlet {
   }
 
   private static boolean enforcePost;
+  private static String allowedOrigins;
 
   public static Map<String, APIRequestHandler> apiRequestHandlers;
   private static Map<String, PrimitiveRequestHandler> primitiveRequestHandlers;
@@ -245,7 +247,8 @@ public final class APIServlet extends HttpServlet {
   }
 
   private void process(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-
+    resp.setHeader("Access-Control-Allow-Methods", "GET, POST");
+    resp.setHeader("Access-Control-Allow-Origin", allowedOrigins);
     resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, private");
     resp.setHeader("Pragma", "no-cache");
     resp.setDateHeader("Expires", 0);

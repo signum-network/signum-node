@@ -29,7 +29,6 @@ public class MiningPlot {
     byte[] gendata = new byte[PLOT_SIZE + base.length];
     System.arraycopy(base, 0, gendata, PLOT_SIZE, base.length);
     for (int i = PLOT_SIZE; i > 0; i -= HASH_SIZE) {
-      shabal256.reset(); // todo is this necessary?
       int len = PLOT_SIZE + base.length - i;
       if (len > HASH_CAP) {
         len = HASH_CAP;
@@ -37,9 +36,7 @@ public class MiningPlot {
       shabal256.update(gendata, i, len);
       System.arraycopy(shabal256.digest(), 0, gendata, i - HASH_SIZE, HASH_SIZE);
     }
-    shabal256.reset();
-    shabal256.update(gendata);
-    byte[] finalhash = shabal256.digest();
+    byte[] finalhash = shabal256.digest(gendata);
     for (int i = 0; i < PLOT_SIZE; i++) {
       data[i] = (byte) (gendata[i] ^ finalhash[i % HASH_SIZE]);
     }

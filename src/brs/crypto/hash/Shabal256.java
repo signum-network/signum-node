@@ -42,15 +42,21 @@ public class Shabal256 extends MessageDigest {
     public static final String ALGORITHM = "Shabal-256";
     public static final List<String> ALIASES = Arrays.asList("SHABAL-256", "shabal-256", "Shabal256", "SHABAL256", "shabal256", "Shabal", "SHABAL", "shabal");
 
-    private final byte[] buf;
+    private static int[] IV;
+
+    private final byte[] buf = new byte[64];
     private int ptr;
-    private final int[] state;
+    private final int[] state = new int[44];
     private long W;
 
-    Shabal256() {
+
+    private Shabal256(boolean reset) {
         super(ALGORITHM);
-        buf = new byte[64];
-        state = new int[44];
+        if (reset) reset();
+    }
+
+    public Shabal256() {
+        this(true);
     }
 
     @Override
@@ -119,12 +125,9 @@ public class Shabal256 extends MessageDigest {
         return out;
     }
 
-    private static final int[][] IVs = new int[16][];
-
     private static int[] getIV() {
-        int[] iv = IVs[7];
-        if (iv == null) {
-            Shabal256 sg = new Shabal256();
+        if (IV == null) {
+            Shabal256 sg = new Shabal256(false);
 
             sg.buf[ 0] =  0; sg.buf[ 1] = 1;
             sg.buf[ 4] =  1; sg.buf[ 5] = 1;
@@ -164,9 +167,10 @@ public class Shabal256 extends MessageDigest {
             sg.buf[60] = 31;
 
             sg.core1(sg.buf);
-            iv = IVs[7] = sg.state;
+            IV = new int[sg.state.length];
+            System.arraycopy(sg.state, 0, IV, 0, IV.length);
         }
-        return iv;
+        return IV;
     }
 
     @Override

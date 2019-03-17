@@ -1,6 +1,7 @@
 package brs.crypto.hash;
 
 import java.security.Provider;
+import java.security.Security;
 import java.util.Collections;
 
 public class ShabalProvider extends Provider {
@@ -9,7 +10,11 @@ public class ShabalProvider extends Provider {
     private static final double VERSION = 1.0;
     private static final String INFO = "A Shabal-256 MessageDigest provider";
 
-    public ShabalProvider() {
+    public static void init() {
+        Security.addProvider(new ShabalProvider());
+    }
+
+    private ShabalProvider() {
         super(NAME, VERSION, INFO);
         putService(new ShabalService(this));
     }

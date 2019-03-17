@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
-public class GeneratorImpl implements Generator { // TODO refactor BigInteger out of this class
+public class GeneratorImpl implements Generator {
 
   private static final Logger logger = LoggerFactory.getLogger(GeneratorImpl.class);
 

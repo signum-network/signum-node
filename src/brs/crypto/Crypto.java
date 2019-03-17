@@ -3,7 +3,6 @@ package brs.crypto;
 import brs.crypto.ec.Curve25519;
 import brs.crypto.ec.Curve25519Impl;
 import brs.crypto.hash.Shabal256;
-import brs.crypto.hash.ShabalProvider;
 import brs.util.Convert;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.InvalidCipherTextException;
@@ -30,10 +29,6 @@ public final class Crypto {
 
   private Crypto() {
   } //never
-
-  static {
-    ShabalProvider.init();
-  }
 
   private static MessageDigest getMessageDigest(String algorithm) {
     try {

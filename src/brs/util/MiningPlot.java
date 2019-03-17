@@ -1,9 +1,10 @@
 package brs.util;
 
-import brs.crypto.hash.Shabal256;
+import brs.crypto.Crypto;
 import brs.fluxcapacitor.FluxCapacitor;
 
 import java.nio.ByteBuffer;
+import java.security.MessageDigest;
 import java.util.Arrays;
 
 import static brs.fluxcapacitor.FeatureToggle.POC2;
@@ -24,21 +25,21 @@ public class MiningPlot {
     base_buffer.putLong(addr);
     base_buffer.putLong(nonce);
     byte[] base = base_buffer.array();
-    Shabal256 md = new Shabal256();
+    MessageDigest shabal256 = Crypto.shabal256();
     byte[] gendata = new byte[PLOT_SIZE + base.length];
     System.arraycopy(base, 0, gendata, PLOT_SIZE, base.length);
     for (int i = PLOT_SIZE; i > 0; i -= HASH_SIZE) {
-      md.reset();
+      shabal256.reset(); // todo is this necessary?
       int len = PLOT_SIZE + base.length - i;
       if (len > HASH_CAP) {
         len = HASH_CAP;
       }
-      md.update(gendata, i, len);
-      md.digest(gendata, i - HASH_SIZE, HASH_SIZE);
+      shabal256.update(gendata, i, len);
+      System.arraycopy(shabal256.digest(), 0, gendata, i - HASH_SIZE, HASH_SIZE);
     }
-    md.reset();
-    md.update(gendata);
-    byte[] finalhash = md.digest();
+    shabal256.reset();
+    shabal256.update(gendata);
+    byte[] finalhash = shabal256.digest();
     for (int i = 0; i < PLOT_SIZE; i++) {
       data[i] = (byte) (gendata[i] ^ finalhash[i % HASH_SIZE]);
     }
@@ -59,7 +60,7 @@ public class MiningPlot {
     return Arrays.copyOfRange(data, pos * SCOOP_SIZE, (pos + 1) * SCOOP_SIZE);
   }
 
-  public void hashScoop(Shabal256 md, int pos) {
-    md.update(data, pos * SCOOP_SIZE, SCOOP_SIZE);
+  public void hashScoop(MessageDigest shabal256, int pos) {
+    shabal256.update(data, pos * SCOOP_SIZE, SCOOP_SIZE);
   }
 }

@@ -21,7 +21,7 @@ public class BrsService extends BrsApiServiceGrpc.BrsApiServiceImplBase {
 
     public BrsService(BlockchainProcessor blockchainProcessor, Blockchain blockchain, BlockService blockService, AccountService accountService, Generator generator, TransactionProcessor transactionProcessor) {
         Map<Class<? extends GrpcApiHandler<?,?>>, GrpcApiHandler<?,?>> handlerMap = new HashMap<>();
-        handlerMap.put(GetMiningInfoHandler.class, new GetMiningInfoHandler(blockchainProcessor));
+        handlerMap.put(GetMiningInfoHandler.class, new GetMiningInfoHandler(blockchainProcessor, generator));
         handlerMap.put(SubmitNonceHandler.class, new SubmitNonceHandler(blockchain, accountService, generator));
         handlerMap.put(GetBlockHandler.class, new GetBlockHandler(blockchain, blockService));
         handlerMap.put(GetAccountHandler.class, new GetAccountHandler(accountService));

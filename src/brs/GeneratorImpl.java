@@ -1,7 +1,6 @@
 package brs;
 
 import brs.crypto.Crypto;
-import brs.crypto.hash.Shabal256;
 import brs.fluxcapacitor.FluxCapacitor;
 import brs.props.PropertyService;
 import brs.props.Props;
@@ -12,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.security.MessageDigest;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
-public class GeneratorImpl implements Generator {
+public class GeneratorImpl implements Generator { // TODO refactor BigInteger out of this class
 
   private static final Logger logger = LoggerFactory.getLogger(GeneratorImpl.class);
 
@@ -120,10 +120,7 @@ public class GeneratorImpl implements Generator {
     ByteBuffer gensigbuf = ByteBuffer.allocate(32 + 8);
     gensigbuf.put(lastGenSig);
     gensigbuf.putLong(lastGenId);
-
-    Shabal256 md = new Shabal256();
-    md.update(gensigbuf.array());
-    return md.digest();
+    return Crypto.shabal256().digest(gensigbuf.array());
   }
 
   @Override
@@ -131,31 +128,26 @@ public class GeneratorImpl implements Generator {
     ByteBuffer posbuf = ByteBuffer.allocate(32 + 8);
     posbuf.put(genSig);
     posbuf.putLong(height);
-
-    Shabal256 md = new Shabal256();
-    md.update(posbuf.array());
-    BigInteger hashnum = new BigInteger(1, md.digest());
+    BigInteger hashnum = new BigInteger(1, Crypto.shabal256().digest(posbuf.array()));
     return hashnum.mod(BigInteger.valueOf(MiningPlot.SCOOPS_PER_PLOT)).intValue();
   }
 
   @Override
   public BigInteger calculateHit(long accountId, long nonce, byte[] genSig, int scoop, int blockHeight) {
-
     MiningPlot plot = new MiningPlot(accountId, nonce, blockHeight, fluxCapacitor);
-
-    Shabal256 md = new Shabal256();
-    md.update(genSig);
-    plot.hashScoop(md, scoop);
-    byte[] hash = md.digest();
+    MessageDigest shabal256 = Crypto.shabal256();
+    shabal256.update(genSig);
+    plot.hashScoop(shabal256, scoop);
+    byte[] hash = shabal256.digest();
     return new BigInteger(1, new byte[] { hash[7], hash[6], hash[5], hash[4], hash[3], hash[2], hash[1], hash[0] });
   }
 
   @Override
   public BigInteger calculateHit(long accountId, long nonce, byte[] genSig, byte[] scoopData) {
-    Shabal256 md = new Shabal256();
-    md.update(genSig);
-    md.update(scoopData);
-    byte[] hash = md.digest();
+    MessageDigest shabal256 = Crypto.shabal256();
+    shabal256.update(genSig);
+    shabal256.update(scoopData);
+    byte[] hash = shabal256.digest();
     return new BigInteger(1, new byte[] { hash[7], hash[6], hash[5], hash[4], hash[3], hash[2], hash[1], hash[0] });
   }
 

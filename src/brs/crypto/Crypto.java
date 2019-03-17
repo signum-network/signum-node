@@ -1,5 +1,6 @@
 package brs.crypto;
 
+import brs.crypto.hash.Shabal256;
 import brs.util.Convert;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.InvalidCipherTextException;
@@ -29,13 +30,17 @@ public final class Crypto {
     try {
       return MessageDigest.getInstance(algorithm);
     } catch (NoSuchAlgorithmException e) {
-      logger.info("Missing message digest algorithm: " + algorithm);
+      logger.info("Missing message shabalDigest algorithm: " + algorithm);
       throw new RuntimeException(e.getMessage(), e);
     }
   }
 
   public static MessageDigest sha256() {
     return getMessageDigest("SHA-256");
+  }
+
+  public static MessageDigest shabal256() {
+    return getMessageDigest(Shabal256.ALGORITHM);
   }
 
   public static byte[] getPublicKey(String secretPhrase) {

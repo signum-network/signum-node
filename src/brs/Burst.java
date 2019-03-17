@@ -4,6 +4,7 @@ import brs.AT.HandleATBlockTransactionsListener;
 import brs.assetexchange.AssetExchange;
 import brs.assetexchange.AssetExchangeImpl;
 import brs.blockchainlistener.DevNullListener;
+import brs.crypto.hash.ShabalProvider;
 import brs.db.BlockDb;
 import brs.db.cache.DBCacheManagerImpl;
 import brs.db.sql.Db;
@@ -37,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.security.Security;
 import java.sql.ResultSet;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -156,6 +158,9 @@ public final class Burst {
 
     try {
       long startTime = System.currentTimeMillis();
+
+      final ShabalProvider shabalProvider = new ShabalProvider();
+      Security.addProvider(shabalProvider);
 
       final TimeService timeService = new TimeServiceImpl();
 

@@ -2,14 +2,13 @@ package brs.grpc.handlers;
 
 import brs.Block;
 import brs.BlockchainProcessor;
-import brs.crypto.hash.Shabal256;
+import brs.Generator;
 import brs.grpc.StreamResponseGrpcApiHandler;
 import brs.grpc.proto.BrsApi;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Empty;
 import io.grpc.stub.StreamObserver;
 
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -22,16 +21,17 @@ public class GetMiningInfoHandler implements StreamResponseGrpcApiHandler<Empty,
      * Listener should close connection if it receives null.
      */
     private final Set<Consumer<BrsApi.MiningInfo>> listeners = new HashSet<>();
-
+    private final Generator generator;
     private final AtomicReference<BrsApi.MiningInfo> currentMiningInfo = new AtomicReference<>();
 
-    public GetMiningInfoHandler(BlockchainProcessor blockchainProcessor) {
+    public GetMiningInfoHandler(BlockchainProcessor blockchainProcessor, Generator generator) {
+        this.generator = generator;
         blockchainProcessor.addListener(this::onBlock, BlockchainProcessor.Event.BLOCK_PUSHED);
     }
 
     private void onBlock(Block block) {
         synchronized (currentMiningInfo) {
-            byte[] nextGenSig = calculateGenerationSignature(block);
+            byte[] nextGenSig = generator.calculateGenerationSignature(block.getGenerationSignature(), block.getGeneratorId());
             BrsApi.MiningInfo miningInfo = currentMiningInfo.get();
             if (miningInfo == null || !Arrays.equals(miningInfo.getGenerationSignature().toByteArray(), nextGenSig) || miningInfo.getHeight() - 1 != block.getHeight() || miningInfo.getBaseTarget() != block.getBaseTarget()) {
                 currentMiningInfo.set(BrsApi.MiningInfo.newBuilder()
@@ -78,18 +78,5 @@ public class GetMiningInfoHandler implements StreamResponseGrpcApiHandler<Empty,
                 responseObserver.onNext(miningInfo);
             }
         });
-    }
-
-    private byte[] calculateGenerationSignature(Block previousBlock) {
-        byte[] lastGenSig = previousBlock.getGenerationSignature();
-        long lastGenerator = previousBlock.getGeneratorId();
-
-        ByteBuffer buf = ByteBuffer.allocate(32 + 8);
-        buf.put(lastGenSig);
-        buf.putLong(lastGenerator);
-
-        Shabal256 md = new Shabal256();
-        md.update(buf.array());
-        return md.digest();
     }
 }

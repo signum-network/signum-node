@@ -3,21 +3,22 @@ package brs.http;
 import brs.Block;
 import brs.Blockchain;
 import brs.Burst;
-import brs.crypto.hash.Shabal256;
+import brs.Generator;
 import brs.util.Convert;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
-import java.nio.ByteBuffer;
 
 final class GetMiningInfo extends APIServlet.APIRequestHandler {
 
   private final Blockchain blockchain;
+  private final Generator generator;
 
-  GetMiningInfo(Blockchain blockchain) {
+  GetMiningInfo(Blockchain blockchain, Generator generator) {
     super(new APITag[] {APITag.MINING, APITag.INFO});
     this.blockchain = blockchain;
+    this.generator = generator;
   }
 	
   @Override
@@ -27,16 +28,7 @@ final class GetMiningInfo extends APIServlet.APIRequestHandler {
     response.addProperty("height", Long.toString((long)Burst.getBlockchain().getHeight() + 1));
 		
     Block lastBlock = blockchain.getLastBlock();
-    byte[] lastGenSig = lastBlock.getGenerationSignature();
-    long lastGenerator = lastBlock.getGeneratorId();
-		
-    ByteBuffer buf = ByteBuffer.allocate(32 + 8);
-    buf.put(lastGenSig);
-    buf.putLong(lastGenerator);
-		
-    Shabal256 md = new Shabal256();
-    md.update(buf.array());
-    byte[] newGenSig = md.digest();
+    byte[] newGenSig = generator.calculateGenerationSignature(lastBlock.getGenerationSignature(), lastBlock.getGeneratorId());
 		
     response.addProperty("generationSignature", Convert.toHexString(newGenSig));
     response.addProperty("baseTarget", Long.toString(lastBlock.getBaseTarget()));

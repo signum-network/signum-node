@@ -17,6 +17,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -110,13 +111,15 @@ public class SqlAccountStore implements AccountStore {
       }
 
       @Override
-      protected void bulkInsert(DSLContext ctx, ArrayList<Account> accounts) {
+      protected void bulkInsert(DSLContext ctx, Collection<Account> accounts) {
         ArrayList<Query> accountQueries = new ArrayList<>();
+        int height = Burst.getBlockchain().getHeight();
         for ( Account account: accounts ) {
           accountQueries.add(
                   ctx.mergeInto(ACCOUNT, ACCOUNT.ID, ACCOUNT.HEIGHT, ACCOUNT.CREATION_HEIGHT, ACCOUNT.PUBLIC_KEY, ACCOUNT.KEY_HEIGHT, ACCOUNT.BALANCE,
                           ACCOUNT.UNCONFIRMED_BALANCE, ACCOUNT.FORGED_BALANCE, ACCOUNT.NAME, ACCOUNT.DESCRIPTION, ACCOUNT.LATEST)
-                          .key(ACCOUNT.ID, ACCOUNT.HEIGHT).values(account.getId(), Burst.getBlockchain().getHeight(), account.getCreationHeight(), account.getPublicKey(), account.getKeyHeight(),
+                          .key(ACCOUNT.ID, ACCOUNT.HEIGHT)
+                          .values(account.getId(), height, account.getCreationHeight(), account.getPublicKey(), account.getKeyHeight(),
                           account.getBalanceNQT(), account.getUnconfirmedBalanceNQT(), account.getForgedBalanceNQT(), account.getName(), account.getDescription(), true)
           );
         }

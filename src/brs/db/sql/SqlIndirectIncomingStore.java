@@ -4,7 +4,9 @@ import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.IndirectIncomingStore;
+import brs.schema.tables.records.IndirectIncomingRecord;
 import org.jooq.DSLContext;
+import org.jooq.InsertValuesStep3;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -38,13 +40,22 @@ public class SqlIndirectIncomingStore implements IndirectIncomingStore {
                         .values(indirectIncoming.getAccountId(), indirectIncoming.getTransactionId(), indirectIncoming.getHeight())
                         .execute();
             }
+
+            @Override
+            void save(DSLContext ctx, IndirectIncoming[] indirectIncomings) {
+                InsertValuesStep3<IndirectIncomingRecord, Long, Long, Integer> insertQuery = ctx.insertInto(INDIRECT_INCOMING, INDIRECT_INCOMING.ACCOUNT_ID, INDIRECT_INCOMING.TRANSACTION_ID, INDIRECT_INCOMING.HEIGHT);
+                for (IndirectIncoming indirectIncoming : indirectIncomings) {
+                    insertQuery = insertQuery.values(indirectIncoming.getAccountId(), indirectIncoming.getTransactionId(), indirectIncoming.getHeight());
+                }
+                insertQuery.execute();
+            }
         };
     }
 
     @Override
     public void addIndirectIncomings(Collection<IndirectIncoming> indirectIncomings) {
         try (DSLContext ctx = Db.getDSLContext()) {
-            indirectIncomings.forEach(indirectIncoming -> indirectIncomingTable.save(ctx, indirectIncoming));
+            indirectIncomingTable.save(ctx, indirectIncomings.toArray(new IndirectIncoming[0]));
         }
     }
 

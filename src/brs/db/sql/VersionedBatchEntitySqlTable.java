@@ -20,7 +20,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     this.dbCacheManager = dbCacheManager;
   }
 
-  protected abstract void bulkInsert(DSLContext ctx, ArrayList<T> t);
+  protected abstract void bulkInsert(DSLContext ctx, Collection<T> t);
 
   @Override
   public boolean delete(T t) {
@@ -86,7 +86,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
       updateBatch.execute();
     }
 
-    List<Map.Entry<DbKey, Object>> entries = new ArrayList<>(Db.getBatch(table).entrySet());
+    Set<Map.Entry<DbKey, Object>> entries = Db.getBatch(table).entrySet();
     HashMap<DbKey, T> itemOf = new HashMap<>();
     for (Map.Entry<DbKey, Object> entry : entries) {
       if (entry.getValue() != null) {

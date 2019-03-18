@@ -233,7 +233,7 @@ public abstract class TransactionType {
 
   abstract void validateAttachment(Transaction transaction) throws BurstException.ValidationException;
 
-  // return false iff double spending
+  // return false if double spending
   public final boolean applyUnconfirmed(Transaction transaction, Account senderAccount) {
     long totalAmountNQT = calculateTransactionAmountNQT(transaction);
     logger.trace("applyUnconfirmed: " + senderAccount.getUnconfirmedBalanceNQT() + " < totalamount: " + totalAmountNQT + " = false");

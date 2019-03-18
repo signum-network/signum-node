@@ -41,6 +41,12 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
   void save(DSLContext ctx, T t) {
   }
 
+  void save(DSLContext ctx, T[] ts) {
+    for (T t : ts) {
+      save(ctx, t);
+    }
+  }
+
   List<SortField> defaultSort() {
     return defaultSort;
   }

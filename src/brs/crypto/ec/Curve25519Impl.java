@@ -54,11 +54,11 @@ public class Curve25519Impl implements Curve25519 {
 
     @Override
     public boolean verify(byte[] message, byte[] signature, byte[] publicKey, boolean enforceCanonical) {
-        if (enforceCanonical && Curve25519.isCanonicalSignature(signature)) {
+        if (enforceCanonical && !Curve25519.isCanonicalSignature(signature)) {
             return false;
         }
 
-        if (enforceCanonical && Curve25519.isCanonicalPublicKey(publicKey)) {
+        if (enforceCanonical && !Curve25519.isCanonicalPublicKey(publicKey)) {
             return false;
         }
 

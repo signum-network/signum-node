@@ -4,32 +4,32 @@ import "google/protobuf/any.proto";
 option java_package = "brs.grpc.proto";
 
 service BrsApiService {
-    rpc BroadcastTransaction(TODO) returns (TODO) {}
-    rpc BuyAlias(TODO) returns (TODO) {}
-    rpc CancelAskOrder(TODO) returns (TODO) {}
-    rpc CancelBidOrder(TODO) returns (TODO) {}
-    rpc CreateATProgram(TODO) returns (TODO) {}
-    rpc DgsDelisting(TODO) returns (TODO) {}
-    rpc DgsDelivery(TODO) returns (TODO) {}
-    rpc DgsFeedback(TODO) returns (TODO) {}
-    rpc DgsListing(TODO) returns (TODO) {}
-    rpc DgsPriceChange(TODO) returns (TODO) {}
-    rpc DgsPurchase(TODO) returns (TODO) {}
-    rpc DgsQuantityChange(TODO) returns (TODO) {}
-    rpc DgsRefund(TODO) returns (TODO) {}
-    rpc EscrowSign(TODO) returns (TODO) {}
+    rpc BroadcastTransaction(TransactionBytes) returns (TransactionBroadcastResult) {}
+    rpc BuyAlias(TODO) returns (CreateTransactionResponse) {}
+    rpc CancelAskOrder(TODO) returns (CreateTransactionResponse) {}
+    rpc CancelBidOrder(TODO) returns (CreateTransactionResponse) {}
+    rpc CreateATProgram(TODO) returns (CreateTransactionResponse) {}
+    rpc DgsDelisting(TODO) returns (CreateTransactionResponse) {}
+    rpc DgsDelivery(TODO) returns (CreateTransactionResponse) {}
+    rpc DgsFeedback(TODO) returns (CreateTransactionResponse) {}
+    rpc DgsListing(TODO) returns (CreateTransactionResponse) {}
+    rpc DgsPriceChange(TODO) returns (CreateTransactionResponse) {}
+    rpc DgsPurchase(TODO) returns (CreateTransactionResponse) {}
+    rpc DgsQuantityChange(TODO) returns (CreateTransactionResponse) {}
+    rpc DgsRefund(TODO) returns (CreateTransactionResponse) {}
+    rpc EscrowSign(TODO) returns (CreateTransactionResponse) {}
     rpc GetAccount(GetAccountRequest) returns (Account) {}
-    rpc GetAccountATs(TODO) returns (TODO) {}
-    rpc GetAccountBlockIds(TODO) returns (TODO) {}
-    rpc GetAccountBlocks(TODO) returns (TODO) {}
+    rpc GetAccountATs(GetAccountRequest) returns (TODO) {}
+    rpc GetAccountBlockIds(GetAccountRequest) returns (TODO) {}
+    rpc GetAccountBlocks(GetAccountRequest) returns (TODO) {}
     rpc GetAccountCurrentAskOrderIds(TODO) returns (TODO) {}
     rpc GetAccountCurrentAskOrders(TODO) returns (TODO) {}
     rpc GetAccountCurrentBidOrderIds(TODO) returns (TODO) {}
     rpc GetAccountCurrentBidOrders(TODO) returns (TODO) {}
-    rpc GetAccountEscrowTransactions(TODO) returns (TODO) {}
-    rpc GetAccountPublicKey(TODO) returns (TODO) {}
+    rpc GetAccountEscrowTransactions(GetAccountRequest) returns (TODO) {}
+    rpc GetAccountPublicKey(GetAccountRequest) returns (TODO) {}
     rpc GetAccounts(GetAccountsRequest) returns (Accounts) {}
-    rpc GetAccountSubscriptions(TODO) returns (TODO) {}
+    rpc GetAccountSubscriptions(GetAccountRequest) returns (TODO) {}
     rpc GetAccountsWithName(TODO) returns (TODO) {}
     rpc GetAccountsWithRewardRecipient(TODO) returns (TODO) {}
     rpc GetAccountTransactionIds(TODO) returns (TODO) {}
@@ -51,14 +51,14 @@ service BrsApiService {
     rpc GetAssetTransfers(TODO) returns (TODO) {}
     rpc GetAT(TODO) returns (TODO) {}
     rpc GetATIds(TODO) returns (TODO) {}
-    rpc GetBalance(TODO) returns (TODO) {}
+    rpc GetBalance(GetAccountRequest) returns (TODO) {}
     rpc GetBidOrder(TODO) returns (TODO) {}
     rpc GetBidOrderIds(TODO) returns (TODO) {}
     rpc GetBidOrders(TODO) returns (TODO) {}
     rpc GetBlock(GetBlockRequest) returns (Block) {}
     rpc GetBlockchainStatus(TODO) returns (TODO) {}
     rpc GetBlockId(TODO) returns (TODO) {}
-    rpc GetConstants(TODO) returns (TODO) {}
+    rpc GetConstants(google.protobuf.Empty) returns (TODO) {}
     rpc GetDGSGood(TODO) returns (TODO) {}
     rpc GetDGSGoods(TODO) returns (TODO) {}
     rpc GetDGSPendingPurchases(TODO) returns (TODO) {}
@@ -70,32 +70,42 @@ service BrsApiService {
     rpc GetPeer(TODO) returns (TODO) {}
     rpc GetPeers(TODO) returns (TODO) {}
     rpc GetRewardRecipient(TODO) returns (TODO) {}
-    rpc GetState(TODO) returns (TODO) {}
+    rpc GetState(google.protobuf.Empty) returns (TODO) {}
     rpc GetSubscription(TODO) returns (TODO) {}
     rpc GetSubscriptionsToAccount(TODO) returns (TODO) {}
-    rpc GetTime(TODO) returns (TODO) {}
+    rpc GetTime(google.protobuf.Empty) returns (TODO) {}
     rpc GetTrades(TODO) returns (TODO) {}
     rpc GetTransaction(GetTransactionRequest) returns (Transaction) {}
     rpc GetTransactionBytes(GetTransactionRequest) returns (TransactionBytes) {}
     rpc GetUnconfirmedTransactionIds(TODO) returns (TODO) {}
     rpc GetUnconfirmedTransactions(TODO) returns (TODO) {}
-    rpc IssueAsset(TODO) returns (TODO) {}
-    rpc ParseTransaction(TODO) returns (TODO) {}
-    rpc PlaceAskOrder(TODO) returns (TODO) {}
-    rpc PlaceBidOrder(TODO) returns (TODO) {}
-    rpc SellAlias(TODO) returns (TODO) {}
-    rpc SendMoney(TODO) returns (TODO) {}
-    rpc SendMoneyEscrow(TODO) returns (TODO) {}
-    rpc SendMoneyMulti(TODO) returns (TODO) {}
-    rpc SendMoneyMultiSame(TODO) returns (TODO) {}
-    rpc SendMoneySubscription(TODO) returns (TODO) {}
-    rpc SetAccountInfo(TODO) returns (TODO) {}
-    rpc SetAlias(TODO) returns (TODO) {}
-    rpc SetRewardRecipient(TODO) returns (TODO) {}
+    rpc IssueAsset(TODO) returns (CreateTransactionResponse) {}
+    rpc ParseTransaction(TransactionBytes) returns (Transaction) {}
+    rpc PlaceAskOrder(TODO) returns (CreateTransactionResponse) {}
+    rpc PlaceBidOrder(TODO) returns (CreateTransactionResponse) {}
+    rpc SellAlias(TODO) returns (CreateTransactionResponse) {}
+    rpc SendMoney(TODO) returns (CreateTransactionResponse) {}
+    rpc SendMoneyEscrow(TODO) returns (CreateTransactionResponse) {}
+    rpc SendMoneyMulti(TODO) returns (CreateTransactionResponse) {}
+    rpc SendMoneyMultiSame(TODO) returns (CreateTransactionResponse) {}
+    rpc SendMoneySubscription(TODO) returns (CreateTransactionResponse) {}
+    rpc SetAccountInfo(TODO) returns (CreateTransactionResponse) {}
+    rpc SetAlias(TODO) returns (CreateTransactionResponse) {}
+    rpc SetRewardRecipient(TODO) returns (CreateTransactionResponse) {}
     rpc SubmitNonce(SubmitNonceRequest) returns (SubmitNonceResponse) {}
-    rpc SubscriptionCancel(TODO) returns (TODO) {}
+    rpc SubscriptionCancel(TODO) returns (CreateTransactionResponse) {}
     rpc SuggestFee(TODO) returns (TODO) {}
-    rpc TransferAsset(TODO) returns (TODO) {}
+    rpc TransferAsset(TODO) returns (CreateTransactionResponse) {}
+}
+
+message TransactionBroadcastResult {
+    uint64 id = 1;
+    bytes fullHash = 2;
+}
+
+message CreateTransactionResponse {
+    Transaction transaction = 1;
+    bytes unsignedTransactionBytes = 2;
 }
 
 message TODO {
@@ -173,13 +183,14 @@ message Transaction {
     uint64 block = 11;
     uint32 blockHeight = 12;
     uint32 blockTimestamp = 13;
-    repeated google.protobuf.Any appendices = 14;
-    bytes signature = 15;
-    bytes referencedTransactionFullHash = 16;
-    bytes fullHash = 17;
-    sint32 confirmations = 18;
-    uint64 ecBlockId = 19;
-    uint32 ecBlockHeight = 20;
+    google.protobuf.Any attachment = 14;
+    repeated google.protobuf.Any appendages = 15;
+    bytes signature = 16;
+    bytes referencedTransactionFullHash = 17;
+    bytes fullHash = 18;
+    sint32 confirmations = 19;
+    uint64 ecBlockId = 20;
+    uint32 ecBlockHeight = 21;
 }
 
 message MessageAppendix {

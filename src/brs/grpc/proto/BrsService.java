@@ -14,7 +14,6 @@ import io.grpc.stub.StreamObserver;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 public class BrsService extends BrsApiServiceGrpc.BrsApiServiceImplBase {
 
@@ -32,49 +31,49 @@ public class BrsService extends BrsApiServiceGrpc.BrsApiServiceImplBase {
         this.handlers = Collections.unmodifiableMap(handlerMap);
     }
 
-    private <T extends GrpcApiHandler<?,?>> Optional<T> getHandler(Class<T> handlerClass, StreamObserver<?> streamObserver) {
+    private <T extends GrpcApiHandler<S,R>, S, R> void handleRequest(Class<T> handlerClass, S request, StreamObserver<R> response) {
         GrpcApiHandler<?, ?> handler = handlers.get(handlerClass);
         if (!handlerClass.isInstance(handler)) {
-            streamObserver.onError(ProtoBuilder.buildError(new HandlerNotFoundException("Handler not registered: " + handlerClass)));
-            return Optional.empty();
+            response.onError(ProtoBuilder.buildError(new HandlerNotFoundException("Handler not registered: " + handlerClass)));
         } else {
-            return Optional.of(handlerClass.cast(handler));
+            T handlerInstance = handlerClass.cast(handler);
+            handlerInstance.handleRequest(request, response);
         }
     }
 
     @Override
     public void getMiningInfo(Empty request, StreamObserver<BrsApi.MiningInfo> responseObserver) {
-        getHandler(GetMiningInfoHandler.class, responseObserver).ifPresent(handler -> handler.handleRequest(request, responseObserver));
+        handleRequest(GetMiningInfoHandler.class, request, responseObserver);
     }
 
     @Override
     public void submitNonce(BrsApi.SubmitNonceRequest request, StreamObserver<BrsApi.SubmitNonceResponse> responseObserver) {
-        getHandler(SubmitNonceHandler.class, responseObserver).ifPresent(handler -> handler.handleRequest(request, responseObserver));
+        handleRequest(SubmitNonceHandler.class, request, responseObserver);
     }
 
     @Override
     public void getAccount(BrsApi.GetAccountRequest request, StreamObserver<BrsApi.Account> responseObserver) {
-        getHandler(GetAccountHandler.class, responseObserver).ifPresent(handler -> handler.handleRequest(request, responseObserver));
+        handleRequest(GetAccountHandler.class, request, responseObserver);
     }
 
     @Override
     public void getAccounts(BrsApi.GetAccountsRequest request, StreamObserver<BrsApi.Accounts> responseObserver) {
-        getHandler(GetAccountsHandler.class, responseObserver).ifPresent(handler -> handler.handleRequest(request, responseObserver));
+        handleRequest(GetAccountsHandler.class, request, responseObserver);
     }
 
     @Override
     public void getBlock(BrsApi.GetBlockRequest request, StreamObserver<BrsApi.Block> responseObserver) {
-        getHandler(GetBlockHandler.class, responseObserver).ifPresent(handler -> handler.handleRequest(request, responseObserver));
+        handleRequest(GetBlockHandler.class, request, responseObserver);
     }
 
     @Override
     public void getTransaction(BrsApi.GetTransactionRequest request, StreamObserver<BrsApi.Transaction> responseObserver) {
-        getHandler(GetTransactionHandler.class, responseObserver).ifPresent(handler -> handler.handleRequest(request, responseObserver));
+        handleRequest(GetTransactionHandler.class, request, responseObserver);
     }
 
     @Override
     public void getTransactionBytes(BrsApi.GetTransactionRequest request, StreamObserver<BrsApi.TransactionBytes> responseObserver) {
-        getHandler(GetTransactionBytesHandler.class, responseObserver).ifPresent(handler -> handler.handleRequest(request, responseObserver));
+        handleRequest(GetTransactionBytesHandler.class, request, responseObserver);
     }
 
     private class HandlerNotFoundException extends Exception {

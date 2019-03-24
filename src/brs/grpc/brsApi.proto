@@ -3,15 +3,103 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/any.proto";
 option java_package = "brs.grpc.proto";
 
-
 service BrsApiService {
-    rpc GetBlock(GetBlockRequest) returns (Block) {}
+    rpc BroadcastTransaction(TODO) returns (TODO) {}
+    rpc BuyAlias(TODO) returns (TODO) {}
+    rpc CancelAskOrder(TODO) returns (TODO) {}
+    rpc CancelBidOrder(TODO) returns (TODO) {}
+    rpc CreateATProgram(TODO) returns (TODO) {}
+    rpc DgsDelisting(TODO) returns (TODO) {}
+    rpc DgsDelivery(TODO) returns (TODO) {}
+    rpc DgsFeedback(TODO) returns (TODO) {}
+    rpc DgsListing(TODO) returns (TODO) {}
+    rpc DgsPriceChange(TODO) returns (TODO) {}
+    rpc DgsPurchase(TODO) returns (TODO) {}
+    rpc DgsQuantityChange(TODO) returns (TODO) {}
+    rpc DgsRefund(TODO) returns (TODO) {}
+    rpc EscrowSign(TODO) returns (TODO) {}
     rpc GetAccount(GetAccountRequest) returns (Account) {}
+    rpc GetAccountATs(TODO) returns (TODO) {}
+    rpc GetAccountBlockIds(TODO) returns (TODO) {}
+    rpc GetAccountBlocks(TODO) returns (TODO) {}
+    rpc GetAccountCurrentAskOrderIds(TODO) returns (TODO) {}
+    rpc GetAccountCurrentAskOrders(TODO) returns (TODO) {}
+    rpc GetAccountCurrentBidOrderIds(TODO) returns (TODO) {}
+    rpc GetAccountCurrentBidOrders(TODO) returns (TODO) {}
+    rpc GetAccountEscrowTransactions(TODO) returns (TODO) {}
+    rpc GetAccountPublicKey(TODO) returns (TODO) {}
     rpc GetAccounts(GetAccountsRequest) returns (Accounts) {}
+    rpc GetAccountSubscriptions(TODO) returns (TODO) {}
+    rpc GetAccountsWithName(TODO) returns (TODO) {}
+    rpc GetAccountsWithRewardRecipient(TODO) returns (TODO) {}
+    rpc GetAccountTransactionIds(TODO) returns (TODO) {}
+    rpc GetAccountTransactions(TODO) returns (TODO) {}
+    rpc GetAlias(TODO) returns (TODO) {}
+    rpc GetAliases(TODO) returns (TODO) {}
+    rpc GetAllAssets(TODO) returns (TODO) {}
+    rpc GetAllOpenAskOrders(TODO) returns (TODO) {}
+    rpc GetAllOpenBidOrders(TODO) returns (TODO) {}
+    rpc GetAllTrades(TODO) returns (TODO) {}
+    rpc GetAskOrder(TODO) returns (TODO) {}
+    rpc GetAskOrderIds(TODO) returns (TODO) {}
+    rpc GetAskOrders(TODO) returns (TODO) {}
+    rpc GetAsset(TODO) returns (TODO) {}
+    rpc GetAssetAccounts(TODO) returns (TODO) {}
+    rpc GetAssetIds(TODO) returns (TODO) {}
+    rpc GetAssets(TODO) returns (TODO) {}
+    rpc GetAssetsByIssuer(TODO) returns (TODO) {}
+    rpc GetAssetTransfers(TODO) returns (TODO) {}
+    rpc GetAT(TODO) returns (TODO) {}
+    rpc GetATIds(TODO) returns (TODO) {}
+    rpc GetBalance(TODO) returns (TODO) {}
+    rpc GetBidOrder(TODO) returns (TODO) {}
+    rpc GetBidOrderIds(TODO) returns (TODO) {}
+    rpc GetBidOrders(TODO) returns (TODO) {}
+    rpc GetBlock(GetBlockRequest) returns (Block) {}
+    rpc GetBlockchainStatus(TODO) returns (TODO) {}
+    rpc GetBlockId(TODO) returns (TODO) {}
+    rpc GetConstants(TODO) returns (TODO) {}
+    rpc GetDGSGood(TODO) returns (TODO) {}
+    rpc GetDGSGoods(TODO) returns (TODO) {}
+    rpc GetDGSPendingPurchases(TODO) returns (TODO) {}
+    rpc GetDGSPurchase(TODO) returns (TODO) {}
+    rpc GetDGSPurchases(TODO) returns (TODO) {}
+    rpc GetECBlock(TODO) returns (TODO) {}
+    rpc GetEscrowTransaction(TODO) returns (TODO) {}
     rpc GetMiningInfo(google.protobuf.Empty) returns (stream MiningInfo) {}
+    rpc GetPeer(TODO) returns (TODO) {}
+    rpc GetPeers(TODO) returns (TODO) {}
+    rpc GetRewardRecipient(TODO) returns (TODO) {}
+    rpc GetState(TODO) returns (TODO) {}
+    rpc GetSubscription(TODO) returns (TODO) {}
+    rpc GetSubscriptionsToAccount(TODO) returns (TODO) {}
+    rpc GetTime(TODO) returns (TODO) {}
+    rpc GetTrades(TODO) returns (TODO) {}
     rpc GetTransaction(GetTransactionRequest) returns (Transaction) {}
     rpc GetTransactionBytes(GetTransactionRequest) returns (TransactionBytes) {}
+    rpc GetUnconfirmedTransactionIds(TODO) returns (TODO) {}
+    rpc GetUnconfirmedTransactions(TODO) returns (TODO) {}
+    rpc IssueAsset(TODO) returns (TODO) {}
+    rpc ParseTransaction(TODO) returns (TODO) {}
+    rpc PlaceAskOrder(TODO) returns (TODO) {}
+    rpc PlaceBidOrder(TODO) returns (TODO) {}
+    rpc SellAlias(TODO) returns (TODO) {}
+    rpc SendMoney(TODO) returns (TODO) {}
+    rpc SendMoneyEscrow(TODO) returns (TODO) {}
+    rpc SendMoneyMulti(TODO) returns (TODO) {}
+    rpc SendMoneyMultiSame(TODO) returns (TODO) {}
+    rpc SendMoneySubscription(TODO) returns (TODO) {}
+    rpc SetAccountInfo(TODO) returns (TODO) {}
+    rpc SetAlias(TODO) returns (TODO) {}
+    rpc SetRewardRecipient(TODO) returns (TODO) {}
     rpc SubmitNonce(SubmitNonceRequest) returns (SubmitNonceResponse) {}
+    rpc SubscriptionCancel(TODO) returns (TODO) {}
+    rpc SuggestFee(TODO) returns (TODO) {}
+    rpc TransferAsset(TODO) returns (TODO) {}
+}
+
+message TODO {
+
 }
 
 message GetBlockRequest {

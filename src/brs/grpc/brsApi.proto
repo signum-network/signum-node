@@ -14,14 +14,11 @@ service BrsApiService {
     rpc GetAccountCurrentBidOrderIds(TODO) returns (TODO) {}
     rpc GetAccountCurrentBidOrders(TODO) returns (TODO) {}
     rpc GetAccountEscrowTransactions(GetAccountRequest) returns (TODO) {}
-    rpc GetAccountPublicKey(GetAccountRequest) returns (TODO) {}
     rpc GetAccounts(GetAccountsRequest) returns (Accounts) {}
     rpc GetAccountSubscriptions(GetAccountRequest) returns (TODO) {}
-    rpc GetAccountsWithName(TODO) returns (TODO) {}
-    rpc GetAccountsWithRewardRecipient(TODO) returns (TODO) {}
     rpc GetAccountTransactionIds(TODO) returns (TODO) {}
     rpc GetAccountTransactions(TODO) returns (TODO) {}
-    rpc GetAlias(TODO) returns (TODO) {}
+    rpc GetAlias(GetAliasRequest) returns (Alias) {}
     rpc GetAliases(TODO) returns (TODO) {}
     rpc GetAllAssets(TODO) returns (TODO) {}
     rpc GetAllOpenAskOrders(TODO) returns (TODO) {}
@@ -43,8 +40,6 @@ service BrsApiService {
     rpc GetBidOrderIds(TODO) returns (TODO) {}
     rpc GetBidOrders(TODO) returns (TODO) {}
     rpc GetBlock(GetBlockRequest) returns (Block) {}
-    rpc GetBlockchainStatus(TODO) returns (TODO) {}
-    rpc GetBlockId(TODO) returns (TODO) {}
     rpc GetConstants(google.protobuf.Empty) returns (TODO) {}
     rpc GetDGSGood(TODO) returns (TODO) {}
     rpc GetDGSGoods(TODO) returns (TODO) {}
@@ -54,13 +49,12 @@ service BrsApiService {
     rpc GetECBlock(TODO) returns (TODO) {}
     rpc GetEscrowTransaction(TODO) returns (TODO) {}
     rpc GetMiningInfo(google.protobuf.Empty) returns (stream MiningInfo) {}
-    rpc GetPeer(TODO) returns (TODO) {}
-    rpc GetPeers(TODO) returns (TODO) {}
-    rpc GetRewardRecipient(TODO) returns (TODO) {}
-    rpc GetState(google.protobuf.Empty) returns (TODO) {}
+    rpc GetPeer(GetPeerRequest) returns (Peer) {}
+    rpc GetPeers(GetPeersRequest) returns (Peers) {}
+    rpc GetState(google.protobuf.Empty) returns (State) {}
     rpc GetSubscription(TODO) returns (TODO) {}
     rpc GetSubscriptionsToAccount(TODO) returns (TODO) {}
-    rpc GetTime(google.protobuf.Empty) returns (TODO) {}
+    rpc GetCurrentTime(google.protobuf.Empty) returns (Time) {}
     rpc GetTrades(TODO) returns (TODO) {}
     rpc GetTransaction(GetTransactionRequest) returns (Transaction) {}
     rpc GetUnconfirmedTransactionIds(TODO) returns (TODO) {}
@@ -86,6 +80,73 @@ message BasicTransaction {
     bytes referencedTransactionFullHash = 12;
 }
 
+message GetPeerRequest {
+    string peerAddress = 1;
+}
+
+message GetPeersRequest {
+    bool active = 1;
+    PeerState state = 2;
+}
+
+enum PeerState {
+    NON_CONNECTED = 0;
+    CONNECTED = 1;
+    DISCONNECTED = 2;
+}
+
+message Peer {
+    PeerState state = 1;
+    string announcedAddress = 2;
+    bool shareAddress = 3;
+    uint64 downloadedVolume = 4;
+    uint64 uploadedVolume = 5;
+    string application = 6;
+    string version = 7;
+    string platform = 8;
+    bool blacklisted = 9;
+    uint32 lastUpdated = 10;
+}
+
+message Peers {
+    repeated string peerAddresses = 1;
+}
+
+message GetAliasRequest {
+    uint64 id = 1;
+    string name = 2;
+}
+
+message Alias {
+    uint64 id = 1;
+    uint64 owner = 2;
+    string name = 3;
+    string uri = 4;
+    uint32 timestamp = 5;
+}
+
+message Time {
+    uint32 time = 1;
+}
+
+message State {
+    string application = 1;
+    string version = 2;
+    Time time = 3;
+    uint64 lastBlock = 4;
+    string cumulativeDifficulty = 5;
+    uint64 totalEffectiveBalance = 6;
+    uint32 numberOfPeers = 7;
+    uint32 numberOfForgers = 8;
+    string lastBlockchainFeeder = 9;
+    uint32 lastBlockchainFeederHeight = 10;
+    bool isScanning = 11;
+    uint32 availableProcessors = 12;
+    uint64 maxMemory = 13;
+    uint64 totalMemory = 14;
+    uint64 freeMemory = 15;
+}
+
 message FeeSuggestion {
     uint64 cheap = 1;
     uint64 standard = 2;
@@ -99,6 +160,7 @@ message TransactionBroadcastResult {
 
 message CreateTransactionResponse {
     bytes unsignedTransactionBytes = 1;
+    BasicTransaction transaction = 2;
 }
 
 message TODO {

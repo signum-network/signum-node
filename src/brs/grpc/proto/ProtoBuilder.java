@@ -82,31 +82,41 @@ public final class ProtoBuilder {
         return builder.build();
     }
 
-    public static BrsApi.Transaction buildTransaction(Blockchain blockchain, Transaction transaction) {
-        BrsApi.Transaction.Builder builder = BrsApi.Transaction.newBuilder()
-                .setId(transaction.getId())
+    public static BrsApi.BasicTransaction buildBasicTransaction(Transaction transaction) {
+        BrsApi.BasicTransaction.Builder builder = BrsApi.BasicTransaction.newBuilder()
+                .setSender(ByteString.copyFrom(transaction.getSenderPublicKey()))
+                .setRecipient(transaction.getRecipientId())
                 .setVersion(transaction.getVersion())
                 .setType(transaction.getType().getType())
                 .setSubtype(transaction.getType().getSubtype())
-                .setTimestamp(transaction.getTimestamp())
-                .setDeadline(transaction.getDeadline())
-                .setSender(ByteString.copyFrom(transaction.getSenderPublicKey()))
-                .setRecipient(transaction.getRecipientId())
                 .setAmount(transaction.getAmountNQT())
                 .setFee(transaction.getFeeNQT())
+                .setTimestamp(transaction.getTimestamp())
+                .setDeadline(transaction.getDeadline())
+                .setReferencedTransactionFullHash(ByteString.copyFrom(Convert.parseHexString(transaction.getReferencedTransactionFullHash())))
+                .addAllAppendages(transaction.getAppendages()
+                        .stream()
+                        .map(Appendix::getProtobufMessage)
+                        .collect(Collectors.toList()));
+        if (transaction.getAttachment() != null) {
+            builder.setAttachment(transaction.getAttachment().getProtobufMessage());
+        }
+        return builder.build();
+    }
+
+    public static BrsApi.Transaction buildTransaction(Blockchain blockchain, Transaction transaction) { // TODO refactor blockchain out
+        return BrsApi.Transaction.newBuilder()
+                .setTransaction(buildBasicTransaction(transaction))
+                .setId(transaction.getId())
+                .setTransactionBytes(ByteString.copyFrom(transaction.getBytes()))
                 .setBlock(transaction.getBlockId())
                 .setBlockHeight(transaction.getHeight())
                 .setBlockTimestamp(transaction.getBlockTimestamp())
                 .setSignature(ByteString.copyFrom(transaction.getSignature()))
-                .setReferencedTransactionFullHash(ByteString.copyFrom(Convert.parseHexString(transaction.getReferencedTransactionFullHash())))
                 .setFullHash(ByteString.copyFrom(Convert.parseHexString(transaction.getFullHash())))
                 .setConfirmations(blockchain.getHeight() - transaction.getHeight())
                 .setEcBlockId(transaction.getECBlockId())
                 .setEcBlockHeight(transaction.getECBlockHeight())
-                .addAllAppendices(transaction.getAppendages().stream()
-                        .map(Appendix::getProtobufMessage)
-                        .collect(Collectors.toList()));
-
-        return builder.build();
+                .build();
     }
 }

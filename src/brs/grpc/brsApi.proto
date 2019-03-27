@@ -71,7 +71,7 @@ message BasicTransaction {
     bytes sender = 1;
     uint64 recipient = 2;
     uint32 version = 3; // Auto-filled if needed
-    uint32 type = 4; // Auto-filled if needed
+    uint32 type = 4; // Auto-filled if needed TODO we could remove this?
     uint32 subtype = 5; // Auto-filled if needed
     uint64 amount = 6;
     uint64 fee = 7;

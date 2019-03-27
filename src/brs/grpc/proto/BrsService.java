@@ -33,6 +33,7 @@ public class BrsService extends BrsApiServiceGrpc.BrsApiServiceImplBase {
         handlerMap.put(GetCurrentTimeHandler.class, new GetCurrentTimeHandler(timeService));
         handlerMap.put(BroadcastTransactionHandler.class, new BroadcastTransactionHandler(transactionProcessor));
         handlerMap.put(GetStateHandler.class, new GetStateHandler(timeService, blockchain, generator, blockchainProcessor));
+        handlerMap.put(GetPeersHandler.class, new GetPeersHandler());
         this.handlers = Collections.unmodifiableMap(handlerMap);
     }
 
@@ -101,6 +102,16 @@ public class BrsService extends BrsApiServiceGrpc.BrsApiServiceImplBase {
     @Override
     public void getState(Empty request, StreamObserver<BrsApi.State> responseObserver) {
         handleRequest(GetStateHandler.class, request, responseObserver);
+    }
+
+    @Override
+    public void getPeers(BrsApi.GetPeersRequest request, StreamObserver<BrsApi.Peers> responseObserver) {
+        handleRequest(GetPeersHandler.class, request, responseObserver);
+    }
+
+    @Override
+    public void getPeer(BrsApi.GetPeerRequest request, StreamObserver<BrsApi.Peer> responseObserver) {
+        handleRequest(GetPeerHandler.class, request, responseObserver);
     }
 
     private class HandlerNotFoundException extends Exception {

@@ -8,6 +8,7 @@ import brs.grpc.GrpcApiHandler;
 import brs.grpc.handlers.*;
 import brs.services.AccountService;
 import brs.services.BlockService;
+import brs.services.TimeService;
 import com.google.protobuf.Empty;
 import io.grpc.stub.StreamObserver;
 
@@ -19,7 +20,7 @@ public class BrsService extends BrsApiServiceGrpc.BrsApiServiceImplBase {
 
     private final Map<Class<? extends GrpcApiHandler<?,?>>, GrpcApiHandler<?,?>> handlers;
 
-    public BrsService(BlockchainProcessor blockchainProcessor, Blockchain blockchain, BlockService blockService, AccountService accountService, Generator generator, TransactionProcessor transactionProcessor) {
+    public BrsService(BlockchainProcessor blockchainProcessor, Blockchain blockchain, BlockService blockService, AccountService accountService, Generator generator, TransactionProcessor transactionProcessor, TimeService timeService) {
         Map<Class<? extends GrpcApiHandler<?,?>>, GrpcApiHandler<?,?>> handlerMap = new HashMap<>();
         handlerMap.put(GetMiningInfoHandler.class, new GetMiningInfoHandler(blockchainProcessor, generator));
         handlerMap.put(SubmitNonceHandler.class, new SubmitNonceHandler(blockchain, accountService, generator));
@@ -27,7 +28,11 @@ public class BrsService extends BrsApiServiceGrpc.BrsApiServiceImplBase {
         handlerMap.put(GetAccountHandler.class, new GetAccountHandler(accountService));
         handlerMap.put(GetAccountsHandler.class, new GetAccountsHandler(accountService));
         handlerMap.put(GetTransactionHandler.class, new GetTransactionHandler(blockchain, transactionProcessor));
-        handlerMap.put(GetTransactionBytesHandler.class, new GetTransactionBytesHandler(blockchain, transactionProcessor));
+        handlerMap.put(GetTransactionBytesHandler.class, new GetTransactionBytesHandler());
+        handlerMap.put(CompleteBasicTransactionHandler.class, new CompleteBasicTransactionHandler(timeService));
+        handlerMap.put(GetCurrentTimeHandler.class, new GetCurrentTimeHandler(timeService));
+        handlerMap.put(BroadcastTransactionHandler.class, new BroadcastTransactionHandler(transactionProcessor));
+        handlerMap.put(GetStateHandler.class, new GetStateHandler(timeService, blockchain, generator, blockchainProcessor));
         this.handlers = Collections.unmodifiableMap(handlerMap);
     }
 
@@ -74,8 +79,28 @@ public class BrsService extends BrsApiServiceGrpc.BrsApiServiceImplBase {
     }
 
     @Override
-    public void getTransactionBytes(BrsApi.GetTransactionRequest request, StreamObserver<BrsApi.TransactionBytes> responseObserver) {
+    public void getTransactionBytes(BrsApi.BasicTransaction request, StreamObserver<BrsApi.TransactionBytes> responseObserver) {
         handleRequest(GetTransactionBytesHandler.class, request, responseObserver);
+    }
+
+    @Override
+    public void completeBasicTransaction(BrsApi.BasicTransaction request, StreamObserver<BrsApi.BasicTransaction> responseObserver) {
+        handleRequest(CompleteBasicTransactionHandler.class, request, responseObserver);
+    }
+
+    @Override
+    public void getCurrentTime(Empty request, StreamObserver<BrsApi.Time> responseObserver) {
+        handleRequest(GetCurrentTimeHandler.class, request, responseObserver);
+    }
+
+    @Override
+    public void broadcastTransaction(BrsApi.TransactionBytes request, StreamObserver<BrsApi.TransactionBroadcastResult> responseObserver) {
+        handleRequest(BroadcastTransactionHandler.class, request, responseObserver);
+    }
+
+    @Override
+    public void getState(Empty request, StreamObserver<BrsApi.State> responseObserver) {
+        handleRequest(GetStateHandler.class, request, responseObserver);
     }
 
     private class HandlerNotFoundException extends Exception {

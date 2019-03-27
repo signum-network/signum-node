@@ -11,13 +11,14 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.Empty;
+import com.google.protobuf.InvalidProtocolBufferException;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.Map.Entry;
 
+import static brs.grpc.proto.BrsApi.AssetOrderPlacementAttachment.Type.BID;
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.*;
 
@@ -53,6 +54,81 @@ public interface Attachment extends Appendix {
       getTransactionType().apply(transaction, senderAccount, recipientAccount);
     }
 
+    public static AbstractAttachment parseProtobufMessage(Any attachment) throws InvalidProtocolBufferException {
+      // Yes, this is fairly horrible. I wish there was a better way to do this but any does not let us switch on its contained class.
+      if (attachment.is(BrsApi.OrdinaryPaymentAttachment.class)) {
+        return ORDINARY_PAYMENT;
+      } else if (attachment.is(BrsApi.ArbitraryMessageAttachment.class)) {
+        return ARBITRARY_MESSAGE;
+      } else if (attachment.is(BrsApi.ATPaymentAttachment.class)) {
+        return AT_PAYMENT;
+      } else if (attachment.is(BrsApi.MultiOutAttachment.class)) {
+        return new PaymentMultiOutCreation(attachment.unpack(BrsApi.MultiOutAttachment.class));
+      } else if (attachment.is(BrsApi.MultiOutSameAttachment.class)) {
+        return new PaymentMultiSameOutCreation(attachment.unpack(BrsApi.MultiOutSameAttachment.class));
+      } else if (attachment.is(BrsApi.AliasAssignmentAttachment.class)) {
+        return new MessagingAliasAssignment(attachment.unpack(BrsApi.AliasAssignmentAttachment.class));
+      } else if (attachment.is(BrsApi.AliasSellAttachment.class)) {
+        return new MessagingAliasSell(attachment.unpack(BrsApi.AliasSellAttachment.class));
+      } else if (attachment.is(BrsApi.AliasBuyAttachment.class)) {
+        return new MessagingAliasBuy(attachment.unpack(BrsApi.AliasBuyAttachment.class));
+      } else if (attachment.is(BrsApi.AccountInfoAttachment.class)) {
+        return new MessagingAccountInfo(attachment.unpack(BrsApi.AccountInfoAttachment.class));
+      } else if (attachment.is(BrsApi.AssetIssuanceAttachment.class)) {
+        return new ColoredCoinsAssetIssuance(attachment.unpack(BrsApi.AssetIssuanceAttachment.class));
+      } else if (attachment.is(BrsApi.AssetTransferAttachment.class)) {
+        return new ColoredCoinsAssetTransfer(attachment.unpack(BrsApi.AssetTransferAttachment.class));
+      } else if (attachment.is(BrsApi.AssetOrderPlacementAttachment.class)) {
+        BrsApi.AssetOrderPlacementAttachment placementAttachment = attachment.unpack(BrsApi.AssetOrderPlacementAttachment.class);
+        if (placementAttachment.getType() == BrsApi.AssetOrderPlacementAttachment.Type.ASK) {
+          return new ColoredCoinsAskOrderPlacement(placementAttachment);
+        } else if (placementAttachment.getType() == BrsApi.AssetOrderPlacementAttachment.Type.BID) {
+          return new ColoredCoinsBidOrderPlacement(placementAttachment);
+        }
+      } else if (attachment.is(BrsApi.AssetOrderCancellationAttachment.class)) {
+        BrsApi.AssetOrderCancellationAttachment placementAttachment = attachment.unpack(BrsApi.AssetOrderCancellationAttachment.class);
+        if (placementAttachment.getType() == BrsApi.AssetOrderCancellationAttachment.Type.ASK) {
+          return new ColoredCoinsAskOrderCancellation(placementAttachment);
+        } else if (placementAttachment.getType() == BrsApi.AssetOrderCancellationAttachment.Type.BID) {
+          return new ColoredCoinsBidOrderCancellation(placementAttachment);
+        }
+      } else if (attachment.is(BrsApi.DigitalGoodsListingAttachment.class)) {
+        return new DigitalGoodsListing(attachment.unpack(BrsApi.DigitalGoodsListingAttachment.class));
+      } else if (attachment.is(BrsApi.DigitalGoodsDelistingAttachment.class)) {
+        return new DigitalGoodsDelisting(attachment.unpack(BrsApi.DigitalGoodsDelistingAttachment.class));
+      } else if (attachment.is(BrsApi.DigitalGoodsPriceChangeAttachment.class)) {
+        return new DigitalGoodsPriceChange(attachment.unpack(BrsApi.DigitalGoodsPriceChangeAttachment.class));
+      } else if (attachment.is(BrsApi.DigitalGoodsQuantityChangeAttachment.class)) {
+        return new DigitalGoodsQuantityChange(attachment.unpack(BrsApi.DigitalGoodsQuantityChangeAttachment.class));
+      } else if (attachment.is(BrsApi.DigitalGoodsPurchaseAttachment.class)) {
+        return new DigitalGoodsPurchase(attachment.unpack(BrsApi.DigitalGoodsPurchaseAttachment.class));
+      } else if (attachment.is(BrsApi.DigitalGoodsDeliveryAttachment.class)) {
+        return new DigitalGoodsDelivery(attachment.unpack(BrsApi.DigitalGoodsDeliveryAttachment.class));
+      } else if (attachment.is(BrsApi.DigitalGoodsFeedbackAttachment.class)) {
+        return new DigitalGoodsFeedback(attachment.unpack(BrsApi.DigitalGoodsFeedbackAttachment.class));
+      } else if (attachment.is(BrsApi.DigitalGoodsRefundAttachment.class)) {
+        return new DigitalGoodsRefund(attachment.unpack(BrsApi.DigitalGoodsRefundAttachment.class));
+      } else if (attachment.is(BrsApi.EffectiveBalanceLeasingAttachment.class)) {
+        return new AccountControlEffectiveBalanceLeasing(attachment.unpack(BrsApi.EffectiveBalanceLeasingAttachment.class));
+      } else if (attachment.is(BrsApi.RewardRecipientAssignmentAttachment.class)) {
+        return new BurstMiningRewardRecipientAssignment(attachment.unpack(BrsApi.RewardRecipientAssignmentAttachment.class));
+      } else if (attachment.is(BrsApi.EscrowCreationAttachment.class)) {
+        return new AdvancedPaymentEscrowCreation(attachment.unpack(BrsApi.EscrowCreationAttachment.class));
+      } else if (attachment.is(BrsApi.EscrowSignAttachment.class)) {
+        return new AdvancedPaymentEscrowSign(attachment.unpack(BrsApi.EscrowSignAttachment.class));
+      } else if (attachment.is(BrsApi.EscrowResultAttachment.class)) {
+        return new AdvancedPaymentEscrowResult(attachment.unpack(BrsApi.EscrowResultAttachment.class));
+      } else if (attachment.is(BrsApi.SubscriptionSubscribeAttachment.class)) {
+        return new AdvancedPaymentSubscriptionSubscribe(attachment.unpack(BrsApi.SubscriptionSubscribeAttachment.class));
+      } else if (attachment.is(BrsApi.SubscriptionCancelAttachment.class)) {
+        return new AdvancedPaymentSubscriptionCancel(attachment.unpack(BrsApi.SubscriptionCancelAttachment.class));
+      } else if (attachment.is(BrsApi.SubscriptionPaymentAttachment.class)) {
+        return new AdvancedPaymentSubscriptionPayment(attachment.unpack(BrsApi.SubscriptionPaymentAttachment.class));
+      } else if (attachment.is(BrsApi.ATCreationAttachment.class)) {
+        return new AutomatedTransactionsCreation(attachment.unpack(BrsApi.ATCreationAttachment.class));
+      }
+      return ORDINARY_PAYMENT; // TODO ??
+    }
   }
 
   abstract class EmptyAttachment extends AbstractAttachment {
@@ -75,11 +151,6 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    public Any getProtobufMessage() {
-      return Any.pack(Empty.newBuilder().build());
-    }
-
-    @Override
     final boolean verifyVersion(byte transactionVersion) {
       return true;
     }
@@ -87,6 +158,11 @@ public interface Attachment extends Appendix {
   }
 
   EmptyAttachment ORDINARY_PAYMENT = new EmptyAttachment() {
+
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(BrsApi.OrdinaryPaymentAttachment.getDefaultInstance());
+    }
 
     @Override
     String getAppendixName() {
@@ -342,7 +418,12 @@ public interface Attachment extends Appendix {
   // the message payload is in the Appendix
   EmptyAttachment ARBITRARY_MESSAGE = new EmptyAttachment() {
 
-      @Override
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(BrsApi.ArbitraryMessageAttachment.getDefaultInstance());
+    }
+
+    @Override
       String getAppendixName() {
         return "ArbitraryMessage";
       }
@@ -356,7 +437,12 @@ public interface Attachment extends Appendix {
 
   EmptyAttachment AT_PAYMENT = new EmptyAttachment() {
 
-      @Override
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(BrsApi.ATPaymentAttachment.getDefaultInstance());
+    }
+
+    @Override
       public TransactionType getTransactionType() {
         return TransactionType.AutomatedTransactions.AT_PAYMENT;
       }
@@ -940,7 +1026,7 @@ public interface Attachment extends Appendix {
 
     @Override
     protected BrsApi.AssetOrderPlacementAttachment.Type getType() {
-      return BrsApi.AssetOrderPlacementAttachment.Type.BID;
+      return BID;
     }
 
     @Override

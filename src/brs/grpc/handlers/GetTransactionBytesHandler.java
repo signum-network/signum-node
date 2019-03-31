@@ -1,9 +1,6 @@
 package brs.grpc.handlers;
 
-import brs.Appendix;
-import brs.Attachment;
-import brs.BurstException;
-import brs.Transaction;
+import brs.*;
 import brs.grpc.GrpcApiHandler;
 import brs.grpc.proto.ApiException;
 import brs.grpc.proto.BrsApi;
@@ -12,6 +9,12 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 public class GetTransactionBytesHandler implements GrpcApiHandler<BrsApi.BasicTransaction, BrsApi.TransactionBytes> {
+
+    private final Blockchain blockchain;
+
+    public GetTransactionBytesHandler(Blockchain blockchain) {
+        this.blockchain = blockchain;
+    }
 
     @Override
     public BrsApi.TransactionBytes handleRequest(BrsApi.BasicTransaction basicTransaction) throws Exception {
@@ -23,20 +26,22 @@ public class GetTransactionBytesHandler implements GrpcApiHandler<BrsApi.BasicTr
                 transactionBuilder.referencedTransactionFullHash(basicTransaction.getReferencedTransactionFullHash().toByteArray());
             }
 
+            int blockchainHeight = blockchain.getHeight();
+
             for (Any appendix : basicTransaction.getAppendagesList()) {
                 try {
                     if (appendix.is(BrsApi.MessageAppendix.class)) {
-                        transactionBuilder.message(new Appendix.Message(appendix.unpack(BrsApi.MessageAppendix.class)));
+                        transactionBuilder.message(new Appendix.Message(appendix.unpack(BrsApi.MessageAppendix.class), blockchainHeight));
                     } else if (appendix.is(BrsApi.EncryptedMessageAppendix.class)) {
                         BrsApi.EncryptedMessageAppendix encryptedMessageAppendix = appendix.unpack(BrsApi.EncryptedMessageAppendix.class);
                         switch (encryptedMessageAppendix.getType()) {
                             case TO_RECIPIENT:
-                                transactionBuilder.encryptedMessage(new Appendix.EncryptedMessage(encryptedMessageAppendix));
+                                transactionBuilder.encryptedMessage(new Appendix.EncryptedMessage(encryptedMessageAppendix, blockchainHeight));
                             case TO_SELF:
-                                transactionBuilder.encryptToSelfMessage(new Appendix.EncryptToSelfMessage(encryptedMessageAppendix));
+                                transactionBuilder.encryptToSelfMessage(new Appendix.EncryptToSelfMessage(encryptedMessageAppendix, blockchainHeight));
                         }
                     } else if (appendix.is(BrsApi.PublicKeyAnnouncementAppendix.class)) {
-                        transactionBuilder.encryptedMessage(new Appendix.PublicKeyAnnouncement(appendix.unpack(BrsApi.PublicKeyAnnouncementAppendix.class)));
+                        transactionBuilder.publicKeyAnnouncement(new Appendix.PublicKeyAnnouncement(appendix.unpack(BrsApi.PublicKeyAnnouncementAppendix.class), blockchainHeight));
                     }
                 } catch (InvalidProtocolBufferException e) {
                     throw new ApiException("Failed to unpack Any: " + e.getMessage());

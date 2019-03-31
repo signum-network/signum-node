@@ -11,6 +11,8 @@ import com.google.rpc.Status;
 import io.grpc.StatusException;
 import io.grpc.protobuf.StatusProto;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.stream.Collectors;
 
 public final class ProtoBuilder {
@@ -118,5 +120,64 @@ public final class ProtoBuilder {
                 .setEcBlockId(transaction.getECBlockId())
                 .setEcBlockHeight(transaction.getECBlockHeight())
                 .build();
+    }
+
+    public static BrsApi.Transaction buildUnconfirmedTransaction(Transaction transaction) {return BrsApi.Transaction.newBuilder()
+            .setTransaction(buildBasicTransaction(transaction))
+            .setId(transaction.getId())
+            .setTransactionBytes(ByteString.copyFrom(transaction.getBytes()))
+            .setBlockHeight(transaction.getHeight())
+            .setSignature(ByteString.copyFrom(transaction.getSignature()))
+            .setFullHash(ByteString.copyFrom(Convert.parseHexString(transaction.getFullHash())))
+            .setEcBlockId(transaction.getECBlockId())
+            .setEcBlockHeight(transaction.getECBlockHeight())
+            .build();
+    }
+
+    public static BrsApi.AT buildAT(AccountService accountService, AT at) {
+        ByteBuffer bf = ByteBuffer.allocate( 8 );
+        bf.order( ByteOrder.LITTLE_ENDIAN );
+        bf.put( at.getCreator() );
+        bf.clear();
+        long creatorId = bf.getLong(); // TODO is this redundant or does this bring LE byte order?
+        bf.clear();
+        bf.put( at.getId() , 0 , 8 );
+        long atId = bf.getLong(0);
+        return BrsApi.AT.newBuilder()
+                .setId(atId)
+                .setCreator(creatorId)
+                .setVersion(at.getVersion())
+                .setName(at.getName())
+                .setDescription(at.getDescription())
+                .setMachineCode(ByteString.copyFrom(at.getApCode()))
+                .setMachineData(ByteString.copyFrom(at.getApData()))
+                .setBalance(accountService.getAccount(atId).getBalanceNQT()) // TODO why not getG_balance()?
+                .setPreviousBalance(at.getP_balance())
+                .setNextBlock(at.nextHeight())
+                .setFrozen(at.freezeOnSameBalance())
+                .setRunning(at.getMachineState().isRunning())
+                .setStopped(at.getMachineState().isStopped())
+                .setFinished(at.getMachineState().isFinished())
+                .setDead(at.getMachineState().isDead())
+                .setMinActivation(at.minActivationAmount())
+                .setCreationBlock(at.getCreationBlockHeight())
+                .build();
+    }
+
+    public static BrsApi.Alias buildAlias(Alias alias, Alias.Offer offer) {
+        BrsApi.Alias.Builder builder = BrsApi.Alias.newBuilder()
+                .setId(alias.getId())
+                .setOwner(alias.getAccountId())
+                .setName(alias.getAliasName())
+                .setUri(alias.getAliasURI())
+                .setTimestamp(alias.getTimestamp())
+                .setOffered(offer != null);
+
+        if (offer != null) {
+            builder.setPrice(offer.getPriceNQT());
+            builder.setBuyer(offer.getBuyerId());
+        }
+
+        return builder.build();
     }
 }

@@ -6,7 +6,7 @@ option java_package = "brs.grpc.proto";
 service BrsApiService {
     rpc BroadcastTransaction(TransactionBytes) returns (TransactionBroadcastResult) {}
     rpc GetAccount(GetAccountRequest) returns (Account) {}
-    rpc GetAccountATs(GetAccountRequest) returns (TODO) {}
+    rpc GetAccountATs(GetAccountRequest) returns (AccountATs) {}
     rpc GetAccountBlockIds(GetAccountRequest) returns (TODO) {}
     rpc GetAccountBlocks(GetAccountRequest) returns (TODO) {}
     rpc GetAccountCurrentAskOrderIds(TODO) returns (TODO) {}
@@ -19,7 +19,7 @@ service BrsApiService {
     rpc GetAccountTransactionIds(TODO) returns (TODO) {}
     rpc GetAccountTransactions(TODO) returns (TODO) {}
     rpc GetAlias(GetAliasRequest) returns (Alias) {}
-    rpc GetAliases(TODO) returns (TODO) {}
+    rpc GetAliases(GetAliasesRequest) returns (Aliases) {}
     rpc GetAllAssets(TODO) returns (TODO) {}
     rpc GetAllOpenAskOrders(TODO) returns (TODO) {}
     rpc GetAllOpenBidOrders(TODO) returns (TODO) {}
@@ -33,9 +33,8 @@ service BrsApiService {
     rpc GetAssets(TODO) returns (TODO) {}
     rpc GetAssetsByIssuer(TODO) returns (TODO) {}
     rpc GetAssetTransfers(TODO) returns (TODO) {}
-    rpc GetAT(TODO) returns (TODO) {}
-    rpc GetATIds(TODO) returns (TODO) {}
-    rpc GetBalance(GetAccountRequest) returns (TODO) {}
+    rpc GetAT(GetATRequest) returns (AT) {}
+    rpc GetATIds(google.protobuf.Empty) returns (ATIds) {}
     rpc GetBidOrder(TODO) returns (TODO) {}
     rpc GetBidOrderIds(TODO) returns (TODO) {}
     rpc GetBidOrders(TODO) returns (TODO) {}
@@ -57,8 +56,7 @@ service BrsApiService {
     rpc GetCurrentTime(google.protobuf.Empty) returns (Time) {}
     rpc GetTrades(TODO) returns (TODO) {}
     rpc GetTransaction(GetTransactionRequest) returns (Transaction) {}
-    rpc GetUnconfirmedTransactionIds(TODO) returns (TODO) {}
-    rpc GetUnconfirmedTransactions(TODO) returns (TODO) {}
+    rpc GetUnconfirmedTransactions(GetAccountRequest) returns (UnconfirmedTransactions) {}
     rpc ParseTransaction(TransactionBytes) returns (BasicTransaction) {}
     rpc GetTransactionBytes(BasicTransaction) returns (TransactionBytes) {}
     rpc SubmitNonce(SubmitNonceRequest) returns (SubmitNonceResponse) {}
@@ -67,11 +65,58 @@ service BrsApiService {
     // TODO getCounts which was previously part of GetState?
 }
 
+message GetAliasesRequest {
+    uint64 owner = 1;
+    uint32 timestamp = 2;
+    uint32 firstIndex = 3;
+    uint32 lastIndex = 4;
+}
+
+message UnconfirmedTransactions {
+    repeated Transaction unconfirmedTransactions = 1;
+}
+
+message Aliases {
+    repeated Alias aliases = 1;
+}
+
+message GetATRequest {
+    uint64 id = 1;
+}
+
+message ATIds {
+    repeated uint64 ids = 1;
+}
+
+message AT {
+    uint64 id = 1;
+    uint64 creator = 2;
+    uint32 version = 3;
+    string name = 4;
+    string description = 5;
+    bytes machineCode = 6;
+    bytes machineData = 7;
+    uint64 balance = 8;
+    uint64 previousBalance = 9;
+    uint32 nextBlock = 10;
+    bool frozen = 11;
+    bool running = 12;
+    bool stopped = 13;
+    bool finished = 14;
+    bool dead = 15;
+    uint64 minActivation = 16;
+    uint32 creationBlock = 17;
+}
+
+message AccountATs {
+    repeated AT ats = 1;
+}
+
 message BasicTransaction {
     bytes sender = 1;
     uint64 recipient = 2;
     uint32 version = 3; // Auto-filled if needed
-    uint32 type = 4; // Auto-filled if needed TODO we could remove this?
+    uint32 type = 4; // Auto-filled if needed
     uint32 subtype = 5; // Auto-filled if needed
     uint64 amount = 6;
     uint64 fee = 7;
@@ -125,6 +170,9 @@ message Alias {
     string name = 3;
     string uri = 4;
     uint32 timestamp = 5;
+    bool offered = 6;
+    uint64 price = 7;
+    uint64 buyer = 8;
 }
 
 message Time {

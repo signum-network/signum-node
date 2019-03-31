@@ -131,6 +131,12 @@ public interface Appendix {
       this.isText = true;
     }
 
+    public Message(BrsApi.MessageAppendix messageAppendix, int blockchainHeight) {
+      super(blockchainHeight);
+      this.message = messageAppendix.getMessage().toByteArray();
+      this.isText = messageAppendix.getIsText();
+    }
+
     @Override
     String getAppendixName() {
       return "Message";
@@ -216,6 +222,12 @@ public interface Appendix {
       this.isText = isText;
     }
 
+    private AbstractEncryptedMessage(BrsApi.EncryptedMessageAppendix encryptedMessageAppendix, int blockchainHeight) {
+      super(blockchainHeight);
+      this.encryptedData = new EncryptedData(encryptedMessageAppendix.getData().toByteArray(), encryptedMessageAppendix.getNonce().toByteArray());
+      this.isText = encryptedMessageAppendix.getIsText();
+    }
+
     @Override
     int getMySize() {
       return 4 + encryptedData.getSize();
@@ -290,6 +302,11 @@ public interface Appendix {
       super(encryptedData, isText, blockchainHeight);
     }
 
+    public EncryptedMessage(BrsApi.EncryptedMessageAppendix encryptedMessageAppendix, int blockchainHeight) {
+      super(encryptedMessageAppendix, blockchainHeight);
+      if (encryptedMessageAppendix.getType() != BrsApi.EncryptedMessageAppendix.Type.TO_RECIPIENT) throw new IllegalArgumentException();
+    }
+
     @Override
     String getAppendixName() {
       return "EncryptedMessage";
@@ -339,6 +356,11 @@ public interface Appendix {
 
     public EncryptToSelfMessage(EncryptedData encryptedData, boolean isText, int blockchainHeight) {
       super(encryptedData, isText, blockchainHeight);
+    }
+
+    public EncryptToSelfMessage(BrsApi.EncryptedMessageAppendix encryptedMessageAppendix, int blockchainHeight) {
+      super(encryptedMessageAppendix, blockchainHeight);
+      if (encryptedMessageAppendix.getType() != BrsApi.EncryptedMessageAppendix.Type.TO_SELF) throw new IllegalArgumentException();
     }
 
     @Override
@@ -393,6 +415,11 @@ public interface Appendix {
     public PublicKeyAnnouncement(byte[] publicKey, int blockchainHeight) {
       super(blockchainHeight);
       this.publicKey = publicKey;
+    }
+
+    public PublicKeyAnnouncement(BrsApi.PublicKeyAnnouncementAppendix publicKeyAnnouncementAppendix, int blockchainHeight) {
+      super(blockchainHeight);
+      this.publicKey = publicKeyAnnouncementAppendix.getRecipientPublicKey().toByteArray();
     }
 
     @Override

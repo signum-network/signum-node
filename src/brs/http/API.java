@@ -42,7 +42,7 @@ public final class API {
       SubscriptionService subscriptionService, ATService atService,
       TimeService timeService, EconomicClustering economicClustering, PropertyService propertyService,
       ThreadPool threadPool, TransactionService transactionService, BlockService blockService,
-      Generator generator, APITransactionManager apiTransactionManager, FeeSuggestionCalculator feeSuggestionCalculator, DeeplinkQRCodeGenerator deepLinkQRCodeGenerator) {
+      Generator generator, APITransactionManager apiTransactionManager, FeeSuggestionCalculator feeSuggestionCalculator, DeeplinkQRCodeGenerator deepLinkQRCodeGenerator, IndirectIncomingService indirectIncomingService) {
 
     enableDebugAPI = propertyService.getBoolean(Props.API_DEBUG);
     List<String> allowedBotHostsList = propertyService.getStringList(Props.API_ALLOWED);
@@ -124,7 +124,7 @@ public final class API {
       ServletHolder peerServletHolder = new ServletHolder(new APIServlet(transactionProcessor, blockchain, blockchainProcessor, parameterService,
                                                                          accountService, aliasService, assetExchange, escrowService, digitalGoodsStoreService,
                                                                          subscriptionService, atService, timeService, economicClustering, transactionService, blockService, generator, propertyService,
-                                                                         apiTransactionManager, feeSuggestionCalculator, deepLinkQRCodeGenerator));
+                                                                         apiTransactionManager, feeSuggestionCalculator, deepLinkQRCodeGenerator, indirectIncomingService));
       apiHandler.addServlet(peerServletHolder, "/burst");
       
       if (propertyService.getBoolean(Props.JETTY_API_DOS_FILTER)) {

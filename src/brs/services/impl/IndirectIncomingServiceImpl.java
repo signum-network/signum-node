@@ -34,6 +34,19 @@ public class IndirectIncomingServiceImpl implements IndirectIncomingService {
         indirectIncomingStore.addIndirectIncomings(getIndirectIncomings(transaction));
     }
 
+    @Override
+    public boolean isIndirectlyReceiving(Transaction transaction, long accountId) {
+        // It would be confusing to have inconsistent behaviour so even when not loading from database we should disable when told to do so.
+        if (disabled) return false;
+        List<IndirectIncomingStore.IndirectIncoming> indirectIncomings = getIndirectIncomings(transaction);
+        for (IndirectIncomingStore.IndirectIncoming indirectIncoming : indirectIncomings) {
+            if (indirectIncoming.getAccountId() == accountId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private List<IndirectIncomingStore.IndirectIncoming> getIndirectIncomings(Transaction transaction) {
         List<IndirectIncomingStore.IndirectIncoming> indirectIncomings = new ArrayList<>();
         if (Objects.equals(transaction.getType(), TransactionType.Payment.MULTI_OUT)) {

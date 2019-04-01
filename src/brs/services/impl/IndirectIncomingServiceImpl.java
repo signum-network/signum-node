@@ -10,8 +10,8 @@ import brs.services.IndirectIncomingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -44,17 +44,17 @@ public class IndirectIncomingServiceImpl implements IndirectIncomingService {
         return getIndirectIncomings(transaction).contains(accountId);
     }
 
-    private List<Long> getIndirectIncomings(Transaction transaction) {
+    private Collection<Long> getIndirectIncomings(Transaction transaction) {
         if (Objects.equals(transaction.getType(), TransactionType.Payment.MULTI_OUT)) {
             return getMultiOutRecipients(transaction);
         } else if (Objects.equals(transaction.getType(), TransactionType.Payment.MULTI_SAME_OUT)) {
             return getMultiOutSameRecipients(transaction);
         } else {
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
     }
 
-    private List<Long> getMultiOutRecipients(Transaction transaction) {
+    private Collection<Long> getMultiOutRecipients(Transaction transaction) {
         if (!Objects.equals(transaction.getType(), TransactionType.Payment.MULTI_OUT)
                 || !(transaction.getAttachment() instanceof Attachment.PaymentMultiOutCreation))
             throw new IllegalArgumentException("Wrong transaction type");
@@ -65,12 +65,12 @@ public class IndirectIncomingServiceImpl implements IndirectIncomingService {
                 .collect(Collectors.toList());
     }
 
-    private List<Long> getMultiOutSameRecipients(Transaction transaction) {
+    private Collection<Long> getMultiOutSameRecipients(Transaction transaction) {
         if (!Objects.equals(transaction.getType(), TransactionType.Payment.MULTI_SAME_OUT)
                 || !(transaction.getAttachment() instanceof Attachment.PaymentMultiSameOutCreation))
             throw new IllegalArgumentException("Wrong transaction type");
 
         Attachment.PaymentMultiSameOutCreation attachment = (Attachment.PaymentMultiSameOutCreation) transaction.getAttachment();
-        return new ArrayList<>(attachment.getRecipients());
+        return attachment.getRecipients();
     }
 }

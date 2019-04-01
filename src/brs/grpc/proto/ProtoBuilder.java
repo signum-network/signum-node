@@ -62,6 +62,9 @@ public final class ProtoBuilder {
                 .setVersion(block.getVersion())
                 .setBaseTarget(block.getBaseTarget())
                 .setTimestamp(block.getTimestamp())
+                .addAllTransactionIds(block.getTransactions().stream()
+                        .map(Transaction::getId)
+                        .collect(Collectors.toList()))
                 .setGenerationSignature(ByteString.copyFrom(block.getGenerationSignature()))
                 .setBlockSignature(ByteString.copyFrom(block.getBlockSignature()))
                 .setPayloadHash(ByteString.copyFrom(block.getPayloadHash()))
@@ -76,11 +79,8 @@ public final class ProtoBuilder {
             builder.addAllTransactions(block.getTransactions().stream()
                     .map(transaction -> buildTransaction(blockchain, transaction))
                     .collect(Collectors.toList()));
-        } else {
-            builder.addAllTransactionIds(block.getTransactions().stream()
-                    .map(Transaction::getId)
-                    .collect(Collectors.toList()));
         }
+
         return builder.build();
     }
 

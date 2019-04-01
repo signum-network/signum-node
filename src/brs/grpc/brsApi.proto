@@ -7,20 +7,16 @@ service BrsApiService {
     rpc BroadcastTransaction(TransactionBytes) returns (TransactionBroadcastResult) {}
     rpc GetAccount(GetAccountRequest) returns (Account) {}
     rpc GetAccountATs(GetAccountRequest) returns (AccountATs) {}
-    rpc GetAccountBlockIds(GetAccountRequest) returns (TODO) {}
-    rpc GetAccountBlocks(GetAccountRequest) returns (TODO) {}
-    rpc GetAccountCurrentAskOrderIds(TODO) returns (TODO) {}
-    rpc GetAccountCurrentAskOrders(TODO) returns (TODO) {}
-    rpc GetAccountCurrentBidOrderIds(TODO) returns (TODO) {}
-    rpc GetAccountCurrentBidOrders(TODO) returns (TODO) {}
-    rpc GetAccountEscrowTransactions(GetAccountRequest) returns (TODO) {}
+    rpc GetAccountBlocks(GetAccountRequest) returns (Blocks) {}
+    rpc GetAccountCurrentOrders(GetAccountOrdersRequest) returns (AccountOrders) {}
+    rpc GetAccountEscrowTransactions(GetAccountRequest) returns (AccountEscrowTransactions) {}
     rpc GetAccounts(GetAccountsRequest) returns (Accounts) {}
-    rpc GetAccountSubscriptions(GetAccountRequest) returns (TODO) {}
-    rpc GetAccountTransactionIds(TODO) returns (TODO) {}
-    rpc GetAccountTransactions(TODO) returns (TODO) {}
+    rpc GetAccountSubscriptions(GetAccountRequest) returns (Subscriptions) {}
+    rpc GetAccountTransactionIds(GetAccountRequest) returns (TransactionIds) {}
+    rpc GetAccountTransactions(GetAccountRequest) returns (Transactions) {}
     rpc GetAlias(GetAliasRequest) returns (Alias) {}
     rpc GetAliases(GetAliasesRequest) returns (Aliases) {}
-    rpc GetAllAssets(TODO) returns (TODO) {}
+    rpc GetAllAssets(IndexRange) returns (TODO) {}
     rpc GetAllOpenAskOrders(TODO) returns (TODO) {}
     rpc GetAllOpenBidOrders(TODO) returns (TODO) {}
     rpc GetAllTrades(TODO) returns (TODO) {}
@@ -36,7 +32,6 @@ service BrsApiService {
     rpc GetAT(GetATRequest) returns (AT) {}
     rpc GetATIds(google.protobuf.Empty) returns (ATIds) {}
     rpc GetBidOrder(TODO) returns (TODO) {}
-    rpc GetBidOrderIds(TODO) returns (TODO) {}
     rpc GetBidOrders(TODO) returns (TODO) {}
     rpc GetBlock(GetBlockRequest) returns (Block) {}
     rpc GetConstants(google.protobuf.Empty) returns (TODO) {}
@@ -46,13 +41,13 @@ service BrsApiService {
     rpc GetDGSPurchase(TODO) returns (TODO) {}
     rpc GetDGSPurchases(TODO) returns (TODO) {}
     rpc GetECBlock(TODO) returns (TODO) {}
-    rpc GetEscrowTransaction(TODO) returns (TODO) {}
+    rpc GetEscrowTransaction(GetEscrowRequest) returns (EscrowTransaction) {}
     rpc GetMiningInfo(google.protobuf.Empty) returns (stream MiningInfo) {}
     rpc GetPeer(GetPeerRequest) returns (Peer) {}
     rpc GetPeers(GetPeersRequest) returns (Peers) {}
     rpc GetState(google.protobuf.Empty) returns (State) {}
-    rpc GetSubscription(TODO) returns (TODO) {}
-    rpc GetSubscriptionsToAccount(TODO) returns (TODO) {}
+    rpc GetSubscription(GetSubscriptionRequest) returns (Subscription) {}
+    rpc GetSubscriptionsToAccount(GetAccountRequest) returns (Subscriptions) {}
     rpc GetCurrentTime(google.protobuf.Empty) returns (Time) {}
     rpc GetTrades(TODO) returns (TODO) {}
     rpc GetTransaction(GetTransactionRequest) returns (Transaction) {}
@@ -62,14 +57,127 @@ service BrsApiService {
     rpc SubmitNonce(SubmitNonceRequest) returns (SubmitNonceResponse) {}
     rpc SuggestFee(google.protobuf.Empty) returns (FeeSuggestion) {}
     rpc CompleteBasicTransaction(BasicTransaction) returns (BasicTransaction) {}
-    // TODO getCounts which was previously part of GetState?
+    rpc GetBlocks(GetBlocksRequest) returns (Blocks) {}
+    rpc GetCounts(google.protobuf.Empty) returns (Counts) {}
+}
+
+message Transactions {
+    repeated Transaction transactions = 1;
+}
+
+message TransactionIds {
+    repeated uint64 transactionIds = 1;
+}
+
+message GetSubscriptionRequest {
+    uint64 subscriptionId = 1;
+}
+
+message Subscriptions {
+    repeated Subscription subscriptions = 1;
+}
+
+message Subscription {
+    uint64 subscriptionId = 1;
+    uint64 sender = 2;
+    uint64 recipient = 3;
+    uint64 amount = 4;
+    uint32 frequency = 5;
+    uint32 timeNext = 6;
+}
+
+message Counts {
+    uint32 numberOfBlocks = 1;
+    uint32 numberOfTransactions = 2;
+    uint32 numberOfAccounts = 3;
+    uint32 numberOfAssets = 4;
+    uint32 numberOfOrders = 5;
+    uint32 numberOfAskOrders = 6;
+    uint32 numberOfBidOrders = 7;
+    uint32 numberOfTrades = 8;
+    uint32 numberOfTransfers = 9;
+    uint32 numberOfAliases = 10;
+    uint32 numberOfPeers = 11;
+    uint32 numberOfGenerators = 12;
+    uint64 totalEffectiveBalance = 13;
+}
+
+message GetEscrowRequest {
+    uint64 escrowId = 1;
+}
+
+message Constants {
+    uint64 genesisBlockId = 1;
+    uint64 genesisAccountId = 2;
+    uint32 maxBlockPayloadLength = 3;
+    uint32 maxArbitraryMessageLength = 4;
+    repeated TransactionType transactionTypes = 5;
+
+    message TransactionType {
+        uint32 type = 1;
+        string description = 2;
+        repeated TransactionSubtype subtypes = 3;
+
+        message TransactionSubtype {
+            uint32 subtype = 1;
+            string description = 2;
+        }
+    }
+}
+
+message AccountEscrowTransactions {
+    repeated EscrowTransaction escrowTransactions = 1;
+}
+
+message EscrowTransaction {
+    uint64 escrowId = 1;
+    uint64 senderId = 2;
+    uint64 recipientId = 3;
+    uint64 amount = 4;
+    uint32 requiredSigners = 5;
+    uint32 deadline = 6;
+    EscrowDecisionType deadlineAction = 7;
+}
+
+message AccountOrders {
+    repeated Order orders = 1;
+}
+
+message Order {
+    uint64 orderId = 1;
+    uint64 assetId = 2;
+    uint64 accountId = 3;
+    uint64 quantity = 4;
+    uint64 price = 5;
+    uint32 height = 6;
+    OrderType type = 7;
+}
+
+message GetAccountOrdersRequest {
+    uint64 accountId = 1;
+    uint64 assetId = 2;
+    IndexRange indexRange = 3;
+    OrderType orderType = 4;
+}
+
+message IndexRange {
+    uint32 firstIndex = 1;
+    uint32 lastIndex = 2;
+}
+
+message GetBlocksRequest {
+    IndexRange indexRange = 1;
+    bool includeTransaction = 2;
+}
+
+message Blocks {
+    repeated Block blocks = 1;
 }
 
 message GetAliasesRequest {
     uint64 owner = 1;
     uint32 timestamp = 2;
-    uint32 firstIndex = 3;
-    uint32 lastIndex = 4;
+    IndexRange index = 3;
 }
 
 message UnconfirmedTransactions {
@@ -186,7 +294,6 @@ message State {
     uint64 lastBlock = 4;
     uint32 lastHeight = 5;
     string cumulativeDifficulty = 6;
-    // todo this should be part of counts uint64 totalEffectiveBalance = 6;
     uint32 numberOfPeers = 7;
     uint32 numberOfActivePeers = 8;
     uint32 numberOfForgers = 9;
@@ -361,28 +468,23 @@ message AssetTransferAttachment {
     string comment = 4;
 }
 
+enum OrderType {
+    ASK = 0;
+    BID = 1;
+}
+
 message AssetOrderPlacementAttachment {
     uint32 version = 1;
-    uint64 id = 2;
+    uint64 assetId = 2;
     uint64 quantity = 3;
     uint64 price = 4;
-    Type type = 5;
-
-    enum Type {
-        ASK = 0;
-        BID = 1;
-    }
+    OrderType type = 5;
 }
 
 message AssetOrderCancellationAttachment {
     uint32 version = 1;
     uint64 orderId = 2;
-    Type type = 3;
-
-    enum Type {
-        ASK = 0;
-        BID = 1;
-    }
+    OrderType type = 3;
 }
 
 message DigitalGoodsListingAttachment {

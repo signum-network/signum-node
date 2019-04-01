@@ -19,7 +19,7 @@ public class BrsService extends BrsApiServiceGrpc.BrsApiServiceImplBase {
 
     private final Map<Class<? extends GrpcApiHandler<?,?>>, GrpcApiHandler<?,?>> handlers;
 
-    public BrsService(BlockchainProcessor blockchainProcessor, Blockchain blockchain, BlockService blockService, AccountService accountService, Generator generator, TransactionProcessor transactionProcessor, TimeService timeService, FeeSuggestionCalculator feeSuggestionCalculator, ATService atService, AliasService aliasService) {
+    public BrsService(BlockchainProcessor blockchainProcessor, Blockchain blockchain, BlockService blockService, AccountService accountService, Generator generator, TransactionProcessor transactionProcessor, TimeService timeService, FeeSuggestionCalculator feeSuggestionCalculator, ATService atService, AliasService aliasService, IndirectIncomingService indirectIncomingService) {
         Map<Class<? extends GrpcApiHandler<?,?>>, GrpcApiHandler<?,?>> handlerMap = new HashMap<>();
         handlerMap.put(GetMiningInfoHandler.class, new GetMiningInfoHandler(blockchainProcessor, generator));
         handlerMap.put(SubmitNonceHandler.class, new SubmitNonceHandler(blockchain, accountService, generator));
@@ -40,7 +40,7 @@ public class BrsService extends BrsApiServiceGrpc.BrsApiServiceImplBase {
         handlerMap.put(GetAccountATsHandler.class, new GetAccountATsHandler(atService, accountService));
         handlerMap.put(GetAliasHandler.class, new GetAliasHandler(aliasService));
         handlerMap.put(GetAliasesHandler.class, new GetAliasesHandler(aliasService));
-        handlerMap.put(GetUnconfirmedTransactionsHandler.class, new GetUnconfirmedTransactionsHandler(transactionProcessor));
+        handlerMap.put(GetUnconfirmedTransactionsHandler.class, new GetUnconfirmedTransactionsHandler(indirectIncomingService, transactionProcessor));
         this.handlers = Collections.unmodifiableMap(handlerMap);
     }
 

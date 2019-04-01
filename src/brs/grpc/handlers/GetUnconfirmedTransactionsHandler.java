@@ -4,14 +4,17 @@ import brs.TransactionProcessor;
 import brs.grpc.GrpcApiHandler;
 import brs.grpc.proto.BrsApi;
 import brs.grpc.proto.ProtoBuilder;
+import brs.services.IndirectIncomingService;
 
 import java.util.stream.Collectors;
 
 public class GetUnconfirmedTransactionsHandler implements GrpcApiHandler<BrsApi.GetAccountRequest, BrsApi.UnconfirmedTransactions> {
 
+    private final IndirectIncomingService indirectIncomingService;
     private final TransactionProcessor transactionProcessor;
 
-    public GetUnconfirmedTransactionsHandler(TransactionProcessor transactionProcessor) {
+    public GetUnconfirmedTransactionsHandler(IndirectIncomingService indirectIncomingService, TransactionProcessor transactionProcessor) {
+        this.indirectIncomingService = indirectIncomingService;
         this.transactionProcessor = transactionProcessor;
     }
 
@@ -20,7 +23,10 @@ public class GetUnconfirmedTransactionsHandler implements GrpcApiHandler<BrsApi.
         return BrsApi.UnconfirmedTransactions.newBuilder()
                 .addAllUnconfirmedTransactions(transactionProcessor.getAllUnconfirmedTransactions()
                         .stream()
-                        .filter(transaction -> getAccountRequest.getId() == 0 || getAccountRequest.getId() == transaction.getSenderId() || getAccountRequest.getId() == transaction.getRecipientId())
+                        .filter(transaction -> getAccountRequest.getId() == 0
+                                || getAccountRequest.getId() == transaction.getSenderId()
+                                || getAccountRequest.getId() == transaction.getRecipientId()
+                                /* TODO || indirectIncomingService.isIndirectlyReceiving(transaction, getAccountRequest.getId()))*/)
                         .map(ProtoBuilder::buildUnconfirmedTransaction)
                         .collect(Collectors.toList()))
                 .build();

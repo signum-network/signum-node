@@ -17,26 +17,26 @@ service BrsApiService {
     rpc GetAlias(GetAliasRequest) returns (Alias) {}
     rpc GetAliases(GetAliasesRequest) returns (Aliases) {}
     rpc GetAllAssets(IndexRange) returns (Assets) {}
-    rpc GetAsset(GetAssetRequest) returns (Asset) {}
+    rpc GetAsset(GetByIdRequest) returns (Asset) {}
     rpc GetAssetAccounts(GetAssetAccountsRequest) returns (AssetAccounts) {}
     rpc GetAssets(GetAssetsRequest) returns (Assets) {}
     rpc GetAssetsByIssuer(GetAccountRequest) returns (Assets) {}
     rpc GetAssetTransfers(GetAssetTransfersRequest) returns (AssetTransfers) {}
-    rpc GetAT(GetATRequest) returns (AT) {}
+    rpc GetAT(GetByIdRequest) returns (AT) {}
     rpc GetATIds(google.protobuf.Empty) returns (ATIds) {}
     rpc GetBlock(GetBlockRequest) returns (Block) {}
     rpc GetConstants(google.protobuf.Empty) returns (Constants) {}
-    rpc GetDgsGood(GetDgsGoodRequest) returns (DgsGood) {}
+    rpc GetDgsGood(GetByIdRequest) returns (DgsGood) {}
     rpc GetDgsGoods(GetDgsGoodsRequest) returns (DgsGoods) {}
     rpc GetDgsPendingPurchases(GetDgsPendingPurchasesRequest) returns (DgsPurchases) {}
-    rpc GetDgsPurchase(GetDgsPurchaseRequest) returns (DgsPurchases) {}
+    rpc GetDgsPurchase(GetByIdRequest) returns (DgsPurchases) {}
     rpc GetDgsPurchases(GetDgsPurchasesRequest) returns (DgsPurchases) {}
-    rpc GetEscrowTransaction(GetEscrowRequest) returns (EscrowTransaction) {}
+    rpc GetEscrowTransaction(GetByIdRequest) returns (EscrowTransaction) {}
     rpc GetMiningInfo(google.protobuf.Empty) returns (stream MiningInfo) {}
     rpc GetPeer(GetPeerRequest) returns (Peer) {}
     rpc GetPeers(GetPeersRequest) returns (Peers) {}
     rpc GetState(google.protobuf.Empty) returns (State) {}
-    rpc GetSubscription(GetSubscriptionRequest) returns (Subscription) {}
+    rpc GetSubscription(GetByIdRequest) returns (Subscription) {}
     rpc GetSubscriptionsToAccount(GetAccountRequest) returns (Subscriptions) {}
     rpc GetCurrentTime(google.protobuf.Empty) returns (Time) {}
     rpc GetAssetTrades(GetAssetTransfersRequest) returns (AssetTrades) {}
@@ -53,6 +53,10 @@ service BrsApiService {
     rpc GetOrders(GetOrdersRequest) returns (Orders) {}
 }
 
+message GetByIdRequest {
+    uint64 id = 1;
+}
+
 message GetDgsPendingPurchasesRequest {
     uint64 seller = 1;
     IndexRange indexRange = 2;
@@ -63,10 +67,6 @@ message GetDgsPurchasesRequest {
     uint64 buyer = 2;
     bool completed = 3;
     IndexRange indexRange = 4;
-}
-
-message GetDgsPurchaseRequest {
-    uint64 purchaseId = 1;
 }
 
 message EncryptedData {
@@ -98,10 +98,6 @@ message DgsPurchase {
     EncryptedData refundNote = 17;
     uint64 discount = 18;
     uint64 refund = 19;
-}
-
-message GetDgsGoodRequest {
-    uint64 goodId = 1;
 }
 
 message GetDgsGoodsRequest {
@@ -208,10 +204,6 @@ message GetAssetAccountsRequest {
     IndexRange indexRange = 3;
 }
 
-message GetAssetRequest {
-    uint64 asset = 1;
-}
-
 message GetAssetsRequest {
     repeated uint64 asset = 1;
 }
@@ -238,10 +230,6 @@ message Transactions {
 
 message TransactionIds {
     repeated uint64 ids = 1;
-}
-
-message GetSubscriptionRequest {
-    uint64 subscriptionId = 1;
 }
 
 message Subscriptions {
@@ -271,10 +259,6 @@ message Counts {
     uint32 numberOfPeers = 11;
     uint32 numberOfGenerators = 12;
     uint64 totalEffectiveBalance = 13;
-}
-
-message GetEscrowRequest {
-    uint64 escrowId = 1;
 }
 
 message Constants {
@@ -357,10 +341,6 @@ message UnconfirmedTransactions {
 
 message Aliases {
     repeated Alias aliases = 1;
-}
-
-message GetATRequest {
-    uint64 id = 1;
 }
 
 message ATIds {

@@ -5,6 +5,7 @@ option java_package = "brs.grpc.proto";
 
 service BrsApiService {
     rpc BroadcastTransaction(TransactionBytes) returns (TransactionBroadcastResult) {}
+    rpc CompleteBasicTransaction(BasicTransaction) returns (BasicTransaction) {}
     rpc GetAccount(GetAccountRequest) returns (Account) {}
     rpc GetAccountATs(GetAccountRequest) returns (AccountATs) {}
     rpc GetAccountBlocks(GetAccountRequest) returns (Blocks) {}
@@ -21,11 +22,15 @@ service BrsApiService {
     rpc GetAssetAccounts(GetAssetAccountsRequest) returns (AssetAccounts) {}
     rpc GetAssets(GetAssetsRequest) returns (Assets) {}
     rpc GetAssetsByIssuer(GetAccountRequest) returns (Assets) {}
+    rpc GetAssetTrades(GetAssetTransfersRequest) returns (AssetTrades) {}
     rpc GetAssetTransfers(GetAssetTransfersRequest) returns (AssetTransfers) {}
     rpc GetAT(GetByIdRequest) returns (AT) {}
     rpc GetATIds(google.protobuf.Empty) returns (ATIds) {}
     rpc GetBlock(GetBlockRequest) returns (Block) {}
+    rpc GetBlocks(GetBlocksRequest) returns (Blocks) {}
     rpc GetConstants(google.protobuf.Empty) returns (Constants) {}
+    rpc GetCounts(google.protobuf.Empty) returns (Counts) {}
+    rpc GetCurrentTime(google.protobuf.Empty) returns (Time) {}
     rpc GetDgsGood(GetByIdRequest) returns (DgsGood) {}
     rpc GetDgsGoods(GetDgsGoodsRequest) returns (DgsGoods) {}
     rpc GetDgsPendingPurchases(GetDgsPendingPurchasesRequest) returns (DgsPurchases) {}
@@ -33,24 +38,19 @@ service BrsApiService {
     rpc GetDgsPurchases(GetDgsPurchasesRequest) returns (DgsPurchases) {}
     rpc GetEscrowTransaction(GetByIdRequest) returns (EscrowTransaction) {}
     rpc GetMiningInfo(google.protobuf.Empty) returns (stream MiningInfo) {}
+    rpc GetOrder(GetOrderRequest) returns (Order) {}
+    rpc GetOrders(GetOrdersRequest) returns (Orders) {}
     rpc GetPeer(GetPeerRequest) returns (Peer) {}
     rpc GetPeers(GetPeersRequest) returns (Peers) {}
     rpc GetState(google.protobuf.Empty) returns (State) {}
     rpc GetSubscription(GetByIdRequest) returns (Subscription) {}
     rpc GetSubscriptionsToAccount(GetAccountRequest) returns (Subscriptions) {}
-    rpc GetCurrentTime(google.protobuf.Empty) returns (Time) {}
-    rpc GetAssetTrades(GetAssetTransfersRequest) returns (AssetTrades) {}
     rpc GetTransaction(GetTransactionRequest) returns (Transaction) {}
+    rpc GetTransactionBytes(BasicTransaction) returns (TransactionBytes) {}
     rpc GetUnconfirmedTransactions(GetAccountRequest) returns (UnconfirmedTransactions) {}
     rpc ParseTransaction(TransactionBytes) returns (BasicTransaction) {}
-    rpc GetTransactionBytes(BasicTransaction) returns (TransactionBytes) {}
     rpc SubmitNonce(SubmitNonceRequest) returns (SubmitNonceResponse) {}
     rpc SuggestFee(google.protobuf.Empty) returns (FeeSuggestion) {}
-    rpc CompleteBasicTransaction(BasicTransaction) returns (BasicTransaction) {}
-    rpc GetBlocks(GetBlocksRequest) returns (Blocks) {}
-    rpc GetCounts(google.protobuf.Empty) returns (Counts) {}
-    rpc GetOrder(GetOrderRequest) returns (Order) {}
-    rpc GetOrders(GetOrdersRequest) returns (Orders) {}
 }
 
 message GetByIdRequest {

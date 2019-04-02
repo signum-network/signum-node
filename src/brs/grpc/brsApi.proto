@@ -8,7 +8,7 @@ service BrsApiService {
     rpc GetAccount(GetAccountRequest) returns (Account) {}
     rpc GetAccountATs(GetAccountRequest) returns (AccountATs) {}
     rpc GetAccountBlocks(GetAccountRequest) returns (Blocks) {}
-    rpc GetAccountCurrentOrders(GetAccountOrdersRequest) returns (AccountOrders) {}
+    rpc GetAccountCurrentOrders(GetAccountOrdersRequest) returns (Orders) {}
     rpc GetAccountEscrowTransactions(GetAccountRequest) returns (AccountEscrowTransactions) {}
     rpc GetAccounts(GetAccountsRequest) returns (Accounts) {}
     rpc GetAccountSubscriptions(GetAccountRequest) returns (Subscriptions) {}
@@ -16,31 +16,21 @@ service BrsApiService {
     rpc GetAccountTransactions(GetAccountRequest) returns (Transactions) {}
     rpc GetAlias(GetAliasRequest) returns (Alias) {}
     rpc GetAliases(GetAliasesRequest) returns (Aliases) {}
-    rpc GetAllAssets(IndexRange) returns (TODO) {}
-    rpc GetAllOpenAskOrders(TODO) returns (TODO) {}
-    rpc GetAllOpenBidOrders(TODO) returns (TODO) {}
-    rpc GetAllTrades(TODO) returns (TODO) {}
-    rpc GetAskOrder(TODO) returns (TODO) {}
-    rpc GetAskOrderIds(TODO) returns (TODO) {}
-    rpc GetAskOrders(TODO) returns (TODO) {}
-    rpc GetAsset(TODO) returns (TODO) {}
-    rpc GetAssetAccounts(TODO) returns (TODO) {}
-    rpc GetAssetIds(TODO) returns (TODO) {}
-    rpc GetAssets(TODO) returns (TODO) {}
-    rpc GetAssetsByIssuer(TODO) returns (TODO) {}
-    rpc GetAssetTransfers(TODO) returns (TODO) {}
+    rpc GetAllAssets(IndexRange) returns (Assets) {} // TODO should this be removed?
+    rpc GetAsset(GetAssetRequest) returns (Asset) {}
+    rpc GetAssetAccounts(GetAssetAccountsRequest) returns (AssetAccounts) {}
+    rpc GetAssets(GetAssetsRequest) returns (Assets) {}
+    rpc GetAssetsByIssuer(GetAccountRequest) returns (Assets) {}
+    rpc GetAssetTransfers(GetAssetTransfersRequest) returns (AssetTransfers) {}
     rpc GetAT(GetATRequest) returns (AT) {}
     rpc GetATIds(google.protobuf.Empty) returns (ATIds) {}
-    rpc GetBidOrder(TODO) returns (TODO) {}
-    rpc GetBidOrders(TODO) returns (TODO) {}
     rpc GetBlock(GetBlockRequest) returns (Block) {}
-    rpc GetConstants(google.protobuf.Empty) returns (TODO) {}
+    rpc GetConstants(google.protobuf.Empty) returns (Constants) {}
     rpc GetDGSGood(TODO) returns (TODO) {}
     rpc GetDGSGoods(TODO) returns (TODO) {}
     rpc GetDGSPendingPurchases(TODO) returns (TODO) {}
     rpc GetDGSPurchase(TODO) returns (TODO) {}
     rpc GetDGSPurchases(TODO) returns (TODO) {}
-    rpc GetECBlock(TODO) returns (TODO) {}
     rpc GetEscrowTransaction(GetEscrowRequest) returns (EscrowTransaction) {}
     rpc GetMiningInfo(google.protobuf.Empty) returns (stream MiningInfo) {}
     rpc GetPeer(GetPeerRequest) returns (Peer) {}
@@ -49,7 +39,7 @@ service BrsApiService {
     rpc GetSubscription(GetSubscriptionRequest) returns (Subscription) {}
     rpc GetSubscriptionsToAccount(GetAccountRequest) returns (Subscriptions) {}
     rpc GetCurrentTime(google.protobuf.Empty) returns (Time) {}
-    rpc GetTrades(TODO) returns (TODO) {}
+    rpc GetAssetTrades(GetAssetTransfersRequest) returns (AssetTrades) {}
     rpc GetTransaction(GetTransactionRequest) returns (Transaction) {}
     rpc GetUnconfirmedTransactions(GetAccountRequest) returns (UnconfirmedTransactions) {}
     rpc ParseTransaction(TransactionBytes) returns (BasicTransaction) {}
@@ -59,6 +49,114 @@ service BrsApiService {
     rpc CompleteBasicTransaction(BasicTransaction) returns (BasicTransaction) {}
     rpc GetBlocks(GetBlocksRequest) returns (Blocks) {}
     rpc GetCounts(google.protobuf.Empty) returns (Counts) {}
+    rpc GetOrder(GetOrderRequest) returns (Order) {}
+    rpc GetOrders(GetOrdersRequest) returns (Orders) {}
+}
+
+enum AssetTradeType {
+    BUY = 0;
+    SELL = 1;
+}
+
+message GetAssetTransfersRequest {
+    uint64 asset = 1;
+    uint64 account = 2;
+    IndexRange indexRange = 3;
+}
+
+message AssetTrades {
+    repeated AssetTrade trades = 1;
+}
+
+message AssetTransfers {
+    repeated AssetTransfer assetTransfers = 1;
+}
+
+message AssetTransfer {
+    uint64 id = 1;
+    uint64 asset = 2;
+    uint64 sender = 3;
+    uint64 recipient = 4;
+    uint64 quantity = 5;
+    uint32 height = 6;
+    uint32 timestamp = 7;
+    string assetName = 8;
+    string assetDescription = 9;
+}
+
+message AssetTrade {
+    uint64 asset = 1;
+    AssetTradeType tradeType = 2;
+    uint64 seller = 3;
+    uint64 buyer = 4;
+    uint64 price = 5;
+    uint64 quantity = 6;
+    uint64 askOrder = 7;
+    uint64 bidOrder = 8;
+    uint32 askOrderHeight = 9;
+    uint32 bidOrderHeight = 10;
+    uint64 block = 11;
+    uint32 height = 12;
+    uint32 timestamp = 13;
+    string assetName = 14;
+    string assetDescription = 15;
+}
+
+message GetOrdersRequest {
+    uint64 asset = 1; // If 0 returns all open orders.
+    OrderType orderType = 2;
+    IndexRange indexRange = 3;
+}
+
+message GetOrderRequest {
+    uint64 orderId = 1;
+    OrderType orderType = 2;
+}
+
+message GetOpenOrdersRequest {
+    OrderType orderType = 1;
+    IndexRange indexRange = 2;
+}
+
+message AssetAccounts {
+    repeated AssetAccount assetAccounts = 1;
+
+    message AssetAccount {
+        uint64 account = 1;
+        uint64 asset = 2;
+        uint64 quantity = 3;
+        uint64 unconfirmedQuantity = 4;
+    }
+}
+
+message GetAssetAccountsRequest {
+    uint64 asset = 1;
+    uint32 height = 2;
+    IndexRange indexRange = 3;
+}
+
+message GetAssetRequest {
+    uint64 asset = 1;
+}
+
+message GetAssetsRequest {
+    repeated uint64 asset = 1;
+}
+
+message Assets {
+    repeated Asset assets = 1;
+}
+
+message Asset {
+    uint64 asset = 1;
+    uint64 account = 2;
+    string name = 3;
+    string description = 4;
+    uint64 quantity = 5;
+    uint32 decimals = 6;
+    uint32 numberOfTrades = 7;
+    uint32 numberOfTransfers = 8;
+    uint32 numberOfAccounts = 9;
 }
 
 message Transactions {
@@ -107,8 +205,8 @@ message GetEscrowRequest {
 }
 
 message Constants {
-    uint64 genesisBlockId = 1;
-    uint64 genesisAccountId = 2;
+    uint64 genesisBlock = 1;
+    uint64 genesisAccount = 2;
     uint32 maxBlockPayloadLength = 3;
     uint32 maxArbitraryMessageLength = 4;
     repeated TransactionType transactionTypes = 5;
@@ -131,22 +229,22 @@ message AccountEscrowTransactions {
 
 message EscrowTransaction {
     uint64 escrowId = 1;
-    uint64 senderId = 2;
-    uint64 recipientId = 3;
+    uint64 sender = 2;
+    uint64 recipient = 3;
     uint64 amount = 4;
     uint32 requiredSigners = 5;
     uint32 deadline = 6;
     EscrowDecisionType deadlineAction = 7;
 }
 
-message AccountOrders {
+message Orders {
     repeated Order orders = 1;
 }
 
 message Order {
     uint64 orderId = 1;
-    uint64 assetId = 2;
-    uint64 accountId = 3;
+    uint64 asset = 2;
+    uint64 account = 3;
     uint64 quantity = 4;
     uint64 price = 5;
     uint32 height = 6;
@@ -154,8 +252,8 @@ message Order {
 }
 
 message GetAccountOrdersRequest {
-    uint64 accountId = 1;
-    uint64 assetId = 2;
+    uint64 account = 1;
+    uint64 asset = 2;
     IndexRange indexRange = 3;
     OrderType orderType = 4;
 }

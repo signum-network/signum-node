@@ -16,7 +16,7 @@ service BrsApiService {
     rpc GetAccountTransactions(GetAccountRequest) returns (Transactions) {}
     rpc GetAlias(GetAliasRequest) returns (Alias) {}
     rpc GetAliases(GetAliasesRequest) returns (Aliases) {}
-    rpc GetAllAssets(IndexRange) returns (Assets) {} // TODO should this be removed?
+    rpc GetAllAssets(IndexRange) returns (Assets) {}
     rpc GetAsset(GetAssetRequest) returns (Asset) {}
     rpc GetAssetAccounts(GetAssetAccountsRequest) returns (AssetAccounts) {}
     rpc GetAssets(GetAssetsRequest) returns (Assets) {}
@@ -26,11 +26,11 @@ service BrsApiService {
     rpc GetATIds(google.protobuf.Empty) returns (ATIds) {}
     rpc GetBlock(GetBlockRequest) returns (Block) {}
     rpc GetConstants(google.protobuf.Empty) returns (Constants) {}
-    rpc GetDGSGood(TODO) returns (TODO) {}
-    rpc GetDGSGoods(TODO) returns (TODO) {}
-    rpc GetDGSPendingPurchases(TODO) returns (TODO) {}
-    rpc GetDGSPurchase(TODO) returns (TODO) {}
-    rpc GetDGSPurchases(TODO) returns (TODO) {}
+    rpc GetDgsGood(GetDgsGoodRequest) returns (DgsGood) {}
+    rpc GetDgsGoods(GetDgsGoodsRequest) returns (DgsGoods) {}
+    rpc GetDgsPendingPurchases(GetDgsPendingPurchasesRequest) returns (DgsPurchases) {}
+    rpc GetDgsPurchase(GetDgsPurchaseRequest) returns (DgsPurchases) {}
+    rpc GetDgsPurchases(GetDgsPurchasesRequest) returns (DgsPurchases) {}
     rpc GetEscrowTransaction(GetEscrowRequest) returns (EscrowTransaction) {}
     rpc GetMiningInfo(google.protobuf.Empty) returns (stream MiningInfo) {}
     rpc GetPeer(GetPeerRequest) returns (Peer) {}
@@ -51,6 +51,79 @@ service BrsApiService {
     rpc GetCounts(google.protobuf.Empty) returns (Counts) {}
     rpc GetOrder(GetOrderRequest) returns (Order) {}
     rpc GetOrders(GetOrdersRequest) returns (Orders) {}
+}
+
+message GetDgsPendingPurchasesRequest {
+    uint64 seller = 1;
+    IndexRange indexRange = 2;
+}
+
+message GetDgsPurchasesRequest {
+    uint64 seller = 1;
+    uint64 buyer = 2;
+    bool completed = 3;
+    IndexRange indexRange = 4;
+}
+
+message GetDgsPurchaseRequest {
+    uint64 purchaseId = 1;
+}
+
+message EncryptedData {
+    bytes data = 1;
+    bytes nonce = 2;
+}
+
+message DgsPurchases {
+    repeated DgsPurchase dgsPurchases = 1;
+}
+
+message DgsPurchase {
+    uint64 id = 1;
+    uint64 good = 2;
+    uint64 seller = 3;
+    uint64 buyer = 4;
+    uint64 price = 5;
+    uint64 quantity = 6;
+    uint32 timestamp = 7;
+    uint32 deliveryDeadlineTimestamp = 8;
+    string goodName = 9;
+    string goodDescription = 10;
+    EncryptedData note = 11;
+    bool isPending = 12;
+    EncryptedData deliveredData = 13;
+    bool deliveredDataIsText = 14;
+    repeated EncryptedData feedback = 15;
+    repeated string publicFeedback = 16;
+    EncryptedData refundNote = 17;
+    uint64 discount = 18;
+    uint64 refund = 19;
+}
+
+message GetDgsGoodRequest {
+    uint64 goodId = 1;
+}
+
+message GetDgsGoodsRequest {
+    uint64 seller = 1;
+    bool inStockOnly = 2;
+    IndexRange indexRange = 3;
+}
+
+message DgsGoods {
+    repeated DgsGood goods = 1;
+}
+
+message DgsGood {
+    uint64 id = 1;
+    uint64 seller = 2;
+    uint64 price = 3;
+    uint64 quantity = 4;
+    bool isDelisted = 5;
+    uint32 timestamp = 6;
+    string name = 7;
+    string description = 8;
+    string tags = 9;
 }
 
 enum AssetTradeType {
@@ -164,7 +237,7 @@ message Transactions {
 }
 
 message TransactionIds {
-    repeated uint64 transactionIds = 1;
+    repeated uint64 ids = 1;
 }
 
 message GetSubscriptionRequest {
@@ -176,7 +249,7 @@ message Subscriptions {
 }
 
 message Subscription {
-    uint64 subscriptionId = 1;
+    uint64 id = 1;
     uint64 sender = 2;
     uint64 recipient = 3;
     uint64 amount = 4;
@@ -242,7 +315,7 @@ message Orders {
 }
 
 message Order {
-    uint64 orderId = 1;
+    uint64 id = 1;
     uint64 asset = 2;
     uint64 account = 3;
     uint64 quantity = 4;
@@ -414,19 +487,15 @@ message TransactionBroadcastResult {
     uint32 numberOfPeersSentTo = 1; // Does not include ourselves!
 }
 
-message TODO {
-
-}
-
 message GetBlockRequest {
-    uint64 id = 1;
+    uint64 blockId = 1;
     uint32 height = 2;
     uint32 timestamp = 3;
     bool includeTransactions = 4;
 }
 
 message GetAccountRequest {
-    uint64 id = 1;
+    uint64 accountId = 1;
 }
 
 message GetAccountsRequest {
@@ -436,7 +505,7 @@ message GetAccountsRequest {
 }
 
 message GetTransactionRequest {
-    uint64 id = 1;
+    uint64 transactionId = 1;
     bytes fullHash = 2;
 }
 
@@ -497,10 +566,9 @@ message MessageAppendix {
 
 message EncryptedMessageAppendix {
     uint32 version = 1;
-    bytes data = 2;
-    bytes nonce = 3;
-    bool isText = 4;
-    Type type = 5;
+    EncryptedData encryptedData = 2;
+    bool isText = 3;
+    Type type = 4;
 
     enum Type {
         TO_RECIPIENT = 0;
@@ -573,7 +641,7 @@ enum OrderType {
 
 message AssetOrderPlacementAttachment {
     uint32 version = 1;
-    uint64 assetId = 2;
+    uint64 asset = 2;
     uint64 quantity = 3;
     uint64 price = 4;
     OrderType type = 5;
@@ -581,7 +649,7 @@ message AssetOrderPlacementAttachment {
 
 message AssetOrderCancellationAttachment {
     uint32 version = 1;
-    uint64 orderId = 2;
+    uint64 order = 2;
     OrderType type = 3;
 }
 
@@ -596,24 +664,24 @@ message DigitalGoodsListingAttachment {
 
 message DigitalGoodsDelistingAttachment {
     uint32 version = 1;
-    uint64 goodsId = 2;
+    uint64 goods = 2;
 }
 
 message DigitalGoodsPriceChangeAttachment {
     uint32 version = 1;
-    uint64 goodsId = 2;
+    uint64 goods = 2;
     uint64 price = 3;
 }
 
 message DigitalGoodsQuantityChangeAttachment {
     uint32 version = 1;
-    uint64 goodsId = 2;
+    uint64 goods = 2;
     sint32 deltaQuantity = 3;
 }
 
 message DigitalGoodsPurchaseAttachment {
     uint32 version = 1;
-    uint64 goodsId = 2;
+    uint64 goods = 2;
     uint32 quantity = 3;
     uint64 price = 4;
     uint32 deliveryDeadlineTimestmap = 5;
@@ -621,7 +689,7 @@ message DigitalGoodsPurchaseAttachment {
 
 message DigitalGoodsDeliveryAttachment {
     uint32 version = 1;
-    uint64 purchaseId = 2;
+    uint64 purchase = 2;
     uint64 discount = 3;
     bytes data = 4;
     bytes nonce = 5;
@@ -630,12 +698,12 @@ message DigitalGoodsDeliveryAttachment {
 
 message DigitalGoodsFeedbackAttachment {
     uint32 version = 1;
-    uint64 purchaseId = 2;
+    uint64 purchase = 2;
 }
 
 message DigitalGoodsRefundAttachment {
     uint32 version = 1;
-    uint64 purchaseId = 2;
+    uint64 purchase = 2;
     uint64 refund = 3;
 }
 
@@ -659,13 +727,13 @@ message EscrowCreationAttachment {
 
 message EscrowSignAttachment {
     uint32 version = 1;
-    uint64 escrowId = 2;
+    uint64 escrow = 2;
     EscrowDecisionType decision = 3;
 }
 
 message EscrowResultAttachment {
     uint32 version = 1;
-    uint64 escrowId = 2;
+    uint64 escrow = 2;
     EscrowDecisionType decision = 3;
 }
 
@@ -676,12 +744,12 @@ message SubscriptionSubscribeAttachment {
 
 message SubscriptionCancelAttachment {
     uint32 version = 1;
-    uint64 subscriptionId = 2;
+    uint64 subscription = 2;
 }
 
 message SubscriptionPaymentAttachment {
     uint32 version = 1;
-    uint64 sucscriptionId = 2;
+    uint64 subscription = 2;
 }
 
 message ATCreationAttachment {
@@ -699,7 +767,7 @@ enum EscrowDecisionType {
 }
 
 message Accounts {
-    repeated uint64 accountIDs = 1;
+    repeated uint64 ids = 1;
     repeated Account accounts = 2;
 }
 

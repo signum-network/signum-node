@@ -3,6 +3,7 @@ package brs;
 import brs.crypto.EncryptedData;
 import brs.fluxcapacitor.FeatureToggle;
 import brs.grpc.proto.BrsApi;
+import brs.grpc.proto.ProtoBuilder;
 import brs.util.Convert;
 import brs.util.JSON;
 import com.google.gson.JsonObject;
@@ -224,7 +225,7 @@ public interface Appendix {
 
     private AbstractEncryptedMessage(BrsApi.EncryptedMessageAppendix encryptedMessageAppendix, int blockchainHeight) {
       super(blockchainHeight);
-      this.encryptedData = new EncryptedData(encryptedMessageAppendix.getData().toByteArray(), encryptedMessageAppendix.getNonce().toByteArray());
+      this.encryptedData = ProtoBuilder.parseEncryptedData(encryptedMessageAppendix.getEncryptedData());
       this.isText = encryptedMessageAppendix.getIsText();
     }
 
@@ -251,8 +252,7 @@ public interface Appendix {
     public Any getProtobufMessage() {
       return Any.pack(BrsApi.EncryptedMessageAppendix.newBuilder()
               .setVersion(super.getVersion())
-              .setData(ByteString.copyFrom(encryptedData.getData()))
-              .setNonce(ByteString.copyFrom(encryptedData.getNonce()))
+              .setEncryptedData(ProtoBuilder.buildEncryptedData(encryptedData))
               .setType(getType())
               .build());
     }

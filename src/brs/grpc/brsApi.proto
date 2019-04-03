@@ -334,7 +334,7 @@ message Blocks {
 message GetAliasesRequest {
     uint64 owner = 1;
     uint32 timestamp = 2;
-    IndexRange index = 3;
+    IndexRange indexRange = 3;
 }
 
 message UnconfirmedTransactions {

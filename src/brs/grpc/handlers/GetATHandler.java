@@ -8,7 +8,7 @@ import brs.grpc.proto.ProtoBuilder;
 import brs.services.ATService;
 import brs.services.AccountService;
 
-public class GetATHandler implements GrpcApiHandler<BrsApi.GetATRequest, BrsApi.AT> {
+public class GetATHandler implements GrpcApiHandler<BrsApi.GetByIdRequest, BrsApi.AT> {
 
     private final ATService atService;
     private final AccountService accountService;
@@ -19,7 +19,7 @@ public class GetATHandler implements GrpcApiHandler<BrsApi.GetATRequest, BrsApi.
     }
 
     @Override
-    public BrsApi.AT handleRequest(BrsApi.GetATRequest getATRequest) throws Exception {
+    public BrsApi.AT handleRequest(BrsApi.GetByIdRequest getATRequest) throws Exception {
         AT at = atService.getAT(getATRequest.getId());
         if (at == null) throw new ApiException("AT not found");
         return ProtoBuilder.buildAT(accountService, at);

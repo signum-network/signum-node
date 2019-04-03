@@ -22,14 +22,14 @@ public class GetAccountsHandler implements GrpcApiHandler<BrsApi.GetAccountsRequ
             if (request.getIncludeAccounts()) {
                 accountService.getAccountsWithName(request.getName()).forEachRemaining(account -> builder.addAccounts(ProtoBuilder.buildAccount(account, accountService)));
             } else {
-                accountService.getAccountsWithName(request.getName()).forEachRemaining(account -> builder.addAccountIDs(account.getId()));
+                accountService.getAccountsWithName(request.getName()).forEachRemaining(account -> builder.addIds(account.getId()));
             }
         }
         if (request.getRewardRecipient() != 0) {
             if (request.getIncludeAccounts()) {
                 accountService.getAccountsWithRewardRecipient(request.getRewardRecipient()).forEachRemaining(assignment -> builder.addAccounts(ProtoBuilder.buildAccount(accountService.getAccount(assignment.getAccountId()), accountService)));
             } else {
-                accountService.getAccountsWithRewardRecipient(request.getRewardRecipient()).forEachRemaining(assignment -> builder.addAccountIDs(assignment.getAccountId()));
+                accountService.getAccountsWithRewardRecipient(request.getRewardRecipient()).forEachRemaining(assignment -> builder.addIds(assignment.getAccountId()));
             }
         }
         return builder.build();

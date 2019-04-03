@@ -20,7 +20,7 @@ public class GetBlockHandler implements GrpcApiHandler<BrsApi.GetBlockRequest, B
 
     @Override
     public BrsApi.Block handleRequest(BrsApi.GetBlockRequest request) throws Exception {
-        long blockId = request.getId();
+        long blockId = request.getBlockId();
         int blockHeight = request.getHeight();
         int timestamp = request.getTimestamp();
 

@@ -135,7 +135,7 @@ public class BrsService extends BrsApiServiceGrpc.BrsApiServiceImplBase {
     }
 
     @Override
-    public void getAT(BrsApi.GetATRequest request, StreamObserver<BrsApi.AT> responseObserver) {
+    public void getAT(BrsApi.GetByIdRequest request, StreamObserver<BrsApi.AT> responseObserver) {
         handleRequest(GetATHandler.class, request, responseObserver);
     }
 

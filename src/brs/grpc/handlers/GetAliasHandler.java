@@ -19,6 +19,6 @@ public class GetAliasHandler implements GrpcApiHandler<BrsApi.GetAliasRequest, B
     public BrsApi.Alias handleRequest(BrsApi.GetAliasRequest getAliasRequest) throws Exception {
         Alias alias = getAliasRequest.getName().equals("") ? aliasService.getAlias(getAliasRequest.getId()) : aliasService.getAlias(getAliasRequest.getName());
         if (alias == null) throw new ApiException("Alias not found");
-        return ProtoBuilder.buildAlias(alias);
+        return ProtoBuilder.buildAlias(alias, aliasService.getOffer(alias));
     }
 }

@@ -25,7 +25,7 @@ public class GetTransactionHandler implements GrpcApiHandler<BrsApi.GetTransacti
     }
 
     public static Transaction getTransaction(Blockchain blockchain, TransactionProcessor transactionProcessor, BrsApi.GetTransactionRequest request) throws ApiException {
-        long id = request.getId();
+        long id = request.getTransactionId();
         byte[] fullHash = request.getFullHash().toByteArray();
         Transaction transaction;
         if (fullHash.length > 0) {

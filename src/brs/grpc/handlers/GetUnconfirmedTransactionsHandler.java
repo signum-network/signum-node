@@ -23,9 +23,9 @@ public class GetUnconfirmedTransactionsHandler implements GrpcApiHandler<BrsApi.
         return BrsApi.UnconfirmedTransactions.newBuilder()
                 .addAllUnconfirmedTransactions(transactionProcessor.getAllUnconfirmedTransactions()
                         .stream()
-                        .filter(transaction -> getAccountRequest.getId() == 0
-                                || getAccountRequest.getId() == transaction.getSenderId()
-                                || getAccountRequest.getId() == transaction.getRecipientId()
+                        .filter(transaction -> getAccountRequest.getAccountId() == 0
+                                || getAccountRequest.getAccountId() == transaction.getSenderId()
+                                || getAccountRequest.getAccountId() == transaction.getRecipientId()
                                 /* TODO || indirectIncomingService.isIndirectlyReceiving(transaction, getAccountRequest.getId()))*/)
                         .map(ProtoBuilder::buildUnconfirmedTransaction)
                         .collect(Collectors.toList()))

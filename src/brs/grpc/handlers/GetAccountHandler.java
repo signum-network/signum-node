@@ -18,7 +18,7 @@ public class GetAccountHandler implements GrpcApiHandler<BrsApi.GetAccountReques
     public BrsApi.Account handleRequest(BrsApi.GetAccountRequest request) throws Exception {
         Account account;
         try {
-            account = accountService.getAccount(request.getId());
+            account = accountService.getAccount(request.getAccountId());
             if (account == null) throw new NullPointerException();
         } catch (RuntimeException e) {
             throw new ApiException("Could not find account");

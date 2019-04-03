@@ -19,8 +19,8 @@ public class GetAliasesHandler implements GrpcApiHandler<BrsApi.GetAliasesReques
     public BrsApi.Aliases handleRequest(BrsApi.GetAliasesRequest getAliasesRequest) throws Exception {
         final int timestamp = getAliasesRequest.getTimestamp();
         final long accountId = getAliasesRequest.getOwner();
-        int firstIndex = getAliasesRequest.getFirstIndex();
-        int lastIndex = getAliasesRequest.getLastIndex();
+        int firstIndex = getAliasesRequest.getIndexRange().getFirstIndex();
+        int lastIndex = getAliasesRequest.getIndexRange().getLastIndex();
         BrsApi.Aliases.Builder aliases = BrsApi.Aliases.newBuilder();
         try (FilteringIterator<Alias> aliasIterator = new FilteringIterator<>(aliasService.getAliasesByOwner(accountId, 0, -1), alias -> alias.getTimestamp() >= timestamp, firstIndex, lastIndex)) {
             while (aliasIterator.hasNext()) {

@@ -84,7 +84,7 @@ public class Escrow {
       case SPLIT:
         return BrsApi.EscrowDecisionType.SPLIT;
       default:
-        return null;
+        return BrsApi.EscrowDecisionType.EscrowDecisionType_UNSET;
     }
   }
 

@@ -1,4 +1,5 @@
 syntax = "proto3";
+
 import "google/protobuf/empty.proto";
 import "google/protobuf/any.proto";
 option java_package = "brs.grpc.proto";
@@ -123,8 +124,9 @@ message DgsGood {
 }
 
 enum AssetTradeType {
-    BUY = 0;
-    SELL = 1;
+    AssetTradeType_UNSET = 0;
+    BUY = 1;
+    SELL = 2;
 }
 
 message GetAssetTransfersRequest {
@@ -396,9 +398,10 @@ message GetPeersRequest {
 }
 
 enum PeerState {
-    NON_CONNECTED = 0;
-    CONNECTED = 1;
-    DISCONNECTED = 2;
+    PeerState_UNSET = 0;
+    NON_CONNECTED = 1;
+    CONNECTED = 2;
+    DISCONNECTED = 3;
 }
 
 message Peer {
@@ -551,8 +554,9 @@ message EncryptedMessageAppendix {
     Type type = 4;
 
     enum Type {
-        TO_RECIPIENT = 0;
-        TO_SELF = 1;
+        Type_UNSET = 0;
+        TO_RECIPIENT = 1;
+        TO_SELF = 2;
     }
 }
 
@@ -609,14 +613,15 @@ message AssetIssuanceAttachment {
 
 message AssetTransferAttachment {
     uint32 version = 1;
-    uint64 id = 2;
+    uint64 asset = 2;
     uint64 quantity = 3;
     string comment = 4;
 }
 
 enum OrderType {
-    ASK = 0;
-    BID = 1;
+    OrderType_UNSET = 0;
+    ASK = 1;
+    BID = 2;
 }
 
 message AssetOrderPlacementAttachment {
@@ -671,9 +676,8 @@ message DigitalGoodsDeliveryAttachment {
     uint32 version = 1;
     uint64 purchase = 2;
     uint64 discount = 3;
-    bytes data = 4;
-    bytes nonce = 5;
-    bool isText = 6;
+    EncryptedData goods = 4;
+    bool isText = 5;
 }
 
 message DigitalGoodsFeedbackAttachment {
@@ -740,10 +744,11 @@ message ATCreationAttachment {
 }
 
 enum EscrowDecisionType {
-    UNDECIDED = 0;
-    RELEASE = 1;
-    REFUND = 2;
-    SPLIT = 3;
+    EscrowDecisionType_UNSET = 0;
+    UNDECIDED = 1;
+    RELEASE = 2;
+    REFUND = 3;
+    SPLIT = 4;
 }
 
 message Accounts {

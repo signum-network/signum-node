@@ -12,7 +12,7 @@ public class GetPeersHandler implements GrpcApiHandler<BrsApi.GetPeersRequest, B
         BrsApi.PeerState peerState = getPeersRequest.getState();
         BrsApi.Peers.Builder peers = BrsApi.Peers.newBuilder();
         // TODO Better enum mapper than to string -> from string as this adds coupling
-        for (Peer peer : active ? Peers.getActivePeers() : peerState == BrsApi.PeerState.UNSET ? Peers.getAllPeers() : Peers.getPeers(Peer.State.valueOf(peerState.toString()))) {
+        for (Peer peer : active ? Peers.getActivePeers() : peerState == BrsApi.PeerState.PeerState_UNSET ? Peers.getAllPeers() : Peers.getPeers(Peer.State.valueOf(peerState.toString()))) {
             peers.addPeerAddresses(peer.getAnnouncedAddress());
         }
         return peers.build();

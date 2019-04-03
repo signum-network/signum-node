@@ -1,6 +1,7 @@
 package brs.grpc.proto;
 
 import brs.*;
+import brs.crypto.EncryptedData;
 import brs.db.BurstIterator;
 import brs.services.AccountService;
 import brs.services.BlockService;
@@ -179,5 +180,16 @@ public final class ProtoBuilder {
         }
 
         return builder.build();
+    }
+
+    public static BrsApi.EncryptedData buildEncryptedData(EncryptedData encryptedData) {
+        return BrsApi.EncryptedData.newBuilder()
+                .setData(ByteString.copyFrom(encryptedData.getData()))
+                .setNonce(ByteString.copyFrom(encryptedData.getNonce()))
+                .build();
+    }
+
+    public static EncryptedData parseEncryptedData(BrsApi.EncryptedData encryptedData) {
+        return new EncryptedData(encryptedData.getData().toByteArray(), encryptedData.getNonce().toByteArray());
     }
 }

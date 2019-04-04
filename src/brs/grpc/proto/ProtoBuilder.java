@@ -1,6 +1,7 @@
 package brs.grpc.proto;
 
 import brs.*;
+import brs.assetexchange.AssetExchange;
 import brs.crypto.EncryptedData;
 import brs.db.BurstIterator;
 import brs.services.AccountService;
@@ -43,12 +44,13 @@ public final class ProtoBuilder {
         return builder.build();
     }
 
-    private static BrsApi.AssetBalance buildAssetBalance(Account.AccountAsset asset) {
+    public static BrsApi.AssetBalance buildAssetBalance(Account.AccountAsset asset) {
         return BrsApi.AssetBalance.newBuilder()
-            .setId(asset.getAssetId())
-            .setBalance(asset.getQuantityQNT())
-            .setUnconfirmedBalance(asset.getUnconfirmedQuantityQNT())
-            .build();
+                .setAsset(asset.getAssetId())
+                .setAccount(asset.getAccountId())
+                .setBalance(asset.getQuantityQNT())
+                .setUnconfirmedBalance(asset.getUnconfirmedQuantityQNT())
+                .build();
     }
 
     public static BrsApi.Block buildBlock(Blockchain blockchain, BlockService blockService, Block block, boolean includeTransactions) {
@@ -202,5 +204,19 @@ public final class ProtoBuilder {
             newIndexRange.setFirstIndex(newIndexRange.getLastIndex());
         }
         return newIndexRange.build();
+    }
+
+    public static BrsApi.Asset buildAsset(AssetExchange assetExchange, Asset asset) {
+        return BrsApi.Asset.newBuilder()
+                .setAsset(asset.getId())
+                .setAccount(asset.getAccountId())
+                .setName(asset.getName())
+                .setDescription(asset.getDescription())
+                .setQuantity(asset.getQuantityQNT())
+                .setDecimals(asset.getDecimals())
+                .setNumberOfTrades(assetExchange.getTradeCount(asset.getId()))
+                .setNumberOfTransfers(assetExchange.getTransferCount(asset.getId()))
+                .setNumberOfAccounts(assetExchange.getAssetAccountsCount(asset.getId()))
+                .build();
     }
 }

@@ -14,13 +14,12 @@ service BrsApiService {
     rpc GetAccountEscrowTransactions(GetAccountRequest) returns (AccountEscrowTransactions) {}
     rpc GetAccounts(GetAccountsRequest) returns (Accounts) {}
     rpc GetAccountSubscriptions(GetAccountRequest) returns (Subscriptions) {}
-    rpc GetAccountTransactionIds(GetAccountRequest) returns (TransactionIds) {}
-    rpc GetAccountTransactions(GetAccountRequest) returns (Transactions) {}
+    rpc GetAccountTransactions(GetAccountTransactionsRequest) returns (Transactions) {}
     rpc GetAlias(GetAliasRequest) returns (Alias) {}
     rpc GetAliases(GetAliasesRequest) returns (Aliases) {}
     rpc GetAllAssets(IndexRange) returns (Assets) {}
     rpc GetAsset(GetByIdRequest) returns (Asset) {}
-    rpc GetAssetAccounts(GetAssetAccountsRequest) returns (AssetAccounts) {}
+    rpc GetAssetBalances(GetAssetBalancesRequest) returns (AssetBalances) {}
     rpc GetAssets(GetAssetsRequest) returns (Assets) {}
     rpc GetAssetsByIssuer(GetAccountRequest) returns (Assets) {}
     rpc GetAssetTrades(GetAssetTransfersRequest) returns (AssetTrades) {}
@@ -52,6 +51,16 @@ service BrsApiService {
     rpc ParseTransaction(TransactionBytes) returns (BasicTransaction) {}
     rpc SubmitNonce(SubmitNonceRequest) returns (SubmitNonceResponse) {}
     rpc SuggestFee(google.protobuf.Empty) returns (FeeSuggestion) {}
+}
+
+message GetAccountTransactionsRequest {
+    uint64 accountId = 1;
+    uint32 timestamp = 2;
+    IndexRange indexRange = 3;
+    uint32 confirmations = 4;
+    bool filterByType = 5; // This is needed because protobuf cannot distinguish between 0 and unset values.
+    uint32 type = 6;
+    uint32 subtype = 7;
 }
 
 message GetAccountBlocksRequest {
@@ -196,18 +205,7 @@ message GetOpenOrdersRequest {
     IndexRange indexRange = 2;
 }
 
-message AssetAccounts {
-    repeated AssetAccount assetAccounts = 1;
-
-    message AssetAccount {
-        uint64 account = 1;
-        uint64 asset = 2;
-        uint64 quantity = 3;
-        uint64 unconfirmedQuantity = 4;
-    }
-}
-
-message GetAssetAccountsRequest {
+message GetAssetBalancesRequest {
     uint64 asset = 1;
     uint32 height = 2;
     IndexRange indexRange = 3;
@@ -237,10 +235,6 @@ message Transactions {
     repeated Transaction transactions = 1;
 }
 
-message TransactionIds {
-    repeated uint64 ids = 1;
-}
-
 message Subscriptions {
     repeated Subscription subscriptions = 1;
 }
@@ -264,7 +258,7 @@ message Counts {
     uint32 numberOfBidOrders = 7;
     uint32 numberOfTrades = 8;
     uint32 numberOfTransfers = 9;
-    uint32 numberOfAliases = 10;
+    uint64 numberOfAliases = 10;
     uint32 numberOfPeers = 11;
     uint32 numberOfGenerators = 12;
     uint64 totalEffectiveBalance = 13;
@@ -775,10 +769,15 @@ message Account {
     repeated AssetBalance assetBalances = 9;
 }
 
+message AssetBalances {
+    repeated AssetBalance assetBalances = 1;
+}
+
 message AssetBalance {
-    uint64 id = 1;
-    uint64 balance = 2;
-    uint64 unconfirmedBalance = 3;
+    uint64 asset = 1;
+    uint64 account = 2;
+    uint64 balance = 3;
+    uint64 unconfirmedBalance = 4;
 }
 
 message MiningInfo {

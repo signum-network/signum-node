@@ -4,6 +4,7 @@ import brs.Blockchain;
 import brs.BlockchainProcessor;
 import brs.Generator;
 import brs.TransactionProcessor;
+import brs.assetexchange.AssetExchange;
 import brs.feesuggestions.FeeSuggestionCalculator;
 import brs.fluxcapacitor.FluxCapacitor;
 import brs.grpc.GrpcApiHandler;
@@ -20,7 +21,7 @@ public class BrsService extends BrsApiServiceGrpc.BrsApiServiceImplBase {
 
     private final Map<Class<? extends GrpcApiHandler<?,?>>, GrpcApiHandler<?,?>> handlers;
 
-    public BrsService(BlockchainProcessor blockchainProcessor, Blockchain blockchain, BlockService blockService, AccountService accountService, Generator generator, TransactionProcessor transactionProcessor, TimeService timeService, FeeSuggestionCalculator feeSuggestionCalculator, ATService atService, AliasService aliasService, IndirectIncomingService indirectIncomingService, FluxCapacitor fluxCapacitor) {
+    public BrsService(BlockchainProcessor blockchainProcessor, Blockchain blockchain, BlockService blockService, AccountService accountService, Generator generator, TransactionProcessor transactionProcessor, TimeService timeService, FeeSuggestionCalculator feeSuggestionCalculator, ATService atService, AliasService aliasService, IndirectIncomingService indirectIncomingService, FluxCapacitor fluxCapacitor, EscrowService escrowService, AssetExchange assetExchange) {
         Map<Class<? extends GrpcApiHandler<?,?>>, GrpcApiHandler<?,?>> handlerMap = new HashMap<>();
         handlerMap.put(GetMiningInfoHandler.class, new GetMiningInfoHandler(blockchainProcessor, generator));
         handlerMap.put(SubmitNonceHandler.class, new SubmitNonceHandler(blockchain, accountService, generator));
@@ -44,6 +45,12 @@ public class BrsService extends BrsApiServiceGrpc.BrsApiServiceImplBase {
         handlerMap.put(GetUnconfirmedTransactionsHandler.class, new GetUnconfirmedTransactionsHandler(indirectIncomingService, transactionProcessor));
         handlerMap.put(GetAccountBlocksHandler.class, new GetAccountBlocksHandler(blockchain, blockService, accountService));
         handlerMap.put(GetConstantsHandler.class, new GetConstantsHandler(fluxCapacitor));
+        handlerMap.put(GetCountsHandler.class, new GetCountsHandler(accountService, escrowService, blockchain, assetExchange, aliasService, generator));
+        handlerMap.put(GetAssetHandler.class, new GetAssetHandler(assetExchange));
+        handlerMap.put(GetAssetsHandler.class, new GetAssetsHandler(assetExchange));
+        handlerMap.put(GetAssetsByIssuerHandler.class, new GetAssetsByIssuerHandler(assetExchange));
+        handlerMap.put(GetAccountTransactionsHandler.class, new GetAccountTransactionsHandler(blockchain, accountService));
+        handlerMap.put(GetAssetBalancesHandler.class, new GetAssetBalancesHandler(assetExchange));
         this.handlers = Collections.unmodifiableMap(handlerMap);
     }
 
@@ -188,33 +195,28 @@ public class BrsService extends BrsApiServiceGrpc.BrsApiServiceImplBase {
     }
 
     @Override
-    public void getAccountTransactionIds(BrsApi.GetAccountRequest request, StreamObserver<BrsApi.TransactionIds> responseObserver) {
-        handleRequest(null, request, responseObserver);
-    }
-
-    @Override
-    public void getAccountTransactions(BrsApi.GetAccountRequest request, StreamObserver<BrsApi.Transactions> responseObserver) {
-        handleRequest(null, request, responseObserver);
+    public void getAccountTransactions(BrsApi.GetAccountTransactionsRequest request, StreamObserver<BrsApi.Transactions> responseObserver) {
+        handleRequest(GetAccountTransactionsHandler.class, request, responseObserver);
     }
 
     @Override
     public void getAsset(BrsApi.GetByIdRequest request, StreamObserver<BrsApi.Asset> responseObserver) {
-        handleRequest(null, request, responseObserver);
+        handleRequest(GetAssetHandler.class, request, responseObserver);
     }
 
     @Override
-    public void getAssetAccounts(BrsApi.GetAssetAccountsRequest request, StreamObserver<BrsApi.AssetAccounts> responseObserver) {
-        handleRequest(null, request, responseObserver);
+    public void getAssetBalances(BrsApi.GetAssetBalancesRequest request, StreamObserver<BrsApi.AssetBalances> responseObserver) {
+        handleRequest(GetAssetBalancesHandler.class, request, responseObserver);
     }
 
     @Override
     public void getAssets(BrsApi.GetAssetsRequest request, StreamObserver<BrsApi.Assets> responseObserver) {
-        handleRequest(null, request, responseObserver);
+        handleRequest(GetAssetsHandler.class, request, responseObserver);
     }
 
     @Override
     public void getAssetsByIssuer(BrsApi.GetAccountRequest request, StreamObserver<BrsApi.Assets> responseObserver) {
-        handleRequest(null, request, responseObserver);
+        handleRequest(GetAssetsByIssuerHandler.class, request, responseObserver);
     }
 
     @Override
@@ -239,7 +241,7 @@ public class BrsService extends BrsApiServiceGrpc.BrsApiServiceImplBase {
 
     @Override
     public void getCounts(Empty request, StreamObserver<BrsApi.Counts> responseObserver) {
-        handleRequest(null, request, responseObserver);
+        handleRequest(GetCountsHandler.class, request, responseObserver);
     }
 
     @Override

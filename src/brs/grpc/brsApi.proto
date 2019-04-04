@@ -9,7 +9,7 @@ service BrsApiService {
     rpc CompleteBasicTransaction(BasicTransaction) returns (BasicTransaction) {}
     rpc GetAccount(GetAccountRequest) returns (Account) {}
     rpc GetAccountATs(GetAccountRequest) returns (AccountATs) {}
-    rpc GetAccountBlocks(GetAccountRequest) returns (Blocks) {}
+    rpc GetAccountBlocks(GetAccountBlocksRequest) returns (Blocks) {}
     rpc GetAccountCurrentOrders(GetAccountOrdersRequest) returns (Orders) {}
     rpc GetAccountEscrowTransactions(GetAccountRequest) returns (AccountEscrowTransactions) {}
     rpc GetAccounts(GetAccountsRequest) returns (Accounts) {}
@@ -52,6 +52,13 @@ service BrsApiService {
     rpc ParseTransaction(TransactionBytes) returns (BasicTransaction) {}
     rpc SubmitNonce(SubmitNonceRequest) returns (SubmitNonceResponse) {}
     rpc SuggestFee(google.protobuf.Empty) returns (FeeSuggestion) {}
+}
+
+message GetAccountBlocksRequest {
+    uint64 accountId = 1;
+    uint32 timestamp = 2;
+    IndexRange indexRange = 3;
+    bool includeTransactions = 4;
 }
 
 message GetByIdRequest {

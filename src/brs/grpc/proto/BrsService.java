@@ -5,6 +5,7 @@ import brs.BlockchainProcessor;
 import brs.Generator;
 import brs.TransactionProcessor;
 import brs.feesuggestions.FeeSuggestionCalculator;
+import brs.fluxcapacitor.FluxCapacitor;
 import brs.grpc.GrpcApiHandler;
 import brs.grpc.handlers.*;
 import brs.services.*;
@@ -19,7 +20,7 @@ public class BrsService extends BrsApiServiceGrpc.BrsApiServiceImplBase {
 
     private final Map<Class<? extends GrpcApiHandler<?,?>>, GrpcApiHandler<?,?>> handlers;
 
-    public BrsService(BlockchainProcessor blockchainProcessor, Blockchain blockchain, BlockService blockService, AccountService accountService, Generator generator, TransactionProcessor transactionProcessor, TimeService timeService, FeeSuggestionCalculator feeSuggestionCalculator, ATService atService, AliasService aliasService, IndirectIncomingService indirectIncomingService) {
+    public BrsService(BlockchainProcessor blockchainProcessor, Blockchain blockchain, BlockService blockService, AccountService accountService, Generator generator, TransactionProcessor transactionProcessor, TimeService timeService, FeeSuggestionCalculator feeSuggestionCalculator, ATService atService, AliasService aliasService, IndirectIncomingService indirectIncomingService, FluxCapacitor fluxCapacitor) {
         Map<Class<? extends GrpcApiHandler<?,?>>, GrpcApiHandler<?,?>> handlerMap = new HashMap<>();
         handlerMap.put(GetMiningInfoHandler.class, new GetMiningInfoHandler(blockchainProcessor, generator));
         handlerMap.put(SubmitNonceHandler.class, new SubmitNonceHandler(blockchain, accountService, generator));
@@ -41,13 +42,15 @@ public class BrsService extends BrsApiServiceGrpc.BrsApiServiceImplBase {
         handlerMap.put(GetAliasHandler.class, new GetAliasHandler(aliasService));
         handlerMap.put(GetAliasesHandler.class, new GetAliasesHandler(aliasService));
         handlerMap.put(GetUnconfirmedTransactionsHandler.class, new GetUnconfirmedTransactionsHandler(indirectIncomingService, transactionProcessor));
+        handlerMap.put(GetAccountBlocksHandler.class, new GetAccountBlocksHandler(blockchain, blockService, accountService));
+        handlerMap.put(GetConstantsHandler.class, new GetConstantsHandler(fluxCapacitor));
         this.handlers = Collections.unmodifiableMap(handlerMap);
     }
 
-    private <T extends GrpcApiHandler<S,R>, S, R> void handleRequest(Class<T> handlerClass, S request, StreamObserver<R> response) {
+    private <Handler extends GrpcApiHandler<Request, Response>, Request, Response> void handleRequest(Class<Handler> handlerClass, Request request, StreamObserver<Response> response) {
         GrpcApiHandler<?, ?> handler = handlers.get(handlerClass);
         if (handlerClass != null && handlerClass.isInstance(handler)) {
-            T handlerInstance = handlerClass.cast(handler);
+            Handler handlerInstance = handlerClass.cast(handler);
             handlerInstance.handleRequest(request, response);
         } else {
             response.onError(ProtoBuilder.buildError(new HandlerNotFoundException("Handler not registered: " + handlerClass)));
@@ -157,6 +160,136 @@ public class BrsService extends BrsApiServiceGrpc.BrsApiServiceImplBase {
     @Override
     public void getUnconfirmedTransactions(BrsApi.GetAccountRequest request, StreamObserver<BrsApi.UnconfirmedTransactions> responseObserver) {
         handleRequest(GetUnconfirmedTransactionsHandler.class, request, responseObserver);
+    }
+
+    @Override
+    public void getAllAssets(BrsApi.IndexRange request, StreamObserver<BrsApi.Assets> responseObserver) {
+        handleRequest(null, request, responseObserver);
+    }
+
+    @Override
+    public void getAccountBlocks(BrsApi.GetAccountBlocksRequest request, StreamObserver<BrsApi.Blocks> responseObserver) {
+        handleRequest(GetAccountBlocksHandler.class, request, responseObserver);
+    }
+
+    @Override
+    public void getAccountCurrentOrders(BrsApi.GetAccountOrdersRequest request, StreamObserver<BrsApi.Orders> responseObserver) {
+        handleRequest(null, request, responseObserver);
+    }
+
+    @Override
+    public void getAccountEscrowTransactions(BrsApi.GetAccountRequest request, StreamObserver<BrsApi.AccountEscrowTransactions> responseObserver) {
+        handleRequest(null, request, responseObserver);
+    }
+
+    @Override
+    public void getAccountSubscriptions(BrsApi.GetAccountRequest request, StreamObserver<BrsApi.Subscriptions> responseObserver) {
+        handleRequest(null, request, responseObserver);
+    }
+
+    @Override
+    public void getAccountTransactionIds(BrsApi.GetAccountRequest request, StreamObserver<BrsApi.TransactionIds> responseObserver) {
+        handleRequest(null, request, responseObserver);
+    }
+
+    @Override
+    public void getAccountTransactions(BrsApi.GetAccountRequest request, StreamObserver<BrsApi.Transactions> responseObserver) {
+        handleRequest(null, request, responseObserver);
+    }
+
+    @Override
+    public void getAsset(BrsApi.GetByIdRequest request, StreamObserver<BrsApi.Asset> responseObserver) {
+        handleRequest(null, request, responseObserver);
+    }
+
+    @Override
+    public void getAssetAccounts(BrsApi.GetAssetAccountsRequest request, StreamObserver<BrsApi.AssetAccounts> responseObserver) {
+        handleRequest(null, request, responseObserver);
+    }
+
+    @Override
+    public void getAssets(BrsApi.GetAssetsRequest request, StreamObserver<BrsApi.Assets> responseObserver) {
+        handleRequest(null, request, responseObserver);
+    }
+
+    @Override
+    public void getAssetsByIssuer(BrsApi.GetAccountRequest request, StreamObserver<BrsApi.Assets> responseObserver) {
+        handleRequest(null, request, responseObserver);
+    }
+
+    @Override
+    public void getAssetTrades(BrsApi.GetAssetTransfersRequest request, StreamObserver<BrsApi.AssetTrades> responseObserver) {
+        handleRequest(null, request, responseObserver);
+    }
+
+    @Override
+    public void getAssetTransfers(BrsApi.GetAssetTransfersRequest request, StreamObserver<BrsApi.AssetTransfers> responseObserver) {
+        handleRequest(null, request, responseObserver);
+    }
+
+    @Override
+    public void getBlocks(BrsApi.GetBlocksRequest request, StreamObserver<BrsApi.Blocks> responseObserver) {
+        handleRequest(null, request, responseObserver);
+    }
+
+    @Override
+    public void getConstants(Empty request, StreamObserver<BrsApi.Constants> responseObserver) {
+        handleRequest(GetConstantsHandler.class, request, responseObserver);
+    }
+
+    @Override
+    public void getCounts(Empty request, StreamObserver<BrsApi.Counts> responseObserver) {
+        handleRequest(null, request, responseObserver);
+    }
+
+    @Override
+    public void getDgsGood(BrsApi.GetByIdRequest request, StreamObserver<BrsApi.DgsGood> responseObserver) {
+        handleRequest(null, request, responseObserver);
+    }
+
+    @Override
+    public void getDgsGoods(BrsApi.GetDgsGoodsRequest request, StreamObserver<BrsApi.DgsGoods> responseObserver) {
+        handleRequest(null, request, responseObserver);
+    }
+
+    @Override
+    public void getDgsPendingPurchases(BrsApi.GetDgsPendingPurchasesRequest request, StreamObserver<BrsApi.DgsPurchases> responseObserver) {
+        handleRequest(null, request, responseObserver);
+    }
+
+    @Override
+    public void getDgsPurchase(BrsApi.GetByIdRequest request, StreamObserver<BrsApi.DgsPurchases> responseObserver) {
+        handleRequest(null, request, responseObserver);
+    }
+
+    @Override
+    public void getDgsPurchases(BrsApi.GetDgsPurchasesRequest request, StreamObserver<BrsApi.DgsPurchases> responseObserver) {
+        handleRequest(null, request, responseObserver);
+    }
+
+    @Override
+    public void getEscrowTransaction(BrsApi.GetByIdRequest request, StreamObserver<BrsApi.EscrowTransaction> responseObserver) {
+        handleRequest(null, request, responseObserver);
+    }
+
+    @Override
+    public void getOrder(BrsApi.GetOrderRequest request, StreamObserver<BrsApi.Order> responseObserver) {
+        handleRequest(null, request, responseObserver);
+    }
+
+    @Override
+    public void getOrders(BrsApi.GetOrdersRequest request, StreamObserver<BrsApi.Orders> responseObserver) {
+        handleRequest(null, request, responseObserver);
+    }
+
+    @Override
+    public void getSubscription(BrsApi.GetByIdRequest request, StreamObserver<BrsApi.Subscription> responseObserver) {
+        handleRequest(null, request, responseObserver);
+    }
+
+    @Override
+    public void getSubscriptionsToAccount(BrsApi.GetAccountRequest request, StreamObserver<BrsApi.Subscriptions> responseObserver) {
+        handleRequest(null, request, responseObserver);
     }
 
     private class HandlerNotFoundException extends Exception {

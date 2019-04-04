@@ -192,4 +192,15 @@ public final class ProtoBuilder {
     public static EncryptedData parseEncryptedData(BrsApi.EncryptedData encryptedData) {
         return new EncryptedData(encryptedData.getData().toByteArray(), encryptedData.getNonce().toByteArray());
     }
+
+    public static BrsApi.IndexRange sanitizeIndexRange(BrsApi.IndexRange indexRange) { // TODO is this OK?
+        BrsApi.IndexRange.Builder newIndexRange = indexRange.toBuilder();
+        if (newIndexRange.getFirstIndex() == 0 && newIndexRange.getLastIndex() == 0) { // Unset values
+            newIndexRange.setLastIndex(Integer.MAX_VALUE); // Signed :(
+        }
+        if (newIndexRange.getFirstIndex() > newIndexRange.getLastIndex()) {
+            newIndexRange.setFirstIndex(newIndexRange.getLastIndex());
+        }
+        return newIndexRange.build();
+    }
 }

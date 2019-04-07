@@ -5,6 +5,8 @@ import brs.grpc.GrpcApiHandler;
 import brs.grpc.proto.BrsApi;
 import brs.peer.Peer;
 import brs.peer.Peers;
+import brs.props.PropertyService;
+import brs.props.Props;
 import brs.services.TimeService;
 import com.google.protobuf.Empty;
 
@@ -14,12 +16,14 @@ public class GetStateHandler implements GrpcApiHandler<Empty, BrsApi.State> {
     private final Blockchain blockchain;
     private final Generator generator;
     private final BlockchainProcessor blockchainProcessor;
+    private final PropertyService propertyService;
 
-    public GetStateHandler(TimeService timeService, Blockchain blockchain, Generator generator, BlockchainProcessor blockchainProcessor) {
+    public GetStateHandler(TimeService timeService, Blockchain blockchain, Generator generator, BlockchainProcessor blockchainProcessor, PropertyService propertyService) {
         this.timeService = timeService;
         this.blockchain = blockchain;
         this.generator = generator;
         this.blockchainProcessor = blockchainProcessor;
+        this.propertyService = propertyService;
     }
 
     @Override
@@ -43,6 +47,7 @@ public class GetStateHandler implements GrpcApiHandler<Empty, BrsApi.State> {
                 .setMaxMemory(Runtime.getRuntime().maxMemory())
                 .setTotalMemory(Runtime.getRuntime().totalMemory())
                 .setFreeMemory(Runtime.getRuntime().freeMemory())
+                .setIndirectIncomingServiceEnabled(propertyService.getBoolean(Props.INDIRECT_INCOMING_SERVICE_ENABLE))
                 .build();
     }
 }

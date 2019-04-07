@@ -139,7 +139,8 @@ var BRS = (function(BRS, $, undefined) {
 
     BRS.getUnconfirmedTransactions = function(callback) {
         BRS.sendRequest("getUnconfirmedTransactions", {
-            "account": BRS.account
+            "account": BRS.account,
+            "includeIndirect": true
         }, function(response) {
             if (response.unconfirmedTransactions && response.unconfirmedTransactions.length) {
                 var unconfirmedTransactions = [];

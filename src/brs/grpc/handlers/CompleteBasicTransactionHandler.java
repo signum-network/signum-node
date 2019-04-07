@@ -1,6 +1,8 @@
 package brs.grpc.handlers;
 
 import brs.Attachment;
+import brs.Blockchain;
+import brs.TransactionProcessor;
 import brs.grpc.GrpcApiHandler;
 import brs.grpc.proto.ApiException;
 import brs.grpc.proto.BrsApi;
@@ -11,9 +13,13 @@ import com.google.protobuf.InvalidProtocolBufferException;
 public class CompleteBasicTransactionHandler implements GrpcApiHandler<BrsApi.BasicTransaction, BrsApi.BasicTransaction> {
 
     private final TimeService timeService;
+    private final TransactionProcessor transactionProcessor;
+    private final Blockchain blockchain;
 
-    public CompleteBasicTransactionHandler(TimeService timeService) {
+    public CompleteBasicTransactionHandler(TimeService timeService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
         this.timeService = timeService;
+        this.transactionProcessor = transactionProcessor;
+        this.blockchain = blockchain;
     }
 
     @Override
@@ -21,7 +27,7 @@ public class CompleteBasicTransactionHandler implements GrpcApiHandler<BrsApi.Ba
         try {
             BrsApi.BasicTransaction.Builder builder = basicTransaction.toBuilder();
             Attachment.AbstractAttachment attachment = Attachment.AbstractAttachment.parseProtobufMessage(basicTransaction.getAttachment());
-            builder.setVersion(1); // TODO
+            builder.setVersion(transactionProcessor.getTransactionVersion(blockchain.getHeight()));
             builder.setType(attachment.getTransactionType().getType());
             builder.setSubtype(attachment.getTransactionType().getSubtype());
             builder.setTimestamp(timeService.getEpochTime());

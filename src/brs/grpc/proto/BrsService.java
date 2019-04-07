@@ -25,7 +25,7 @@ public class BrsService extends BrsApiServiceGrpc.BrsApiServiceImplBase {
     public BrsService(BlockchainProcessor blockchainProcessor, Blockchain blockchain, BlockService blockService, AccountService accountService, Generator generator, TransactionProcessor transactionProcessor, TimeService timeService, FeeSuggestionCalculator feeSuggestionCalculator, ATService atService, AliasService aliasService, IndirectIncomingService indirectIncomingService, FluxCapacitor fluxCapacitor, EscrowService escrowService, AssetExchange assetExchange, SubscriptionService subscriptionService, DGSGoodsStoreService digitalGoodsStoreService) {
         Map<Class<? extends GrpcApiHandler<? extends Message,? extends Message>>, GrpcApiHandler<? extends Message,? extends Message>> handlerMap = new HashMap<>();
         handlerMap.put(BroadcastTransactionHandler.class, new BroadcastTransactionHandler(transactionProcessor));
-        handlerMap.put(CompleteBasicTransactionHandler.class, new CompleteBasicTransactionHandler(timeService));
+        handlerMap.put(CompleteBasicTransactionHandler.class, new CompleteBasicTransactionHandler(timeService, transactionProcessor, blockchain));
         handlerMap.put(GetAccountATsHandler.class, new GetAccountATsHandler(atService, accountService));
         handlerMap.put(GetAccountBlocksHandler.class, new GetAccountBlocksHandler(blockchain, blockService, accountService));
         handlerMap.put(GetAccountCurrentOrdersHandler.class, new GetAccountCurrentOrdersHandler(assetExchange));

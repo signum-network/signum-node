@@ -79,8 +79,9 @@ public final class ProtoBuilder {
                 .setPreviousBlockHash(ByteString.copyFrom(block.getPreviousBlockHash()));
 
         if (includeTransactions) {
+            int currentHeight = blockchain.getHeight();
             builder.addAllTransactions(block.getTransactions().stream()
-                    .map(transaction -> buildTransaction(blockchain, transaction))
+                    .map(transaction -> buildTransaction(transaction, currentHeight))
                     .collect(Collectors.toList()));
         }
 
@@ -109,7 +110,7 @@ public final class ProtoBuilder {
         return builder.build();
     }
 
-    public static BrsApi.Transaction buildTransaction(Blockchain blockchain, Transaction transaction) { // TODO refactor blockchain out
+    public static BrsApi.Transaction buildTransaction(Transaction transaction, int currentHeight) {
         return BrsApi.Transaction.newBuilder()
                 .setTransaction(buildBasicTransaction(transaction))
                 .setId(transaction.getId())
@@ -119,7 +120,7 @@ public final class ProtoBuilder {
                 .setBlockTimestamp(transaction.getBlockTimestamp())
                 .setSignature(ByteString.copyFrom(transaction.getSignature()))
                 .setFullHash(ByteString.copyFrom(Convert.parseHexString(transaction.getFullHash())))
-                .setConfirmations(blockchain.getHeight() - transaction.getHeight())
+                .setConfirmations(currentHeight - transaction.getHeight())
                 .setEcBlockId(transaction.getECBlockId())
                 .setEcBlockHeight(transaction.getECBlockHeight())
                 .build();
@@ -142,7 +143,7 @@ public final class ProtoBuilder {
         bf.order( ByteOrder.LITTLE_ENDIAN );
         bf.put( at.getCreator() );
         bf.clear();
-        long creatorId = bf.getLong(); // TODO is this redundant or does this bring LE byte order?
+        long creatorId = bf.getLong(); // TODO can this be improved?
         bf.clear();
         bf.put( at.getId() , 0 , 8 );
         long atId = bf.getLong(0);
@@ -154,7 +155,7 @@ public final class ProtoBuilder {
                 .setDescription(at.getDescription())
                 .setMachineCode(ByteString.copyFrom(at.getApCode()))
                 .setMachineData(ByteString.copyFrom(at.getApData()))
-                .setBalance(accountService.getAccount(atId).getBalanceNQT()) // TODO why not getG_balance()?
+                .setBalance(accountService.getAccount(atId).getBalanceNQT())
                 .setPreviousBalance(at.getP_balance())
                 .setNextBlock(at.nextHeight())
                 .setFrozen(at.freezeOnSameBalance())
@@ -196,10 +197,14 @@ public final class ProtoBuilder {
         return new EncryptedData(encryptedData.getData().toByteArray(), encryptedData.getNonce().toByteArray());
     }
 
-    public static BrsApi.IndexRange sanitizeIndexRange(BrsApi.IndexRange indexRange) { // TODO is this OK?
+    public static BrsApi.IndexRange sanitizeIndexRange(BrsApi.IndexRange indexRange) {
         BrsApi.IndexRange.Builder newIndexRange = indexRange.toBuilder();
         if (newIndexRange.getFirstIndex() == 0 && newIndexRange.getLastIndex() == 0) { // Unset values
             newIndexRange.setLastIndex(Integer.MAX_VALUE); // Signed :(
+        }
+        if (newIndexRange.getFirstIndex() < 0 || newIndexRange.getLastIndex() < 0) {
+            newIndexRange.setFirstIndex(0);
+            newIndexRange.setLastIndex(100);
         }
         if (newIndexRange.getFirstIndex() > newIndexRange.getLastIndex()) {
             newIndexRange.setFirstIndex(newIndexRange.getLastIndex());

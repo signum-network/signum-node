@@ -266,7 +266,8 @@ public class TransactionProcessorImpl implements TransactionProcessor {
     }
   }
 
-  int getTransactionVersion(int previousBlockHeight) {
+  @Override
+  public int getTransactionVersion(int previousBlockHeight) {
     return Burst.getFluxCapacitor().isActive(FeatureToggle.DIGITAL_GOODS_STORE, previousBlockHeight) ? 1 : 0;
   }
 

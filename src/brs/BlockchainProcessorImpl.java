@@ -910,6 +910,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           stores.getAccountStore().getAccountTable().fillCache(accountIds);
         }
 
+        long[] feeArray = new long[block.getTransactions().size()];
+        int slotIdx = 0;
+
         for (Transaction transaction : block.getTransactions()) {
           if (transaction.getTimestamp() > curTime + MAX_TIMESTAMP_DIFFERENCE) {
             throw new BlockOutOfOrderException("Invalid transaction timestamp: "
@@ -979,12 +982,24 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           calculatedTotalFee += transaction.getFeeNQT();
           digest.update(transaction.getBytes());
           indirectIncomingService.processTransaction(transaction);
+          feeArray[slotIdx] = transaction.getFeeNQT();
+          slotIdx += 1;
         }
 
-        if (calculatedTotalAmount > block.getTotalAmountNQT()
+        if (calculatedTotalAmount > block.getTotalAmountNQT() // TODO Shouldn't this be != ?
             || calculatedTotalFee > block.getTotalFeeNQT()) {
           throw new BlockNotAcceptedException("Total amount or fee don't match transaction totals for block " + block.getHeight());
         }
+
+        if (Burst.getFluxCapacitor().isActive(FeatureToggle.NEXT_FORK)) {
+          Arrays.sort(feeArray);
+          for (int i = 0; i < feeArray.length; i++) {
+            if (feeArray[i] >= Constants.FEE_QUANT * (i + 1)) {
+              throw new BlockNotAcceptedException("Transaction fee is not enough to be included in this block " + block.getHeight());
+            }
+          }
+        }
+
         if (!Arrays.equals(digest.digest(), block.getPayloadHash())) {
           throw new BlockNotAcceptedException("Payload hash doesn't match for block " + block.getHeight());
         }

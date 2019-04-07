@@ -37,8 +37,6 @@ public interface BlockchainProcessor extends Observable<Block, BlockchainProcess
 
   void validateAtNextScan();
 
-  Integer getWalletTTSD();
-
   List<? extends Block> popOffTo(int height);
 
   class BlockNotAcceptedException extends BurstException {

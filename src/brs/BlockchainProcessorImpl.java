@@ -84,10 +84,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   private boolean forceScan;
   private boolean validateAtScan;
 
-  private final boolean forgeFatBlocks;
-
-  private Integer ttsd;
-
   public final void setOclVerify(Boolean b) {
     oclVerify = b;
   }
@@ -129,11 +125,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     forceScan = propertyService.getBoolean(Props.DEV_FORCE_SCAN);
     validateAtScan = propertyService.getBoolean(Props.DEV_FORCE_VALIDATE);
-    forgeFatBlocks = "fat".equals(propertyService.getString(Props.BRS_FORGING_STRATEGY));
-
-    if(forgeFatBlocks) {
-      ttsd = 400;
-    }
 
     blockListeners.addListener(block -> {
       if (block.getHeight() % 5000 == 0) {
@@ -824,11 +815,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     validateAtScan = true;
   }
 
-  @Override
-  public Integer getWalletTTSD() {
-    return this.ttsd;
-  }
-
   void setGetMoreBlocks(boolean getMoreBlocks) {
     this.getMoreBlocks.set(getMoreBlocks);
   }
@@ -867,16 +853,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   }
 
   private void pushBlock(final Block block) throws BlockNotAcceptedException {
-    if(ttsd != null) {
-      ttsd--;
-
-      if (ttsd < 0) {
-        logger.warn("Tick tocks, been crafting too many fat blocks");
-        Burst.shutdown(false);
-        System.exit(0);
-      }
-    }
-
     synchronized (transactionProcessor.getUnconfirmedTransactionsSyncObj()) {
       stores.beginTransaction();
       int curTime = timeService.getEpochTime();
@@ -1194,7 +1170,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               continue COLLECT_TRANSACTIONS;
             }
 
-            long slotFee = Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? (forgeFatBlocks ? 1 : blockSize) * FEE_QUANT : ONE_BURST;
+            long slotFee = Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? blockSize * FEE_QUANT : ONE_BURST;
             if (transaction.getFeeNQT() >= slotFee) {
               // transaction can only be handled if all referenced ones exist
               if (hasAllReferencedTransactions(transaction, transaction.getTimestamp(), 0)) {

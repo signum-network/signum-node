@@ -44,8 +44,6 @@ public class Props {
 
   public static final Prop<Integer> BRS_SHUTDOWN_TIMEOUT = new Prop<>("brs.ShutdownTimeout", 180);
 
-  public static final Prop<String> BRS_FORGING_STRATEGY = new Prop<>("brs.ForgingStrategy", "slots");
-
   // GPU options
   public static final Prop<Boolean> GPU_ACCELERATION     = new Prop<>("GPU.Acceleration", false);
   public static final Prop<Boolean> GPU_AUTODETECT       = new Prop<>("GPU.AutoDetect", true);

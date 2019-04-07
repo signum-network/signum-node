@@ -11,13 +11,12 @@ service BrsApiService {
     rpc GetAccountATs(GetAccountRequest) returns (AccountATs) {}
     rpc GetAccountBlocks(GetAccountBlocksRequest) returns (Blocks) {}
     rpc GetAccountCurrentOrders(GetAccountOrdersRequest) returns (Orders) {}
-    rpc GetAccountEscrowTransactions(GetAccountRequest) returns (AccountEscrowTransactions) {}
+    rpc GetAccountEscrowTransactions(GetAccountRequest) returns (EscrowTransactions) {}
     rpc GetAccounts(GetAccountsRequest) returns (Accounts) {}
     rpc GetAccountSubscriptions(GetAccountRequest) returns (Subscriptions) {}
     rpc GetAccountTransactions(GetAccountTransactionsRequest) returns (Transactions) {}
     rpc GetAlias(GetAliasRequest) returns (Alias) {}
     rpc GetAliases(GetAliasesRequest) returns (Aliases) {}
-    rpc GetAllAssets(IndexRange) returns (Assets) {}
     rpc GetAsset(GetByIdRequest) returns (Asset) {}
     rpc GetAssetBalances(GetAssetBalancesRequest) returns (AssetBalances) {}
     rpc GetAssets(GetAssetsRequest) returns (Assets) {}
@@ -34,7 +33,7 @@ service BrsApiService {
     rpc GetDgsGood(GetByIdRequest) returns (DgsGood) {}
     rpc GetDgsGoods(GetDgsGoodsRequest) returns (DgsGoods) {}
     rpc GetDgsPendingPurchases(GetDgsPendingPurchasesRequest) returns (DgsPurchases) {}
-    rpc GetDgsPurchase(GetByIdRequest) returns (DgsPurchases) {}
+    rpc GetDgsPurchase(GetByIdRequest) returns (DgsPurchase) {}
     rpc GetDgsPurchases(GetDgsPurchasesRequest) returns (DgsPurchases) {}
     rpc GetEscrowTransaction(GetByIdRequest) returns (EscrowTransaction) {}
     rpc GetMiningInfo(google.protobuf.Empty) returns (stream MiningInfo) {}
@@ -283,7 +282,7 @@ message Constants {
     }
 }
 
-message AccountEscrowTransactions {
+message EscrowTransactions {
     repeated EscrowTransaction escrowTransactions = 1;
 }
 
@@ -325,7 +324,7 @@ message IndexRange {
 
 message GetBlocksRequest {
     IndexRange indexRange = 1;
-    bool includeTransaction = 2;
+    bool includeTransactions = 2;
 }
 
 message Blocks {

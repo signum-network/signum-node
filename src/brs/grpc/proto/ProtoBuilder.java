@@ -185,6 +185,7 @@ public final class ProtoBuilder {
     }
 
     public static BrsApi.EncryptedData buildEncryptedData(EncryptedData encryptedData) {
+        if (encryptedData == null) return BrsApi.EncryptedData.getDefaultInstance(); // TODO is this needed for all methods?
         return BrsApi.EncryptedData.newBuilder()
                 .setData(ByteString.copyFrom(encryptedData.getData()))
                 .setNonce(ByteString.copyFrom(encryptedData.getNonce()))
@@ -217,6 +218,116 @@ public final class ProtoBuilder {
                 .setNumberOfTrades(assetExchange.getTradeCount(asset.getId()))
                 .setNumberOfTransfers(assetExchange.getTransferCount(asset.getId()))
                 .setNumberOfAccounts(assetExchange.getAssetAccountsCount(asset.getId()))
+                .build();
+    }
+
+    public static BrsApi.Subscription buildSubscription(Subscription subscription) {
+        return BrsApi.Subscription.newBuilder()
+                .setId(subscription.getId())
+                .setSender(subscription.getSenderId())
+                .setRecipient(subscription.getRecipientId())
+                .setAmount(subscription.getAmountNQT())
+                .setFrequency(subscription.getFrequency())
+                .setTimeNext(subscription.getTimeNext())
+                .build();
+    }
+
+    public static BrsApi.Order buildOrder(Order order) {
+        return BrsApi.Order.newBuilder()
+                .setId(order.getId())
+                .setAsset(order.getAssetId())
+                .setAccount(order.getAccountId())
+                .setQuantity(order.getQuantityQNT())
+                .setPrice(order.getPriceNQT())
+                .setHeight(order.getHeight())
+                .setType(order.getProtobufType())
+                .build();
+    }
+
+    public static BrsApi.DgsGood buildGoods(DigitalGoodsStore.Goods goods) {
+        return BrsApi.DgsGood.newBuilder()
+                .setId(goods.getId())
+                .setSeller(goods.getSellerId())
+                .setPrice(goods.getPriceNQT())
+                .setQuantity(goods.getQuantity())
+                .setIsDelisted(goods.isDelisted())
+                .setTimestamp(goods.getTimestamp())
+                .setName(goods.getName())
+                .setDescription(goods.getDescription())
+                .setTags(goods.getTags())
+                .build();
+    }
+
+    public static BrsApi.EscrowTransaction buildEscrowTransaction(Escrow escrow) {
+        return BrsApi.EscrowTransaction.newBuilder()
+                .setEscrowId(escrow.getId())
+                .setSender(escrow.getSenderId())
+                .setRecipient(escrow.getRecipientId())
+                .setAmount(escrow.getAmountNQT())
+                .setRequiredSigners(escrow.getRequiredSigners())
+                .setDeadline(escrow.getDeadline())
+                .setDeadlineAction(Escrow.decisionToProtobuf(escrow.getDeadlineAction()))
+                .build();
+    }
+
+    public static BrsApi.AssetTrade buildTrade(Trade trade, Asset asset) {
+        return BrsApi.AssetTrade.newBuilder()
+                .setAsset(trade.getAssetId())
+                .setTradeType(trade.isBuy() ? BrsApi.AssetTradeType.BUY : BrsApi.AssetTradeType.SELL)
+                .setSeller(trade.getSellerId())
+                .setBuyer(trade.getBuyerId())
+                .setPrice(trade.getPriceNQT())
+                .setQuantity(trade.getQuantityQNT())
+                .setAskOrder(trade.getAskOrderId())
+                .setBidOrder(trade.getBidOrderId())
+                .setAskOrderHeight(trade.getAskOrderHeight())
+                .setBidOrderHeight(trade.getBidOrderHeight())
+                .setBlock(trade.getBlockId())
+                .setHeight(trade.getHeight())
+                .setTimestamp(trade.getTimestamp())
+                .setAssetName(asset.getName())
+                .setAssetDescription(asset.getDescription())
+                .build();
+    }
+
+    public static BrsApi.AssetTransfer buildTransfer(AssetTransfer assetTransfer, Asset asset) {
+        return BrsApi.AssetTransfer.newBuilder()
+                .setId(assetTransfer.getId())
+                .setAsset(assetTransfer.getAssetId())
+                .setSender(assetTransfer.getSenderId())
+                .setRecipient(assetTransfer.getRecipientId())
+                .setQuantity(assetTransfer.getQuantityQNT())
+                .setHeight(assetTransfer.getHeight())
+                .setTimestamp(assetTransfer.getTimestamp())
+                .setAssetName(asset.getName())
+                .setAssetDescription(asset.getDescription())
+                .build();
+    }
+
+    public static BrsApi.DgsPurchase buildPurchase(DigitalGoodsStore.Purchase purchase, DigitalGoodsStore.Goods goods) {
+        return BrsApi.DgsPurchase.newBuilder()
+                .setId(purchase.getId())
+                .setGood(purchase.getGoodsId())
+                .setSeller(purchase.getSellerId())
+                .setBuyer(purchase.getBuyerId())
+                .setPrice(purchase.getPriceNQT())
+                .setQuantity(purchase.getQuantity())
+                .setTimestamp(purchase.getTimestamp())
+                .setDeliveryDeadlineTimestamp(purchase.getDeliveryDeadlineTimestamp())
+                .setGoodName(goods.getName())
+                .setGoodDescription(goods.getDescription())
+                .setNote(buildEncryptedData(purchase.getNote()))
+                .setIsPending(purchase.isPending())
+                .setDeliveredData(buildEncryptedData(purchase.getEncryptedGoods()))
+                .setDeliveredDataIsText(purchase.goodsIsText())
+                .addAllFeedback(purchase.getFeedbackNotes()
+                        .stream()
+                        .map(ProtoBuilder::buildEncryptedData)
+                        .collect(Collectors.toList()))
+                .addAllPublicFeedback(purchase.getPublicFeedback())
+                .setRefundNote(buildEncryptedData(purchase.getRefundNote()))
+                .setDiscount(purchase.getDiscountNQT())
+                .setRefund(purchase.getRefundNQT())
                 .build();
     }
 }

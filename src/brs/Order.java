@@ -1,6 +1,7 @@
 package brs;
 
 import brs.db.BurstKey;
+import brs.grpc.proto.BrsApi;
 import brs.util.Convert;
 
 public abstract class Order {
@@ -59,6 +60,8 @@ public abstract class Order {
     this.quantityQNT = quantityQNT;
   }
 
+  public abstract BrsApi.OrderType getProtobufType();
+
   @Override
   public String toString() {
     return getClass().getSimpleName() + " id: " + Convert.toUnsignedLong(id) + " account: " + Convert.toUnsignedLong(accountId)
@@ -79,6 +82,10 @@ public abstract class Order {
       this.dbKey = dbKey;
     }
 
+    @Override
+    public BrsApi.OrderType getProtobufType() {
+      return BrsApi.OrderType.ASK;
+    }
   }
 
   public static class Bid extends Order {
@@ -93,6 +100,11 @@ public abstract class Order {
     protected Bid(long id, long accountId, long assetId, long priceNQT, int creationHeight, long quantityQNT, BurstKey dbKey) {
       super(id, accountId, assetId, priceNQT, creationHeight, quantityQNT);
       this.dbKey = dbKey;
+    }
+
+    @Override
+    public BrsApi.OrderType getProtobufType() {
+      return BrsApi.OrderType.BID;
     }
   }
 }

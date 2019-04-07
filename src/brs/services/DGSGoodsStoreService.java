@@ -9,7 +9,7 @@ import brs.Transaction;
 import brs.db.BurstIterator;
 import brs.util.Listener;
 
-public interface DGSGoodsStoreService {
+public interface DGSGoodsStoreService { // TODO Redundant name!
 
   boolean addGoodsListener(Listener<Goods> listener, Event eventType);
 

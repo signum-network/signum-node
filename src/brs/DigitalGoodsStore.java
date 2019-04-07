@@ -6,6 +6,7 @@ import brs.db.VersionedEntityTable;
 import brs.db.VersionedValuesTable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public final class DigitalGoodsStore {
@@ -285,7 +286,7 @@ public final class DigitalGoodsStore {
 
     public List<String> getPublicFeedback() {
       if (!hasPublicFeedbacks) {
-        return null;
+        return Collections.emptyList();
       }
       publicFeedbacks =  publicFeedbackTable().get(publicFeedbackDbKeyFactory().newKey(this));
       return publicFeedbacks;

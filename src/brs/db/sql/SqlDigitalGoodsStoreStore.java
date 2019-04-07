@@ -266,7 +266,7 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
     purchaseRecord.setRefundNote(refundNote);
     purchaseRecord.setRefundNonce(refundNonce);
     purchaseRecord.setHasFeedbackNotes(purchase.getFeedbackNotes() != null && purchase.getFeedbackNotes().size() > 0);
-    purchaseRecord.setHasPublicFeedbacks(purchase.getPublicFeedback() != null && purchase.getPublicFeedback().size() > 0);
+    purchaseRecord.setHasPublicFeedbacks(purchase.getPublicFeedback().size() > 0);
     purchaseRecord.setDiscount(purchase.getDiscountNQT());
     purchaseRecord.setRefund(purchase.getRefundNQT());
     purchaseRecord.setHeight(Burst.getBlockchain().getHeight());

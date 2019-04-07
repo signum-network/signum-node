@@ -36,8 +36,11 @@ import java.util.*;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static brs.Constants.FEE_QUANT;
 import static brs.Constants.ONE_BURST;
@@ -1139,6 +1142,14 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     return 3;
   }
 
+  private boolean preCheckUnconfirmedTransaction(TransactionDuplicatesCheckerImpl transactionDuplicatesChecker, UnconfirmedTransactionStore unconfirmedTransactionStore, Transaction transaction) {
+    boolean ok = hasAllReferencedTransactions(transaction, transaction.getTimestamp(), 0)
+            && transactionDuplicatesChecker.hasAnyDuplicate(transaction)
+            && !transactionDb.hasTransaction(transaction.getId());
+    if (!ok) unconfirmedTransactionStore.remove(transaction);
+    return ok;
+  }
+
   @Override
   public void generateBlock(String secretPhrase, byte[] publicKey, Long nonce) throws BlockNotAcceptedException {
     synchronized (downloadCache) {
@@ -1164,59 +1175,124 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
         final TransactionDuplicatesCheckerImpl transactionDuplicatesChecker = new TransactionDuplicatesCheckerImpl();
 
-        List<Transaction> unconfirmedTransactionsOrderedByFee = unconfirmedTransactionStore.getAll().stream().filter(
-                transaction ->
+        Function<Transaction, Long> priorityCalculator = transaction -> {
+          int age = blockTimestamp + 1 - transaction.getTimestamp();
+          if (age < 0) age = 1;
+          return ((long) age) * transaction.getFeeNQT();
+        };
+
+        // Map of slot number -> transaction
+        Map<Long, Transaction> transactionsToBeIncluded;
+        Stream<Transaction> inclusionCandidates = unconfirmedTransactionStore.getAll().stream()
+                .filter(transaction -> // Normal filtering
                         transaction.getVersion() == transactionProcessor.getTransactionVersion(previousBlock.getHeight())
                                 && transaction.getExpiration() >= blockTimestamp
                                 && transaction.getTimestamp() <= blockTimestamp + MAX_TIMESTAMP_DIFFERENCE
                                 && (
                                 !Burst.getFluxCapacitor().isActive(FeatureToggle.AUTOMATED_TRANSACTION_BLOCK)
                                         || economicClustering.verifyFork(transaction)
-                        )
-        ).sorted((o2, o1) -> Long.compare(o1.getFeeNQT(), o2.getFeeNQT())).collect(Collectors.toList());
+                        ))
+                .filter(transaction -> preCheckUnconfirmedTransaction(transactionDuplicatesChecker, unconfirmedTransactionStore, transaction)); // Extra check for transactions that are to be considered
 
-        COLLECT_TRANSACTIONS: for (Transaction transaction : unconfirmedTransactionsOrderedByFee) {
-          boolean transactionHasBeenHandled = false;
-          while ( ! transactionHasBeenHandled ) {
-            if ( blockSize <= 0 || payloadSize <= 0 ) {
-              break COLLECT_TRANSACTIONS;
+        if (Burst.getFluxCapacitor().isActive(FeatureToggle.PRE_DYMAXION)) {
+          // In this step we get all unconfirmed transactions and then sort them by slot, followed by priority
+          Map<Long, Map<Long, Transaction>> unconfirmedTransactionsOrderedBySlotThenPriority = new HashMap<>();
+          inclusionCandidates.collect(Collectors.toMap(tx -> tx, priorityCalculator)).forEach((transaction, priority) -> {
+            long slot = (transaction.getFeeNQT() - (transaction.getFeeNQT() % FEE_QUANT)) / FEE_QUANT;
+            unconfirmedTransactionsOrderedBySlotThenPriority.computeIfAbsent(slot, k -> new HashMap<>());
+            unconfirmedTransactionsOrderedBySlotThenPriority.get(slot).put(priority, transaction);
+          });
+
+          // In this step we sort through each slot and find the highest priority transaction in each.
+          AtomicLong highestSlot = new AtomicLong();
+          unconfirmedTransactionsOrderedBySlotThenPriority.keySet()
+                  .forEach(slot -> {
+                    if (highestSlot.get() < slot) {
+                      highestSlot.set(slot);
+                    }
+                  });
+          List<Long> slotsWithNoTransactions = new ArrayList<>();
+          for (long slot = 1; slot <= highestSlot.get(); slot++) {
+            Map<Long, Transaction> transactions = unconfirmedTransactionsOrderedBySlotThenPriority.get(slot);
+            if (transactions == null || transactions.size() == 0) {
+              slotsWithNoTransactions.add(slot);
             }
-            else if ( transaction.getSize() > payloadSize ) {
-              continue COLLECT_TRANSACTIONS;
-            }
-
-            long slotFee = Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? blockSize * FEE_QUANT : ONE_BURST;
-            if (transaction.getFeeNQT() >= slotFee) {
-              // transaction can only be handled if all referenced ones exist
-              if (hasAllReferencedTransactions(transaction, transaction.getTimestamp(), 0)) {
-                // handle non- duplicates and transactions which can be applied
-                if (! transactionDuplicatesChecker.hasAnyDuplicate(transaction) && ! transactionDb.hasTransaction(transaction.getId()) && transactionService.applyUnconfirmed(transaction)) {
-                  try {
-                    transactionService.validate(transaction);
-                    payloadSize -= transaction.getSize();
-                    blockSize--;
-
-                    totalAmountNQT += transaction.getAmountNQT();
-                    totalFeeNQT += transaction.getFeeNQT();
-
-                    orderedBlockTransactions.add(transaction);
-                  } catch (BurstException.NotCurrentlyValidException e) {
-                    transactionService.undoUnconfirmed(transaction);
-                  } catch (BurstException.ValidationException e) {
-                    unconfirmedTransactionStore.remove(transaction);
-                    transactionService.undoUnconfirmed(transaction);
-                  }
-                }
-                else {
-                  // drop duplicates and those transactions which can not be applied
-                  unconfirmedTransactionStore.remove(transaction);
-                }
+          }
+          Map<Long, Transaction> unconfirmedTransactionsOrderedBySlot = new HashMap<>();
+          unconfirmedTransactionsOrderedBySlotThenPriority.forEach((slot, transactions) -> {
+            AtomicLong highestPriority = new AtomicLong();
+            transactions.keySet().forEach(priority -> {
+              if (highestPriority.get() < priority) {
+                highestPriority.set(priority);
               }
-              // handled by a real handling or by discarding the transaction
-              transactionHasBeenHandled = true;
+            });
+            unconfirmedTransactionsOrderedBySlot.put(slot, transactions.get(highestPriority.get()));
+            transactions.remove(highestPriority.get()); // This is to help with filling slots with no transactions
+          });
+
+          // If a slot does not have any transactions in it, the next highest priority transaction from the slot above should be used.
+          slotsWithNoTransactions.sort(Comparator.reverseOrder());
+          slotsWithNoTransactions.forEach(emptySlot -> {
+            long slotNumberToTakeFrom = emptySlot;
+            Map<Long, Transaction> slotToTakeFrom = null;
+            while (slotToTakeFrom == null || slotToTakeFrom.size() == 0) {
+              slotNumberToTakeFrom++;
+              if (slotNumberToTakeFrom > highestSlot.get()) return;
+              slotToTakeFrom = unconfirmedTransactionsOrderedBySlotThenPriority.get(slotNumberToTakeFrom);
             }
-            else {
-              blockSize--;
+            AtomicLong highestPriority = new AtomicLong();
+            slotToTakeFrom.keySet().forEach(priority -> {
+              if (highestPriority.get() < priority) {
+                highestPriority.set(priority);
+              }
+            });
+            unconfirmedTransactionsOrderedBySlot.put(emptySlot, slotToTakeFrom.get(highestPriority.get()));
+            slotToTakeFrom.remove(highestPriority.get());
+          });
+          transactionsToBeIncluded = unconfirmedTransactionsOrderedBySlot;
+        } else { // Before Pre-Dymaxion HF, just choose highest priority
+          Map<Long, Transaction> transactionsOrderedByPriority = inclusionCandidates.collect(Collectors.toMap(priorityCalculator, tx -> tx));
+          Map<Long, Transaction> transactionsOrderedBySlot = new HashMap<>();
+          AtomicLong currentSlot = new AtomicLong(1);
+          transactionsOrderedByPriority.keySet()
+                  .stream()
+                  .sorted(Comparator.reverseOrder())
+                  .forEach(priority -> { // This should do highest priority to lowest priority
+                    transactionsOrderedBySlot.put(currentSlot.get(), transactionsOrderedByPriority.get(priority));
+                    currentSlot.incrementAndGet();
+                  });
+          transactionsToBeIncluded = transactionsOrderedBySlot;
+        }
+
+        for (Map.Entry<Long, Transaction> entry : transactionsToBeIncluded.entrySet()) {
+          long slot = entry.getKey();
+          Transaction transaction = entry.getValue();
+
+          if (blockSize <= 0 || payloadSize <= 0) {
+            break;
+          } else if (transaction.getSize() > payloadSize) {
+            continue;
+          }
+
+          long slotFee = Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? slot * FEE_QUANT : ONE_BURST;
+          if (transaction.getFeeNQT() >= slotFee) {
+            if (transactionService.applyUnconfirmed(transaction)) {
+              try {
+                transactionService.validate(transaction);
+                payloadSize -= transaction.getSize();
+                totalAmountNQT += transaction.getAmountNQT();
+                totalFeeNQT += transaction.getFeeNQT();
+                orderedBlockTransactions.add(transaction);
+                blockSize--;
+              } catch (BurstException.NotCurrentlyValidException e) {
+                transactionService.undoUnconfirmed(transaction);
+              } catch (BurstException.ValidationException e) {
+                unconfirmedTransactionStore.remove(transaction);
+                transactionService.undoUnconfirmed(transaction);
+              }
+            } else {
+              // Drop duplicates and transactions that cannot be applied
+              unconfirmedTransactionStore.remove(transaction);
             }
           }
         }

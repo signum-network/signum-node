@@ -325,7 +325,7 @@
           <plugin>
             <groupId>org.xolstice.maven.plugins</groupId>
             <artifactId>protobuf-maven-plugin</artifactId>
-            <version>0.5.1</version>
+            <version>0.6.1</version>
             <configuration>
               <protoSourceRoot>${grpc.source.dir}</protoSourceRoot>
               <protocArtifact>com.google.protobuf:protoc:3.5.1-1:exe:${os.detected.classifier}</protocArtifact>
@@ -357,7 +357,7 @@
           <plugin>
             <groupId>org.xolstice.maven.plugins</groupId>
             <artifactId>protobuf-maven-plugin</artifactId>
-            <version>0.5.1</version>
+            <version>0.6.1</version>
             <configuration>
               <protoSourceRoot>${grpc.source.dir}</protoSourceRoot>
               <pluginId>grpc-java</pluginId>

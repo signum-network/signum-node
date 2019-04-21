@@ -4,6 +4,7 @@ import brs.db.BurstKey;
 import brs.db.ValuesTable;
 import brs.db.store.DerivedTableManager;
 import org.jooq.DSLContext;
+import org.jooq.Record;
 import org.jooq.SelectQuery;
 import org.jooq.UpdateQuery;
 import org.jooq.impl.TableImpl;
@@ -32,18 +33,19 @@ public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements Val
 
   protected abstract void save(DSLContext ctx, T t, V v);
 
+  @SuppressWarnings("unchecked")
   @Override
   public final List<V> get(BurstKey nxtKey) {
     DbKey dbKey = (DbKey) nxtKey;
     List<V> values;
     if (Db.isInTransaction()) {
-      values = (List<V>)Db.getCache(table).get(dbKey);
+      values = (List<V>) Db.getCache(table).get(dbKey);
       if (values != null) {
         return values;
       }
     }
     DSLContext ctx = Db.getDSLContext();
-    SelectQuery query = ctx.selectQuery();
+    SelectQuery<Record> query = ctx.selectQuery();
     query.addFrom(tableClass);
     query.addConditions(dbKey.getPKConditions(tableClass));
     if ( multiversion ) {

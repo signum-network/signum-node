@@ -13,7 +13,7 @@ import static brs.http.common.Parameters.SIGNATURE_HASH_PARAMETER;
 import static brs.http.common.Parameters.UNSIGNED_TRANSACTION_BYTES_PARAMETER;
 import static brs.http.common.ResultFields.FULL_HASH_RESPONSE;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mock;
 

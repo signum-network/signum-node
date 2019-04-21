@@ -5,7 +5,7 @@ import static brs.http.JSONResponses.GOODS_NOT_DELIVERED;
 import static brs.http.JSONResponses.INCORRECT_PURCHASE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;

@@ -17,7 +17,7 @@ import static brs.http.common.Parameters.ORDER_PARAMETER;
 import static brs.http.common.ResultFields.ORDER_RESPONSE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

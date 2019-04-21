@@ -17,7 +17,7 @@ import static brs.http.common.Parameters.TRANSACTION_BYTES_PARAMETER;
 import static brs.http.common.Parameters.TRANSACTION_JSON_PARAMETER;
 import static brs.http.common.ResultFields.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 public class BroadcastTransactionTest {

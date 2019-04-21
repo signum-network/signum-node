@@ -316,10 +316,7 @@
 
   <profiles>
     <profile>
-      <id>normalBuild</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
+      <id>protoc</id>
       <build>
         <plugins>
           <plugin>
@@ -331,6 +328,8 @@
               <protocArtifact>com.google.protobuf:protoc:3.5.1-1:exe:${os.detected.classifier}</protocArtifact>
               <pluginId>grpc-java</pluginId>
               <pluginArtifact>io.grpc:protoc-gen-grpc-java:1.18.0:exe:${os.detected.classifier}</pluginArtifact>
+              <outputDirectory>src/</outputDirectory>
+              <clearOutputDirectory>false</clearOutputDirectory>
             </configuration>
             <executions>
               <execution>
@@ -340,46 +339,6 @@
                 </goals>
               </execution>
             </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>headlessBuild</id>
-      <activation>
-        <property>
-          <name>os.detected.release</name>
-          <value>alpine</value>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.xolstice.maven.plugins</groupId>
-            <artifactId>protobuf-maven-plugin</artifactId>
-            <version>0.5.1</version>
-            <configuration>
-              <protoSourceRoot>${grpc.source.dir}</protoSourceRoot>
-              <pluginId>grpc-java</pluginId>
-            </configuration>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>compile</goal>
-                  <goal>compile-custom</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <version>3.8.0</version>
-            <configuration>
-              <excludes>
-                <exclude>brs/BurstGUI.java</exclude>
-              </excludes>
-            </configuration>
           </plugin>
         </plugins>
       </build>

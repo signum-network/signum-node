@@ -1144,7 +1144,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
   private boolean preCheckUnconfirmedTransaction(TransactionDuplicatesCheckerImpl transactionDuplicatesChecker, UnconfirmedTransactionStore unconfirmedTransactionStore, Transaction transaction) {
     boolean ok = hasAllReferencedTransactions(transaction, transaction.getTimestamp(), 0)
-            && transactionDuplicatesChecker.hasAnyDuplicate(transaction)
+            && !transactionDuplicatesChecker.hasAnyDuplicate(transaction)
             && !transactionDb.hasTransaction(transaction.getId());
     if (!ok) unconfirmedTransactionStore.remove(transaction);
     return ok;
@@ -1203,6 +1203,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             unconfirmedTransactionsOrderedBySlotThenPriority.get(slot).put(priority, transaction);
           });
 
+          System.out.println("unconfirmedTransactionsOrderedBySlotThenPriority: " + unconfirmedTransactionsOrderedBySlotThenPriority);
+
           // In this step we sort through each slot and find the highest priority transaction in each.
           AtomicLong highestSlot = new AtomicLong();
           unconfirmedTransactionsOrderedBySlotThenPriority.keySet()
@@ -1211,6 +1213,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                       highestSlot.set(slot);
                     }
                   });
+          System.out.println("Highest slot is " + highestSlot.get());
           List<Long> slotsWithNoTransactions = new ArrayList<>();
           for (long slot = 1; slot <= highestSlot.get(); slot++) {
             Map<Long, Transaction> transactions = unconfirmedTransactionsOrderedBySlotThenPriority.get(slot);
@@ -1218,6 +1221,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               slotsWithNoTransactions.add(slot);
             }
           }
+          System.out.println("Slots with no transactions: " + slotsWithNoTransactions);
           Map<Long, Transaction> unconfirmedTransactionsOrderedBySlot = new HashMap<>();
           unconfirmedTransactionsOrderedBySlotThenPriority.forEach((slot, transactions) -> {
             AtomicLong highestPriority = new AtomicLong();
@@ -1229,6 +1233,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             unconfirmedTransactionsOrderedBySlot.put(slot, transactions.get(highestPriority.get()));
             transactions.remove(highestPriority.get()); // This is to help with filling slots with no transactions
           });
+
+          System.out.println("unconfirmedTransactionsOrderedBySlotThenPriority: " + unconfirmedTransactionsOrderedBySlotThenPriority);
 
           // If a slot does not have any transactions in it, the next highest priority transaction from the slot above should be used.
           slotsWithNoTransactions.sort(Comparator.reverseOrder());
@@ -1251,6 +1257,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           });
           transactionsToBeIncluded = unconfirmedTransactionsOrderedBySlot;
         } else { // Before Pre-Dymaxion HF, just choose highest priority
+          System.out.println("oops");
           Map<Long, Transaction> transactionsOrderedByPriority = inclusionCandidates.collect(Collectors.toMap(priorityCalculator, tx -> tx));
           Map<Long, Transaction> transactionsOrderedBySlot = new HashMap<>();
           AtomicLong currentSlot = new AtomicLong(1);
@@ -1263,6 +1270,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                   });
           transactionsToBeIncluded = transactionsOrderedBySlot;
         }
+
+        System.out.println("transactionsToBeIncluded: " + transactionsToBeIncluded);
 
         for (Map.Entry<Long, Transaction> entry : transactionsToBeIncluded.entrySet()) {
           long slot = entry.getKey();

@@ -1,6 +1,7 @@
 package brs.db.sql;
 
 import brs.*;
+import brs.Block;
 import brs.Transaction;
 import brs.db.BlockDb;
 import brs.db.BurstIterator;

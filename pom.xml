@@ -42,7 +42,7 @@
     <ehcache.version>3.7.1</ehcache.version>
     <apachehttpclient.version>4.5.8</apachehttpclient.version>
     <xzing.version>3.3.3</xzing.version>
-    <flywaydb.version>5.2.4</flywaydb.version>
+    <flywaydb.version>6.0.0-beta</flywaydb.version>
 
     <junit-jupiter.version>5.4.2</junit-jupiter.version>
     <junit-platform.version>1.4.2</junit-platform.version>
@@ -458,12 +458,12 @@
 
                 <!-- workaround to keep org. burst.(sh|cmd) working, if build with compile scripts -->
                 <copy file="${project.basedir}/burst.sh"
-                  tofile="${project.basedir}/dist/tmp/burst.sh"/>
+                      tofile="${project.basedir}/dist/tmp/burst.sh"/>
                 <copy file="${project.basedir}/burst.cmd"
                   tofile="${project.basedir}/dist/tmp/burst.cmd"/>
                 <!-- create zip file -->
                 <zip destfile="${project.basedir}/dist/${project.build.finalName}.zip"
-                  basedir="${project.basedir}/dist/tmp"/>
+                     basedir="${project.basedir}/dist/tmp"/>
               </target>
             </configuration>
           </execution>
@@ -504,9 +504,9 @@
             <password />
           </jdbc>
           <generator>
-            <name>org.jooq.util.JavaGenerator</name>
+            <name>org.jooq.codegen.JavaGenerator</name>
             <database>
-              <name>org.jooq.util.mariadb.MariaDBDatabase</name>
+              <name>org.jooq.meta.mariadb.MariaDBDatabase</name>
               <inputSchema>burstwallet</inputSchema>
               <outputSchema>DB</outputSchema>
               <includes>.*</includes>

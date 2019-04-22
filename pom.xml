@@ -41,7 +41,7 @@
     <weupnp.version>0.1.4</weupnp.version>
     <ehcache.version>3.5.0</ehcache.version>
     <apachehttpclient.version>4.5.8</apachehttpclient.version>
-    <xzing.version>3.3.0</xzing.version>
+    <xzing.version>3.3.3</xzing.version>
     <flywaydb.version>5.2.4</flywaydb.version>
 
     <junit-jupiter.version>5.4.2</junit-jupiter.version>

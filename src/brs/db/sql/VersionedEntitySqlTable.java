@@ -5,6 +5,7 @@ import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.DerivedTableManager;
 import org.jooq.*;
+import org.jooq.impl.DSL;
 import org.jooq.impl.TableImpl;
 
 import java.sql.ResultSet;
@@ -100,7 +101,7 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
         SelectQuery selectMaxHeightQuery = ctx.selectQuery();
         selectMaxHeightQuery.addFrom(tableClass);
         selectMaxHeightQuery.addConditions(dbKey.getPKConditions(tableClass));
-        selectMaxHeightQuery.addSelect(tableClass.field("height", Integer.class).max());
+        selectMaxHeightQuery.addSelect(DSL.max(tableClass.field("height", Integer.class)));
         Integer maxHeight = (Integer) ctx.fetchValue(selectMaxHeightQuery.fetchResultSet(), tableClass.field("height", Integer.class));
 
         if ( maxHeight != null ) {
@@ -131,21 +132,21 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
     DSLContext ctx = Db.getDSLContext();
     SelectQuery selectMaxHeightQuery = ctx.selectQuery();
     selectMaxHeightQuery.addFrom(tableClass);
-    selectMaxHeightQuery.addSelect(tableClass.field("height", Long.class).max().as("max_height"));
+    selectMaxHeightQuery.addSelect(DSL.max(tableClass.field("height", Long.class)).as("max_height"));
     for ( String column : dbKeyFactory.getPKColumns() ) {
       Field pkField = tableClass.field(column, Long.class);
       selectMaxHeightQuery.addSelect(pkField);
       selectMaxHeightQuery.addGroupBy(pkField);
     }
     selectMaxHeightQuery.addConditions(tableClass.field("height", Long.class).lt(height));
-    selectMaxHeightQuery.addHaving(tableClass.field("height", Long.class).countDistinct().gt(1));
+    selectMaxHeightQuery.addHaving(DSL.countDistinct(tableClass.field("height", Long.class)).gt(1));
 
     // delete all fetched accounts, except if it's height is the max height we figured out
     try ( ResultSet rs = selectMaxHeightQuery.fetchResultSet() ) {
       DeleteQuery deleteLowerHeightQuery = ctx.deleteQuery(tableClass);
       deleteLowerHeightQuery.addConditions(tableClass.field("height", Integer.class).lt((Integer) null));
       for ( String column : dbKeyFactory.getPKColumns() ) {
-        Field pkField = tableClass.field(column, Long.class);
+        Field<Long> pkField = tableClass.field(column, Long.class);
         deleteLowerHeightQuery.addConditions(pkField.eq((Long) null));
       }
       BatchBindStep deleteBatch = ctx.batch(deleteLowerHeightQuery);
@@ -153,8 +154,8 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
       while (rs.next()) {
         DbKey dbKey = (DbKey) dbKeyFactory.newKey(rs);
         int maxHeight = rs.getInt("max_height");
-        List<Object> bindValues = new ArrayList();
-        bindValues.add(maxHeight);
+        List<Long> bindValues = new ArrayList<>();
+        bindValues.add((long) maxHeight);
         for ( Long pkValue : dbKey.getPKValues() ) {
           bindValues.add(pkValue);
         }

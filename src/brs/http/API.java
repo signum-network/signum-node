@@ -78,7 +78,7 @@ public final class API {
         https_config.setSecureScheme("https");
         https_config.setSecurePort(port);
         https_config.addCustomizer(new SecureRequestCustomizer());
-        SslContextFactory sslContextFactory = new SslContextFactory();
+        SslContextFactory sslContextFactory = new SslContextFactory.Server();
         sslContextFactory.setKeyStorePath(propertyService.getString(Props.API_SSL_KEY_STORE_PATH));
         sslContextFactory.setKeyStorePassword(propertyService.getString(Props.API_SSL_KEY_STORE_PASSWORD));
         sslContextFactory.setExcludeCipherSuites("SSL_RSA_WITH_DES_CBC_SHA",

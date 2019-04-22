@@ -1,7 +1,6 @@
 package brs.http;
 
 import brs.util.Convert;
-import com.sun.deploy.net.HttpUtils;
 import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

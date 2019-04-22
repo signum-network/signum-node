@@ -4,31 +4,7 @@
 package brs.schema;
 
 
-import brs.schema.tables.Account;
-import brs.schema.tables.AccountAsset;
-import brs.schema.tables.Alias;
-import brs.schema.tables.AliasOffer;
-import brs.schema.tables.AskOrder;
-import brs.schema.tables.Asset;
-import brs.schema.tables.AssetTransfer;
-import brs.schema.tables.At;
-import brs.schema.tables.AtState;
-import brs.schema.tables.BidOrder;
-import brs.schema.tables.Block;
-import brs.schema.tables.Escrow;
-import brs.schema.tables.EscrowDecision;
-import brs.schema.tables.FlywaySchemaHistory;
-import brs.schema.tables.Goods;
-import brs.schema.tables.IndirectIncoming;
-import brs.schema.tables.Peer;
-import brs.schema.tables.Purchase;
-import brs.schema.tables.PurchaseFeedback;
-import brs.schema.tables.PurchasePublicFeedback;
-import brs.schema.tables.RewardRecipAssign;
-import brs.schema.tables.Subscription;
-import brs.schema.tables.Trade;
-import brs.schema.tables.Transaction;
-import brs.schema.tables.UnconfirmedTransaction;
+import brs.schema.tables.*;
 
 import javax.annotation.Generated;
 

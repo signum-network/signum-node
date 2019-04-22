@@ -9,7 +9,6 @@ import brs.at.AT_Constants;
 import brs.at.AT_Controller;
 import brs.at.AT_Exception;
 import brs.fluxcapacitor.FluxCapacitor;
-import brs.fluxcapacitor.FluxValue;
 import brs.fluxcapacitor.FluxValues;
 import brs.services.*;
 import brs.transactionduplicates.TransactionDuplicationKey;

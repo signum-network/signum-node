@@ -1,7 +1,6 @@
 package brs;
 
 import brs.crypto.EncryptedData;
-import brs.fluxcapacitor.FluxCapacitor;
 import brs.fluxcapacitor.FluxValues;
 import brs.grpc.proto.BrsApi;
 import brs.grpc.proto.ProtoBuilder;

@@ -5,14 +5,13 @@ package brs.schema.tables.records;
 
 
 import brs.schema.tables.Block;
-
-import javax.annotation.Generated;
-
 import org.jooq.Field;
 import org.jooq.Record1;
 import org.jooq.Record20;
 import org.jooq.Row20;
 import org.jooq.impl.UpdatableRecordImpl;
+
+import javax.annotation.Generated;
 
 
 /**

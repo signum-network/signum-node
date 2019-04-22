@@ -5,11 +5,10 @@ package brs.schema.tables.records;
 
 
 import brs.schema.tables.Transaction;
-
-import javax.annotation.Generated;
-
 import org.jooq.Record1;
 import org.jooq.impl.UpdatableRecordImpl;
+
+import javax.annotation.Generated;
 
 
 /**

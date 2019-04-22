@@ -1,8 +1,5 @@
 package brs.fluxcapacitor;
 
-import java.util.Map;
-import java.util.concurrent.Callable;
-
 public class FluxValue<T> {
     private final T defaultValue;
     private final ValueChange<T>[] valueChanges;

@@ -34,7 +34,7 @@
     <reflections.version>0.9.11</reflections.version>
     <kryo.version>4.0.2</kryo.version>
     <commons-lang.version>2.6</commons-lang.version>
-    <hsqldb.version>2.4.0</hsqldb.version>
+    <hsqldb.version>2.4.1</hsqldb.version>
     <jacoco.version>0.8.3</jacoco.version>
     <jooq.version>3.11.11</jooq.version>
     <jaxb.version>2.3.0</jaxb.version>

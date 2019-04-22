@@ -95,6 +95,7 @@ public final class Db {
           config.addDataSourceProperty("prepStmtCacheSize", "250");
           config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
           config.addDataSourceProperty("DATABASE_TO_UPPER", "false");
+          config.addDataSourceProperty("CASE_INSENSITIVE_IDENTIFIERS", "true");
           break;
       }
       // config.setLeakDetectionThreshold(2000);

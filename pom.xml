@@ -30,7 +30,7 @@
     <mariadb.version>2.2.3</mariadb.version>
     <hikaricp.version>2.7.8</hikaricp.version>
     <h2.version>1.4.196</h2.version>
-    <jna.version>4.5.1</jna.version>
+    <jna.version>5.3.0</jna.version>
     <reflections.version>0.9.11</reflections.version>
     <kryo.version>4.0.1</kryo.version>
     <commons-lang.version>2.6</commons-lang.version>

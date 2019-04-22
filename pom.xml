@@ -28,7 +28,7 @@
     <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
     <slf4j.version>1.7.25</slf4j.version>
     <mariadb.version>2.2.3</mariadb.version>
-    <hikaricp.version>2.7.8</hikaricp.version>
+    <hikaricp.version>3.3.1</hikaricp.version>
     <h2.version>1.4.196</h2.version>
     <jna.version>4.5.1</jna.version>
     <reflections.version>0.9.11</reflections.version>

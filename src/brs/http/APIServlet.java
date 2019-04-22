@@ -220,11 +220,11 @@ public final class APIServlet extends HttpServlet {
 
   }
 
-  private static boolean enforcePost;
-  private static String allowedOrigins;
+  private final boolean enforcePost;
+  private final String allowedOrigins;
 
-  public static Map<String, APIRequestHandler> apiRequestHandlers;
-  private static Map<String, PrimitiveRequestHandler> primitiveRequestHandlers;
+  public final Map<String, APIRequestHandler> apiRequestHandlers;
+  private final Map<String, PrimitiveRequestHandler> primitiveRequestHandlers;
 
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) {

@@ -40,7 +40,7 @@ import java.util.List;
 public class Shabal256 extends MessageDigest {
 
     public static final String ALGORITHM = "Shabal-256";
-    public static final List<String> ALIASES = Arrays.asList("SHABAL-256", "shabal-256", "Shabal256", "SHABAL256", "shabal256", "Shabal", "SHABAL", "shabal");
+    protected static final List<String> ALIASES = Arrays.asList("SHABAL-256", "shabal-256", "Shabal256", "SHABAL256", "shabal256", "Shabal", "SHABAL", "shabal");
 
     private static int[] IV;
 

@@ -121,10 +121,11 @@ public final class API {
         apiHandler.setWelcomeFiles(new String[]{"index.html"});
       }
 
-      ServletHolder peerServletHolder = new ServletHolder(new APIServlet(transactionProcessor, blockchain, blockchainProcessor, parameterService,
-                                                                         accountService, aliasService, assetExchange, escrowService, digitalGoodsStoreService,
-                                                                         subscriptionService, atService, timeService, economicClustering, transactionService, blockService, generator, propertyService,
-                                                                         apiTransactionManager, feeSuggestionCalculator, deepLinkQRCodeGenerator, indirectIncomingService));
+      APIServlet apiServlet = new APIServlet(transactionProcessor, blockchain, blockchainProcessor, parameterService,
+              accountService, aliasService, assetExchange, escrowService, digitalGoodsStoreService,
+              subscriptionService, atService, timeService, economicClustering, transactionService, blockService, generator, propertyService,
+              apiTransactionManager, feeSuggestionCalculator, deepLinkQRCodeGenerator, indirectIncomingService);
+      ServletHolder peerServletHolder = new ServletHolder(apiServlet);
       apiHandler.addServlet(peerServletHolder, "/burst");
       
       if (propertyService.getBoolean(Props.JETTY_API_DOS_FILTER)) {
@@ -144,7 +145,7 @@ public final class API {
         dosFilterHolder.setAsyncSupported(true);
       }
 
-      apiHandler.addServlet(APITestServlet.class, "/test");
+      apiHandler.addServlet(new ServletHolder(new APITestServlet(apiServlet)), "/test");
 
       if (propertyService.getBoolean(Props.JETTY_API_GZIP_FILTER)) {
         GzipHandler gzipHandler = new GzipHandler();

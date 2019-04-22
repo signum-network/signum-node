@@ -30,7 +30,7 @@ public abstract class TransactionType {
 
   private static final Logger logger = LoggerFactory.getLogger(TransactionType.class);
 
-  public static Map<Byte, Map<Byte, TransactionType>> TRANSACTION_TYPES;
+  public static final Map<Byte, Map<Byte, TransactionType>> TRANSACTION_TYPES = new HashMap<>();
 
   private static final byte TYPE_PAYMENT = 0;
   private static final byte TYPE_MESSAGING = 1;
@@ -155,17 +155,14 @@ public abstract class TransactionType {
     advancedPaymentTypes.put(SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_CANCEL, AdvancedPayment.SUBSCRIPTION_CANCEL);
     advancedPaymentTypes.put(SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_PAYMENT, AdvancedPayment.SUBSCRIPTION_PAYMENT);
 
-    Map<Byte, Map<Byte, TransactionType>> transactionTypesMap = new HashMap<>();
-    transactionTypesMap.put(TYPE_PAYMENT, Collections.unmodifiableMap(paymentTypes));
-    transactionTypesMap.put(TYPE_MESSAGING, Collections.unmodifiableMap(messagingTypes));
-    transactionTypesMap.put(TYPE_COLORED_COINS, Collections.unmodifiableMap(coloredCoinsTypes));
-    transactionTypesMap.put(TYPE_DIGITAL_GOODS, Collections.unmodifiableMap(digitalGoodsTypes));
-    transactionTypesMap.put(TYPE_ACCOUNT_CONTROL, Collections.unmodifiableMap(accountControlTypes));
-    transactionTypesMap.put(TYPE_BURST_MINING, Collections.unmodifiableMap(burstMiningTypes));
-    transactionTypesMap.put(TYPE_ADVANCED_PAYMENT, Collections.unmodifiableMap(advancedPaymentTypes));
-    transactionTypesMap.put(TYPE_AUTOMATED_TRANSACTIONS, Collections.unmodifiableMap(atTypes));
-
-    TRANSACTION_TYPES = Collections.unmodifiableMap(transactionTypesMap);
+    TRANSACTION_TYPES.put(TYPE_PAYMENT, Collections.unmodifiableMap(paymentTypes));
+    TRANSACTION_TYPES.put(TYPE_MESSAGING, Collections.unmodifiableMap(messagingTypes));
+    TRANSACTION_TYPES.put(TYPE_COLORED_COINS, Collections.unmodifiableMap(coloredCoinsTypes));
+    TRANSACTION_TYPES.put(TYPE_DIGITAL_GOODS, Collections.unmodifiableMap(digitalGoodsTypes));
+    TRANSACTION_TYPES.put(TYPE_ACCOUNT_CONTROL, Collections.unmodifiableMap(accountControlTypes));
+    TRANSACTION_TYPES.put(TYPE_BURST_MINING, Collections.unmodifiableMap(burstMiningTypes));
+    TRANSACTION_TYPES.put(TYPE_ADVANCED_PAYMENT, Collections.unmodifiableMap(advancedPaymentTypes));
+    TRANSACTION_TYPES.put(TYPE_AUTOMATED_TRANSACTIONS, Collections.unmodifiableMap(atTypes));
   }
 
   public static TransactionType findTransactionType(byte type, byte subtype) {

@@ -20,7 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.TRADES_RESPONSE;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

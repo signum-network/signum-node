@@ -4,20 +4,20 @@ import brs.Block;
 import brs.BlockchainProcessor;
 import brs.BlockchainProcessor.Event;
 import brs.db.store.BlockchainStore;
-import org.apache.commons.collections.buffer.CircularFifoBuffer;
+import org.apache.commons.collections4.queue.CircularFifoQueue;
 
 import static brs.Constants.FEE_QUANT;
 
 public class FeeSuggestionCalculator {
 
-  private final CircularFifoBuffer latestBlocks;
+  private final CircularFifoQueue<Block> latestBlocks;
 
   private final BlockchainStore blockchainStore;
 
   private FeeSuggestion feeSuggestion;
 
   public FeeSuggestionCalculator(BlockchainProcessor blockchainProcessor, BlockchainStore blockchainStore, int historyLength) {
-    this.latestBlocks = new CircularFifoBuffer(historyLength);
+    this.latestBlocks = new CircularFifoQueue<>(historyLength);
 
     this.blockchainStore = blockchainStore;
 
@@ -47,9 +47,9 @@ public class FeeSuggestionCalculator {
   }
 
   private void recalculateSuggestion() {
-    int lowestAmountTransactionsNearHistory = latestBlocks.stream().mapToInt(b -> ((Block) b).getTransactions().size()).min().orElse(1);
-    int averageAmountTransactionsNearHistory = (int) Math.ceil(latestBlocks.stream().mapToInt(b -> ((Block) b).getTransactions().size()).average().getAsDouble());
-    int highestAmountTransactionsNearHistory = latestBlocks.stream().mapToInt(b -> ((Block) b).getTransactions().size()).max().orElse(1);
+    int lowestAmountTransactionsNearHistory = latestBlocks.stream().mapToInt(b -> b.getTransactions().size()).min().orElse(1);
+    int averageAmountTransactionsNearHistory = (int) Math.ceil(latestBlocks.stream().mapToInt(b -> b.getTransactions().size()).average().orElse(1));
+    int highestAmountTransactionsNearHistory = latestBlocks.stream().mapToInt(b -> b.getTransactions().size()).max().orElse(1);
 
     long cheapFee = (1 + lowestAmountTransactionsNearHistory) * FEE_QUANT;
     long standardFee = (1 + averageAmountTransactionsNearHistory) * FEE_QUANT;

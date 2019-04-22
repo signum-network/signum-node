@@ -1,7 +1,7 @@
 package brs.services.impl;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -27,6 +27,7 @@ public class ATServiceImplTest {
     t = new ATServiceImpl(mockATStore);
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   public void getAllATIds() {
     final Collection<Long> mockATCollection = mock(Collection.class);
@@ -36,11 +37,12 @@ public class ATServiceImplTest {
     assertEquals(mockATCollection, t.getAllATIds());
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   public void getATsIssuedBy() {
     final long accountId = 1L;
 
-    final List<Long> mockATsIssuedByAccount = mock(ArrayList.class);
+    final List<Long> mockATsIssuedByAccount = mock(List.class);
 
     when(mockATStore.getATsIssuedBy(eq(accountId))).thenReturn(mockATsIssuedByAccount);
 

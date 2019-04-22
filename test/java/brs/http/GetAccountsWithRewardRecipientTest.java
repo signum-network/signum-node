@@ -20,11 +20,9 @@ import static brs.http.common.Parameters.ACCOUNTS_RESPONSE;
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
-;
 
 public class GetAccountsWithRewardRecipientTest extends AbstractUnitTest {
 
@@ -57,7 +55,7 @@ public class GetAccountsWithRewardRecipientTest extends AbstractUnitTest {
     final RewardRecipientAssignment assignment = mock(RewardRecipientAssignment.class);
     when(assignment.getAccountId()).thenReturn(targetAccountId);
 
-    final BurstIterator assignmentIterator = mockBurstIterator(assignment);
+    final BurstIterator<RewardRecipientAssignment> assignmentIterator = mockBurstIterator(assignment);
 
     when(accountService.getAccountsWithRewardRecipient(eq(targetAccountId))).thenReturn(assignmentIterator);
 
@@ -85,7 +83,7 @@ public class GetAccountsWithRewardRecipientTest extends AbstractUnitTest {
     final RewardRecipientAssignment assignment = mock(RewardRecipientAssignment.class);
     when(assignment.getAccountId()).thenReturn(targetAccountId);
 
-    final BurstIterator assignmentIterator = mockBurstIterator(assignment);
+    final BurstIterator<RewardRecipientAssignment> assignmentIterator = mockBurstIterator(assignment);
 
     when(accountService.getAccountsWithRewardRecipient(eq(targetAccountId))).thenReturn(assignmentIterator);
     when(accountService.getRewardRecipientAssignment(eq(targetAccount))).thenReturn(assignment);

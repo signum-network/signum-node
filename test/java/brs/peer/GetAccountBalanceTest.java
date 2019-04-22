@@ -12,7 +12,7 @@ import static brs.common.TestConstants.TEST_ACCOUNT_NUMERIC_ID_PARSED;
 import static brs.peer.GetAccountBalance.ACCOUNT_ID_PARAMETER_FIELD;
 import static brs.peer.GetAccountBalance.BALANCE_NQT_RESPONSE_FIELD;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

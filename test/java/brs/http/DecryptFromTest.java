@@ -18,8 +18,8 @@ import static brs.http.JSONResponses.INCORRECT_ACCOUNT;
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.DECRYPTED_MESSAGE_RESPONSE;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

@@ -372,7 +372,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         //we stop the loop since cahce has been locked
                         return;
                       }
-                      //logger.debug("Added from download: Id: " + block.getId() + " Height: " + block.getHeight());
+                      logger.debug("Added from download: Id: " + block.getId() + " Height: " + block.getHeight());
                     }
                   } else {
                     downloadCache.addForkBlock(block);

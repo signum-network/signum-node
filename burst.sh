@@ -419,10 +419,6 @@ if [[ $# -gt 0 ]] ; then
             ;;
     esac
 else
-    ARCH=`uname -m`
-    if [[ $ARCH = "armv7l" ]]; then
-        export LD_LIBRARY_PATH=./lib/armv7l
-    fi
     if [[ "$OSTYPE" == "darwin"* ]]; then
         mariadb_installed
         echo "[+] Darwin OS Type detected, checking dependencies..."

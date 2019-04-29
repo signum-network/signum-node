@@ -374,11 +374,6 @@
                   <fileset dir="${project.basedir}/html">
                   </fileset>
                 </copy>
-                <!-- copy lib dir -->
-                <copy todir="${project.basedir}/dist/tmp/lib">
-                  <fileset dir="${project.basedir}/lib">
-                  </fileset>
-                </copy>
                 <!-- copy properties from conf dir -->
                 <copy todir="${project.basedir}/dist/tmp/conf">
                   <fileset dir="${project.basedir}/conf">

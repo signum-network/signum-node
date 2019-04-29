@@ -1,6 +1,7 @@
 package brs.db.sql;
 
 import brs.db.BurstKey;
+import brs.util.StringUtils;
 import org.jooq.Condition;
 import org.jooq.SelectQuery;
 import org.jooq.Table;
@@ -22,7 +23,7 @@ public interface DbKey extends BurstKey {
       this.pkClause = pkClause;
       this.pkColumns = pkColumns;
       this.selfJoinClause = selfJoinClause;
-      this.pkVariables = org.apache.commons.lang.StringUtils.countMatches(pkClause, "?");
+      this.pkVariables = StringUtils.countMatches(pkClause, "?");
     }
 
     public abstract BurstKey newKey(T t);

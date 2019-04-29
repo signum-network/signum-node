@@ -19,35 +19,30 @@
   <packaging>jar</packaging>
 
   <properties>
-    <java.version>1.8</java.version>
-    <jocl.version>2.0.1</jocl.version>
     <bcprov-jdk15on.version>1.61</bcprov-jdk15on.version>
-    <jetty.version>9.4.17.v20190418</jetty.version>
-    <gson.version>2.8.5</gson.version>
-    <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
-    <slf4j.version>1.7.26</slf4j.version>
-    <mariadb.version>2.4.1</mariadb.version>
-    <hikaricp.version>3.3.1</hikaricp.version>
-    <h2.version>1.4.199</h2.version>
-    <jna.version>5.3.1</jna.version>
-    <reflections.version>0.9.11</reflections.version>
-    <kryo.version>4.0.2</kryo.version>
-    <commons-lang.version>2.6</commons-lang.version>
-    <hsqldb.version>2.4.1</hsqldb.version>
-    <jacoco.version>0.8.3</jacoco.version>
-    <jooq.version>3.11.11</jooq.version>
-    <jaxb.version>2.3.0</jaxb.version>
-    <weupnp.version>0.1.4</weupnp.version>
     <ehcache.version>3.7.1</ehcache.version>
-    <apachehttpclient.version>4.5.8</apachehttpclient.version>
-    <xzing.version>3.3.3</xzing.version>
     <flywaydb.version>6.0.0-beta</flywaydb.version>
+    <grpc.version>1.20.0</grpc.version>
+    <gson.version>2.8.5</gson.version>
+    <h2.version>1.4.199</h2.version>
+    <hikaricp.version>3.3.1</hikaricp.version>
+    <java.version>1.8</java.version>
+    <jetty.version>9.4.17.v20190418</jetty.version>
+    <jocl.version>2.0.1</jocl.version>
+    <jooq.version>3.11.11</jooq.version>
+    <mariadb.version>2.4.1</mariadb.version>
+    <owasp.version>1.2.2</owasp.version>
+    <slf4j.version>1.7.26</slf4j.version>
+    <weupnp.version>0.1.4</weupnp.version>
+    <xzing.version>3.3.3</xzing.version>
 
     <junit-jupiter.version>5.4.2</junit-jupiter.version>
     <junit-platform.version>1.4.2</junit-platform.version>
     <junit-vintage.version>5.4.2</junit-vintage.version>
     <mockito.version>2.27.0</mockito.version>
     <powermock.version>2.0.2</powermock.version>
+    <apachehttpclient.version>4.5.8</apachehttpclient.version>
+    <jacoco.version>0.8.3</jacoco.version>
 
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -57,33 +52,14 @@
     <skip.jooq.generation>true</skip.jooq.generation>
 
     <grpc.source.dir>src/brs/grpc</grpc.source.dir>
-
   </properties>
 
   <dependencies>
 
     <dependency>
-        <groupId>javax.annotation</groupId>
-        <artifactId>javax.annotation-api</artifactId>
-        <version>1.3.2</version>
-    </dependency>
-
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
-      <version>${javax.servlet-api.version}</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.jocl</groupId>
       <artifactId>jocl</artifactId>
       <version>${jocl.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-collections4</artifactId>
-      <version>4.3</version>
     </dependency>
 
     <dependency>
@@ -120,29 +96,26 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <version>${slf4j.version}</version>
-      <scope>compile</scope>
     </dependency>
 
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-jdk14</artifactId>
       <version>${slf4j.version}</version>
-      <scope>compile</scope>
     </dependency>
 
-    <!-- https://mvnrepository.com/artifact/org.mariadb.jdbc/mariadb-java-client -->
     <dependency>
       <groupId>org.mariadb.jdbc</groupId>
       <artifactId>mariadb-java-client</artifactId>
       <version>${mariadb.version}</version>
     </dependency>
 
-    <!-- https://mvnrepository.com/artifact/com.zaxxer/HikariCP -->
     <dependency>
       <groupId>com.zaxxer</groupId>
       <artifactId>HikariCP</artifactId>
       <version>${hikaricp.version}</version>
     </dependency>
+
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
@@ -150,34 +123,75 @@
     </dependency>
 
     <dependency>
-      <groupId>net.java.dev.jna</groupId>
-      <artifactId>jna</artifactId>
-      <version>${jna.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.reflections</groupId>
-      <artifactId>reflections</artifactId>
-      <version>${reflections.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.esotericsoftware</groupId>
-      <artifactId>kryo</artifactId>
-      <version>${kryo.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
-      <version>${commons-lang.version}</version>
-    </dependency>
-    <dependency>
       <groupId>com.google.zxing</groupId>
       <artifactId>core</artifactId>
       <version>${xzing.version}</version>
     </dependency>
+
     <dependency>
       <groupId>com.google.zxing</groupId>
       <artifactId>javase</artifactId>
       <version>${xzing.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-netty-shaded</artifactId>
+      <version>${grpc.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-protobuf</artifactId>
+      <version>${grpc.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-stub</artifactId>
+      <version>${grpc.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-core</artifactId>
+      <version>${flywaydb.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.owasp.encoder</groupId>
+      <artifactId>encoder</artifactId>
+      <version>${owasp.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jooq</groupId>
+      <artifactId>jooq</artifactId>
+      <version>${jooq.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jooq</groupId>
+      <artifactId>jooq-meta</artifactId>
+      <version>${jooq.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jooq</groupId>
+      <artifactId>jooq-codegen</artifactId>
+      <version>${jooq.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.bitlet</groupId>
+      <artifactId>weupnp</artifactId>
+      <version>${weupnp.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.ehcache</groupId>
+      <artifactId>ehcache</artifactId>
+      <version>${ehcache.version}</version>
     </dependency>
 
     <dependency>
@@ -186,24 +200,28 @@
       <version>${junit-platform.version}</version>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
       <version>${junit-jupiter.version}</version>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.junit.vintage</groupId>
       <artifactId>junit-vintage-engine</artifactId>
       <version>${junit-vintage.version}</version>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-params</artifactId>
       <version>${junit-jupiter.version}</version>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
@@ -233,88 +251,10 @@
     </dependency>
 
     <dependency>
-      <groupId>org.hsqldb</groupId>
-      <artifactId>hsqldb</artifactId>
-      <version>${hsqldb.version}</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.jooq</groupId>
-      <artifactId>jooq</artifactId>
-      <version>${jooq.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.jooq</groupId>
-      <artifactId>jooq-meta</artifactId>
-      <version>${jooq.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.jooq</groupId>
-      <artifactId>jooq-codegen</artifactId>
-      <version>${jooq.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.persistence</groupId>
-      <artifactId>javax.persistence</artifactId>
-      <version>2.2.1</version>
-    </dependency>
-    <dependency>
-      <groupId>javax.xml.bind</groupId>
-      <artifactId>jaxb-api</artifactId>
-      <version>${jaxb.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.xml.bind</groupId>
-      <artifactId>jaxb-core</artifactId>
-      <version>${jaxb.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.xml.bind</groupId>
-      <artifactId>jaxb-impl</artifactId>
-      <version>${jaxb.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bitlet</groupId>
-      <artifactId>weupnp</artifactId>
-      <version>${weupnp.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.ehcache</groupId>
-      <artifactId>ehcache</artifactId>
-      <version>${ehcache.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
       <version>${apachehttpclient.version}</version>
       <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>io.grpc</groupId>
-      <artifactId>grpc-netty-shaded</artifactId>
-      <version>1.20.0</version>
-    </dependency>
-    <dependency>
-      <groupId>io.grpc</groupId>
-      <artifactId>grpc-protobuf</artifactId>
-      <version>1.20.0</version>
-    </dependency>
-    <dependency>
-      <groupId>io.grpc</groupId>
-      <artifactId>grpc-stub</artifactId>
-      <version>1.20.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.flywaydb</groupId>
-      <artifactId>flyway-core</artifactId>
-      <version>${flywaydb.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.owasp.encoder</groupId>
-      <artifactId>encoder</artifactId>
-      <version>1.2.2</version>
     </dependency>
   </dependencies>
 
@@ -479,7 +419,7 @@
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>3.1.0</version>
         <configuration>
-          <additionalparam>-Xdoclint:none</additionalparam>
+          <doclint>none</doclint>
           <show>private</show>
           <nohelp>true</nohelp>
         </configuration>

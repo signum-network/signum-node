@@ -10,7 +10,7 @@ import brs.props.Props;
 import brs.services.TimeService;
 import brs.transactionduplicates.TransactionDuplicatesCheckerImpl;
 import brs.transactionduplicates.TransactionDuplicationResult;
-import org.apache.commons.lang.StringUtils;
+import brs.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

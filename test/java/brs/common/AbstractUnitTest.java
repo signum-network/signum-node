@@ -1,5 +1,8 @@
 package brs.common;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mock;
 
@@ -19,6 +22,7 @@ public abstract class AbstractUnitTest {
 
     when(mockIterator.hasNext()).thenAnswer((Answer<Boolean>) invocationOnMock -> it.hasNext());
     when(mockIterator.next()).thenAnswer((Answer<T>) invocationOnMock -> it.next());
+    doCallRealMethod().when(mockIterator).forEachRemaining(any());
 
     return mockIterator;
   }

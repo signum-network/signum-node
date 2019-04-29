@@ -42,8 +42,6 @@ public class FeeSuggestionCalculatorTest extends AbstractUnitTest {
 
   @Test
   public void getFeeSuggestion() {
-    BurstIterator<Block> mockBlocksIterator = mockBurstIterator();
-    when(blockchainStoreMock.getLatestBlocks(eq(5))).thenReturn(mockBlocksIterator);
 
     Block mockBlock1 = mock(Block.class);
     when(mockBlock1.getTransactions()).thenReturn(new ArrayList<>());
@@ -55,6 +53,9 @@ public class FeeSuggestionCalculatorTest extends AbstractUnitTest {
     when(mockBlock4.getTransactions()).thenReturn(Arrays.asList(mock(Transaction.class)));
     Block mockBlock5 = mock(Block.class);
     when(mockBlock5.getTransactions()).thenReturn(Arrays.asList(mock(Transaction.class)));
+
+    BurstIterator<Block> mockBlocksIterator = mockBurstIterator(mockBlock1, mockBlock2, mockBlock3, mockBlock4, mockBlock5);
+    when(blockchainStoreMock.getLatestBlocks(eq(5))).thenReturn(mockBlocksIterator);
 
     listenerArgumentCaptor.getValue().notify(mockBlock1);
     listenerArgumentCaptor.getValue().notify(mockBlock2);

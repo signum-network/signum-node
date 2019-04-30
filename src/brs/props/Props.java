@@ -168,6 +168,8 @@ public class Props {
 
   public static final Prop<Boolean> INDIRECT_INCOMING_SERVICE_ENABLE = new Prop<>("IndirectIncomingService.Enable", true);
 
+  public static final Prop<Boolean> AUTO_POP_OFF_ENABLED = new Prop<>("AutoPopOff.Enable", true);
+
   private Props() { //no need to construct
   }
 }

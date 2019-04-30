@@ -86,6 +86,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
   private Integer ttsd;
 
+  private final boolean autoPopOffEnabled;
+  private int autoPopOffLastStuckHeight = 0;
+  private int autoPopOffNumberOfBlocks = 0;
+
   public final void setOclVerify(Boolean b) {
     oclVerify = b;
   }
@@ -119,6 +123,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     this.dbCacheManager = dbCacheManager;
     this.accountService = accountService;
     this.indirectIncomingService = indirectIncomingService;
+
+    autoPopOffEnabled = propertyService.getBoolean(Props.AUTO_POP_OFF_ENABLED);
 
     oclVerify = propertyService.getBoolean(Props.GPU_ACCELERATION); // use GPU acceleration ?
     oclUnverifiedQueue = propertyService.getInt(Props.GPU_UNVERIFIED_QUEUE);
@@ -643,8 +649,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             Thread.currentThread().interrupt();
           } catch (BlockNotAcceptedException e) {
             logger.error("Block not accepted", e);
-            blacklistClean(currentBlock, e,
-                    "found invalid pull/push data during importing the block");
+            blacklistClean(currentBlock, e, "found invalid pull/push data during importing the block");
+            autoPopOff(currentBlock.getHeight());
             break;
           }
         } catch (Exception exception) {
@@ -740,6 +746,26 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     logger.debug("Blacklisted peer and cleaned queue");
   }
 
+  private void autoPopOff(int height) {
+    if (!autoPopOffEnabled) {
+      logger.warn("Not automatically popping off as it is disabled via properties. If your node becomes stuck you will need to manually pop off.");
+      return;
+    }
+    synchronized (transactionProcessor.getUnconfirmedTransactionsSyncObj()) {
+      logger.warn("Auto popping off as failed to push block");
+      if (height != autoPopOffLastStuckHeight) {
+        autoPopOffLastStuckHeight = height;
+        autoPopOffNumberOfBlocks = 0;
+      }
+      if (autoPopOffNumberOfBlocks == 0) {
+        logger.warn("Not popping anything off as this was the first failure at this height");
+      } else {
+        logger.warn("Popping off " + autoPopOffNumberOfBlocks + " blocks due to previous failures to push this block");
+        popOffTo(blockchain.getHeight() - autoPopOffNumberOfBlocks);
+      }
+      autoPopOffNumberOfBlocks++;
+    }
+  }
 
   @Override
   public boolean addListener(Listener<Block> listener, BlockchainProcessor.Event eventType) {
@@ -1038,6 +1064,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       blockListeners.notify(block, Event.BLOCK_PUSHED);
       if (block.getTimestamp() >= timeService.getEpochTime() - MAX_TIMESTAMP_DIFFERENCE) {
         Peers.sendToSomePeers(block);
+      }
+      if (block.getHeight() >= autoPopOffLastStuckHeight) {
+        autoPopOffNumberOfBlocks = 0;
       }
     }
   }

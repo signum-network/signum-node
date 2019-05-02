@@ -49,7 +49,7 @@ public final class ThreadPool {
     afterStartJobs.add(runnable);
   }
 
-  public synchronized void scheduleThread(String name, Runnable runnable, int delay) {
+  public void scheduleThread(String name, Runnable runnable, int delay) {
     scheduleThread(name, runnable, delay, TimeUnit.SECONDS);
   }
 
@@ -57,18 +57,22 @@ public final class ThreadPool {
     if (scheduledThreadPool != null) {
       throw new IllegalStateException("Executor service already started, no new jobs accepted");
     }
-    if (! propertyService.getBoolean("brs.disable" + name + "Thread", false)) {
+    if (!propertyService.getBoolean("brs.disable" + name + "Thread", false)) {
       backgroundJobs.put(runnable, timeUnit.toMillis(delay));
     } else {
       logger.info("Will not run " + name + " thread");
     }
   }
 
-  public synchronized void scheduleThreadCores(String name, Runnable runnable, int delay) {
+  public void scheduleThreadCores(String name, Runnable runnable, int delay) {
+    scheduleThreadCores(name, runnable, delay, TimeUnit.SECONDS);
+  }
+
+  public synchronized void scheduleThreadCores(String name, Runnable runnable, int delay, TimeUnit timeUnit) {
     if (scheduledThreadPool != null) {
       throw new IllegalStateException("Executor service already started, no new jobs accepted");
     }
-    backgroundJobsCores.put(runnable, 1000L * delay);
+    backgroundJobsCores.put(runnable, timeUnit.toMillis(delay));
   }
 
   public synchronized void start(int timeMultiplier) {

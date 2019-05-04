@@ -1,5 +1,6 @@
 package brs.db.sql;
 
+import brs.Burst;
 import brs.Order;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
@@ -7,15 +8,16 @@ import brs.db.VersionedEntityTable;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.OrderStore;
 import org.jooq.DSLContext;
-import org.jooq.Field;
 import org.jooq.SelectQuery;
 import org.jooq.SortField;
-import org.jooq.impl.TableImpl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static brs.schema.tables.AskOrder.ASK_ORDER;
+import static brs.schema.tables.BidOrder.BID_ORDER;
 
 public class SqlOrderStore implements OrderStore {
   private final DbKey.LongKeyFactory<Order.Ask> askOrderDbKeyFactory = new DbKey.LongKeyFactory<Order.Ask>("id") {
@@ -37,12 +39,12 @@ public class SqlOrderStore implements OrderStore {
 
       @Override
       protected void save(DSLContext ctx, Order.Ask ask) {
-        saveAsk(ctx, brs.schema.Tables.ASK_ORDER, ask);
+        saveAsk(ctx, ask);
       }
 
       @Override
-      protected List<SortField> defaultSort() {
-        List<SortField> sort = new ArrayList<>();
+      protected List<SortField<?>> defaultSort() {
+        List<SortField<?>> sort = new ArrayList<>();
         sort.add(tableClass.field("creation_height", Integer.class).desc());
         return sort;
       }
@@ -57,12 +59,12 @@ public class SqlOrderStore implements OrderStore {
 
       @Override
       protected void save(DSLContext ctx, Order.Bid bid) {
-        saveBid(ctx, brs.schema.Tables.BID_ORDER, bid);
+        saveBid(ctx, bid);
       }
 
       @Override
-      protected List<SortField> defaultSort() {
-        List<SortField> sort = new ArrayList<>();
+      protected List<SortField<?>> defaultSort() {
+        List<SortField<?>> sort = new ArrayList<>();
         sort.add(tableClass.field("creation_height", Integer.class).desc());
         return sort;
       }
@@ -99,7 +101,7 @@ public class SqlOrderStore implements OrderStore {
 
   @Override
   public BurstIterator<Order.Ask> getSortedAsks(long assetId, int from, int to) {
-    List<SortField> sort = new ArrayList<>();
+    List<SortField<?>> sort = new ArrayList<>();
     sort.add(brs.schema.Tables.ASK_ORDER.field("price", Long.class).asc());
     sort.add(brs.schema.Tables.ASK_ORDER.field("creation_height", Integer.class).asc());
     sort.add(brs.schema.Tables.ASK_ORDER.field("id", Long.class).asc());
@@ -136,20 +138,11 @@ public class SqlOrderStore implements OrderStore {
     return askOrderTable.getManyBy(brs.schema.Tables.ASK_ORDER.ASSET_ID.eq(assetId), from, to);
   }
 
-  private void saveAsk(DSLContext ctx, TableImpl table, Order.Ask ask) {
-    brs.schema.tables.records.AskOrderRecord askOrderRecord = ctx.newRecord(brs.schema.Tables.ASK_ORDER);
-    askOrderRecord.setId(ask.getId());
-    askOrderRecord.setAccountId(ask.getAccountId());
-    askOrderRecord.setAssetId(ask.getAssetId());
-    askOrderRecord.setPrice(ask.getPriceNQT());
-    askOrderRecord.setQuantity(ask.getQuantityQNT());
-    askOrderRecord.setCreationHeight(ask.getHeight());
-    askOrderRecord.setHeight(brs.Burst.getBlockchain().getHeight());
-    askOrderRecord.setLatest(true);
-    DbUtils.mergeInto(
-      ctx, askOrderRecord, table,
-      ( new Field[] { askOrderRecord.field("id"), askOrderRecord.field("height") } )
-    );
+  private void saveAsk(DSLContext ctx, Order.Ask ask) {
+    ctx.mergeInto(ASK_ORDER, ASK_ORDER.ID, ASK_ORDER.ACCOUNT_ID, ASK_ORDER.ASSET_ID, ASK_ORDER.PRICE, ASK_ORDER.QUANTITY, ASK_ORDER.CREATION_HEIGHT, ASK_ORDER.HEIGHT, ASK_ORDER.LATEST)
+            .key(ASK_ORDER.ID, ASK_ORDER.HEIGHT)
+            .values(ask.getId(), ask.getAccountId(), ask.getAssetId(), ask.getPriceNQT(), ask.getQuantityQNT(), ask.getHeight(), Burst.getBlockchain().getHeight(), true)
+            .execute();
   }
 
   @Override
@@ -190,7 +183,7 @@ public class SqlOrderStore implements OrderStore {
 
   @Override
   public BurstIterator<Order.Bid> getSortedBids(long assetId, int from, int to) {
-    List<SortField> sort = new ArrayList<>();
+    List<SortField<?>> sort = new ArrayList<>();
     sort.add(brs.schema.Tables.BID_ORDER.field("price", Long.class).desc());
     sort.add(brs.schema.Tables.BID_ORDER.field("creation_height", Integer.class).asc());
     sort.add(brs.schema.Tables.BID_ORDER.field("id", Long.class).asc());
@@ -212,20 +205,11 @@ public class SqlOrderStore implements OrderStore {
     }
   }
 
-  private void saveBid(DSLContext ctx, TableImpl table, Order.Bid bid) {
-    brs.schema.tables.records.BidOrderRecord bidOrderRecord = ctx.newRecord(brs.schema.Tables.BID_ORDER);
-    bidOrderRecord.setId(bid.getId());
-    bidOrderRecord.setAccountId(bid.getAccountId());
-    bidOrderRecord.setAssetId(bid.getAssetId());
-    bidOrderRecord.setPrice(bid.getPriceNQT());
-    bidOrderRecord.setQuantity(bid.getQuantityQNT());
-    bidOrderRecord.setCreationHeight(bid.getHeight());
-    bidOrderRecord.setHeight(brs.Burst.getBlockchain().getHeight());
-    bidOrderRecord.setLatest(true);
-    DbUtils.mergeInto(
-      ctx, bidOrderRecord, table,
-      ( new Field[] { bidOrderRecord.field("id"), bidOrderRecord.field("height") } )
-    );
+  private void saveBid(DSLContext ctx, Order.Bid bid) {
+    ctx.mergeInto(BID_ORDER, BID_ORDER.ID, BID_ORDER.ACCOUNT_ID, BID_ORDER.ASSET_ID, BID_ORDER.PRICE, BID_ORDER.QUANTITY, BID_ORDER.CREATION_HEIGHT, BID_ORDER.HEIGHT, BID_ORDER.LATEST)
+            .key(BID_ORDER.ID, BID_ORDER.HEIGHT)
+            .values(bid.getId(), bid.getAccountId(), bid.getAssetId(), bid.getPriceNQT(), bid.getQuantityQNT(), bid.getHeight(), Burst.getBlockchain().getHeight(), true)
+            .execute();
   }
 
   class SqlAsk extends Order.Ask {

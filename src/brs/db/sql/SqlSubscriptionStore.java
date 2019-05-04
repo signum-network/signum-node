@@ -1,5 +1,6 @@
 package brs.db.sql;
 
+import brs.Burst;
 import brs.Subscription;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
@@ -8,7 +9,6 @@ import brs.db.store.DerivedTableManager;
 import brs.db.store.SubscriptionStore;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
-import org.jooq.Field;
 import org.jooq.SortField;
 
 import java.sql.ResultSet;
@@ -42,8 +42,8 @@ public class SqlSubscriptionStore implements SubscriptionStore {
       }
 
       @Override
-      protected List<SortField> defaultSort() {
-        List<SortField> sort = new ArrayList<>();
+      protected List<SortField<?>> defaultSort() {
+        List<SortField<?>> sort = new ArrayList<>();
         sort.add(tableClass.field("time_next", Integer.class).asc());
         sort.add(tableClass.field("id", Long.class).asc());
         return sort;
@@ -90,30 +90,10 @@ public class SqlSubscriptionStore implements SubscriptionStore {
   }
 
   private void saveSubscription(DSLContext ctx, Subscription subscription) {
-    brs.schema.tables.records.SubscriptionRecord subscriptionRecord = ctx.newRecord(SUBSCRIPTION);
-    subscriptionRecord.setId(subscription.id);
-    subscriptionRecord.setSenderId(subscription.senderId);
-    subscriptionRecord.setRecipientId(subscription.recipientId);
-    subscriptionRecord.setAmount(subscription.amountNQT);
-    subscriptionRecord.setFrequency(subscription.frequency);
-    subscriptionRecord.setTimeNext(subscription.getTimeNext());
-    subscriptionRecord.setHeight(brs.Burst.getBlockchain().getHeight());
-    subscriptionRecord.setLatest(true);
-    DbUtils.mergeInto(
-      ctx, subscriptionRecord, SUBSCRIPTION,
-      (
-        new Field[] {
-          subscriptionRecord.field("id"),
-          subscriptionRecord.field("sender_id"),
-          subscriptionRecord.field("recipient_id"),
-          subscriptionRecord.field("amount"),
-          subscriptionRecord.field("frequency"),
-          subscriptionRecord.field("time_next"),
-          subscriptionRecord.field("height"),
-          subscriptionRecord.field("latest")
-        }
-       )
-    );
+    ctx.mergeInto(SUBSCRIPTION, SUBSCRIPTION.ID, SUBSCRIPTION.SENDER_ID, SUBSCRIPTION.RECIPIENT_ID, SUBSCRIPTION.AMOUNT, SUBSCRIPTION.FREQUENCY, SUBSCRIPTION.TIME_NEXT, SUBSCRIPTION.HEIGHT, SUBSCRIPTION.LATEST)
+            .key(SUBSCRIPTION.ID, SUBSCRIPTION.SENDER_ID, SUBSCRIPTION.RECIPIENT_ID, SUBSCRIPTION.AMOUNT, SUBSCRIPTION.FREQUENCY, SUBSCRIPTION.TIME_NEXT, SUBSCRIPTION.HEIGHT, SUBSCRIPTION.LATEST)
+            .values(subscription.id, subscription.senderId, subscription.recipientId, subscription.amountNQT, subscription.frequency, subscription.getTimeNext(), Burst.getBlockchain().getHeight(), true)
+            .execute();
   }
 
   private class SqlSubscription extends Subscription {

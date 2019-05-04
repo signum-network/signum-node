@@ -8,6 +8,7 @@ import org.jooq.SortField;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public interface VersionedBatchEntityTable<T> extends DerivedTable, EntityTable<T> {
   boolean delete(T t);
@@ -31,13 +32,13 @@ public interface VersionedBatchEntityTable<T> extends DerivedTable, EntityTable<
   T getBy(Condition condition, int height);
 
   @Override
-  BurstIterator<T> getManyBy(Condition condition, int from, int to, List<SortField> sort);
+  BurstIterator<T> getManyBy(Condition condition, int from, int to, List<SortField<?>> sort);
 
   @Override
   BurstIterator<T> getManyBy(Condition condition, int height, int from, int to);
 
   @Override
-  BurstIterator<T> getManyBy(Condition condition, int height, int from, int to, List<SortField> sort);
+  BurstIterator<T> getManyBy(Condition condition, int height, int from, int to, List<SortField<?>> sort);
 
   @Override
   BurstIterator<T> getManyBy(DSLContext ctx, SelectQuery query, boolean cache);
@@ -46,13 +47,13 @@ public interface VersionedBatchEntityTable<T> extends DerivedTable, EntityTable<
   BurstIterator<T> getAll(int from, int to);
 
   @Override
-  BurstIterator<T> getAll(int from, int to, List<SortField> sort);
+  BurstIterator<T> getAll(int from, int to, List<SortField<?>> sort);
 
   @Override
   BurstIterator<T> getAll(int height, int from, int to);
 
   @Override
-  BurstIterator<T> getAll(int height, int from, int to, List<SortField> sort);
+  BurstIterator<T> getAll(int height, int from, int to, List<SortField<?>> sort);
 
   @Override
   int getCount();
@@ -65,6 +66,8 @@ public interface VersionedBatchEntityTable<T> extends DerivedTable, EntityTable<
 
   @Override
   void truncate();
+
+  Map<BurstKey, T> getBatch();
 
   Cache getCache();
 

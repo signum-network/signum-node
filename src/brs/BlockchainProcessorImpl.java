@@ -859,9 +859,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   }
 
   private void addBlock(Block block) {
-    if (blockchainStore.addBlock(block)) {
-      blockchain.setLastBlock(block);
-    }
+    blockchainStore.addBlock(block);
+    blockchain.setLastBlock(block);
   }
 
   private void addGenesisBlock() {

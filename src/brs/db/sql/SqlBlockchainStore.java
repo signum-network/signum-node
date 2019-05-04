@@ -48,7 +48,6 @@ public class SqlBlockchainStore implements BlockchainStore {
   @Override
   public BurstIterator<Block> getBlocks(Account account, int timestamp, int from, int to) {
     try ( DSLContext ctx = Db.getDSLContext() ) {
-      int blockchainHeight      = Burst.getBlockchain().getHeight();
       SelectConditionStep query = ctx.selectFrom(BLOCK).where(BLOCK.GENERATOR_ID.eq(account.getId()));
       if ( timestamp > 0 ) {
         query = query.and(BLOCK.TIMESTAMP.ge(timestamp));
@@ -181,13 +180,9 @@ public class SqlBlockchainStore implements BlockchainStore {
   }
 
   @Override
-  public boolean addBlock(Block block) {
+  public void addBlock(Block block) {
     DSLContext ctx = Db.getDSLContext();
     blockDb.saveBlock(ctx, block);
-    return true;
-  }
-
-  public void scan(int height){
   }
 
   @Override

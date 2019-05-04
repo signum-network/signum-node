@@ -35,9 +35,7 @@ public interface BlockchainStore {
 
   BurstIterator<Transaction> getTransactions(DSLContext ctx, ResultSet rs);
 
-  boolean addBlock(Block block);
-
-  void scan(int height);
+  void addBlock(Block block);
 
   BurstIterator<Block> getLatestBlocks(int amountBlocks);
 }

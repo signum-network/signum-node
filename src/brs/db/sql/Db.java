@@ -1,6 +1,7 @@
 package brs.db.sql;
 
 import brs.Burst;
+import brs.db.BurstKey;
 import brs.db.cache.DBCacheManagerImpl;
 import brs.db.store.Dbs;
 import brs.props.PropertyService;
@@ -18,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
@@ -31,8 +31,8 @@ public final class Db {
   private static HikariDataSource cp;
   private static SQLDialect dialect;
   private static final ThreadLocal<DbConnection> localConnection = new ThreadLocal<>();
-  private static final ThreadLocal<Map<String, Map<DbKey, Object>>> transactionCaches = new ThreadLocal<>();
-  private static final ThreadLocal<Map<String, Map<DbKey, Object>>> transactionBatches = new ThreadLocal<>();
+  private static final ThreadLocal<Map<String, Map<BurstKey, Object>>> transactionCaches = new ThreadLocal<>();
+  private static final ThreadLocal<Map<String, Map<BurstKey, Object>>> transactionBatches = new ThreadLocal<>();
 
   private static DBCacheManagerImpl dbCacheManager;
 
@@ -98,19 +98,8 @@ public final class Db {
           config.addDataSourceProperty("CASE_INSENSITIVE_IDENTIFIERS", "true");
           break;
       }
-      // config.setLeakDetectionThreshold(2000);
 
       cp = new HikariDataSource(config);
-
-      if (dialect == SQLDialect.H2) {
-        int defaultLockTimeout = propertyService.getInt(Props.DB_LOCK_TIMEOUT) * 1000;
-        try (Connection con = cp.getConnection();
-             PreparedStatement stmt = con.prepareStatement("SET DEFAULT_LOCK_TIMEOUT ?")) {
-          // stmt.executeUpdate(defaultLockTimeout);
-        } catch (SQLException e) {
-          throw new RuntimeException(e.toString(), e);
-        }
-      }
 
       if (runFlyway) {
         logger.info("Running flyway migration");
@@ -197,18 +186,20 @@ public final class Db {
     }
   }
 
-  static Map<DbKey, Object> getCache(String tableName) {
+  static <V> Map<BurstKey, V> getCache(String tableName) {
     if (!isInTransaction()) {
       throw new IllegalStateException("Not in transaction");
     }
-    return transactionCaches.get().computeIfAbsent(tableName, k -> new HashMap<>());
+    //noinspection unchecked
+    return (Map<BurstKey, V>) transactionCaches.get().computeIfAbsent(tableName, k -> new HashMap<>());
   }
 
-  static Map<DbKey, Object> getBatch(String tableName) {
+  static <V> Map<BurstKey, V> getBatch(String tableName) {
     if (!isInTransaction()) {
       throw new IllegalStateException("Not in transaction");
     }
-    return transactionBatches.get().computeIfAbsent(tableName, k -> new HashMap<>());
+    //noinspection unchecked
+    return (Map<BurstKey, V>) transactionBatches.get().computeIfAbsent(tableName, k -> new HashMap<>());
   }
 
   public static boolean isInTransaction() {

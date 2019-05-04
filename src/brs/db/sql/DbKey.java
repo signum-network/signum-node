@@ -3,6 +3,7 @@ package brs.db.sql;
 import brs.db.BurstKey;
 import brs.util.StringUtils;
 import org.jooq.Condition;
+import org.jooq.Record;
 import org.jooq.SelectQuery;
 import org.jooq.Table;
 
@@ -48,11 +49,10 @@ public interface DbKey extends BurstKey {
       return pkVariables;
     }
 
-    public abstract void applySelfJoin(SelectQuery query, Table queryTable, Table otherTable);
-
+    public abstract void applySelfJoin(SelectQuery<Record> query, Table<?> queryTable, Table<?> otherTable);
   }
 
-  ArrayList<Condition> getPKConditions(Table tableClass);
+  ArrayList<Condition> getPKConditions(Table<?> tableClass);
 
   long[] getPKValues();
 
@@ -81,10 +81,10 @@ public interface DbKey extends BurstKey {
     }
 
     @Override
-    public void applySelfJoin(SelectQuery query, Table queryTable, Table otherTable) {
+    public void applySelfJoin(SelectQuery<Record> query, Table<?> queryTable, Table<?> otherTable) {
       query.addConditions(
-        queryTable.field(idColumn).eq(
-          otherTable.field(idColumn)
+        queryTable.field(idColumn, Long.class).eq(
+          otherTable.field(idColumn, Long.class)
         )
       );
     }
@@ -117,15 +117,15 @@ public interface DbKey extends BurstKey {
     }
 
     @Override
-    public void applySelfJoin(SelectQuery query, Table queryTable, Table otherTable) {
+    public void applySelfJoin(SelectQuery<Record> query, Table<?> queryTable, Table<?> otherTable) {
       query.addConditions(
-        queryTable.field(idColumnA).eq(
-          otherTable.field(idColumnA)
+        queryTable.field(idColumnA, Long.class).eq(
+          otherTable.field(idColumnA, Long.class)
         )
       );
       query.addConditions(
-        queryTable.field(idColumnB).eq(
-          otherTable.field(idColumnB)
+        queryTable.field(idColumnB, Long.class).eq(
+          otherTable.field(idColumnB, Long.class)
         )
       );
     }
@@ -157,7 +157,7 @@ public interface DbKey extends BurstKey {
     }
 
     @Override
-    public ArrayList<Condition> getPKConditions(Table tableClass) {
+    public ArrayList<Condition> getPKConditions(Table<?> tableClass) {
       ArrayList<Condition> conditions = new ArrayList<>();
       conditions.add(tableClass.field(idColumn, Long.class).eq(id));
       return conditions;
@@ -195,7 +195,7 @@ public interface DbKey extends BurstKey {
     }
 
     @Override
-    public ArrayList<Condition> getPKConditions(Table tableClass) {
+    public ArrayList<Condition> getPKConditions(Table<?> tableClass) {
       ArrayList<Condition> conditions = new ArrayList<>();
       conditions.add(tableClass.field(idColumnA, Long.class).eq(idA));
       conditions.add(tableClass.field(idColumnB, Long.class).eq(idB));

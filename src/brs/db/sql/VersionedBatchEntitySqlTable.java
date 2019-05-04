@@ -14,10 +14,12 @@ import java.util.*;
 public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySqlTable<T> implements VersionedBatchEntityTable<T> {
 
   private final DBCacheManagerImpl dbCacheManager;
+  private final Class<T> tClass;
 
-  VersionedBatchEntitySqlTable(String table, TableImpl<?> tableClass, DbKey.Factory<T> dbKeyFactory, DerivedTableManager derivedTableManager, DBCacheManagerImpl dbCacheManager) {
+  VersionedBatchEntitySqlTable(String table, TableImpl<?> tableClass, DbKey.Factory<T> dbKeyFactory, DerivedTableManager derivedTableManager, DBCacheManagerImpl dbCacheManager, Class<T> tClass) {
     super(table, tableClass, dbKeyFactory, derivedTableManager);
     this.dbCacheManager = dbCacheManager;
+    this.tClass = tClass;
   }
 
   protected abstract void bulkInsert(DSLContext ctx, Collection<T> t);
@@ -29,20 +31,20 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     }
     DbKey dbKey = (DbKey)dbKeyFactory.newKey(t);
     getCache().remove(dbKey);
-    Db.getBatch(table).remove(dbKey, null);
-    Db.getCache(table).remove(dbKey);
+    getBatch().remove(dbKey, null);
+    getBatch().remove(dbKey);
 
     return true;
   }
 
   @Override
   public T get(BurstKey dbKey) {
-    if ( getCache().containsKey(dbKey) ) {
-      return (T)getCache().get(dbKey);
+    if (getCache().containsKey(dbKey)) {
+      return getCache().get(dbKey);
     }
     else if(Db.isInTransaction()) {
-      if(Db.getBatch(table).containsKey(dbKey)) {
-        return (T)Db.getBatch(table).get(dbKey);
+      if(getBatch().containsKey(dbKey)) {
+        return getBatch().get(dbKey);
       }
     }
     T item = super.get(dbKey);
@@ -58,8 +60,8 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
       throw new IllegalStateException("Not in transaction");
     }
     DbKey dbKey = (DbKey)dbKeyFactory.newKey(t);
-    Db.getBatch(table).put(dbKey, t);
-    Db.getCache(table).put(dbKey, t);
+    getBatch().put(dbKey, t);
+    getBatch().put(dbKey, t);
     getCache().put(dbKey, t);
   }
 
@@ -69,7 +71,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
       throw new IllegalStateException("Not in transaction");
     }
     DSLContext ctx = Db.getDSLContext();
-    Set keySet = Db.getBatch(table).keySet();
+    Set<BurstKey> keySet = getBatch().keySet();
     if (!keySet.isEmpty()) {
       UpdateQuery updateQuery = ctx.updateQuery(tableClass);
       updateQuery.addValue(tableClass.field("latest", Boolean.class), false);
@@ -77,7 +79,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
       updateQuery.addConditions(tableClass.field("latest", Boolean.class).isTrue());
 
       BatchBindStep updateBatch = ctx.batch(updateQuery);
-      for (DbKey dbKey : (Iterable<DbKey>) keySet) {
+      for (BurstKey dbKey : keySet) {
         ArrayList<Object> bindArgs = new ArrayList<>();
         bindArgs.add(false);
         Arrays.stream(dbKey.getPKValues()).forEach(bindArgs::add);
@@ -86,17 +88,17 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
       updateBatch.execute();
     }
 
-    Set<Map.Entry<DbKey, Object>> entries = Db.getBatch(table).entrySet();
-    HashMap<DbKey, T> itemOf = new HashMap<>();
-    for (Map.Entry<DbKey, Object> entry : entries) {
+    Map<BurstKey, T> entries = getBatch();
+    HashMap<BurstKey, T> itemOf = new HashMap<>();
+    for (Map.Entry<BurstKey, T> entry : entries.entrySet()) {
       if (entry.getValue() != null) {
-        itemOf.put(entry.getKey(), (T) entry.getValue());
+        itemOf.put(entry.getKey(), entry.getValue());
       }
     }
     if (itemOf.size() > 0 ) {
       bulkInsert(ctx, new ArrayList<>(itemOf.values()));
     }
-    Db.getBatch(table).clear();
+    getBatch().clear();
   }
 
   @Override
@@ -132,7 +134,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
   }
 
   @Override
-  public BurstIterator<T> getManyBy(Condition condition, int from, int to, List<SortField> sort) {
+  public BurstIterator<T> getManyBy(Condition condition, int from, int to, List<SortField<?>> sort) {
     if(Db.isInTransaction()) {
       throw new IllegalStateException("Cannot use in batch table transaction");
     }
@@ -148,7 +150,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
   }
 
   @Override
-  public BurstIterator<T> getManyBy(Condition condition, int height, int from, int to, List<SortField> sort) {
+  public BurstIterator<T> getManyBy(Condition condition, int height, int from, int to, List<SortField<?>> sort) {
     if(Db.isInTransaction()) {
       throw new IllegalStateException("Cannot use in batch table transaction");
     }
@@ -172,7 +174,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
   }
 
   @Override
-  public BurstIterator<T> getAll(int from, int to, List<SortField> sort) {
+  public BurstIterator<T> getAll(int from, int to, List<SortField<?>> sort) {
     if(Db.isInTransaction()) {
       throw new IllegalStateException("Cannot use in batch table transaction");
     }
@@ -188,7 +190,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
   }
 
   @Override
-  public BurstIterator<T> getAll(int height, int from, int to, List<SortField> sort) {
+  public BurstIterator<T> getAll(int height, int from, int to, List<SortField<?>> sort) {
     if(Db.isInTransaction()) {
       throw new IllegalStateException("Cannot use in batch table transaction");
     }
@@ -214,18 +216,23 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
   @Override
   public void rollback(int height) {
     super.rollback(height);
-    Db.getBatch(table).clear();
+    getBatch().clear();
   }
 
   @Override
   public void truncate() {
     super.truncate();
-    Db.getBatch(table).clear();
+    getBatch().clear();
   }
 
   @Override
-  public Cache getCache() {
-    return dbCacheManager.getCache(table);
+  public Map<BurstKey, T> getBatch() {
+    return Db.getBatch(table);
+  }
+
+  @Override
+  public Cache<BurstKey, T> getCache() {
+    return dbCacheManager.getCache(table, tClass);
   }
 
   @Override
@@ -236,5 +243,4 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
   @Override
   public void fillCache(ArrayList<Long> ids) {
   }
-
 }

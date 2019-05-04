@@ -7,6 +7,7 @@ import brs.db.BlockDb;
 import brs.schema.tables.records.BlockRecord;
 import org.jooq.DSLContext;
 import org.jooq.DeleteQuery;
+import org.jooq.Record;
 import org.jooq.SelectQuery;
 import org.jooq.impl.TableImpl;
 import org.slf4j.Logger;
@@ -177,7 +178,7 @@ public class SqlBlockDb implements BlockDb {
       return;
     }
     DSLContext ctx = Db.getDSLContext();
-    SelectQuery blockHeightQuery = ctx.selectQuery();
+    SelectQuery<Record> blockHeightQuery = ctx.selectQuery();
     blockHeightQuery.addFrom(BLOCK);
     blockHeightQuery.addSelect(BLOCK.field("height", Integer.class));
     blockHeightQuery.addConditions(BLOCK.field("id", Long.class).eq(blockId));
@@ -215,7 +216,7 @@ public class SqlBlockDb implements BlockDb {
             brs.schema.Tables.REWARD_RECIP_ASSIGN, brs.schema.Tables.SUBSCRIPTION,
             brs.schema.Tables.TRADE, brs.schema.Tables.TRANSACTION,
             brs.schema.Tables.UNCONFIRMED_TRANSACTION));
-    for (TableImpl table : tables) {
+    for (TableImpl<?> table : tables) {
       try {
         ctx.truncate(table).execute();
       } catch (org.jooq.exception.DataAccessException e) {

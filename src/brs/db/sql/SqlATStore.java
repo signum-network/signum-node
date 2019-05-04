@@ -57,8 +57,8 @@ public class SqlATStore implements ATStore {
       }
 
       @Override
-      protected List<SortField> defaultSort() {
-        List<SortField> sort = new ArrayList<>();
+      protected List<SortField<?>> defaultSort() {
+        List<SortField<?>> sort = new ArrayList<>();
         sort.add(tableClass.field("id", Long.class).asc());
         return sort;
       }
@@ -76,8 +76,8 @@ public class SqlATStore implements ATStore {
       }
 
       @Override
-      protected List<SortField> defaultSort() {
-        List<SortField> sort = new ArrayList<>();
+      protected List<SortField<?>> defaultSort() {
+        List<SortField<?>> sort = new ArrayList<>();
         sort.add(tableClass.field("prev_height", Integer.class).asc());
         sort.add(tableClass.field("height", Integer.class).asc());
         sort.add(tableClass.field("at_id", Long.class).asc());
@@ -87,21 +87,10 @@ public class SqlATStore implements ATStore {
   }
 
   private void saveATState(DSLContext ctx, brs.AT.ATState atState) {
-    brs.schema.tables.records.AtStateRecord atStateRecord = ctx.newRecord(brs.schema.Tables.AT_STATE);
-    atStateRecord.setAtId(atState.getATId());
-    atStateRecord.setState(brs.AT.compressState(atState.getState()));
-    atStateRecord.setPrevHeight(atState.getPrevHeight());
-    atStateRecord.setNextHeight(atState.getNextHeight());
-    atStateRecord.setSleepBetween(atState.getSleepBetween());
-    atStateRecord.setPrevBalance(atState.getPrevBalance());
-    atStateRecord.setFreezeWhenSameBalance(atState.getFreezeWhenSameBalance());
-    atStateRecord.setMinActivateAmount(atState.getMinActivationAmount());
-    atStateRecord.setHeight(Burst.getBlockchain().getHeight());
-    atStateRecord.setLatest(true);
-    DbUtils.mergeInto(
-      ctx, atStateRecord, brs.schema.Tables.AT_STATE,
-      ( new Field[] { atStateRecord.field("at_id"), atStateRecord.field("height") } )
-    );
+    ctx.mergeInto(AT_STATE, AT_STATE.AT_ID, AT_STATE.STATE, AT_STATE.PREV_HEIGHT, AT_STATE.NEXT_HEIGHT, AT_STATE.SLEEP_BETWEEN, AT_STATE.PREV_BALANCE, AT_STATE.FREEZE_WHEN_SAME_BALANCE, AT_STATE.MIN_ACTIVATE_AMOUNT, AT_STATE.HEIGHT, AT_STATE.LATEST)
+            .key(AT_STATE.AT_ID, AT_STATE.HEIGHT)
+            .values(atState.getATId(), brs.AT.compressState(atState.getState()), atState.getPrevHeight(), atState.getNextHeight(), atState.getSleepBetween(), atState.getPrevBalance(), atState.getFreezeWhenSameBalance(), atState.getMinActivationAmount(), Burst.getBlockchain().getHeight(), true)
+            .execute();
   }
 
   private void saveAT(DSLContext ctx, brs.AT at) {

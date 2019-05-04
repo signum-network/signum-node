@@ -10,7 +10,6 @@ import brs.db.VersionedValuesTable;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.DigitalGoodsStoreStore;
 import org.jooq.DSLContext;
-import org.jooq.Field;
 import org.jooq.SortField;
 
 import java.sql.ResultSet;
@@ -75,8 +74,8 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
       }
 
       @Override
-      protected List<SortField> defaultSort() {
-        List<SortField> sort = new ArrayList<>();
+      protected List<SortField<?>> defaultSort() {
+        List<SortField<?>> sort = new ArrayList<>();
         sort.add(tableClass.field("timestamp", Integer.class).desc());
         sort.add(tableClass.field("id", Long.class).asc());
         return sort;
@@ -123,17 +122,10 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
 
       @Override
       protected void save(DSLContext ctx, DigitalGoodsStore.Purchase purchase, String publicFeedback) {
-        brs.schema.tables.records.PurchasePublicFeedbackRecord feedbackRecord = ctx.newRecord(
-            PURCHASE_PUBLIC_FEEDBACK
-        );
-        feedbackRecord.setId(purchase.getId());
-        feedbackRecord.setPublicFeedback(publicFeedback);
-        feedbackRecord.setHeight(brs.Burst.getBlockchain().getHeight());
-        feedbackRecord.setLatest(true);
-        DbUtils.mergeInto(
-            ctx, feedbackRecord, PURCHASE_PUBLIC_FEEDBACK,
-            ( new Field[] { feedbackRecord.field("id"), feedbackRecord.field("height") } )
-        );
+        ctx.mergeInto(PURCHASE_PUBLIC_FEEDBACK, PURCHASE_PUBLIC_FEEDBACK.ID, PURCHASE_PUBLIC_FEEDBACK.PUBLIC_FEEDBACK, PURCHASE_PUBLIC_FEEDBACK.HEIGHT, PURCHASE_PUBLIC_FEEDBACK.LATEST)
+                .key(PURCHASE_PUBLIC_FEEDBACK.ID, PURCHASE_PUBLIC_FEEDBACK.HEIGHT)
+                .values(purchase.getId(), publicFeedback, Burst.getBlockchain().getHeight(), true)
+                .execute();
       }
     };
 
@@ -150,8 +142,8 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
       }
 
       @Override
-      protected List<SortField> defaultSort() {
-        List<SortField> sort = new ArrayList<>();
+      protected List<SortField<?>> defaultSort() {
+        List<SortField<?>> sort = new ArrayList<>();
         sort.add(brs.schema.Tables.GOODS.field("timestamp", Integer.class).desc());
         sort.add(brs.schema.Tables.GOODS.field("id", Long.class).asc());
         return sort;
@@ -212,22 +204,10 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
   }
 
   private void saveGoods(DSLContext ctx, DigitalGoodsStore.Goods goods) {
-    brs.schema.tables.records.GoodsRecord goodsRecord = ctx.newRecord(GOODS);
-    goodsRecord.setId(goods.getId());
-    goodsRecord.setSellerId(goods.getSellerId());
-    goodsRecord.setName(goods.getName());
-    goodsRecord.setDescription(goods.getDescription());
-    goodsRecord.setTags(goods.getTags());
-    goodsRecord.setTimestamp(goods.getTimestamp());
-    goodsRecord.setQuantity(goods.getQuantity());
-    goodsRecord.setPrice(goods.getPriceNQT());
-    goodsRecord.setDelisted(goods.isDelisted());
-    goodsRecord.setHeight(brs.Burst.getBlockchain().getHeight());
-    goodsRecord.setLatest(true);
-    DbUtils.mergeInto(
-      ctx, goodsRecord, GOODS,
-      ( new Field[] { goodsRecord.field("id"), goodsRecord.field("height") } )
-    );
+    ctx.mergeInto(GOODS, GOODS.ID, GOODS.SELLER_ID, GOODS.NAME, GOODS.DESCRIPTION, GOODS.TAGS, GOODS.TIMESTAMP, GOODS.QUANTITY, GOODS.PRICE, GOODS.DELISTED, GOODS.HEIGHT, GOODS.LATEST)
+            .key(GOODS.ID, GOODS.HEIGHT)
+            .values(goods.getId(), goods.getSellerId(), goods.getName(), goods.getDescription(), goods.getTags(), goods.getTimestamp(), goods.getQuantity(), goods.getPriceNQT(), goods.isDelisted(), Burst.getBlockchain().getHeight(), true)
+            .execute();
   }
 
   private void savePurchase(DSLContext ctx, DigitalGoodsStore.Purchase purchase) {
@@ -249,32 +229,10 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
       refundNote  = purchase.getRefundNote().getData();
       refundNonce = purchase.getRefundNote().getNonce();
     }
-    brs.schema.tables.records.PurchaseRecord purchaseRecord = ctx.newRecord(PURCHASE);
-    purchaseRecord.setId(purchase.getId());
-    purchaseRecord.setBuyerId(purchase.getBuyerId());
-    purchaseRecord.setGoodsId(purchase.getGoodsId());
-    purchaseRecord.setSellerId(purchase.getSellerId());
-    purchaseRecord.setQuantity(purchase.getQuantity());
-    purchaseRecord.setPrice(purchase.getPriceNQT());
-    purchaseRecord.setDeadline(purchase.getDeliveryDeadlineTimestamp());
-    purchaseRecord.setNote(note);
-    purchaseRecord.setNonce(nonce);
-    purchaseRecord.setTimestamp(purchase.getTimestamp());
-    purchaseRecord.setPending(purchase.isPending());
-    purchaseRecord.setGoods(goods);
-    purchaseRecord.setGoodsNonce(goodsNonce);
-    purchaseRecord.setRefundNote(refundNote);
-    purchaseRecord.setRefundNonce(refundNonce);
-    purchaseRecord.setHasFeedbackNotes(purchase.getFeedbackNotes() != null && purchase.getFeedbackNotes().size() > 0);
-    purchaseRecord.setHasPublicFeedbacks(purchase.getPublicFeedback().size() > 0);
-    purchaseRecord.setDiscount(purchase.getDiscountNQT());
-    purchaseRecord.setRefund(purchase.getRefundNQT());
-    purchaseRecord.setHeight(Burst.getBlockchain().getHeight());
-    purchaseRecord.setLatest(true);
-    DbUtils.mergeInto(
-      ctx, purchaseRecord, PURCHASE,
-      ( new Field[] { purchaseRecord.field("id"), purchaseRecord.field("height") } )
-    );
+    ctx.mergeInto(PURCHASE, PURCHASE.ID, PURCHASE.BUYER_ID, PURCHASE.GOODS_ID, PURCHASE.SELLER_ID, PURCHASE.QUANTITY, PURCHASE.PRICE, PURCHASE.DEADLINE, PURCHASE.NOTE, PURCHASE.NONCE, PURCHASE.TIMESTAMP, PURCHASE.PENDING, PURCHASE.GOODS, PURCHASE.GOODS_NONCE, PURCHASE.REFUND_NOTE, PURCHASE.REFUND_NONCE, PURCHASE.HAS_FEEDBACK_NOTES, PURCHASE.HAS_PUBLIC_FEEDBACKS, PURCHASE.DISCOUNT, PURCHASE.REFUND, PURCHASE.HEIGHT, PURCHASE.LATEST)
+            .key(PURCHASE.ID, PURCHASE.HEIGHT)
+            .values(purchase.getId(), purchase.getBuyerId(), purchase.getGoodsId(), purchase.getSellerId(), purchase.getQuantity(), purchase.getPriceNQT(), purchase.getDeliveryDeadlineTimestamp(), note, nonce, purchase.getTimestamp(), purchase.isPending(), goods, goodsNonce, refundNote, refundNonce, purchase.getFeedbackNotes() != null && purchase.getFeedbackNotes().size() > 0, purchase.getPublicFeedback().size() > 0, purchase.getDiscountNQT(), purchase.getRefundNQT(), Burst.getBlockchain().getHeight(), true)
+            .execute();
   }
 
   @Override
@@ -284,7 +242,7 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
 
   @Override
   public BurstIterator<DigitalGoodsStore.Goods> getSellerGoods(final long sellerId, final boolean inStockOnly, int from, int to) {
-    List<SortField> sort = new ArrayList<>();
+    List<SortField<?>> sort = new ArrayList<>();
     sort.add(GOODS.field("name", String.class).asc());
     sort.add(GOODS.field("timestamp", Integer.class).desc());
     sort.add(GOODS.field("id", Long.class).asc());

@@ -14,7 +14,6 @@ class DbIterator<T> implements BurstIterator<T> {
   private final DSLContext ctx;
 
   private boolean hasNext;
-  private boolean iterated;
 
   public DbIterator(DSLContext ctx, ResultSet rs, ResultSetReader<T> rsReader) {
     this.ctx      = ctx;

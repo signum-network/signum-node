@@ -57,17 +57,10 @@ public class SqlAccountStore implements AccountStore {
 
       @Override
       protected void save(DSLContext ctx, Account.RewardRecipientAssignment assignment) {
-        brs.schema.tables.records.RewardRecipAssignRecord rewardRecord = ctx.newRecord(brs.schema.Tables.REWARD_RECIP_ASSIGN);
-        rewardRecord.setAccountId(assignment.accountId);
-        rewardRecord.setPrevRecipId(assignment.getPrevRecipientId());
-        rewardRecord.setRecipId(assignment.getRecipientId());
-        rewardRecord.setFromHeight(assignment.getFromHeight());
-        rewardRecord.setHeight(Burst.getBlockchain().getHeight());
-        rewardRecord.setLatest(true);
-        DbUtils.mergeInto(
-            ctx, rewardRecord, brs.schema.Tables.REWARD_RECIP_ASSIGN,
-            ( new Field[] { rewardRecord.field("account_id"), rewardRecord.field("height") } )
-        );
+        ctx.mergeInto(REWARD_RECIP_ASSIGN, REWARD_RECIP_ASSIGN.ACCOUNT_ID, REWARD_RECIP_ASSIGN.PREV_RECIP_ID, REWARD_RECIP_ASSIGN.RECIP_ID, REWARD_RECIP_ASSIGN.FROM_HEIGHT, REWARD_RECIP_ASSIGN.HEIGHT, REWARD_RECIP_ASSIGN.LATEST)
+                .key(REWARD_RECIP_ASSIGN.ACCOUNT_ID, REWARD_RECIP_ASSIGN.HEIGHT)
+                .values(assignment.accountId, assignment.getPrevRecipientId(), assignment.getRecipientId(), assignment.getFromHeight(), Burst.getBlockchain().getHeight(), true)
+                .execute();
       }
     };
 
@@ -80,22 +73,15 @@ public class SqlAccountStore implements AccountStore {
 
       @Override
       protected void save(DSLContext ctx, Account.AccountAsset accountAsset) {
-        brs.schema.tables.records.AccountAssetRecord assetRecord = ctx.newRecord(brs.schema.Tables.ACCOUNT_ASSET);
-        assetRecord.setAccountId(accountAsset.accountId);
-        assetRecord.setAssetId(accountAsset.assetId);
-        assetRecord.setQuantity(accountAsset.getQuantityQNT());
-        assetRecord.setUnconfirmedQuantity(accountAsset.getUnconfirmedQuantityQNT());
-        assetRecord.setHeight(Burst.getBlockchain().getHeight());
-        assetRecord.setLatest(true);
-        DbUtils.mergeInto(
-            ctx, assetRecord, brs.schema.Tables.ACCOUNT_ASSET,
-            ( new Field[] { assetRecord.field("account_id"), assetRecord.field("asset_id"), assetRecord.field("height") } )
-        );
+        ctx.mergeInto(ACCOUNT_ASSET, ACCOUNT_ASSET.ACCOUNT_ID, ACCOUNT_ASSET.ASSET_ID, ACCOUNT_ASSET.QUANTITY, ACCOUNT_ASSET.UNCONFIRMED_QUANTITY, ACCOUNT_ASSET.HEIGHT, ACCOUNT_ASSET.LATEST)
+                .key(ACCOUNT_ASSET.ACCOUNT_ID, ACCOUNT_ASSET.ASSET_ID, ACCOUNT_ASSET.HEIGHT)
+                .values(accountAsset.accountId, accountAsset.assetId, accountAsset.getQuantityQNT(), accountAsset.getUnconfirmedQuantityQNT(), Burst.getBlockchain().getHeight(), true)
+                .execute();
       }
 
       @Override
-      protected List<SortField> defaultSort() {
-        List<SortField> sort = new ArrayList<>();
+      protected List<SortField<?>> defaultSort() {
+        List<SortField<?>> sort = new ArrayList<>();
         sort.add(tableClass.field("quantity", Long.class).desc());
         sort.add(tableClass.field("account_id", Long.class).asc());
         sort.add(tableClass.field("asset_id", Long.class).asc());
@@ -104,7 +90,7 @@ public class SqlAccountStore implements AccountStore {
 
     };
 
-    accountTable = new VersionedBatchEntitySqlTable<Account>("account", brs.schema.Tables.ACCOUNT, accountDbKeyFactory, derivedTableManager, dbCacheManager) {
+    accountTable = new VersionedBatchEntitySqlTable<Account>("account", brs.schema.Tables.ACCOUNT, accountDbKeyFactory, derivedTableManager, dbCacheManager, Account.class) {
       @Override
       protected Account load(DSLContext ctx, ResultSet rs) throws SQLException {
         return new SqlAccount(rs);
@@ -209,7 +195,7 @@ public class SqlAccountStore implements AccountStore {
 
   @Override
   public BurstIterator<Account.AccountAsset> getAssetAccounts(long assetId, int from, int to) {
-    List<SortField> sort = new ArrayList<>();
+    List<SortField<?>> sort = new ArrayList<>();
     sort.add(ACCOUNT_ASSET.field("quantity", Long.class).desc());
     sort.add(ACCOUNT_ASSET.field("account_id", Long.class).asc());
     return getAccountAssetTable().getManyBy(ACCOUNT_ASSET.ASSET_ID.eq(assetId), from, to, sort);
@@ -221,7 +207,7 @@ public class SqlAccountStore implements AccountStore {
       return getAssetAccounts(assetId, from, to);
     }
 
-    List<SortField> sort = new ArrayList<>();
+    List<SortField<?>> sort = new ArrayList<>();
     sort.add(ACCOUNT_ASSET.field("quantity", Long.class).desc());
     sort.add(ACCOUNT_ASSET.field("account_id", Long.class).asc());
     return getAccountAssetTable().getManyBy(ACCOUNT_ASSET.ASSET_ID.eq(assetId), height, from, to, sort);
@@ -272,10 +258,6 @@ public class SqlAccountStore implements AccountStore {
   }
 
   class SqlAccount extends Account {
-    SqlAccount(Long id) {
-      super(id);
-    }
-
     SqlAccount(ResultSet rs) throws SQLException {
       super(rs.getLong("id"), accountDbKeyFactory.newKey(rs.getLong("id")),
             rs.getInt("creation_height"));

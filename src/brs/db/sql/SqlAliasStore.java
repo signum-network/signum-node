@@ -53,8 +53,8 @@ public class SqlAliasStore implements AliasStore {
       }
 
       @Override
-      protected List<SortField> defaultSort() {
-        List<SortField> sort = new ArrayList<>();
+      protected List<SortField<?>> defaultSort() {
+        List<SortField<?>> sort = new ArrayList<>();
         sort.add(tableClass.field("alias_name_lower", String.class).asc());
         return sort;
       }

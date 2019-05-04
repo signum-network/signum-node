@@ -84,7 +84,6 @@ public interface Appendix {
     public abstract void validate(Transaction transaction) throws BurstException.ValidationException;
 
     public abstract void apply(Transaction transaction, Account senderAccount, Account recipientAccount);
-
   }
 
   class Message extends AbstractAppendix {

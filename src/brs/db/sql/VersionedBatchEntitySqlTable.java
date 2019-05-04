@@ -10,7 +10,6 @@ import org.jooq.*;
 import org.jooq.impl.TableImpl;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySqlTable<T> implements VersionedBatchEntityTable<T> {
 
@@ -43,7 +42,6 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     DbKey dbKey = (DbKey)dbKeyFactory.newKey(t);
     getCache().remove(dbKey);
     getBatch().remove(dbKey);
-
     return true;
   }
 
@@ -52,13 +50,11 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     if (getCache().containsKey(dbKey)) {
       return getCache().get(dbKey);
     }
-    else if(Db.isInTransaction()) {
-      if(getBatch().containsKey(dbKey)) {
-        return getBatch().get(dbKey);
-      }
+    else if (Db.isInTransaction() && getBatch().containsKey(dbKey)) {
+      return getBatch().get(dbKey);
     }
     T item = super.get(dbKey);
-    if ( item != null ) {
+    if (item != null) {
       getCache().put(dbKey, item);
     }
     return item;
@@ -67,9 +63,9 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
   @Override
   public void insert(T t) {
     assertNotInTransaction();
-    DbKey dbKey = (DbKey)dbKeyFactory.newKey(t);
-    getBatch().put(dbKey, t);
-    getCache().put(dbKey, t);
+    BurstKey key = dbKeyFactory.newKey(t);
+    getBatch().put(key, t);
+    getCache().put(key, t);
   }
 
   @Override
@@ -99,12 +95,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     }
     updateBatch.execute();
 
-    Map<BurstKey, T> itemOf = getBatch().entrySet().stream()
-            .filter(entry -> entry.getValue() != null)
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    if (!itemOf.isEmpty()) {
-      bulkInsert(ctx, itemOf.values());
-    }
+    bulkInsert(ctx, getBatch().values());
     getBatch().clear();
   }
 
@@ -220,6 +211,6 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
   }
 
   @Override
-  public void fillCache(ArrayList<Long> ids) {
+  public void fillCache(Set<Long> ids) {
   }
 }

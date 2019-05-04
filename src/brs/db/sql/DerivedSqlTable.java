@@ -13,7 +13,7 @@ public abstract class DerivedSqlTable implements DerivedTable {
   final String table;
   final TableImpl<?> tableClass;
 
-  private final Field<Integer> heightField;
+  final Field<Integer> heightField;
   final Field<Boolean> latestField;
 
   DerivedSqlTable(String table, TableImpl<?> tableClass, DerivedTableManager derivedTableManager) {

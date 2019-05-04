@@ -3,6 +3,7 @@ package brs.db.sql;
 import brs.Account;
 import brs.Burst;
 import brs.db.BurstIterator;
+import brs.db.BurstKey;
 import brs.db.VersionedBatchEntityTable;
 import brs.db.VersionedEntityTable;
 import brs.db.cache.DBCacheManagerImpl;
@@ -15,10 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static brs.schema.Tables.*;
@@ -65,6 +63,15 @@ public class SqlAccountStore implements AccountStore {
     };
 
     accountAssetTable = new VersionedEntitySqlTable<Account.AccountAsset>("account_asset", brs.schema.Tables.ACCOUNT_ASSET, accountAssetDbKeyFactory, derivedTableManager) {
+      private final List<SortField<?>> sort = initializeSort();
+
+      private List<SortField<?>> initializeSort() {
+        List<SortField<?>> sort = new ArrayList<>();
+        sort.add(tableClass.field("quantity", Long.class).desc());
+        sort.add(tableClass.field("account_id", Long.class).asc());
+        sort.add(tableClass.field("asset_id", Long.class).asc());
+        return Collections.unmodifiableList(sort);
+      }
 
       @Override
       protected Account.AccountAsset load(DSLContext ctx, ResultSet rs) throws SQLException {
@@ -81,10 +88,6 @@ public class SqlAccountStore implements AccountStore {
 
       @Override
       protected List<SortField<?>> defaultSort() {
-        List<SortField<?>> sort = new ArrayList<>();
-        sort.add(tableClass.field("quantity", Long.class).desc());
-        sort.add(tableClass.field("account_id", Long.class).asc());
-        sort.add(tableClass.field("asset_id", Long.class).asc());
         return sort;
       }
     };
@@ -100,6 +103,7 @@ public class SqlAccountStore implements AccountStore {
         List<Query> accountQueries = new ArrayList<>();
         int height = Burst.getBlockchain().getHeight();
         for (Account account: accounts) {
+          if (account == null) continue;
           accountQueries.add(
                   ctx.mergeInto(ACCOUNT, ACCOUNT.ID, ACCOUNT.HEIGHT, ACCOUNT.CREATION_HEIGHT, ACCOUNT.PUBLIC_KEY, ACCOUNT.KEY_HEIGHT, ACCOUNT.BALANCE,
                           ACCOUNT.UNCONFIRMED_BALANCE, ACCOUNT.FORGED_BALANCE, ACCOUNT.NAME, ACCOUNT.DESCRIPTION, ACCOUNT.LATEST)
@@ -112,23 +116,15 @@ public class SqlAccountStore implements AccountStore {
       }
 
       @Override
-      public void fillCache(ArrayList<Long> ids) {
-        try ( DSLContext ctx = Db.getDSLContext() ) {
-          try (Cursor<AccountRecord> cursor = ctx.selectFrom(brs.schema.Tables.ACCOUNT).where(
-                  brs.schema.Tables.ACCOUNT.LATEST.isTrue()
-          ).and(
-                  brs.schema.Tables.ACCOUNT.ID
-                          .in(ids.stream().distinct().collect(Collectors.toList()))
-          ).fetchLazy()) {
-
-            while (cursor.hasNext()) {
-              AccountRecord account = cursor.fetchNext();
-              try {
-                DbKey dbKey = (DbKey) accountDbKeyFactory.newKey(account.getId());
-                getCache().put(dbKey, new SqlAccount(account.intoResultSet()));
-              } catch (SQLException e) {
-                // ignore
-              }
+      public void fillCache(Set<Long> ids) {
+        try (DSLContext ctx = Db.getDSLContext()) {
+          for (AccountRecord account : ctx.selectFrom(ACCOUNT)
+                  .where(ACCOUNT.LATEST.isTrue())
+                  .and(ACCOUNT.ID.in(ids))
+                  .fetch()) {
+            try {
+              getCache().put(accountDbKeyFactory.newKey(account.getId()), new SqlAccount(account.intoResultSet()));
+            } catch (SQLException ignored) {
             }
           }
         }

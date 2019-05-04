@@ -34,8 +34,8 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     this.defaultSort  = new ArrayList<>();
     this.heightField = tableClass.field("height", Integer.class);
     this.latestField = tableClass.field("latest", Boolean.class);
-    if ( multiversion ) {
-      for ( String column : this.dbKeyFactory.getPKColumns() ) {
+    if (multiversion) {
+      for (String column : this.dbKeyFactory.getPKColumns()) {
         defaultSort.add(tableClass.field(column, Long.class).asc());
       }
     }
@@ -108,8 +108,6 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
         SelectQuery<Record> innerQuery = ctx.selectQuery();
         innerQuery.addConditions(innerTable.field("height", Integer.class).gt(height));
         innerQuery.addConditions(dbKey.getPKConditions(innerTable));
-        // ToDo: verify:
-        // (latest = TRUE OR EXISTS ( SELECT 1 FROM " + table + dbKeyFactory.getPKClause() + " AND height > ?))"
         query.addConditions(
           latestField.isTrue().or(
             DSL.field(DSL.exists(innerQuery))
@@ -176,7 +174,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
 
   private T get(DSLContext ctx, SelectQuery query, boolean cache) throws SQLException {
     final boolean doCache = cache && Db.isInTransaction();
-    try ( ResultSet rs = query.fetchResultSet() ) {
+    try (ResultSet rs = query.fetchResultSet()) {
       if (!rs.next()) {
         return null;
       }
@@ -211,7 +209,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     query.addFrom(tableClass);
     query.addConditions(condition);
     query.addOrderBy(sort);
-    if ( multiversion ) {
+    if (multiversion) {
       query.addConditions(latestField.isTrue());
     }
     DbUtils.applyLimits(query, from, to);
@@ -231,7 +229,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     query.addFrom(tableClass);
     query.addConditions(condition);
     query.addConditions(heightField.le(height));
-    if ( multiversion ) {
+    if (multiversion) {
       Table<?> innerTableB = tableClass.as("b");
       SelectQuery<Record> innerQueryB = ctx.selectQuery();
       innerQueryB.addConditions(innerTableB.field("height", Integer.class).gt(height));

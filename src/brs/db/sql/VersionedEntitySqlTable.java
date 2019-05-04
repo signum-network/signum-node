@@ -21,7 +21,7 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
 
   @Override
   public void rollback(int height) {
-    rollback(table, tableClass, height, dbKeyFactory);
+    rollback(table, tableClass, heightField, latestField, height, dbKeyFactory);
   }
 
   @Override
@@ -66,10 +66,10 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
 
   @Override
   public final void trim(int height) {
-    trim(table, tableClass, height, dbKeyFactory);
+    trim(table, tableClass, heightField, height, dbKeyFactory);
   }
 
-  public void rollback(final String table, final TableImpl<?> tableClass, final int height, final DbKey.Factory dbKeyFactory) {
+  static void rollback(final String table, final TableImpl<?> tableClass, Field<Integer> heightField, Field<Boolean> latestField, final int height, final DbKey.Factory dbKeyFactory) {
     if (!Db.isInTransaction()) {
       throw new IllegalStateException("Not in transaction");
     }
@@ -109,7 +109,7 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
           setLatestQuery.addConditions(dbKey.getPKConditions(tableClass));
           setLatestQuery.addConditions(heightField.eq(maxHeight));
           setLatestQuery.addValue(
-            this.latestField,
+            latestField,
             true
           );
           setLatestQuery.execute();
@@ -122,7 +122,7 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
     Db.getCache(table).clear();
   }
 
-  public void trim(final String table, final TableImpl<?> tableClass, final int height, final DbKey.Factory dbKeyFactory) {
+  static void trim(final String table, final TableImpl<?> tableClass, Field<Integer> heightField, final int height, final DbKey.Factory dbKeyFactory) {
     if (!Db.isInTransaction()) {
       throw new IllegalStateException("Not in transaction");
     }

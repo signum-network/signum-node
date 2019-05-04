@@ -3,10 +3,8 @@ package brs.db.sql;
 import brs.db.BurstKey;
 import brs.db.ValuesTable;
 import brs.db.store.DerivedTableManager;
-import org.jooq.DSLContext;
-import org.jooq.Record;
-import org.jooq.SelectQuery;
-import org.jooq.UpdateQuery;
+import org.jooq.*;
+import org.jooq.impl.DSL;
 import org.jooq.impl.TableImpl;
 
 import java.sql.ResultSet;
@@ -45,14 +43,11 @@ public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements Val
       }
     }
     DSLContext ctx = Db.getDSLContext();
-    SelectQuery<Record> query = ctx.selectQuery();
-    query.addFrom(tableClass);
-    query.addConditions(dbKey.getPKConditions(tableClass));
-    if ( multiversion ) {
-      query.addConditions(latestField.isTrue());
-    }
-    query.addOrderBy(tableClass.field("db_id").desc());
-    values = get(ctx, query.fetchResultSet());
+    values = get(ctx, ctx.selectFrom(tableClass)
+            .where(dbKey.getPKConditions(tableClass))
+            .and(multiversion ? latestField.isTrue() : DSL.noCondition())
+            .orderBy(tableClass.field("db_id").desc())
+            .fetchResultSet());
     if (Db.isInTransaction()) {
       Db.getCache(table).put(dbKey, values);
     }
@@ -80,14 +75,11 @@ public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements Val
     Db.getCache(table).put(dbKey, values);
     try ( DSLContext ctx = Db.getDSLContext() ) {
       if (multiversion) {
-        UpdateQuery query = ctx.updateQuery(tableClass);
-        query.addValue(
-          latestField,
-          false
-        );
-        query.addConditions(dbKey.getPKConditions(tableClass));
-        query.addConditions(latestField.isTrue());
-        query.execute();
+        ctx.update(tableClass)
+                .set(latestField, false)
+                .where(dbKey.getPKConditions(tableClass))
+                .and(latestField.isTrue())
+                .execute();
       }
       for (V v : values) {
         save(ctx, t, v);
@@ -106,5 +98,4 @@ public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements Val
     super.truncate();
     Db.getCache(table).clear();
   }
-
 }

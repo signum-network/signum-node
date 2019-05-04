@@ -9,6 +9,7 @@ import org.jooq.SortField;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface VersionedBatchEntityTable<T> extends DerivedTable, EntityTable<T> {
   boolean delete(T t);
@@ -73,5 +74,5 @@ public interface VersionedBatchEntityTable<T> extends DerivedTable, EntityTable<
 
   void flushCache();
 
-  void fillCache(ArrayList<Long> ids);
+  void fillCache(Set<Long> ids);
 }

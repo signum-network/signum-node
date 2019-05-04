@@ -243,7 +243,8 @@ public final class Burst {
           logger.info("Not starting V2 API Server - it is disabled.");
       }
 
-      DebugTrace.init(propertyService, blockchainProcessor, accountService, assetExchange, digitalGoodsStoreService);
+      if (propertyService.getBoolean(Props.BRS_DEBUG_TRACE_ENABLED))
+        DebugTrace.init(propertyService, blockchainProcessor, accountService, assetExchange, digitalGoodsStoreService);
 
       // backward compatibility for those who have some unconfirmed transactions in their db
       try {

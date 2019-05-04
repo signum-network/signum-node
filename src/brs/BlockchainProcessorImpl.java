@@ -947,17 +947,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         long calculatedTotalFee = 0;
         MessageDigest digest = Crypto.sha256();
 
-        ArrayList<Long> accountIds = new ArrayList<>();
-        block.getTransactions().forEach(t -> {
-          if (t.getRecipientId() != 0L)
-            accountIds.add(t.getRecipientId());
-          if (t.getSenderId() != 0L)
-            accountIds.add(t.getSenderId());
-        });
-        if (!accountIds.isEmpty()) {
-          stores.getAccountStore().getAccountTable().fillCache(accountIds);
-        }
-
         for (Transaction transaction : block.getTransactions()) {
           if (transaction.getTimestamp() > curTime + MAX_TIMESTAMP_DIFFERENCE) {
             throw new BlockOutOfOrderException("Invalid transaction timestamp: "
@@ -1037,8 +1026,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           throw new BlockNotAcceptedException("Payload hash doesn't match for block " + block.getHeight());
         }
 
-        long remainingAmount =
-            Convert.safeSubtract(block.getTotalAmountNQT(), calculatedTotalAmount);
+        long remainingAmount = Convert.safeSubtract(block.getTotalAmountNQT(), calculatedTotalAmount);
         long remainingFee = Convert.safeSubtract(block.getTotalFeeNQT(), calculatedTotalFee);
 
         blockService.setPrevious(block, previousLastBlock);

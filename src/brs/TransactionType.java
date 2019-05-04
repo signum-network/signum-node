@@ -407,7 +407,9 @@ public abstract class TransactionType {
       @Override
       final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
         Attachment.PaymentMultiOutCreation attachment = (Attachment.PaymentMultiOutCreation) transaction.getAttachment();
-        attachment.getRecipients().forEach(a -> accountService.addToBalanceAndUnconfirmedBalanceNQT(accountService.getOrAddAccount(a.get(0)), a.get(1)));
+        for (List<Long> recipient : attachment.getRecipients()) {
+          accountService.addToBalanceAndUnconfirmedBalanceNQT(accountService.getOrAddAccount(recipient.get(0)), recipient.get(1));
+        }
       }
 
       @Override

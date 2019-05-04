@@ -156,8 +156,10 @@ public class SqlBlockDb implements BlockDb {
     Burst.getDbs().getTransactionDb().saveTransactions(block.getTransactions());
 
     if (block.getPreviousBlockId() != 0) {
-      ctx.update(BLOCK).set(BLOCK.NEXT_BLOCK_ID, block.getId())
-          .where(BLOCK.ID.eq(block.getPreviousBlockId())).execute();
+      ctx.update(BLOCK)
+              .set(BLOCK.NEXT_BLOCK_ID, block.getId())
+              .where(BLOCK.ID.eq(block.getPreviousBlockId()))
+              .execute();
     }
   }
 

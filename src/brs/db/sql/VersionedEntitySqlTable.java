@@ -37,15 +37,15 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
       SelectQuery<Record> countQuery = ctx.selectQuery();
       countQuery.addFrom(tableClass);
       countQuery.addConditions(dbKey.getPKConditions(tableClass));
-      countQuery.addConditions(tableClass.field("height", Integer.class).lt(Burst.getBlockchain().getHeight()));
+      countQuery.addConditions(heightField.lt(Burst.getBlockchain().getHeight()));
       if ( ctx.fetchCount(countQuery) > 0 ) {
         UpdateQuery updateQuery = ctx.updateQuery(tableClass);
         updateQuery.addValue(
-          tableClass.field("latest", Boolean.class),
+          latestField,
           false
         );
         updateQuery.addConditions(dbKey.getPKConditions(tableClass));
-        updateQuery.addConditions(tableClass.field("latest", Boolean.class).isTrue());
+        updateQuery.addConditions(latestField.isTrue());
 
         updateQuery.execute();
         save(ctx, t);
@@ -69,7 +69,7 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
     trim(table, tableClass, height, dbKeyFactory);
   }
 
-  static void rollback(final String table, final TableImpl<?> tableClass, final int height, final DbKey.Factory dbKeyFactory) {
+  public void rollback(final String table, final TableImpl<?> tableClass, final int height, final DbKey.Factory dbKeyFactory) {
     if (!Db.isInTransaction()) {
       throw new IllegalStateException("Not in transaction");
     }
@@ -79,7 +79,7 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
       // their latest flag of the "potential" remaining newest entry
       SelectQuery<Record> selectForDeleteQuery = ctx.selectQuery();
       selectForDeleteQuery.addFrom(tableClass);
-      selectForDeleteQuery.addConditions(tableClass.field("height", Integer.class).gt(height));
+      selectForDeleteQuery.addConditions(heightField.gt(height));
       for (String column : dbKeyFactory.getPKColumns()) {
         selectForDeleteQuery.addSelect(tableClass.field(column, Long.class));
       }
@@ -93,7 +93,7 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
 
       // delete all entries > height
       DeleteQuery deleteQuery = ctx.deleteQuery(tableClass);
-      deleteQuery.addConditions(tableClass.field("height", Integer.class).gt(height));
+      deleteQuery.addConditions(heightField.gt(height));
       deleteQuery.execute();
 
       // update latest flags for remaining entries, if there any remaining (per deleted dbKey)
@@ -101,15 +101,15 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
         SelectQuery<Record> selectMaxHeightQuery = ctx.selectQuery();
         selectMaxHeightQuery.addFrom(tableClass);
         selectMaxHeightQuery.addConditions(dbKey.getPKConditions(tableClass));
-        selectMaxHeightQuery.addSelect(DSL.max(tableClass.field("height", Integer.class)));
-        Integer maxHeight = ctx.fetchValue(selectMaxHeightQuery.fetchResultSet(), tableClass.field("height", Integer.class));
+        selectMaxHeightQuery.addSelect(DSL.max(heightField));
+        Integer maxHeight = ctx.fetchValue(selectMaxHeightQuery.fetchResultSet(), heightField);
 
         if ( maxHeight != null ) {
           UpdateQuery setLatestQuery = ctx.updateQuery(tableClass);
           setLatestQuery.addConditions(dbKey.getPKConditions(tableClass));
-          setLatestQuery.addConditions(tableClass.field("height", int.class).eq(maxHeight));
+          setLatestQuery.addConditions(heightField.eq(maxHeight));
           setLatestQuery.addValue(
-            tableClass.field("latest", Boolean.class),
+            this.latestField,
             true
           );
           setLatestQuery.execute();
@@ -122,7 +122,7 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
     Db.getCache(table).clear();
   }
 
-  static void trim(final String table, final TableImpl<?> tableClass, final int height, final DbKey.Factory dbKeyFactory) {
+  public void trim(final String table, final TableImpl<?> tableClass, final int height, final DbKey.Factory dbKeyFactory) {
     if (!Db.isInTransaction()) {
       throw new IllegalStateException("Not in transaction");
     }
@@ -132,19 +132,19 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
     DSLContext ctx = Db.getDSLContext();
     SelectQuery<Record> selectMaxHeightQuery = ctx.selectQuery();
     selectMaxHeightQuery.addFrom(tableClass);
-    selectMaxHeightQuery.addSelect(DSL.max(tableClass.field("height", Integer.class)).as("max_height"));
+    selectMaxHeightQuery.addSelect(DSL.max(heightField).as("max_height"));
     for ( String column : dbKeyFactory.getPKColumns() ) {
       Field pkField = tableClass.field(column, Long.class);
       selectMaxHeightQuery.addSelect(pkField);
       selectMaxHeightQuery.addGroupBy(pkField);
     }
-    selectMaxHeightQuery.addConditions(tableClass.field("height", Integer.class).lt(height));
-    selectMaxHeightQuery.addHaving(DSL.countDistinct(tableClass.field("height", Long.class)).gt(1));
+    selectMaxHeightQuery.addConditions(heightField.lt(height));
+    selectMaxHeightQuery.addHaving(DSL.countDistinct(heightField).gt(1));
 
     // delete all fetched accounts, except if it's height is the max height we figured out
     try ( ResultSet rs = selectMaxHeightQuery.fetchResultSet() ) {
       DeleteQuery deleteLowerHeightQuery = ctx.deleteQuery(tableClass);
-      deleteLowerHeightQuery.addConditions(tableClass.field("height", Integer.class).lt((Integer) null));
+      deleteLowerHeightQuery.addConditions(heightField.lt((Integer) null));
       for ( String column : dbKeyFactory.getPKColumns() ) {
         Field<Long> pkField = tableClass.field(column, Long.class);
         deleteLowerHeightQuery.addConditions(pkField.eq((Long) null));

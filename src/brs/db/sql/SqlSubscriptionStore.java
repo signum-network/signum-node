@@ -106,10 +106,7 @@ public class SqlSubscriptionStore implements SubscriptionStore {
             rs.getInt("frequency"),
             rs.getInt("time_next"),
             subscriptionDbKeyFactory.newKey(rs.getLong("id"))
-
             );
     }
-
-
   }
 }

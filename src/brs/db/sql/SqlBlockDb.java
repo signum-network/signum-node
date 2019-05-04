@@ -180,13 +180,13 @@ public class SqlBlockDb implements BlockDb {
     DSLContext ctx = Db.getDSLContext();
     SelectQuery<Record> blockHeightQuery = ctx.selectQuery();
     blockHeightQuery.addFrom(BLOCK);
-    blockHeightQuery.addSelect(BLOCK.field("height", Integer.class));
-    blockHeightQuery.addConditions(BLOCK.field("id", Long.class).eq(blockId));
+    blockHeightQuery.addSelect(BLOCK.HEIGHT);
+    blockHeightQuery.addConditions(BLOCK.ID.eq(blockId));
     Integer blockHeight = (Integer) ctx.fetchValue(blockHeightQuery.fetchResultSet());
 
     if (blockHeight != null) {
       DeleteQuery deleteQuery = ctx.deleteQuery(BLOCK);
-      deleteQuery.addConditions(BLOCK.field("height", Integer.class).ge(blockHeight));
+      deleteQuery.addConditions(BLOCK.HEIGHT.ge(blockHeight));
       deleteQuery.execute();
     }
   }

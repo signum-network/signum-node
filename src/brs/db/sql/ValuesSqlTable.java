@@ -49,7 +49,7 @@ public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements Val
     query.addFrom(tableClass);
     query.addConditions(dbKey.getPKConditions(tableClass));
     if ( multiversion ) {
-      query.addConditions(tableClass.field("latest", Boolean.class).isTrue());
+      query.addConditions(latestField.isTrue());
     }
     query.addOrderBy(tableClass.field("db_id").desc());
     values = get(ctx, query.fetchResultSet());
@@ -82,11 +82,11 @@ public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements Val
       if (multiversion) {
         UpdateQuery query = ctx.updateQuery(tableClass);
         query.addValue(
-          tableClass.field("latest", Boolean.class),
+          latestField,
           false
         );
         query.addConditions(dbKey.getPKConditions(tableClass));
-        query.addConditions(tableClass.field("latest", Boolean.class).isTrue());
+        query.addConditions(latestField.isTrue());
         query.execute();
       }
       for (V v : values) {

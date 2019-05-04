@@ -79,7 +79,7 @@ public class SqlATStore implements ATStore {
       protected List<SortField<?>> defaultSort() {
         List<SortField<?>> sort = new ArrayList<>();
         sort.add(tableClass.field("prev_height", Integer.class).asc());
-        sort.add(tableClass.field("height", Integer.class).asc());
+        sort.add(heightField.asc());
         sort.add(tableClass.field("at_id", Long.class).asc());
         return sort;
       }

@@ -3,6 +3,7 @@ package brs.db.sql;
 import brs.db.DerivedTable;
 import brs.db.store.DerivedTableManager;
 import org.jooq.DSLContext;
+import org.jooq.Field;
 import org.jooq.impl.TableImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,11 +13,16 @@ public abstract class DerivedSqlTable implements DerivedTable {
   final String table;
   final TableImpl<?> tableClass;
 
+  private final Field<Integer> heightField;
+  final Field<Boolean> latestField;
+
   DerivedSqlTable(String table, TableImpl<?> tableClass, DerivedTableManager derivedTableManager) {
     this.table      = table;
     this.tableClass = tableClass;
     logger.trace("Creating derived table for "+table);
     derivedTableManager.registerDerivedTable(this);
+    this.heightField = tableClass.field("height", Integer.class);
+    this.latestField = tableClass.field("latest", Boolean.class);
   }
 
   @Override
@@ -25,7 +31,7 @@ public abstract class DerivedSqlTable implements DerivedTable {
       throw new IllegalStateException("Not in transaction");
     }
     DSLContext ctx = Db.getDSLContext();
-    ctx.delete(tableClass).where(tableClass.field("height", Integer.class).gt(height)).execute();
+    ctx.delete(tableClass).where(heightField.gt(height)).execute();
   }
 
   @Override
@@ -46,5 +52,4 @@ public abstract class DerivedSqlTable implements DerivedTable {
   public void finish() {
 
   }
-
 }

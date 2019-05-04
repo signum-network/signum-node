@@ -205,7 +205,7 @@ public class SqlTransactionDb implements TransactionDb {
   }
 
   public void saveTransactions(List<Transaction> transactions) {
-    if ( transactions.size() > 0 ) {
+    if (!transactions.isEmpty()) {
       try (DSLContext ctx = Db.getDSLContext()) {
         BatchBindStep insertBatch = ctx.batch(
             ctx.insertInto(TRANSACTION, TRANSACTION.ID, TRANSACTION.DEADLINE,
@@ -222,7 +222,7 @@ public class SqlTransactionDb implements TransactionDb {
                     null, null,
                     null, null, null, null, null, null, null, null, null, null, null));
         for (Transaction transaction : transactions) {
-          insertBatch = insertBatch.bind(
+          insertBatch.bind(
               transaction.getId(),
               transaction.getDeadline(),
               transaction.getSenderPublicKey(),

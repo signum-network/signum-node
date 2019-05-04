@@ -10,6 +10,7 @@ import org.jooq.*;
 import org.jooq.impl.TableImpl;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySqlTable<T> implements VersionedBatchEntityTable<T> {
 
@@ -21,17 +22,26 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     this.dbCacheManager = dbCacheManager;
     this.tClass = tClass;
   }
+  
+  private void assertInTransaction() {
+    if(Db.isInTransaction()) {
+      throw new IllegalStateException("Cannot use in batch table transaction");
+    }
+  }
+
+  private void assertNotInTransaction() {
+    if(!Db.isInTransaction()) {
+      throw new IllegalStateException("Not in transaction");
+    }
+  }
 
   protected abstract void bulkInsert(DSLContext ctx, Collection<T> t);
 
   @Override
   public boolean delete(T t) {
-    if(!Db.isInTransaction()) {
-      throw new IllegalStateException("Not in transaction");
-    }
+    assertNotInTransaction();
     DbKey dbKey = (DbKey)dbKeyFactory.newKey(t);
     getCache().remove(dbKey);
-    getBatch().remove(dbKey, null);
     getBatch().remove(dbKey);
 
     return true;
@@ -56,160 +66,129 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
 
   @Override
   public void insert(T t) {
-    if(!Db.isInTransaction()) {
-      throw new IllegalStateException("Not in transaction");
-    }
+    assertNotInTransaction();
     DbKey dbKey = (DbKey)dbKeyFactory.newKey(t);
-    getBatch().put(dbKey, t);
     getBatch().put(dbKey, t);
     getCache().put(dbKey, t);
   }
 
   @Override
   public void finish() {
-    if (!Db.isInTransaction()) {
-      throw new IllegalStateException("Not in transaction");
-    }
-    DSLContext ctx = Db.getDSLContext();
+    assertNotInTransaction();
     Set<BurstKey> keySet = getBatch().keySet();
-    if (!keySet.isEmpty()) {
-      UpdateQuery updateQuery = ctx.updateQuery(tableClass);
-      updateQuery.addValue(tableClass.field("latest", Boolean.class), false);
-      Arrays.asList(dbKeyFactory.getPKColumns()).forEach(idColumn->updateQuery.addConditions(tableClass.field(idColumn, Long.class).eq(0L)));
-      updateQuery.addConditions(tableClass.field("latest", Boolean.class).isTrue());
-
-      BatchBindStep updateBatch = ctx.batch(updateQuery);
-      for (BurstKey dbKey : keySet) {
-        ArrayList<Object> bindArgs = new ArrayList<>();
-        bindArgs.add(false);
-        Arrays.stream(dbKey.getPKValues()).forEach(bindArgs::add);
-        updateBatch = updateBatch.bind(bindArgs.toArray());
-      }
-      updateBatch.execute();
+    if (keySet.isEmpty()) {
+      return;
     }
 
-    Map<BurstKey, T> entries = getBatch();
-    HashMap<BurstKey, T> itemOf = new HashMap<>();
-    for (Map.Entry<BurstKey, T> entry : entries.entrySet()) {
-      if (entry.getValue() != null) {
-        itemOf.put(entry.getKey(), entry.getValue());
-      }
+    DSLContext ctx = Db.getDSLContext();
+    UpdateQuery updateQuery = ctx.updateQuery(tableClass);
+    updateQuery.addValue(latestField, false);
+    for (String idColumn : dbKeyFactory.getPKColumns()) {
+      updateQuery.addConditions(tableClass.field(idColumn, Long.class).eq(0L));
     }
-    if (itemOf.size() > 0 ) {
-      bulkInsert(ctx, new ArrayList<>(itemOf.values()));
+    updateQuery.addConditions(latestField.isTrue());
+
+    BatchBindStep updateBatch = ctx.batch(updateQuery);
+    for (BurstKey dbKey : keySet) {
+      List<Object> bindArgs = new ArrayList<>();
+      bindArgs.add(false);
+      for (long pkValue : dbKey.getPKValues()) {
+        bindArgs.add(pkValue);
+      }
+      updateBatch.bind(bindArgs.toArray());
+    }
+    updateBatch.execute();
+
+    Map<BurstKey, T> itemOf = getBatch().entrySet().stream()
+            .filter(entry -> entry.getValue() != null)
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    if (!itemOf.isEmpty()) {
+      bulkInsert(ctx, itemOf.values());
     }
     getBatch().clear();
   }
 
   @Override
   public T get(BurstKey dbKey, int height) {
-    if(Db.isInTransaction()) {
-      throw new IllegalStateException("Cannot use in batch table transaction");
-    }
+    assertInTransaction();
     return super.get(dbKey, height);
   }
 
   @Override
   public T getBy(Condition condition) {
-    if(Db.isInTransaction()) {
-      throw new IllegalStateException("Cannot use in batch table transaction");
-    }
+    assertInTransaction();
     return super.getBy(condition);
   }
 
   @Override
   public T getBy(Condition condition, int height) {
-    if(Db.isInTransaction()) {
-      throw new IllegalStateException("Cannot use in batch table transaction");
-    }
+    assertInTransaction();
     return super.getBy(condition, height);
   }
 
   @Override
   public BurstIterator<T> getManyBy(Condition condition, int from, int to) {
-    if(Db.isInTransaction()) {
-      throw new IllegalStateException("Cannot use in batch table transaction");
-    }
+    assertInTransaction();
     return super.getManyBy(condition, from, to);
   }
 
   @Override
   public BurstIterator<T> getManyBy(Condition condition, int from, int to, List<SortField<?>> sort) {
-    if(Db.isInTransaction()) {
-      throw new IllegalStateException("Cannot use in batch table transaction");
-    }
+    assertInTransaction();
     return super.getManyBy(condition, from, to, sort);
   }
 
   @Override
   public BurstIterator<T> getManyBy(Condition condition, int height, int from, int to) {
-    if(Db.isInTransaction()) {
-      throw new IllegalStateException("Cannot use in batch table transaction");
-    }
+    assertInTransaction();
     return super.getManyBy(condition, height, from, to);
   }
 
   @Override
   public BurstIterator<T> getManyBy(Condition condition, int height, int from, int to, List<SortField<?>> sort) {
-    if(Db.isInTransaction()) {
-      throw new IllegalStateException("Cannot use in batch table transaction");
-    }
+    assertInTransaction();
     return super.getManyBy(condition, height, from, to, sort);
   }
 
   @Override
   public BurstIterator<T> getManyBy(DSLContext ctx, SelectQuery query, boolean cache) {
-    if(Db.isInTransaction()) {
-      throw new IllegalStateException("Cannot use in batch table transaction");
-    }
+    assertInTransaction();
     return super.getManyBy(ctx, query, cache);
   }
 
   @Override
   public BurstIterator<T> getAll(int from, int to) {
-    if(Db.isInTransaction()) {
-      throw new IllegalStateException("Cannot use in batch table transaction");
-    }
+    assertInTransaction();
     return super.getAll(from, to);
   }
 
   @Override
   public BurstIterator<T> getAll(int from, int to, List<SortField<?>> sort) {
-    if(Db.isInTransaction()) {
-      throw new IllegalStateException("Cannot use in batch table transaction");
-    }
+    assertInTransaction();
     return super.getAll(from, to, sort);
   }
 
   @Override
   public BurstIterator<T> getAll(int height, int from, int to) {
-    if(Db.isInTransaction()) {
-      throw new IllegalStateException("Cannot use in batch table transaction");
-    }
+    assertInTransaction();
     return super.getAll(height, from, to);
   }
 
   @Override
   public BurstIterator<T> getAll(int height, int from, int to, List<SortField<?>> sort) {
-    if(Db.isInTransaction()) {
-      throw new IllegalStateException("Cannot use in batch table transaction");
-    }
+    assertInTransaction();
     return super.getAll(height, from, to, sort);
   }
 
   @Override
   public int getCount() {
-    if(Db.isInTransaction()) {
-      throw new IllegalStateException("Cannot use in batch table transaction");
-    }
+    assertInTransaction();
     return super.getCount();
   }
 
   @Override
   public int getRowCount() {
-    if(Db.isInTransaction()) {
-      throw new IllegalStateException("Cannot use in batch table transaction");
-    }
+    assertInTransaction();
     return super.getRowCount();
   }
 

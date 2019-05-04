@@ -87,7 +87,6 @@ public class SqlAccountStore implements AccountStore {
         sort.add(tableClass.field("asset_id", Long.class).asc());
         return sort;
       }
-
     };
 
     accountTable = new VersionedBatchEntitySqlTable<Account>("account", brs.schema.Tables.ACCOUNT, accountDbKeyFactory, derivedTableManager, dbCacheManager, Account.class) {
@@ -98,9 +97,9 @@ public class SqlAccountStore implements AccountStore {
 
       @Override
       protected void bulkInsert(DSLContext ctx, Collection<Account> accounts) {
-        ArrayList<Query> accountQueries = new ArrayList<>();
+        List<Query> accountQueries = new ArrayList<>();
         int height = Burst.getBlockchain().getHeight();
-        for ( Account account: accounts ) {
+        for (Account account: accounts) {
           accountQueries.add(
                   ctx.mergeInto(ACCOUNT, ACCOUNT.ID, ACCOUNT.HEIGHT, ACCOUNT.CREATION_HEIGHT, ACCOUNT.PUBLIC_KEY, ACCOUNT.KEY_HEIGHT, ACCOUNT.BALANCE,
                           ACCOUNT.UNCONFIRMED_BALANCE, ACCOUNT.FORGED_BALANCE, ACCOUNT.NAME, ACCOUNT.DESCRIPTION, ACCOUNT.LATEST)

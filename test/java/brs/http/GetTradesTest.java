@@ -8,7 +8,7 @@ import brs.assetexchange.AssetExchange;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.services.ParameterService;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -59,7 +59,7 @@ public class GetTradesTest extends AbstractUnitTest {
     when(mockAsset.getId()).thenReturn(assetId);
 
     final Trade mockTrade = mock(Trade.class);
-    final BurstIterator<Trade> mockTradesIterator = mockBurstIterator(mockTrade);
+    final Collection<Trade> mockTradesIterator = mockCollection(mockTrade);
 
     when(mockParameterService.getAsset(eq(req))).thenReturn(mockAsset);
     when(mockAssetExchange.getTrades(eq(assetId), eq(firstIndex), eq(lastIndex))).thenReturn(mockTradesIterator);
@@ -93,7 +93,7 @@ public class GetTradesTest extends AbstractUnitTest {
     when(mockAccount.getId()).thenReturn(accountId);
 
     final Trade mockTrade = mock(Trade.class);
-    final BurstIterator<Trade> mockTradesIterator = mockBurstIterator(mockTrade);
+    final Collection<Trade> mockTradesIterator = mockCollection(mockTrade);
 
     when(mockParameterService.getAccount(eq(req))).thenReturn(mockAccount);
     when(mockAssetExchange.getAccountTrades(eq(accountId), eq(firstIndex), eq(lastIndex))).thenReturn(mockTradesIterator);
@@ -132,7 +132,7 @@ public class GetTradesTest extends AbstractUnitTest {
     when(mockAccount.getId()).thenReturn(accountId);
 
     final Trade mockTrade = mock(Trade.class);
-    final BurstIterator<Trade> mockTradesIterator = mockBurstIterator(mockTrade);
+    final Collection<Trade> mockTradesIterator = mockCollection(mockTrade);
 
     when(mockParameterService.getAsset(eq(req))).thenReturn(mockAsset);
     when(mockParameterService.getAccount(eq(req))).thenReturn(mockAccount);

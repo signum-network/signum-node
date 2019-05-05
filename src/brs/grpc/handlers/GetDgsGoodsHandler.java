@@ -23,10 +23,10 @@ public class GetDgsGoodsHandler implements GrpcApiHandler<BrsApi.GetDgsGoodsRequ
         BrsApi.DgsGoods.Builder builder = BrsApi.DgsGoods.newBuilder();
         if (sellerId == 0) {
             (inStockOnly ? digitalGoodsStoreService.getGoodsInStock(firstIndex, lastIndex) : digitalGoodsStoreService.getAllGoods(firstIndex, lastIndex))
-                    .forEachRemaining(goods -> builder.addGoods(ProtoBuilder.buildGoods(goods)));
+                    .forEach(goods -> builder.addGoods(ProtoBuilder.buildGoods(goods)));
         } else {
             digitalGoodsStoreService.getSellerGoods(sellerId, inStockOnly, firstIndex, lastIndex)
-                    .forEachRemaining(goods -> builder.addGoods(ProtoBuilder.buildGoods(goods)));
+                    .forEach(goods -> builder.addGoods(ProtoBuilder.buildGoods(goods)));
         }
         return builder.build();
     }

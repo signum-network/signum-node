@@ -7,7 +7,7 @@ import static org.mockito.Mockito.when;
 
 import brs.Trade;
 import brs.common.AbstractUnitTest;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.db.sql.EntitySqlTable;
 import brs.db.store.TradeStore;
 import org.junit.Before;
@@ -36,7 +36,7 @@ public class TradeServiceImplTest extends AbstractUnitTest {
     final int from = 1;
     final int to = 5;
 
-    final BurstIterator<Trade> mockTradesIterator = mock(BurstIterator.class);
+    final Collection<Trade> mockTradesIterator = mock(Collection.class);
 
     when(mockTradeStore.getAssetTrades(eq(assetId), eq(from), eq(to))).thenReturn(mockTradesIterator);
 
@@ -50,7 +50,7 @@ public class TradeServiceImplTest extends AbstractUnitTest {
     final int from = 1;
     final int to = 5;
 
-    final BurstIterator<Trade> mockAccountAssetTradesIterator = mock(BurstIterator.class);
+    final Collection<Trade> mockAccountAssetTradesIterator = mock(Collection.class);
 
     when(mockTradeStore.getAccountAssetTrades(eq(accountId), eq(assetId), eq(from), eq(to))).thenReturn(mockAccountAssetTradesIterator);
 
@@ -63,7 +63,7 @@ public class TradeServiceImplTest extends AbstractUnitTest {
     final int from = 1;
     final int to = 5;
 
-    final BurstIterator<Trade> mockTradesIterator = mock(BurstIterator.class);
+    final Collection<Trade> mockTradesIterator = mock(Collection.class);
 
     when(mockTradeStore.getAccountTrades(eq(accountId), eq(from), eq(to))).thenReturn(mockTradesIterator);
 
@@ -94,7 +94,7 @@ public class TradeServiceImplTest extends AbstractUnitTest {
     final int from = 1;
     final int to = 2;
 
-    final BurstIterator<Trade> mockTradeIterator = mockBurstIterator();
+    final Collection<Trade> mockTradeIterator = mockCollection();
 
     when(mockTradeTable.getAll(eq(from), eq(to))).thenReturn(mockTradeIterator);
 

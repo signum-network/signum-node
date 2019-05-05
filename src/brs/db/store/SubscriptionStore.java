@@ -1,9 +1,10 @@
 package brs.db.store;
 
 import brs.Subscription;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
+
+import java.util.Collection;
 
 public interface SubscriptionStore {
 
@@ -11,11 +12,11 @@ public interface SubscriptionStore {
 
   VersionedEntityTable<Subscription> getSubscriptionTable();
 
-  BurstIterator<Subscription> getSubscriptionsByParticipant(Long accountId);
+  Collection<Subscription> getSubscriptionsByParticipant(Long accountId);
 
-  BurstIterator<Subscription> getIdSubscriptions(Long accountId);
+  Collection<Subscription> getIdSubscriptions(Long accountId);
 
-  BurstIterator<Subscription> getSubscriptionsToId(Long accountId);
+  Collection<Subscription> getSubscriptionsToId(Long accountId);
 
-  BurstIterator<Subscription> getUpdateSubscriptions(int timestamp);
+  Collection<Subscription> getUpdateSubscriptions(int timestamp);
 }

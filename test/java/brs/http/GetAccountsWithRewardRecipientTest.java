@@ -6,7 +6,7 @@ import brs.BurstException;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.services.AccountService;
 import brs.services.ParameterService;
 import com.google.gson.JsonArray;
@@ -55,7 +55,7 @@ public class GetAccountsWithRewardRecipientTest extends AbstractUnitTest {
     final RewardRecipientAssignment assignment = mock(RewardRecipientAssignment.class);
     when(assignment.getAccountId()).thenReturn(targetAccountId);
 
-    final BurstIterator<RewardRecipientAssignment> assignmentIterator = mockBurstIterator(assignment);
+    final Collection<RewardRecipientAssignment> assignmentIterator = mockCollection(assignment);
 
     when(accountService.getAccountsWithRewardRecipient(eq(targetAccountId))).thenReturn(assignmentIterator);
 
@@ -83,7 +83,7 @@ public class GetAccountsWithRewardRecipientTest extends AbstractUnitTest {
     final RewardRecipientAssignment assignment = mock(RewardRecipientAssignment.class);
     when(assignment.getAccountId()).thenReturn(targetAccountId);
 
-    final BurstIterator<RewardRecipientAssignment> assignmentIterator = mockBurstIterator(assignment);
+    final Collection<RewardRecipientAssignment> assignmentIterator = mockCollection(assignment);
 
     when(accountService.getAccountsWithRewardRecipient(eq(targetAccountId))).thenReturn(assignmentIterator);
     when(accountService.getRewardRecipientAssignment(eq(targetAccount))).thenReturn(assignment);

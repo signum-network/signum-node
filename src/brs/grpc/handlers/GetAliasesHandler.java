@@ -22,12 +22,11 @@ public class GetAliasesHandler implements GrpcApiHandler<BrsApi.GetAliasesReques
         int firstIndex = getAliasesRequest.getIndexRange().getFirstIndex();
         int lastIndex = getAliasesRequest.getIndexRange().getLastIndex();
         BrsApi.Aliases.Builder aliases = BrsApi.Aliases.newBuilder();
-        try (FilteringIterator<Alias> aliasIterator = new FilteringIterator<>(aliasService.getAliasesByOwner(accountId, 0, -1), alias -> alias.getTimestamp() >= timestamp, firstIndex, lastIndex)) {
-            while (aliasIterator.hasNext()) {
-                final Alias alias = aliasIterator.next();
-                final Alias.Offer offer = aliasService.getOffer(alias);
-                aliases.addAliases(ProtoBuilder.buildAlias(alias, offer));
-            }
+        FilteringIterator<Alias> aliasIterator = new FilteringIterator<>(aliasService.getAliasesByOwner(accountId, 0, -1), alias -> alias.getTimestamp() >= timestamp, firstIndex, lastIndex);
+        while (aliasIterator.hasNext()) {
+            final Alias alias = aliasIterator.next();
+            final Alias.Offer offer = aliasService.getOffer(alias);
+            aliases.addAliases(ProtoBuilder.buildAlias(alias, offer));
         }
         return aliases.build();
     }

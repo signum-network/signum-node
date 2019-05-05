@@ -4,13 +4,12 @@ import brs.Account;
 import brs.Block;
 import brs.Escrow;
 import brs.Escrow.DecisionType;
-import brs.db.BurstIterator;
 
 import java.util.Collection;
 
 public interface EscrowService {
 
-  BurstIterator<Escrow> getAllEscrowTransactions();
+  Collection<Escrow> getAllEscrowTransactions();
 
   Escrow getEscrowTransaction(Long id);
 

@@ -4,13 +4,14 @@ import brs.AssetTransfer;
 import brs.AssetTransfer.Event;
 import brs.Attachment;
 import brs.Transaction;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.sql.EntitySqlTable;
 import brs.db.store.AssetTransferStore;
 import brs.util.Listener;
 import brs.util.Listeners;
+
+import java.util.Collection;
 
 class AssetTransferServiceImpl {
 
@@ -35,11 +36,11 @@ class AssetTransferServiceImpl {
     return listeners.removeListener(listener, eventType);
   }
 
-  public BurstIterator<AssetTransfer> getAssetTransfers(long assetId, int from, int to) {
+  public Collection<AssetTransfer> getAssetTransfers(long assetId, int from, int to) {
     return assetTransferStore.getAssetTransfers(assetId, from, to);
   }
 
-  public BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to) {
+  public Collection<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to) {
     return assetTransferStore.getAccountAssetTransfers(accountId, assetId, from, to);
   }
 

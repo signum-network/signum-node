@@ -3,7 +3,6 @@ package brs.db.sql;
 import brs.Burst;
 import brs.Escrow;
 import brs.Transaction;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.DerivedTableManager;
@@ -96,9 +95,7 @@ public class SqlEscrowStore implements EscrowStore {
   @Override
   public Collection<Escrow> getEscrowTransactionsByParticipant(Long accountId) {
     List<Escrow> filtered = new ArrayList<>();
-    BurstIterator<Escrow.Decision> it = decisionTable.getManyBy(ESCROW_DECISION.ACCOUNT_ID.eq(accountId), 0, -1);
-    while (it.hasNext()) {
-      Escrow.Decision decision = it.next();
+    for (Escrow.Decision decision : decisionTable.getManyBy(ESCROW_DECISION.ACCOUNT_ID.eq(accountId), 0, -1)) {
       Escrow escrow = escrowTable.get(escrowDbKeyFactory.newKey(decision.escrowId));
       if (escrow != null) {
         filtered.add(escrow);
@@ -106,8 +103,6 @@ public class SqlEscrowStore implements EscrowStore {
     }
     return filtered;
   }
-
-
 
   @Override
   public List<Transaction> getResultTransactions() {
@@ -144,8 +139,7 @@ public class SqlEscrowStore implements EscrowStore {
   }
 
   @Override
-  public 	BurstIterator<Escrow.Decision> getDecisions(Long id)
-  {
+  public Collection<Escrow.Decision> getDecisions(Long id) {
     return  decisionTable.getManyBy(ESCROW_DECISION.ESCROW_ID.eq(id), 0, -1);
   }
 

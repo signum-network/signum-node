@@ -2,7 +2,7 @@ package brs.http;
 
 import brs.BurstException;
 import brs.DigitalGoodsStore;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.db.sql.DbUtils;
 import brs.http.common.Parameters;
 import brs.services.DGSGoodsStoreService;
@@ -35,23 +35,18 @@ public final class GetDGSGoods extends APIServlet.APIRequestHandler {
     JsonArray goodsJSON = new JsonArray();
     response.add(GOODS_RESPONSE, goodsJSON);
 
-    BurstIterator<DigitalGoodsStore.Goods> goods = null;
-    try {
-      if (sellerId == 0) {
-        if (inStockOnly) {
-          goods = digitalGoodsStoreService.getGoodsInStock(firstIndex, lastIndex);
-        } else {
-          goods = digitalGoodsStoreService.getAllGoods(firstIndex, lastIndex);
-        }
+    Collection<DigitalGoodsStore.Goods> goods = null;
+    if (sellerId == 0) {
+      if (inStockOnly) {
+        goods = digitalGoodsStoreService.getGoodsInStock(firstIndex, lastIndex);
       } else {
-        goods = digitalGoodsStoreService.getSellerGoods(sellerId, inStockOnly, firstIndex, lastIndex);
+        goods = digitalGoodsStoreService.getAllGoods(firstIndex, lastIndex);
       }
-      while (goods.hasNext()) {
-        DigitalGoodsStore.Goods good = goods.next();
-        goodsJSON.add(JSONData.goods(good));
-      }
-    } finally {
-      DbUtils.close(goods);
+    } else {
+      goods = digitalGoodsStoreService.getSellerGoods(sellerId, inStockOnly, firstIndex, lastIndex);
+    }
+    for (DigitalGoodsStore.Goods good : goods) {
+      goodsJSON.add(JSONData.goods(good));
     }
 
     return response;

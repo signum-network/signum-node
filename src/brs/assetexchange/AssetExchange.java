@@ -9,12 +9,13 @@ import brs.Attachment.ColoredCoinsBidOrderPlacement;
 import brs.Order.Ask;
 import brs.Order.Bid;
 import brs.Trade.Event;
-import brs.db.BurstIterator;
 import brs.util.Listener;
+
+import java.util.Collection;
 
 public interface AssetExchange {
 
-  BurstIterator<Asset> getAllAssets(int from, int to);
+  Collection<Asset> getAllAssets(int from, int to);
 
   Asset getAsset(long assetId);
 
@@ -42,21 +43,21 @@ public interface AssetExchange {
 
   void removeBidOrder(long orderId);
 
-  BurstIterator<Trade> getAllTrades(int i, int i1);
+  Collection<Trade> getAllTrades(int i, int i1);
 
-  BurstIterator<Trade> getTrades(long assetId, int from, int to);
+  Collection<Trade> getTrades(long assetId, int from, int to);
 
-  BurstIterator<Trade> getAccountTrades(long accountId, int from, int to);
+  Collection<Trade> getAccountTrades(long accountId, int from, int to);
 
-  BurstIterator<Trade> getAccountAssetTrades(long accountId, long assetId, int from, int to);
+  Collection<Trade> getAccountAssetTrades(long accountId, long assetId, int from, int to);
 
-  BurstIterator<AccountAsset> getAccountAssetsOverview(long accountId, int height, int from, int to);
+  Collection<AccountAsset> getAccountAssetsOverview(long accountId, int height, int from, int to);
 
-  BurstIterator<Asset> getAssetsIssuedBy(long accountId, int from, int to);
+  Collection<Asset> getAssetsIssuedBy(long accountId, int from, int to);
 
-  BurstIterator<AssetTransfer> getAssetTransfers(long assetId, int from, int to);
+  Collection<AssetTransfer> getAssetTransfers(long assetId, int from, int to);
 
-  BurstIterator<AssetTransfer> getAccountAssetTransfers(long id, long id1, int from, int to);
+  Collection<AssetTransfer> getAccountAssetTransfers(long id, long id1, int from, int to);
 
   int getAssetsCount();
 
@@ -68,20 +69,20 @@ public interface AssetExchange {
 
   int getAssetTransferCount();
 
-  BurstIterator<Ask> getAskOrdersByAccount(long accountId, int from, int to);
+  Collection<Ask> getAskOrdersByAccount(long accountId, int from, int to);
 
-  BurstIterator<Ask> getAskOrdersByAccountAsset(long accountId, long assetId, int from, int to);
+  Collection<Ask> getAskOrdersByAccountAsset(long accountId, long assetId, int from, int to);
 
-  BurstIterator<Bid> getBidOrdersByAccount(long accountId, int from, int to);
+  Collection<Bid> getBidOrdersByAccount(long accountId, int from, int to);
 
-  BurstIterator<Bid> getBidOrdersByAccountAsset(long accountId, long assetId, int from, int to);
+  Collection<Bid> getBidOrdersByAccountAsset(long accountId, long assetId, int from, int to);
 
-  BurstIterator<Ask> getAllAskOrders(int from, int to);
+  Collection<Ask> getAllAskOrders(int from, int to);
 
-  BurstIterator<Bid> getAllBidOrders(int from, int to);
+  Collection<Bid> getAllBidOrders(int from, int to);
 
-  BurstIterator<Ask> getSortedAskOrders(long assetId, int from, int to);
+  Collection<Ask> getSortedAskOrders(long assetId, int from, int to);
 
-  BurstIterator<Bid> getSortedBidOrders(long assetId, int from, int to);
+  Collection<Bid> getSortedBidOrders(long assetId, int from, int to);
 
 }

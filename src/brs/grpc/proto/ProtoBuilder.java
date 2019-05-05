@@ -3,7 +3,7 @@ package brs.grpc.proto;
 import brs.*;
 import brs.assetexchange.AssetExchange;
 import brs.crypto.EncryptedData;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.services.AccountService;
 import brs.services.BlockService;
 import brs.util.Convert;
@@ -27,7 +27,7 @@ public final class ProtoBuilder {
     }
 
     public static BrsApi.Account buildAccount(Account account, AccountService accountService) {
-        BrsApi.Account.Builder builder = BrsApi.Account.newBuilder()
+        return BrsApi.Account.newBuilder()
                 .setId(account.getId())
                 .setPublicKey(ByteString.copyFrom(account.getPublicKey()))
                 .setBalance(account.getBalanceNQT())
@@ -35,13 +35,12 @@ public final class ProtoBuilder {
                 .setForgedBalance(account.getForgedBalanceNQT())
                 .setName(account.getName())
                 .setDescription(account.getDescription())
-                .setRewardRecipient(accountService.getRewardRecipientAssignment(account).accountId);
-
-        try (BurstIterator<Account.AccountAsset> assets = accountService.getAssets(account.id, 0, -1)) {
-            assets.forEachRemaining(asset -> builder.addAssetBalances(buildAssetBalance(asset)));
-        }
-
-        return builder.build();
+                .setRewardRecipient(accountService.getRewardRecipientAssignment(account).accountId)
+                .addAllAssetBalances(accountService.getAssets(account.id, 0, -1)
+                        .stream()
+                        .map(ProtoBuilder::buildAssetBalance)
+                        .collect(Collectors.toList()))
+                .build();
     }
 
     public static BrsApi.AssetBalance buildAssetBalance(Account.AccountAsset asset) {

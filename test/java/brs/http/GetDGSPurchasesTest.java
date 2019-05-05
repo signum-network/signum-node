@@ -5,7 +5,7 @@ import brs.DigitalGoodsStore.Purchase;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.services.DGSGoodsStoreService;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -50,7 +50,7 @@ public class GetDGSPurchasesTest extends AbstractUnitTest {
     final Purchase mockPurchase = mock(Purchase.class);
     when(mockPurchase.isPending()).thenReturn(false);
 
-    BurstIterator<Purchase> mockGoodsIterator = mockBurstIterator(mockPurchase);
+    Collection<Purchase> mockGoodsIterator = mockCollection(mockPurchase);
 
     when(mockDGSGoodsStoreService.getAllPurchases(eq(0), eq(-1))).thenReturn(mockGoodsIterator);
 
@@ -75,7 +75,7 @@ public class GetDGSPurchasesTest extends AbstractUnitTest {
     final Purchase mockPurchase = mock(Purchase.class);
     when(mockPurchase.isPending()).thenReturn(false);
 
-    BurstIterator<Purchase> mockGoodsIterator = mockBurstIterator(mockPurchase);
+    Collection<Purchase> mockGoodsIterator = mockCollection(mockPurchase);
 
     when(mockDGSGoodsStoreService.getSellerPurchases(eq(1L), eq(0), eq(-1))).thenReturn(mockGoodsIterator);
 
@@ -100,7 +100,7 @@ public class GetDGSPurchasesTest extends AbstractUnitTest {
     final Purchase mockPurchase = mock(Purchase.class);
     when(mockPurchase.isPending()).thenReturn(false);
 
-    BurstIterator<Purchase> mockGoodsIterator = mockBurstIterator(mockPurchase);
+    Collection<Purchase> mockGoodsIterator = mockCollection(mockPurchase);
 
     when(mockDGSGoodsStoreService.getBuyerPurchases(eq(1L), eq(0), eq(-1))).thenReturn(mockGoodsIterator);
 
@@ -125,7 +125,7 @@ public class GetDGSPurchasesTest extends AbstractUnitTest {
     final Purchase mockPurchase = mock(Purchase.class);
     when(mockPurchase.isPending()).thenReturn(false);
 
-    BurstIterator<Purchase> mockGoodsIterator = mockBurstIterator(mockPurchase);
+    Collection<Purchase> mockGoodsIterator = mockCollection(mockPurchase);
 
     when(mockDGSGoodsStoreService.getSellerBuyerPurchases(eq(1L), eq(2L), eq(0), eq(-1))).thenReturn(mockGoodsIterator);
 

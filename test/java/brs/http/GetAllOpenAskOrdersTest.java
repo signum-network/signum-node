@@ -5,7 +5,7 @@ import brs.assetexchange.AssetExchange;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.util.JSON;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -48,7 +48,7 @@ public class GetAllOpenAskOrdersTest extends AbstractUnitTest {
     final int firstIndex = 1;
     final int lastIndex = 2;
 
-    final BurstIterator<Ask> mockIterator = mockBurstIterator(mockAskOrder);
+    final Collection<Ask> mockIterator = mockCollection(mockAskOrder);
     when(mockAssetExchange.getAllAskOrders(eq(firstIndex), eq(lastIndex)))
         .thenReturn(mockIterator);
 

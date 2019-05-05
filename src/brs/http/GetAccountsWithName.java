@@ -2,7 +2,7 @@ package brs.http;
 
 import brs.Account;
 import brs.BurstException;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.services.AccountService;
 import brs.util.Convert;
 import com.google.gson.JsonArray;
@@ -25,14 +25,12 @@ public class GetAccountsWithName extends APIServlet.APIRequestHandler {
 
     @Override
     JsonElement processRequest(HttpServletRequest request) throws BurstException {
-        BurstIterator<Account> accounts = accountService.getAccountsWithName(request.getParameter(NAME_PARAMETER));
+        Collection<Account> accounts = accountService.getAccountsWithName(request.getParameter(NAME_PARAMETER));
         JsonArray accountIds = new JsonArray();
 
-        while (accounts.hasNext()) {
-            accountIds.add(Convert.toUnsignedLong(accounts.next().id));
+        for (Account account : accounts) {
+            accountIds.add(Convert.toUnsignedLong(account.id));
         }
-
-        accounts.close();
 
         JsonObject response = new JsonObject();
         response.add(ACCOUNTS_RESPONSE, accountIds);

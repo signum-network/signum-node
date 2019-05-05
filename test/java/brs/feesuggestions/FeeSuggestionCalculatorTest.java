@@ -11,7 +11,7 @@ import brs.BlockchainProcessor;
 import brs.BlockchainProcessor.Event;
 import brs.Transaction;
 import brs.common.AbstractUnitTest;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.db.store.BlockchainStore;
 import brs.util.Listener;
 import java.util.ArrayList;
@@ -54,7 +54,7 @@ public class FeeSuggestionCalculatorTest extends AbstractUnitTest {
     Block mockBlock5 = mock(Block.class);
     when(mockBlock5.getTransactions()).thenReturn(Arrays.asList(mock(Transaction.class)));
 
-    BurstIterator<Block> mockBlocksIterator = mockBurstIterator(mockBlock1, mockBlock2, mockBlock3, mockBlock4, mockBlock5);
+    Collection<Block> mockBlocksIterator = mockCollection(mockBlock1, mockBlock2, mockBlock3, mockBlock4, mockBlock5);
     when(blockchainStoreMock.getLatestBlocks(eq(5))).thenReturn(mockBlocksIterator);
 
     listenerArgumentCaptor.getValue().notify(mockBlock1);

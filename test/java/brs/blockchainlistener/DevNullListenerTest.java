@@ -9,7 +9,7 @@ import brs.Account;
 import brs.Block;
 import brs.DigitalGoodsStore.Purchase;
 import brs.common.AbstractUnitTest;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.services.AccountService;
 import brs.services.DGSGoodsStoreService;
 import org.junit.Before;
@@ -46,7 +46,7 @@ public class DevNullListenerTest extends AbstractUnitTest {
     when(expiredPurchase.getPriceNQT()).thenReturn(3000L);
     when(expiredPurchase.getBuyerId()).thenReturn(purchaseBuyerId);
 
-    final BurstIterator<Purchase> mockIterator = mockBurstIterator(expiredPurchase);
+    final Collection<Purchase> mockIterator = mockCollection(expiredPurchase);
     when(dgsGoodsStoreServiceMock.getExpiredPendingPurchases(eq(blockTimestamp))).thenReturn(mockIterator);
 
     t.notify(block);

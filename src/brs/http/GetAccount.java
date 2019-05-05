@@ -2,7 +2,7 @@ package brs.http;
 
 import brs.Account;
 import brs.BurstException;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.util.Convert;
@@ -44,27 +44,25 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
       response.addProperty(DESCRIPTION_RESPONSE, account.getDescription());
     }
 
-    try (BurstIterator<Account.AccountAsset> accountAssets = accountService.getAssets(account.getId(), 0, -1)) {
-      JsonArray assetBalances = new JsonArray();
-      JsonArray unconfirmedAssetBalances = new JsonArray();
-      while (accountAssets.hasNext()) {
-        Account.AccountAsset accountAsset = accountAssets.next();
-        JsonObject assetBalance = new JsonObject();
-        assetBalance.addProperty(ASSET_RESPONSE, Convert.toUnsignedLong(accountAsset.getAssetId()));
-        assetBalance.addProperty(BALANCE_QNT_RESPONSE, String.valueOf(accountAsset.getQuantityQNT()));
-        assetBalances.add(assetBalance);
-        JsonObject unconfirmedAssetBalance = new JsonObject();
-        unconfirmedAssetBalance.addProperty(ASSET_RESPONSE, Convert.toUnsignedLong(accountAsset.getAssetId()));
-        unconfirmedAssetBalance.addProperty(UNCONFIRMED_BALANCE_QNT_RESPONSE, String.valueOf(accountAsset.getUnconfirmedQuantityQNT()));
-        unconfirmedAssetBalances.add(unconfirmedAssetBalance);
-      }
+    JsonArray assetBalances = new JsonArray();
+    JsonArray unconfirmedAssetBalances = new JsonArray();
 
-      if (assetBalances.size() > 0) {
-        response.add(ASSET_BALANCES_RESPONSE, assetBalances);
-      }
-      if (unconfirmedAssetBalances.size() > 0) {
-        response.add(UNCONFIRMED_ASSET_BALANCES_RESPONSE, unconfirmedAssetBalances);
-      }
+    for (Account.AccountAsset accountAsset : accountService.getAssets(account.getId(), 0, -1)) {
+      JsonObject assetBalance = new JsonObject();
+      assetBalance.addProperty(ASSET_RESPONSE, Convert.toUnsignedLong(accountAsset.getAssetId()));
+      assetBalance.addProperty(BALANCE_QNT_RESPONSE, String.valueOf(accountAsset.getQuantityQNT()));
+      assetBalances.add(assetBalance);
+      JsonObject unconfirmedAssetBalance = new JsonObject();
+      unconfirmedAssetBalance.addProperty(ASSET_RESPONSE, Convert.toUnsignedLong(accountAsset.getAssetId()));
+      unconfirmedAssetBalance.addProperty(UNCONFIRMED_BALANCE_QNT_RESPONSE, String.valueOf(accountAsset.getUnconfirmedQuantityQNT()));
+      unconfirmedAssetBalances.add(unconfirmedAssetBalance);
+    }
+
+    if (assetBalances.size() > 0) {
+      response.add(ASSET_BALANCES_RESPONSE, assetBalances);
+    }
+    if (unconfirmedAssetBalances.size() > 0) {
+      response.add(UNCONFIRMED_ASSET_BALANCES_RESPONSE, unconfirmedAssetBalances);
     }
 
     return response;

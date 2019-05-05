@@ -36,7 +36,7 @@ public class GetAccountTransactionsHandler implements GrpcApiHandler<BrsApi.GetA
 
         int currentHeight = blockchain.getHeight();
         blockchain.getTransactions(account, numberOfConfirmations, type, subtype, timestamp, firstIndex, lastIndex, true)
-                .forEachRemaining(transaction -> builder.addTransactions(ProtoBuilder.buildTransaction(transaction, currentHeight)));
+                .forEach(transaction -> builder.addTransactions(ProtoBuilder.buildTransaction(transaction, currentHeight)));
 
         return builder.build();
     }

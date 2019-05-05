@@ -2,7 +2,6 @@ package brs.db.sql;
 
 import brs.Burst;
 import brs.Subscription;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.DerivedTableManager;
@@ -15,6 +14,7 @@ import org.jooq.SortField;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static brs.schema.Tables.SUBSCRIPTION;
@@ -71,22 +71,22 @@ public class SqlSubscriptionStore implements SubscriptionStore {
   }
 
   @Override
-  public BurstIterator<Subscription> getSubscriptionsByParticipant(Long accountId) {
+  public Collection<Subscription> getSubscriptionsByParticipant(Long accountId) {
     return subscriptionTable.getManyBy(getByParticipantClause(accountId), 0, -1);
   }
 
   @Override
-  public BurstIterator<Subscription> getIdSubscriptions(Long accountId) {
+  public Collection<Subscription> getIdSubscriptions(Long accountId) {
     return subscriptionTable.getManyBy(SUBSCRIPTION.SENDER_ID.eq(accountId), 0, -1);
   }
 
   @Override
-  public BurstIterator<Subscription> getSubscriptionsToId(Long accountId) {
+  public Collection<Subscription> getSubscriptionsToId(Long accountId) {
     return subscriptionTable.getManyBy(SUBSCRIPTION.RECIPIENT_ID.eq(accountId), 0, -1);
   }
 
   @Override
-  public BurstIterator<Subscription> getUpdateSubscriptions(int timestamp) {
+  public Collection<Subscription> getUpdateSubscriptions(int timestamp) {
     return subscriptionTable.getManyBy(getUpdateOnBlockClause(timestamp), 0, -1);
   }
 

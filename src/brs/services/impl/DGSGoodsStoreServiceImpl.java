@@ -5,7 +5,7 @@ import brs.DigitalGoodsStore.Event;
 import brs.DigitalGoodsStore.Goods;
 import brs.DigitalGoodsStore.Purchase;
 import brs.crypto.EncryptedData;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.VersionedEntityTable;
@@ -76,42 +76,42 @@ public class DGSGoodsStoreServiceImpl implements DGSGoodsStoreService {
   }
 
   @Override
-  public BurstIterator<Goods> getAllGoods(int from, int to) {
+  public Collection<Goods> getAllGoods(int from, int to) {
     return goodsTable.getAll(from, to);
   }
 
   @Override
-  public BurstIterator<Goods> getGoodsInStock(int from, int to) {
+  public Collection<Goods> getGoodsInStock(int from, int to) {
     return digitalGoodsStoreStore.getGoodsInStock(from, to);
   }
 
   @Override
-  public BurstIterator<Goods> getSellerGoods(final long sellerId, final boolean inStockOnly, int from, int to) {
+  public Collection<Goods> getSellerGoods(final long sellerId, final boolean inStockOnly, int from, int to) {
     return digitalGoodsStoreStore.getSellerGoods(sellerId, inStockOnly, from, to);
   }
 
   @Override
-  public BurstIterator<Purchase> getAllPurchases(int from, int to) {
+  public Collection<Purchase> getAllPurchases(int from, int to) {
     return purchaseTable.getAll(from, to);
   }
 
   @Override
-  public BurstIterator<Purchase> getSellerPurchases(long sellerId, int from, int to) {
+  public Collection<Purchase> getSellerPurchases(long sellerId, int from, int to) {
     return digitalGoodsStoreStore.getSellerPurchases(sellerId, from, to);
   }
 
   @Override
-  public BurstIterator<Purchase> getBuyerPurchases(long buyerId, int from, int to) {
+  public Collection<Purchase> getBuyerPurchases(long buyerId, int from, int to) {
     return digitalGoodsStoreStore.getBuyerPurchases(buyerId, from, to);
   }
 
   @Override
-  public BurstIterator<Purchase> getSellerBuyerPurchases(final long sellerId, final long buyerId, int from, int to) {
+  public Collection<Purchase> getSellerBuyerPurchases(final long sellerId, final long buyerId, int from, int to) {
     return digitalGoodsStoreStore.getSellerBuyerPurchases(sellerId, buyerId, from, to);
   }
 
   @Override
-  public BurstIterator<Purchase> getPendingSellerPurchases(final long sellerId, int from, int to) {
+  public Collection<Purchase> getPendingSellerPurchases(final long sellerId, int from, int to) {
     return digitalGoodsStoreStore.getPendingSellerPurchases(sellerId, from, to);
   }
 
@@ -215,7 +215,7 @@ public class DGSGoodsStoreServiceImpl implements DGSGoodsStoreService {
   }
 
   @Override
-  public BurstIterator<Purchase> getExpiredPendingPurchases(final int timestamp) {
+  public Collection<Purchase> getExpiredPendingPurchases(final int timestamp) {
     return digitalGoodsStoreStore.getExpiredPendingPurchases(timestamp);
   }
 

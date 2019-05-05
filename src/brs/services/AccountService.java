@@ -5,8 +5,9 @@ import brs.Account.AccountAsset;
 import brs.Account.Event;
 import brs.Account.RewardRecipientAssignment;
 import brs.AssetTransfer;
-import brs.db.BurstIterator;
 import brs.util.Listener;
+
+import java.util.Collection;
 
 public interface AccountService {
 
@@ -20,15 +21,15 @@ public interface AccountService {
 
   Account getAccount(byte[] publicKey);
 
-  BurstIterator<AssetTransfer> getAssetTransfers(long accountId, int from, int to);
+  Collection<AssetTransfer> getAssetTransfers(long accountId, int from, int to);
 
-  BurstIterator<AccountAsset> getAssets(long accountId, int from, int to);
+  Collection<AccountAsset> getAssets(long accountId, int from, int to);
 
-  BurstIterator<RewardRecipientAssignment> getAccountsWithRewardRecipient(Long recipientId);
+  Collection<RewardRecipientAssignment> getAccountsWithRewardRecipient(Long recipientId);
 
-  BurstIterator<Account> getAccountsWithName(String name);
+  Collection<Account> getAccountsWithName(String name);
 
-  BurstIterator<Account> getAllAccounts(int from, int to);
+  Collection<Account> getAllAccounts(int from, int to);
 
   Account getOrAddAccount(long id);
 

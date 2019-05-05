@@ -13,7 +13,7 @@ import brs.Attachment.MessagingAliasAssignment;
 import brs.Attachment.MessagingAliasSell;
 import brs.Transaction;
 import brs.common.AbstractUnitTest;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.VersionedEntityTable;
@@ -96,7 +96,7 @@ public class AliasServiceImplTest extends AbstractUnitTest {
     final int from = 0;
     final int to = 1;
 
-    final BurstIterator<Alias> mockAliasIterator = mockBurstIterator();
+    final Collection<Alias> mockAliasIterator = mockCollection();
 
     when(aliasStoreMock.getAliasesByOwner(eq(accountId), eq(from), eq(to))).thenReturn(mockAliasIterator);
 

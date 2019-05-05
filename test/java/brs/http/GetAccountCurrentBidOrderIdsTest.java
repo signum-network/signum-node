@@ -7,7 +7,7 @@ import brs.assetexchange.AssetExchange;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.services.ParameterService;
 import brs.util.JSON;
 import com.google.gson.JsonArray;
@@ -61,7 +61,7 @@ public class GetAccountCurrentBidOrderIdsTest extends AbstractUnitTest {
     final Bid bid = mock(Bid.class);
     when(bid.getId()).thenReturn(mockBidId);
 
-    final BurstIterator<Bid> mockBidIterator = mockBurstIterator(bid);
+    final Collection<Bid> mockBidIterator = mockCollection(bid);
 
     when(mockParameterService.getAccount(eq(req))).thenReturn(mockAccount);
     when(mockAssetExchange.getBidOrdersByAccount(eq(accountId), eq(firstIndex), eq(lastIndex))).thenReturn(mockBidIterator);
@@ -96,7 +96,7 @@ public class GetAccountCurrentBidOrderIdsTest extends AbstractUnitTest {
     final Bid bid = mock(Bid.class);
     when(bid.getId()).thenReturn(mockBidId);
 
-    final BurstIterator<Bid> mockBidIterator = mockBurstIterator(bid);
+    final Collection<Bid> mockBidIterator = mockCollection(bid);
 
     when(mockParameterService.getAccount(eq(req))).thenReturn(mockAccount);
     when(mockAssetExchange.getBidOrdersByAccountAsset(eq(accountId), eq(assetId), eq(firstIndex), eq(lastIndex))).thenReturn(mockBidIterator);

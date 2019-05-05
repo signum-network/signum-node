@@ -12,10 +12,11 @@ import brs.Order.Bid;
 import brs.Trade;
 import brs.Trade.Event;
 import brs.Transaction;
-import brs.db.BurstIterator;
 import brs.db.store.*;
 import brs.services.AccountService;
 import brs.util.Listener;
+
+import java.util.Collection;
 
 public class AssetExchangeImpl implements AssetExchange {
 
@@ -35,7 +36,7 @@ public class AssetExchangeImpl implements AssetExchange {
   }
 
   @Override
-  public BurstIterator<Asset> getAllAssets(int from, int to) {
+  public Collection<Asset> getAllAssets(int from, int to) {
     return assetService.getAllAssets(from, to);
   }
 
@@ -105,22 +106,22 @@ public class AssetExchangeImpl implements AssetExchange {
   }
 
   @Override
-  public BurstIterator<Trade> getAllTrades(int from, int to) {
+  public Collection<Trade> getAllTrades(int from, int to) {
     return tradeService.getAllTrades(from, to);
   }
 
   @Override
-  public BurstIterator<Trade> getTrades(long assetId, int from, int to) {
+  public Collection<Trade> getTrades(long assetId, int from, int to) {
     return assetService.getTrades(assetId, from, to);
   }
 
   @Override
-  public BurstIterator<Trade> getAccountTrades(long id, int from, int to) {
+  public Collection<Trade> getAccountTrades(long id, int from, int to) {
     return tradeService.getAccountTrades(id, from, to);
   }
 
   @Override
-  public BurstIterator<Trade> getAccountAssetTrades(long accountId, long assetId, int from, int to) {
+  public Collection<Trade> getAccountAssetTrades(long accountId, long assetId, int from, int to) {
     return tradeService.getAccountAssetTrades(accountId, assetId, from, to);
   }
 
@@ -130,22 +131,22 @@ public class AssetExchangeImpl implements AssetExchange {
   }
 
   @Override
-  public BurstIterator<AccountAsset> getAccountAssetsOverview(long id, int height, int from, int to) {
+  public Collection<AccountAsset> getAccountAssetsOverview(long id, int height, int from, int to) {
     return assetAccountService.getAssetAccounts(id, height, from, to);
   }
 
   @Override
-  public BurstIterator<Asset> getAssetsIssuedBy(long accountId, int from, int to) {
+  public Collection<Asset> getAssetsIssuedBy(long accountId, int from, int to) {
     return assetService.getAssetsIssuedBy(accountId, from, to);
   }
 
   @Override
-  public BurstIterator<AssetTransfer> getAssetTransfers(long assetId, int from, int to) {
+  public Collection<AssetTransfer> getAssetTransfers(long assetId, int from, int to) {
     return assetTransferService.getAssetTransfers(assetId, from, to);
   }
 
   @Override
-  public BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to) {
+  public Collection<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to) {
     return assetTransferService.getAccountAssetTransfers(accountId, assetId, from, to);
   }
 
@@ -170,42 +171,42 @@ public class AssetExchangeImpl implements AssetExchange {
   }
 
   @Override
-  public BurstIterator<Ask> getAskOrdersByAccount(long accountId, int from, int to) {
+  public Collection<Ask> getAskOrdersByAccount(long accountId, int from, int to) {
     return orderService.getAskOrdersByAccount(accountId, from, to);
   }
 
   @Override
-  public BurstIterator<Ask> getAskOrdersByAccountAsset(long accountId, long assetId, int from, int to) {
+  public Collection<Ask> getAskOrdersByAccountAsset(long accountId, long assetId, int from, int to) {
     return orderService.getAskOrdersByAccountAsset(accountId, assetId, from, to);
   }
 
   @Override
-  public BurstIterator<Bid> getBidOrdersByAccount(long accountId, int from, int to) {
+  public Collection<Bid> getBidOrdersByAccount(long accountId, int from, int to) {
     return orderService.getBidOrdersByAccount(accountId, from, to);
   }
 
   @Override
-  public BurstIterator<Bid> getBidOrdersByAccountAsset(long accountId, long assetId, int from, int to) {
+  public Collection<Bid> getBidOrdersByAccountAsset(long accountId, long assetId, int from, int to) {
     return orderService.getBidOrdersByAccountAsset(accountId, assetId, from, to);
   }
 
   @Override
-  public BurstIterator<Ask> getAllAskOrders(int from, int to) {
+  public Collection<Ask> getAllAskOrders(int from, int to) {
     return orderService.getAllAskOrders(from, to);
   }
 
   @Override
-  public BurstIterator<Bid> getAllBidOrders(int from, int to) {
+  public Collection<Bid> getAllBidOrders(int from, int to) {
     return orderService.getAllBidOrders(from, to);
   }
 
   @Override
-  public BurstIterator<Ask> getSortedAskOrders(long assetId, int from, int to) {
+  public Collection<Ask> getSortedAskOrders(long assetId, int from, int to) {
     return orderService.getSortedAskOrders(assetId, from, to);
   }
 
   @Override
-  public BurstIterator<Bid> getSortedBidOrders(long assetId, int from, int to) {
+  public Collection<Bid> getSortedBidOrders(long assetId, int from, int to) {
     return orderService.getSortedBidOrders(assetId, from, to);
   }
 }

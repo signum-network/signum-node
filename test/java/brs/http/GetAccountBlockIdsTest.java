@@ -7,7 +7,7 @@ import brs.BurstException;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.services.ParameterService;
 import brs.util.JSON;
 import com.google.gson.JsonArray;
@@ -59,7 +59,7 @@ public class GetAccountBlockIdsTest extends AbstractUnitTest {
     String mockBlockStringId = "mockBlockStringId";
     final Block mockBlock = mock(Block.class);
     when(mockBlock.getStringId()).thenReturn(mockBlockStringId);
-    final BurstIterator<Block> mockBlocksIterator = mockBurstIterator(mockBlock);
+    final Collection<Block> mockBlocksIterator = mockCollection(mockBlock);
 
     when(mockParameterService.getAccount(req)).thenReturn(mockAccount);
     when(mockBlockchain.getBlocks(eq(mockAccount), eq(timestamp), eq(firstIndex), eq(lastIndex)))

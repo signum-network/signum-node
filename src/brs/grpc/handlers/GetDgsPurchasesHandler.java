@@ -1,7 +1,7 @@
 package brs.grpc.handlers;
 
 import brs.DigitalGoodsStore;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.grpc.GrpcApiHandler;
 import brs.grpc.proto.BrsApi;
 import brs.grpc.proto.ProtoBuilder;
@@ -26,7 +26,7 @@ public class GetDgsPurchasesHandler implements GrpcApiHandler<BrsApi.GetDgsPurch
         boolean completed = request.getCompleted();
 
 
-        BurstIterator<DigitalGoodsStore.Purchase> purchases;
+        Collection<DigitalGoodsStore.Purchase> purchases;
         if (sellerId == 0 && buyerId == 0) {
             purchases = digitalGoodsStoreService.getAllPurchases(firstIndex, lastIndex);
         } else if (sellerId != 0 && buyerId == 0) {

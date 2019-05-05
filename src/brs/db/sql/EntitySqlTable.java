@@ -1,10 +1,8 @@
 package brs.db.sql;
 
 import brs.Burst;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.EntityTable;
-import brs.db.IterableBurstIterator;
 import brs.db.store.DerivedTableManager;
 import org.jooq.*;
 import org.jooq.impl.DSL;
@@ -12,10 +10,7 @@ import org.jooq.impl.TableImpl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class EntitySqlTable<T> extends DerivedSqlTable implements EntityTable<T> {
   final DbKey.Factory<T> dbKeyFactory;
@@ -182,12 +177,12 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
   }
 
   @Override
-  public BurstIterator<T> getManyBy(Condition condition, int from, int to) {
+  public Collection<T> getManyBy(Condition condition, int from, int to) {
     return getManyBy(condition, from, to, defaultSort());
   }
 
   @Override
-  public BurstIterator<T> getManyBy(Condition condition, int from, int to, List<SortField<?>> sort) {
+  public Collection<T> getManyBy(Condition condition, int from, int to, List<SortField<?>> sort) {
     DSLContext ctx = Db.getDSLContext();
     SelectQuery<Record> query = ctx.selectQuery();
     query.addFrom(tableClass);
@@ -201,12 +196,12 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
   }
 
   @Override
-  public BurstIterator<T> getManyBy(Condition condition, int height, int from, int to) {
+  public Collection<T> getManyBy(Condition condition, int height, int from, int to) {
     return getManyBy(condition, height, from, to, defaultSort());
   }
 
   @Override
-  public BurstIterator<T> getManyBy(Condition condition, int height, int from, int to, List<SortField<?>> sort) {
+  public Collection<T> getManyBy(Condition condition, int height, int from, int to, List<SortField<?>> sort) {
     checkAvailable(height);
     DSLContext ctx = Db.getDSLContext();
     SelectQuery<Record> query = ctx.selectQuery();
@@ -243,9 +238,9 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
   }
 
   @Override
-  public BurstIterator<T> getManyBy(DSLContext ctx, SelectQuery<? extends Record> query, boolean cache) {
+  public Collection<T> getManyBy(DSLContext ctx, SelectQuery<? extends Record> query, boolean cache) {
     final boolean doCache = cache && Db.isInTransaction();
-    return new IterableBurstIterator<>(query.fetch(record -> {
+    return query.fetch(record -> {
       T t = null;
       DbKey dbKey = null;
       if (doCache) {
@@ -259,16 +254,16 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
         }
       }
       return t;
-    }));
+    });
   }
 
   @Override
-  public BurstIterator<T> getAll(int from, int to) {
+  public Collection<T> getAll(int from, int to) {
     return getAll(from, to, defaultSort());
   }
 
   @Override
-  public BurstIterator<T> getAll(int from, int to, List<SortField<?>> sort) {
+  public Collection<T> getAll(int from, int to, List<SortField<?>> sort) {
     DSLContext ctx = Db.getDSLContext();
     SelectQuery<Record> query = ctx.selectQuery();
     query.addFrom(tableClass);
@@ -281,12 +276,12 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
   }
 
   @Override
-  public BurstIterator<T> getAll(int height, int from, int to) {
+  public Collection<T> getAll(int height, int from, int to) {
     return getAll(height, from, to, defaultSort());
   }
 
   @Override
-  public BurstIterator<T> getAll(int height, int from, int to, List<SortField<?>> sort) {
+  public Collection<T> getAll(int height, int from, int to, List<SortField<?>> sort) {
     checkAvailable(height);
     DSLContext ctx = Db.getDSLContext();
     SelectQuery<Record> query = ctx.selectQuery();

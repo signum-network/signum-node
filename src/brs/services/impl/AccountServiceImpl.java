@@ -8,7 +8,6 @@ import brs.AssetTransfer;
 import brs.Burst;
 import brs.Constants;
 import brs.crypto.Crypto;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LinkKeyFactory;
 import brs.db.BurstKey.LongKeyFactory;
@@ -22,6 +21,7 @@ import brs.util.Listener;
 import brs.util.Listeners;
 
 import java.util.Arrays;
+import java.util.Collection;
 
 import static brs.schema.Tables.ACCOUNT;
 
@@ -88,27 +88,27 @@ public class AccountServiceImpl implements AccountService {
   }
 
   @Override
-  public BurstIterator<AssetTransfer> getAssetTransfers(long accountId, int from, int to) {
+  public Collection<AssetTransfer> getAssetTransfers(long accountId, int from, int to) {
     return assetTransferStore.getAccountAssetTransfers(accountId, from, to);
   }
 
   @Override
-  public BurstIterator<AccountAsset> getAssets(long accountId, int from, int to) {
+  public Collection<AccountAsset> getAssets(long accountId, int from, int to) {
     return accountStore.getAssets(from, to, accountId);
   }
 
   @Override
-  public BurstIterator<RewardRecipientAssignment> getAccountsWithRewardRecipient(Long recipientId) {
+  public Collection<RewardRecipientAssignment> getAccountsWithRewardRecipient(Long recipientId) {
     return accountStore.getAccountsWithRewardRecipient(recipientId);
   }
 
   @Override
-  public BurstIterator<Account> getAccountsWithName(String name) {
+  public Collection<Account> getAccountsWithName(String name) {
     return accountTable.getManyBy(ACCOUNT.NAME.equalIgnoreCase(name), 0, -1);
   }
 
   @Override
-  public BurstIterator<Account> getAllAccounts(int from, int to) {
+  public Collection<Account> getAllAccounts(int from, int to) {
     return accountTable.getAll(from, to);
   }
 

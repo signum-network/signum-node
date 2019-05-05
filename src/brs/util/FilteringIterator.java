@@ -1,17 +1,16 @@
 package brs.util;
 
-import brs.db.BurstIterator;
-
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public final class FilteringIterator<T> implements Iterator<T>, AutoCloseable {
+public final class FilteringIterator<T> implements Iterator<T> {
 
   public interface Filter<T> {
     boolean ok(T t);
   }
 
-  private final BurstIterator<T> dbIterator;
+  private final Iterator<T> dbIterator;
   private final Filter<T> filter;
   private final int from;
   private final int to;
@@ -20,16 +19,16 @@ public final class FilteringIterator<T> implements Iterator<T>, AutoCloseable {
   private boolean iterated;
   private int count;
 
-  public FilteringIterator(BurstIterator<T> dbIterator, Filter<T> filter) {
-    this(dbIterator, filter, 0, Integer.MAX_VALUE);
+  public FilteringIterator(Collection<T> collection, Filter<T> filter) {
+    this(collection, filter, 0, Integer.MAX_VALUE);
   }
 
-  public FilteringIterator(BurstIterator<T> dbIterator, int from, int to) {
-    this(dbIterator, t -> true, from, to);
+  public FilteringIterator(Collection<T> collection, int from, int to) {
+    this(collection, t -> true, from, to);
   }
 
-  public FilteringIterator(BurstIterator<T> dbIterator, Filter<T> filter, int from, int to) {
-    this.dbIterator = dbIterator;
+  public FilteringIterator(Collection<T> collection, Filter<T> filter, int from, int to) {
+    this.dbIterator = collection.iterator();
     this.filter = filter;
     this.from = from;
     this.to = to;
@@ -73,11 +72,6 @@ public final class FilteringIterator<T> implements Iterator<T>, AutoCloseable {
       }
     }
     throw new NoSuchElementException();
-  }
-
-  @Override
-  public void close() {
-    dbIterator.close();
   }
 
   @Override

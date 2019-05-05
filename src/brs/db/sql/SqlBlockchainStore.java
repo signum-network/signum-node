@@ -4,8 +4,6 @@ import brs.*;
 import brs.Block;
 import brs.Transaction;
 import brs.db.BlockDb;
-import brs.db.BurstIterator;
-import brs.db.IterableBurstIterator;
 import brs.db.store.BlockchainStore;
 import brs.db.store.IndirectIncomingStore;
 import brs.schema.tables.records.BlockRecord;
@@ -14,6 +12,7 @@ import org.jooq.*;
 
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static brs.schema.Tables.BLOCK;
@@ -30,7 +29,7 @@ public class SqlBlockchainStore implements BlockchainStore {
   }
 
   @Override
-  public BurstIterator<Block> getBlocks(int from, int to) {
+  public Collection<Block> getBlocks(int from, int to) {
     try ( DSLContext ctx = Db.getDSLContext() ) {
       int blockchainHeight = Burst.getBlockchain().getHeight();
       return
@@ -45,7 +44,7 @@ public class SqlBlockchainStore implements BlockchainStore {
   }
 
   @Override
-  public BurstIterator<Block> getBlocks(Account account, int timestamp, int from, int to) {
+  public Collection<Block> getBlocks(Account account, int timestamp, int from, int to) {
     try ( DSLContext ctx = Db.getDSLContext() ) {
       SelectConditionStep<BlockRecord> query = ctx.selectFrom(BLOCK).where(BLOCK.GENERATOR_ID.eq(account.getId()));
       if (timestamp > 0) {
@@ -59,14 +58,14 @@ public class SqlBlockchainStore implements BlockchainStore {
   }
 
   @Override
-  public BurstIterator<Block> getBlocks(Result<BlockRecord> blockRecords) {
-    return new IterableBurstIterator<>(blockRecords.map(blockRecord -> {
+  public Collection<Block> getBlocks(Result<BlockRecord> blockRecords) {
+    return blockRecords.map(blockRecord -> {
       try {
         return blockDb.loadBlock(blockRecord);
       } catch (BurstException.ValidationException e) {
         throw new RuntimeException(e);
       }
-    }));
+    });
   }
 
   @Override
@@ -115,14 +114,14 @@ public class SqlBlockchainStore implements BlockchainStore {
   }
 
   @Override
-  public BurstIterator<Transaction> getAllTransactions() {
+  public Collection<Transaction> getAllTransactions() {
     DSLContext ctx = Db.getDSLContext();
     return getTransactions(ctx, ctx.selectFrom(TRANSACTION).orderBy(TRANSACTION.DB_ID.asc()).fetch());
   }
 
 
   @Override
-  public BurstIterator<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype, int blockTimestamp, int from, int to, boolean includeIndirectIncoming) {
+  public Collection<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype, int blockTimestamp, int from, int to, boolean includeIndirectIncoming) {
     int height = numberOfConfirmations > 0 ? Burst.getBlockchain().getHeight() - numberOfConfirmations : Integer.MAX_VALUE;
     if (height < 0) {
       throw new IllegalArgumentException("Number of confirmations required " + numberOfConfirmations + " exceeds current blockchain height " + Burst.getBlockchain().getHeight());
@@ -168,14 +167,14 @@ public class SqlBlockchainStore implements BlockchainStore {
   }
 
   @Override
-  public BurstIterator<Transaction> getTransactions(DSLContext ctx, Result<TransactionRecord> rs) {
-    return new IterableBurstIterator<>(rs.map(r -> {
+  public Collection<Transaction> getTransactions(DSLContext ctx, Result<TransactionRecord> rs) {
+    return rs.map(r -> {
       try {
         return transactionDb.loadTransaction(r);
       } catch (BurstException.ValidationException e) {
         throw new RuntimeException(e);
       }
-    }));
+    });
   }
 
   @Override
@@ -184,7 +183,7 @@ public class SqlBlockchainStore implements BlockchainStore {
   }
 
   @Override
-  public BurstIterator<Block> getLatestBlocks(int amountBlocks) {
+  public Collection<Block> getLatestBlocks(int amountBlocks) {
     final int latestBlockHeight = blockDb.findLastBlock().getHeight();
 
     final int firstLatestBlockHeight = Math.max(0, latestBlockHeight - amountBlocks);

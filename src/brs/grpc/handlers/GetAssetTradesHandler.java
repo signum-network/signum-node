@@ -3,7 +3,7 @@ package brs.grpc.handlers;
 import brs.Asset;
 import brs.Trade;
 import brs.assetexchange.AssetExchange;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.grpc.GrpcApiHandler;
 import brs.grpc.proto.BrsApi;
 import brs.grpc.proto.ProtoBuilder;
@@ -23,7 +23,7 @@ public class GetAssetTradesHandler implements GrpcApiHandler<BrsApi.GetAssetTran
         BrsApi.IndexRange indexRange = ProtoBuilder.sanitizeIndexRange(request.getIndexRange());
         int firstIndex = indexRange.getFirstIndex();
         int lastIndex = indexRange.getLastIndex();
-        BurstIterator<Trade> trades;
+        Collection<Trade> trades;
         Asset asset = assetExchange.getAsset(assetId);
         if (accountId == 0) {
             trades = assetExchange.getTrades(assetId, firstIndex, lastIndex);
@@ -33,7 +33,7 @@ public class GetAssetTradesHandler implements GrpcApiHandler<BrsApi.GetAssetTran
             trades = assetExchange.getAccountAssetTrades(accountId, assetId, firstIndex, lastIndex);
         }
         BrsApi.AssetTrades.Builder builder = BrsApi.AssetTrades.newBuilder();
-        trades.forEachRemaining(trade -> builder.addTrades(ProtoBuilder.buildTrade(trade, asset == null ? assetExchange.getAsset(trade.getAssetId()) : asset)));
+        trades.forEach(trade -> builder.addTrades(ProtoBuilder.buildTrade(trade, asset == null ? assetExchange.getAsset(trade.getAssetId()) : asset)));
         return builder.build();
     }
 }

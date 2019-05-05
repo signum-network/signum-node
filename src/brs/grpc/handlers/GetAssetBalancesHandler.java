@@ -29,7 +29,7 @@ public class GetAssetBalancesHandler implements GrpcApiHandler<BrsApi.GetAssetBa
         BrsApi.AssetBalances.Builder builder = BrsApi.AssetBalances.newBuilder();
 
         assetExchange.getAccountAssetsOverview(asset.getId(), height, firstIndex, lastIndex)
-                .forEachRemaining(assetAccount -> builder.addAssetBalances(ProtoBuilder.buildAssetBalance(assetAccount)));
+                .forEach(assetAccount -> builder.addAssetBalances(ProtoBuilder.buildAssetBalance(assetAccount)));
 
         return builder.build();
     }

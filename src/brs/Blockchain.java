@@ -1,7 +1,6 @@
 package brs;
 
-import brs.db.BurstIterator;
-
+import java.util.Collection;
 import java.util.List;
 
 public interface Blockchain {
@@ -20,11 +19,11 @@ public interface Blockchain {
 
   boolean hasBlock(long blockImplId);
 
-  BurstIterator<Block> getBlocks(int from, int to);
+  Collection<Block> getBlocks(int from, int to);
 
-  BurstIterator<Block> getBlocks(Account account, int timestamp);
-    
-  BurstIterator<Block> getBlocks(Account account, int timestamp, int from, int to);
+  Collection<Block> getBlocks(Account account, int timestamp);
+
+  Collection<Block> getBlocks(Account account, int timestamp, int from, int to);
 
   List<Long> getBlockIdsAfter(long blockImplId, int limit);
 
@@ -42,9 +41,9 @@ public interface Blockchain {
 
   int getTransactionCount();
 
-  BurstIterator<Transaction> getAllTransactions();
+  Collection<Transaction> getAllTransactions();
 
-  BurstIterator<Transaction> getTransactions(Account account, byte type, byte subtype, int blockImplTimestamp, boolean includeIndirectIncoming);
+  Collection<Transaction> getTransactions(Account account, byte type, byte subtype, int blockImplTimestamp, boolean includeIndirectIncoming);
 
-  BurstIterator<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype, int blockImplTimestamp, int from, int to, boolean includeIndirectIncoming);
+  Collection<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype, int blockImplTimestamp, int from, int to, boolean includeIndirectIncoming);
 }

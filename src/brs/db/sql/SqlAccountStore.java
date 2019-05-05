@@ -2,7 +2,6 @@ package brs.db.sql;
 
 import brs.Account;
 import brs.Burst;
-import brs.db.BurstIterator;
 import brs.db.VersionedBatchEntityTable;
 import brs.db.VersionedEntityTable;
 import brs.db.cache.DBCacheManagerImpl;
@@ -174,17 +173,17 @@ public class SqlAccountStore implements AccountStore {
   }
 
   @Override
-  public BurstIterator<Account.RewardRecipientAssignment> getAccountsWithRewardRecipient(Long recipientId) {
+  public Collection<Account.RewardRecipientAssignment> getAccountsWithRewardRecipient(Long recipientId) {
     return getRewardRecipientAssignmentTable().getManyBy(getAccountsWithRewardRecipientClause(recipientId, Burst.getBlockchain().getHeight() + 1), 0, -1);
   }
 
   @Override
-  public BurstIterator<Account.AccountAsset> getAssets(int from, int to, Long id) {
+  public Collection<Account.AccountAsset> getAssets(int from, int to, Long id) {
     return getAccountAssetTable().getManyBy(ACCOUNT_ASSET.ACCOUNT_ID.eq(id), from, to);
   }
 
   @Override
-  public BurstIterator<Account.AccountAsset> getAssetAccounts(long assetId, int from, int to) {
+  public Collection<Account.AccountAsset> getAssetAccounts(long assetId, int from, int to) {
     List<SortField<?>> sort = new ArrayList<>();
     sort.add(ACCOUNT_ASSET.field("quantity", Long.class).desc());
     sort.add(ACCOUNT_ASSET.field("account_id", Long.class).asc());
@@ -192,7 +191,7 @@ public class SqlAccountStore implements AccountStore {
   }
 
   @Override
-  public BurstIterator<Account.AccountAsset> getAssetAccounts(long assetId, int height, int from, int to) {
+  public Collection<Account.AccountAsset> getAssetAccounts(long assetId, int height, int from, int to) {
     if (height < 0) {
       return getAssetAccounts(assetId, from, to);
     }

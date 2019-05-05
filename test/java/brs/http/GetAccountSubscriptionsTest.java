@@ -6,7 +6,7 @@ import brs.Subscription;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.services.ParameterService;
 import brs.services.SubscriptionService;
 import brs.util.JSON;
@@ -59,7 +59,7 @@ public class GetAccountSubscriptionsTest extends AbstractUnitTest {
     when(subscription.getFrequency()).thenReturn(3);
     when(subscription.getTimeNext()).thenReturn(4);
 
-    final BurstIterator<Subscription> subscriptionIterator = this.mockBurstIterator(subscription);
+    final Collection<Subscription> subscriptionIterator = this.mockCollection(subscription);
     when(subscriptionServiceMock.getSubscriptionsByParticipant(eq(userId))).thenReturn(subscriptionIterator);
 
     final JsonObject result = (JsonObject) t.processRequest(req);

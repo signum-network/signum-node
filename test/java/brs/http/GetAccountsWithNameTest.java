@@ -4,7 +4,7 @@ import brs.Account;
 import brs.BurstException;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.services.AccountService;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -48,7 +48,7 @@ public class GetAccountsWithNameTest extends AbstractUnitTest {
         when(targetAccount.getId()).thenReturn(targetAccountId);
         when(targetAccount.getName()).thenReturn(targetAccountName);
 
-        final BurstIterator<Account> mockIterator = mockBurstIterator(targetAccount);
+        final Collection<Account> mockIterator = mockCollection(targetAccount);
 
         when(accountService.getAccountsWithName(targetAccountName)).thenReturn(mockIterator);
 
@@ -68,7 +68,7 @@ public class GetAccountsWithNameTest extends AbstractUnitTest {
                 new QuickMocker.MockParam(NAME_PARAMETER, targetAccountName)
         );
 
-        final BurstIterator<Account> mockIterator = mockBurstIterator();
+        final Collection<Account> mockIterator = mockCollection();
 
         when(accountService.getAccountsWithName(targetAccountName)).thenReturn(mockIterator);
 

@@ -43,7 +43,7 @@ public class FeeSuggestionCalculator {
   }
 
   private void fillInitialHistory() {
-    blockchainStore.getLatestBlocks(latestBlocks.length).forEachRemaining(this::pushNewBlock);
+    blockchainStore.getLatestBlocks(latestBlocks.length).forEach(this::pushNewBlock);
   }
 
   private boolean latestBlocksIsEmpty() {

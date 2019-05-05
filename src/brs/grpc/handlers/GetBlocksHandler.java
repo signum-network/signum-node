@@ -24,7 +24,7 @@ public class GetBlocksHandler implements GrpcApiHandler<BrsApi.GetBlocksRequest,
         boolean includeTransactions = request.getIncludeTransactions();
         BrsApi.Blocks.Builder builder = BrsApi.Blocks.newBuilder();
         blockchain.getBlocks(firstIndex, lastIndex)
-                .forEachRemaining(block -> builder.addBlocks(ProtoBuilder.buildBlock(blockchain, blockService, block, includeTransactions)));
+                .forEach(block -> builder.addBlocks(ProtoBuilder.buildBlock(blockchain, blockService, block, includeTransactions)));
         return builder.build();
     }
 }

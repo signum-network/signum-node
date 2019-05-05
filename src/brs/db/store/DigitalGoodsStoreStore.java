@@ -2,11 +2,11 @@ package brs.db.store;
 
 import brs.DigitalGoodsStore;
 import brs.crypto.EncryptedData;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.VersionedValuesTable;
 
+import java.util.Collection;
 
 public interface DigitalGoodsStoreStore {
 
@@ -26,19 +26,19 @@ public interface DigitalGoodsStoreStore {
 
   VersionedEntityTable<DigitalGoodsStore.Goods> getGoodsTable();
 
-  BurstIterator<DigitalGoodsStore.Goods> getGoodsInStock(int from, int to);
+  Collection<DigitalGoodsStore.Goods> getGoodsInStock(int from, int to);
 
-  BurstIterator<DigitalGoodsStore.Goods> getSellerGoods(long sellerId, boolean inStockOnly, int from, int to);
+  Collection<DigitalGoodsStore.Goods> getSellerGoods(long sellerId, boolean inStockOnly, int from, int to);
 
-  BurstIterator<DigitalGoodsStore.Purchase> getAllPurchases(int from, int to);
+  Collection<DigitalGoodsStore.Purchase> getAllPurchases(int from, int to);
 
-  BurstIterator<DigitalGoodsStore.Purchase> getSellerPurchases(long sellerId, int from, int to);
+  Collection<DigitalGoodsStore.Purchase> getSellerPurchases(long sellerId, int from, int to);
 
-  BurstIterator<DigitalGoodsStore.Purchase> getBuyerPurchases(long buyerId, int from, int to);
+  Collection<DigitalGoodsStore.Purchase> getBuyerPurchases(long buyerId, int from, int to);
 
-  BurstIterator<DigitalGoodsStore.Purchase> getSellerBuyerPurchases(long sellerId, long buyerId, int from, int to);
+  Collection<DigitalGoodsStore.Purchase> getSellerBuyerPurchases(long sellerId, long buyerId, int from, int to);
 
-  BurstIterator<DigitalGoodsStore.Purchase> getPendingSellerPurchases(long sellerId, int from, int to);
+  Collection<DigitalGoodsStore.Purchase> getPendingSellerPurchases(long sellerId, int from, int to);
 
-  BurstIterator<DigitalGoodsStore.Purchase> getExpiredPendingPurchases(int timestamp);
+  Collection<DigitalGoodsStore.Purchase> getExpiredPendingPurchases(int timestamp);
 }

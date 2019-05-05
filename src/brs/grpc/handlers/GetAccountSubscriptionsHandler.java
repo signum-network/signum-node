@@ -18,7 +18,7 @@ public class GetAccountSubscriptionsHandler implements GrpcApiHandler<BrsApi.Get
         long accountId = request.getAccountId();
         BrsApi.Subscriptions.Builder builder = BrsApi.Subscriptions.newBuilder();
         subscriptionService.getSubscriptionsByParticipant(accountId)
-                .forEachRemaining(subscription -> builder.addSubscriptions(ProtoBuilder.buildSubscription(subscription)));
+                .forEach(subscription -> builder.addSubscriptions(ProtoBuilder.buildSubscription(subscription)));
         return builder.build();
     }
 }

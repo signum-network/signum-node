@@ -3,7 +3,6 @@ package brs.http;
 import brs.BurstException;
 import brs.Order;
 import brs.assetexchange.AssetExchange;
-import brs.db.BurstIterator;
 import brs.services.ParameterService;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -33,10 +32,8 @@ public final class GetBidOrders extends APIServlet.APIRequestHandler {
     int lastIndex = ParameterParser.getLastIndex(req);
 
     JsonArray orders = new JsonArray();
-    try (BurstIterator<Order.Bid> bidOrders = assetExchange.getSortedBidOrders(assetId, firstIndex, lastIndex)) {
-      while (bidOrders.hasNext()) {
-        orders.add(JSONData.bidOrder(bidOrders.next()));
-      }
+    for (Order.Bid bidOrder : assetExchange.getSortedBidOrders(assetId, firstIndex, lastIndex)) {
+      orders.add(JSONData.bidOrder(bidOrder));
     }
 
     JsonObject response = new JsonObject();

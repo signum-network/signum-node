@@ -6,7 +6,7 @@ import brs.DigitalGoodsStore.Goods;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.db.sql.DbUtils;
 import brs.services.DGSGoodsStoreService;
 import brs.util.JSON;
@@ -59,7 +59,7 @@ public class GetDGSGoodsTest extends AbstractUnitTest {
     );
 
     final Goods mockGood = mockGood();
-    final BurstIterator<Goods> mockGoodIterator = mockBurstIterator(mockGood);
+    final Collection<Goods> mockGoodIterator = mockCollection(mockGood);
 
     when(mockDGSGoodsStoreService.getSellerGoods(eq(sellerId), eq(true), eq(firstIndex), eq(lastIndex)))
         .thenReturn(mockGoodIterator);
@@ -99,7 +99,7 @@ public class GetDGSGoodsTest extends AbstractUnitTest {
     );
 
     final Goods mockGood = mockGood();
-    final BurstIterator<Goods> mockGoodIterator = mockBurstIterator(mockGood);
+    final Collection<Goods> mockGoodIterator = mockCollection(mockGood);
 
     when(mockDGSGoodsStoreService.getAllGoods(eq(firstIndex), eq(lastIndex)))
         .thenReturn(mockGoodIterator);
@@ -139,7 +139,7 @@ public class GetDGSGoodsTest extends AbstractUnitTest {
     );
 
     final Goods mockGood = mockGood();
-    final BurstIterator<Goods> mockGoodIterator = mockBurstIterator(mockGood);
+    final Collection<Goods> mockGoodIterator = mockCollection(mockGood);
 
     when(mockDGSGoodsStoreService.getGoodsInStock(eq(firstIndex), eq(lastIndex)))
         .thenReturn(mockGoodIterator);

@@ -1,6 +1,6 @@
 package brs.db.sql;
 
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.db.BurstKey;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.IndirectIncomingStore;
@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static brs.schema.Tables.INDIRECT_INCOMING;
 
@@ -62,9 +63,9 @@ public class SqlIndirectIncomingStore implements IndirectIncomingStore {
 
     @Override
     public List<Long> getIndirectIncomings(long accountId, int from, int to) {
-        BurstIterator<IndirectIncoming> result = indirectIncomingTable.getManyBy(INDIRECT_INCOMING.ACCOUNT_ID.eq(accountId), from, to);
-        List<Long> transactionIDs = new ArrayList<>();
-        result.forEachRemaining(indirectIncoming -> transactionIDs.add(indirectIncoming.getTransactionId()));
-        return transactionIDs;
+        return indirectIncomingTable.getManyBy(INDIRECT_INCOMING.ACCOUNT_ID.eq(accountId), from, to)
+                .stream()
+                .map(IndirectIncoming::getTransactionId)
+                .collect(Collectors.toList());
     }
 }

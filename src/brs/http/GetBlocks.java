@@ -2,7 +2,7 @@ package brs.http;
 
 import brs.Block;
 import brs.Blockchain;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.http.common.Parameters;
 import brs.services.BlockService;
 import com.google.gson.JsonArray;
@@ -36,11 +36,8 @@ final class GetBlocks extends APIServlet.APIRequestHandler {
     boolean includeTransactions = Parameters.isTrue(req.getParameter(Parameters.INCLUDE_TRANSACTIONS_PARAMETER));
 
     JsonArray blocks = new JsonArray();
-    try (BurstIterator<? extends Block> iterator = blockchain.getBlocks(firstIndex, lastIndex)) {
-      while (iterator.hasNext()) {
-        Block block = iterator.next();
-        blocks.add(JSONData.block(block, includeTransactions, blockchain.getHeight(), blockService.getBlockReward(block), blockService.getScoopNum(block)));
-      }
+    for (Block block : blockchain.getBlocks(firstIndex, lastIndex)) {
+      blocks.add(JSONData.block(block, includeTransactions, blockchain.getHeight(), blockService.getBlockReward(block), blockService.getScoopNum(block)));
     }
 
     JsonObject response = new JsonObject();
@@ -48,5 +45,4 @@ final class GetBlocks extends APIServlet.APIRequestHandler {
 
     return response;
   }
-
 }

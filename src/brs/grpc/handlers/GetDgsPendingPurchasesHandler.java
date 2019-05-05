@@ -23,7 +23,7 @@ public class GetDgsPendingPurchasesHandler implements GrpcApiHandler<BrsApi.GetD
         if (sellerId == 0) throw new ApiException("Seller ID not set");
         BrsApi.DgsPurchases.Builder builder = BrsApi.DgsPurchases.newBuilder();
         digitalGoodsStoreService.getPendingSellerPurchases(sellerId, firstIndex, lastIndex)
-                .forEachRemaining(purchase -> builder.addDgsPurchases(ProtoBuilder.buildPurchase(purchase, digitalGoodsStoreService.getGoods(purchase.getGoodsId()))));
+                .forEach(purchase -> builder.addDgsPurchases(ProtoBuilder.buildPurchase(purchase, digitalGoodsStoreService.getGoods(purchase.getGoodsId()))));
         return builder.build();
     }
 }

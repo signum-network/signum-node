@@ -5,7 +5,7 @@ import brs.assetexchange.AssetExchange;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.util.JSON;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -46,7 +46,7 @@ public class GetAssetIdsTest extends AbstractUnitTest {
     final Asset mockAsset = mock(Asset.class);
     when(mockAsset.getId()).thenReturn(5L);
 
-    final BurstIterator<Asset> mockAssetIterator = mockBurstIterator(mockAsset);
+    final Collection<Asset> mockAssetIterator = mockCollection(mockAsset);
 
     when(mockAssetExchange.getAllAssets(eq(firstIndex), eq(lastIndex)))
         .thenReturn(mockAssetIterator);

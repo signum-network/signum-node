@@ -4,13 +4,14 @@ import brs.Block;
 import brs.Order;
 import brs.Trade;
 import brs.Trade.Event;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LinkKeyFactory;
 import brs.db.sql.EntitySqlTable;
 import brs.db.store.TradeStore;
 import brs.util.Listener;
 import brs.util.Listeners;
+
+import java.util.Collection;
 
 class TradeServiceImpl {
 
@@ -27,15 +28,15 @@ class TradeServiceImpl {
     this.tradeDbKeyFactory = tradeStore.getTradeDbKeyFactory();
   }
 
-  public BurstIterator<Trade> getAssetTrades(long assetId, int from, int to) {
+  public Collection<Trade> getAssetTrades(long assetId, int from, int to) {
     return tradeStore.getAssetTrades(assetId, from, to);
   }
 
-  public BurstIterator<Trade> getAccountAssetTrades(long accountId, long assetId, int from, int to) {
+  public Collection<Trade> getAccountAssetTrades(long accountId, long assetId, int from, int to) {
     return tradeStore.getAccountAssetTrades(accountId, assetId, from, to);
   }
 
-  public BurstIterator<Trade> getAccountTrades(long id, int from, int to) {
+  public Collection<Trade> getAccountTrades(long id, int from, int to) {
     return tradeStore.getAccountTrades(id, from, to);
   }
 
@@ -47,7 +48,7 @@ class TradeServiceImpl {
     return tradeStore.getTradeCount(assetId);
   }
 
-  public BurstIterator<Trade> getAllTrades(int from, int to) {
+  public Collection<Trade> getAllTrades(int from, int to) {
     return tradeTable.getAll(from, to);
   }
 

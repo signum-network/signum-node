@@ -6,7 +6,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mock;
 
-import brs.db.BurstIterator;
+import java.util.Collection;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -14,22 +14,9 @@ import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 
 public abstract class AbstractUnitTest {
-
-  @SuppressWarnings("unchecked")
-  protected <T> BurstIterator<T> mockBurstIterator(List<T> items) {
-    final BurstIterator<T> mockIterator = mock(BurstIterator.class);
-    final Iterator<T> it = items.iterator();
-
-    when(mockIterator.hasNext()).thenAnswer((Answer<Boolean>) invocationOnMock -> it.hasNext());
-    when(mockIterator.next()).thenAnswer((Answer<T>) invocationOnMock -> it.next());
-    doCallRealMethod().when(mockIterator).forEachRemaining(any());
-
-    return mockIterator;
-  }
-
   @SafeVarargs
-  protected final <T> BurstIterator<T> mockBurstIterator(T... items) {
-    return mockBurstIterator(Arrays.asList(items));
+  protected final <T> Collection<T> mockCollection(T... items) {
+    return Arrays.asList(items);
   }
 
   protected String stringWithLength(int length) {

@@ -7,7 +7,7 @@ import brs.BurstException;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.services.BlockService;
 import brs.services.ParameterService;
 import com.google.gson.JsonArray;
@@ -65,7 +65,7 @@ public class GetAccountBlocksTest extends AbstractUnitTest {
 
     when(parameterServiceMock.getAccount(req)).thenReturn(mockAccount);
 
-    final BurstIterator<Block> mockBlockIterator = mockBurstIterator(Arrays.asList(mockBlock));
+    final Collection<Block> mockBlockIterator = mockCollection(mockBlock);
     when(blockchainMock.getBlocks(eq(mockAccount), eq(mockTimestamp), eq(mockFirstIndex), eq(mockLastIndex))).thenReturn(mockBlockIterator);
 
     final JsonObject result = (JsonObject) t.processRequest(req);

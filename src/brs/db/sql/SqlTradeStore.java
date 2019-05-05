@@ -1,7 +1,7 @@
 package brs.db.sql;
 
 import brs.Trade;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.db.BurstKey;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.TradeStore;
@@ -44,17 +44,17 @@ public class SqlTradeStore implements TradeStore {
   }
 
   @Override
-  public BurstIterator<Trade> getAllTrades(int from, int to) {
+  public Collection<Trade> getAllTrades(int from, int to) {
     return tradeTable.getAll(from, to);
   }
 
   @Override
-  public BurstIterator<Trade> getAssetTrades(long assetId, int from, int to) {
+  public Collection<Trade> getAssetTrades(long assetId, int from, int to) {
     return tradeTable.getManyBy(TRADE.ASSET_ID.eq(assetId), from, to);
   }
 
   @Override
-  public BurstIterator<Trade> getAccountTrades(long accountId, int from, int to) {
+  public Collection<Trade> getAccountTrades(long accountId, int from, int to) {
     DSLContext ctx = Db.getDSLContext();
 
     SelectQuery<TradeRecord> selectQuery = ctx
@@ -76,7 +76,7 @@ public class SqlTradeStore implements TradeStore {
   }
 
   @Override
-  public BurstIterator<Trade> getAccountAssetTrades(long accountId, long assetId, int from, int to) {
+  public Collection<Trade> getAccountAssetTrades(long accountId, long assetId, int from, int to) {
     DSLContext ctx = Db.getDSLContext();
 
     SelectQuery<TradeRecord> selectQuery = ctx

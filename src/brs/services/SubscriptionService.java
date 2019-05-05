@@ -3,15 +3,16 @@ package brs.services;
 import brs.Account;
 import brs.Block;
 import brs.Subscription;
-import brs.db.BurstIterator;
+
+import java.util.Collection;
 
 public interface SubscriptionService {
 
   Subscription getSubscription(Long id);
 
-  BurstIterator<Subscription> getSubscriptionsByParticipant(Long accountId);
+  Collection<Subscription> getSubscriptionsByParticipant(Long accountId);
 
-  BurstIterator<Subscription> getSubscriptionsToId(Long accountId);
+  Collection<Subscription> getSubscriptionsToId(Long accountId);
 
   void addSubscription(Account sender, Account recipient, Long id, Long amountNQT, int startTimestamp, int frequency);
 

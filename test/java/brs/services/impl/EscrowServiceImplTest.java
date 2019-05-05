@@ -7,7 +7,7 @@ import static org.mockito.Mockito.when;
 
 import brs.Blockchain;
 import brs.Escrow;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.VersionedEntityTable;
@@ -47,7 +47,7 @@ public class EscrowServiceImplTest {
 
   @Test
   public void getAllEscrowTransactions() {
-    final BurstIterator<Escrow> mockEscrowIterator = mock(BurstIterator.class);
+    final Collection<Escrow> mockEscrowIterator = mock(Collection.class);
 
     when(mockEscrowTable.getAll(eq(0), eq(-1))).thenReturn(mockEscrowIterator);
 

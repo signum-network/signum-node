@@ -1,8 +1,9 @@
 package brs;
 
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.grpc.proto.BrsApi;
+
+import java.util.Collection;
 
 public class Escrow {
 
@@ -193,7 +194,7 @@ public class Escrow {
     return requiredSigners;
   }
 
-  public BurstIterator<Decision> getDecisions() {
+  public Collection<Decision> getDecisions() {
     return Burst.getStores().getEscrowStore().getDecisions(id);
   }
 

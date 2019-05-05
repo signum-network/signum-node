@@ -9,7 +9,7 @@ import brs.Blockchain;
 import brs.Subscription;
 import brs.TransactionDb;
 import brs.common.AbstractUnitTest;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.VersionedEntityTable;
@@ -62,7 +62,7 @@ public class SubscriptionServiceImplTest extends AbstractUnitTest {
   public void getSubscriptionsByParticipant() {
     long accountId = 123L;
 
-    BurstIterator<Subscription> mockSubscriptionIterator = mockBurstIterator();
+    Collection<Subscription> mockSubscriptionIterator = mockCollection();
     when(mockSubscriptionStore.getSubscriptionsByParticipant(eq(accountId))).thenReturn(mockSubscriptionIterator);
 
     assertEquals(mockSubscriptionIterator, t.getSubscriptionsByParticipant(accountId));
@@ -72,7 +72,7 @@ public class SubscriptionServiceImplTest extends AbstractUnitTest {
   public void getSubscriptionsToId() {
     long accountId = 123L;
 
-    BurstIterator<Subscription> mockSubscriptionIterator = mockBurstIterator();
+    Collection<Subscription> mockSubscriptionIterator = mockCollection();
     when(mockSubscriptionStore.getSubscriptionsToId(eq(accountId))).thenReturn(mockSubscriptionIterator);
 
     assertEquals(mockSubscriptionIterator, t.getSubscriptionsToId(accountId));

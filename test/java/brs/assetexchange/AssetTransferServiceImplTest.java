@@ -7,7 +7,7 @@ import static org.mockito.Mockito.when;
 
 import brs.AssetTransfer;
 import brs.assetexchange.AssetTransferServiceImpl;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.db.sql.EntitySqlTable;
 import brs.db.store.AssetTransferStore;
 import org.junit.Before;
@@ -36,7 +36,7 @@ public class AssetTransferServiceImplTest {
     final int from = 1;
     final int to = 4;
 
-    final BurstIterator<AssetTransfer> mockAssetTransferIterator = mock(BurstIterator.class);
+    final Collection<AssetTransfer> mockAssetTransferIterator = mock(Collection.class);
 
     when(mockAssetTransferStore.getAssetTransfers(eq(assetId), eq(from), eq(to))).thenReturn(mockAssetTransferIterator);
 
@@ -50,7 +50,7 @@ public class AssetTransferServiceImplTest {
     final int from = 1;
     final int to = 4;
 
-    final BurstIterator<AssetTransfer> mockAccountAssetTransferIterator = mock(BurstIterator.class);
+    final Collection<AssetTransfer> mockAccountAssetTransferIterator = mock(Collection.class);
 
     when(mockAssetTransferStore.getAccountAssetTransfers(eq(accountId), eq(assetId), eq(from), eq(to))).thenReturn(mockAccountAssetTransferIterator);
 

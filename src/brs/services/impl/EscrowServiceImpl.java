@@ -3,7 +3,7 @@ package brs.services.impl;
 import brs.*;
 import brs.Escrow.Decision;
 import brs.Escrow.DecisionType;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.VersionedEntityTable;
@@ -46,7 +46,7 @@ public class EscrowServiceImpl implements EscrowService {
   }
 
   @Override
-  public BurstIterator<Escrow> getAllEscrowTransactions() {
+  public Collection<Escrow> getAllEscrowTransactions() {
     return escrowTable.getAll(0, -1);
   }
 
@@ -76,15 +76,7 @@ public class EscrowServiceImpl implements EscrowService {
     if(escrow == null) {
       return;
     }
-    BurstIterator<Decision> decisionIt = escrow.getDecisions();
-
-    List<Decision> decisions = new ArrayList<>();
-    while(decisionIt.hasNext()) {
-      Decision decision = decisionIt.next();
-      decisions.add(decision);
-    }
-
-    decisions.forEach(decisionTable::delete);
+    escrow.getDecisions().forEach(decisionTable::delete);
     escrowTable.delete(escrow);
   }
 
@@ -143,9 +135,7 @@ public class EscrowServiceImpl implements EscrowService {
     int countRefund = 0;
     int countSplit = 0;
 
-    BurstIterator<Decision> decisions = Burst.getStores().getEscrowStore().getDecisions(escrow.getId());
-    while(decisions.hasNext()) {
-      Decision decision = decisions.next();
+    for (Decision decision : Burst.getStores().getEscrowStore().getDecisions(escrow.getId())) {
       if(decision.getAccountId().equals(escrow.getSenderId()) ||
           decision.getAccountId().equals(escrow.getRecipientId())) {
         continue;
@@ -189,10 +179,7 @@ public class EscrowServiceImpl implements EscrowService {
   public void updateOnBlock(Block block, int blockchainHeight) {
     resultTransactions.clear();
 
-    BurstIterator<Escrow> deadlineEscrows = escrowTable.getManyBy(getUpdateOnBlockClause(block.getTimestamp()), 0, -1);
-    while(deadlineEscrows.hasNext()) {
-      updatedEscrowIds.add(deadlineEscrows.next().getId());
-    }
+    escrowTable.getManyBy(getUpdateOnBlockClause(block.getTimestamp()), 0, -1).forEach(escrow -> updatedEscrowIds.add(escrow.getId()));
 
     if (updatedEscrowIds.size() > 0) {
       for (Long escrowId : updatedEscrowIds) {

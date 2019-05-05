@@ -6,8 +6,9 @@ import brs.DigitalGoodsStore.Event;
 import brs.DigitalGoodsStore.Goods;
 import brs.DigitalGoodsStore.Purchase;
 import brs.Transaction;
-import brs.db.BurstIterator;
 import brs.util.Listener;
+
+import java.util.Collection;
 
 public interface DGSGoodsStoreService { // TODO Redundant name!
 
@@ -21,21 +22,21 @@ public interface DGSGoodsStoreService { // TODO Redundant name!
 
   Goods getGoods(long goodsId);
 
-  BurstIterator<Goods> getAllGoods(int from, int to);
+  Collection<Goods> getAllGoods(int from, int to);
 
-  BurstIterator<Goods> getGoodsInStock(int from, int to);
+  Collection<Goods> getGoodsInStock(int from, int to);
 
-  BurstIterator<Goods> getSellerGoods(long sellerId, boolean inStockOnly, int from, int to);
+  Collection<Goods> getSellerGoods(long sellerId, boolean inStockOnly, int from, int to);
 
-  BurstIterator<Purchase> getAllPurchases(int from, int to);
+  Collection<Purchase> getAllPurchases(int from, int to);
 
-  BurstIterator<Purchase> getSellerPurchases(long sellerId, int from, int to);
+  Collection<Purchase> getSellerPurchases(long sellerId, int from, int to);
 
-  BurstIterator<Purchase> getBuyerPurchases(long buyerId, int from, int to);
+  Collection<Purchase> getBuyerPurchases(long buyerId, int from, int to);
 
-  BurstIterator<Purchase> getSellerBuyerPurchases(long sellerId, long buyerId, int from, int to);
+  Collection<Purchase> getSellerBuyerPurchases(long sellerId, long buyerId, int from, int to);
 
-  BurstIterator<Purchase> getPendingSellerPurchases(long sellerId, int from, int to);
+  Collection<Purchase> getPendingSellerPurchases(long sellerId, int from, int to);
 
   Purchase getPurchase(long purchaseId);
 
@@ -53,7 +54,7 @@ public interface DGSGoodsStoreService { // TODO Redundant name!
 
   void refund(long sellerId, long purchaseId, long refundNQT, Appendix.EncryptedMessage encryptedMessage);
 
-  BurstIterator<Purchase> getExpiredPendingPurchases(int timestamp);
+  Collection<Purchase> getExpiredPendingPurchases(int timestamp);
 
   void changePrice(long goodsId, long priceNQT);
 

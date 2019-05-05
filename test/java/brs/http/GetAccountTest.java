@@ -5,7 +5,7 @@ import brs.Account.AccountAsset;
 import brs.BurstException;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.util.JSON;
@@ -65,7 +65,7 @@ public class GetAccountTest extends AbstractUnitTest {
     when(mockAccountAsset.getAssetId()).thenReturn(mockAssetId);
     when(mockAccountAsset.getUnconfirmedQuantityQNT()).thenReturn(mockUnconfirmedQuantityNQT);
     when(mockAccountAsset.getQuantityQNT()).thenReturn(balanceNQT);
-    BurstIterator<AccountAsset> mockAssetOverview = mockBurstIterator(Arrays.asList(mockAccountAsset));
+    Collection<AccountAsset> mockAssetOverview = mockCollection(mockAccountAsset);
     when(accountServiceMock.getAssets(eq(mockAccountId), eq(0), eq(-1))).thenReturn(mockAssetOverview);
 
     final JsonObject response = (JsonObject) t.processRequest(req);

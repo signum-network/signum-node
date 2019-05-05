@@ -2,7 +2,6 @@ package brs.db.sql;
 
 import brs.Burst;
 import brs.Order;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.DerivedTableManager;
@@ -17,6 +16,8 @@ import org.jooq.SortField;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import static brs.schema.tables.AskOrder.ASK_ORDER;
@@ -92,7 +93,7 @@ public class SqlOrderStore implements OrderStore {
   }
 
   @Override
-  public BurstIterator<Order.Ask> getAskOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
+  public Collection<Order.Ask> getAskOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
     return askOrderTable.getManyBy(
       brs.schema.Tables.ASK_ORDER.ACCOUNT_ID.eq(accountId).and(
         brs.schema.Tables.ASK_ORDER.ASSET_ID.eq(assetId)
@@ -103,7 +104,7 @@ public class SqlOrderStore implements OrderStore {
   }
 
   @Override
-  public BurstIterator<Order.Ask> getSortedAsks(long assetId, int from, int to) {
+  public Collection<Order.Ask> getSortedAsks(long assetId, int from, int to) {
     List<SortField<?>> sort = new ArrayList<>();
     sort.add(brs.schema.Tables.ASK_ORDER.field("price", Long.class).asc());
     sort.add(brs.schema.Tables.ASK_ORDER.field("creation_height", Integer.class).asc());
@@ -121,23 +122,22 @@ public class SqlOrderStore implements OrderStore {
       brs.schema.Tables.ASK_ORDER.CREATION_HEIGHT.asc(),
       brs.schema.Tables.ASK_ORDER.ID.asc()
     ).limit(1).getQuery();
-    try (BurstIterator<Order.Ask> askOrders = askOrderTable.getManyBy(ctx, query, true)) {
-      return askOrders.hasNext() ? askOrders.next() : null;
-    }
+    Iterator<Order.Ask> result = askOrderTable.getManyBy(ctx, query, true).iterator();
+    return result.hasNext() ? result.next() : null;
   }
 
   @Override
-  public BurstIterator<Order.Ask> getAll(int from, int to) {
+  public Collection<Order.Ask> getAll(int from, int to) {
     return askOrderTable.getAll(from, to);
   }
 
   @Override
-  public BurstIterator<Order.Ask> getAskOrdersByAccount(long accountId, int from, int to) {
+  public Collection<Order.Ask> getAskOrdersByAccount(long accountId, int from, int to) {
     return askOrderTable.getManyBy(brs.schema.Tables.ASK_ORDER.ACCOUNT_ID.eq(accountId), from, to);
   }
 
   @Override
-  public BurstIterator<Order.Ask> getAskOrdersByAsset(long assetId, int from, int to) {
+  public Collection<Order.Ask> getAskOrdersByAsset(long assetId, int from, int to) {
     return askOrderTable.getManyBy(brs.schema.Tables.ASK_ORDER.ASSET_ID.eq(assetId), from, to);
   }
 
@@ -164,17 +164,17 @@ public class SqlOrderStore implements OrderStore {
   }
 
   @Override
-  public BurstIterator<Order.Bid> getBidOrdersByAccount(long accountId, int from, int to) {
+  public Collection<Order.Bid> getBidOrdersByAccount(long accountId, int from, int to) {
     return bidOrderTable.getManyBy(brs.schema.Tables.BID_ORDER.ACCOUNT_ID.eq(accountId), from, to);
   }
 
   @Override
-  public BurstIterator<Order.Bid> getBidOrdersByAsset(long assetId, int from, int to) {
+  public Collection<Order.Bid> getBidOrdersByAsset(long assetId, int from, int to) {
     return bidOrderTable.getManyBy(brs.schema.Tables.BID_ORDER.ASSET_ID.eq(assetId), from, to);
   }
 
   @Override
-  public BurstIterator<Order.Bid> getBidOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
+  public Collection<Order.Bid> getBidOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
     return bidOrderTable.getManyBy(
       brs.schema.Tables.BID_ORDER.ACCOUNT_ID.eq(accountId).and(
         brs.schema.Tables.BID_ORDER.ASSET_ID.eq(assetId)
@@ -185,7 +185,7 @@ public class SqlOrderStore implements OrderStore {
   }
 
   @Override
-  public BurstIterator<Order.Bid> getSortedBids(long assetId, int from, int to) {
+  public Collection<Order.Bid> getSortedBids(long assetId, int from, int to) {
     List<SortField<?>> sort = new ArrayList<>();
     sort.add(brs.schema.Tables.BID_ORDER.field("price", Long.class).desc());
     sort.add(brs.schema.Tables.BID_ORDER.field("creation_height", Integer.class).asc());
@@ -203,9 +203,8 @@ public class SqlOrderStore implements OrderStore {
       brs.schema.Tables.BID_ORDER.CREATION_HEIGHT.asc(),
       brs.schema.Tables.BID_ORDER.ID.asc()
     ).limit(1).getQuery();
-    try (BurstIterator<Order.Bid> bidOrders = bidOrderTable.getManyBy(ctx, query, true)) {
-      return bidOrders.hasNext() ? bidOrders.next() : null;
-    }
+    Iterator<Order.Bid> result = bidOrderTable.getManyBy(ctx, query, true).iterator();
+    return result.hasNext() ? result.next() : null;
   }
 
   private void saveBid(DSLContext ctx, Order.Bid bid) {

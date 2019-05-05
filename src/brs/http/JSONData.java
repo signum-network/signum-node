@@ -5,7 +5,7 @@ import brs.Alias.Offer;
 import brs.at.AT_API_Helper;
 import brs.crypto.Crypto;
 import brs.crypto.EncryptedData;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.peer.Peer;
 import brs.services.AccountService;
 import brs.util.Convert;
@@ -169,11 +169,9 @@ public final class JSONData {
     json.addProperty(DEADLINE_ACTION_RESPONSE, Escrow.decisionToString(escrow.getDeadlineAction()));
 
     JsonArray signers = new JsonArray();
-    BurstIterator<Escrow.Decision> decisions = escrow.getDecisions();
-    while(decisions.hasNext()) {
-      Escrow.Decision decision = decisions.next();
+    for (Escrow.Decision decision : escrow.getDecisions()) {
       if(decision.getAccountId().equals(escrow.getSenderId()) ||
-         decision.getAccountId().equals(escrow.getRecipientId())) {
+              decision.getAccountId().equals(escrow.getRecipientId())) {
         continue;
       }
       JsonObject signerDetails = new JsonObject();

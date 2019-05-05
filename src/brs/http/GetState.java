@@ -2,7 +2,7 @@ package brs.http;
 
 import brs.*;
 import brs.assetexchange.AssetExchange;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.peer.Peer;
 import brs.peer.Peers;
 import brs.props.PropertyService;
@@ -56,18 +56,14 @@ final class GetState extends APIServlet.APIRequestHandler {
 
     if (!"false".equalsIgnoreCase(req.getParameter("includeCounts"))) {
       long totalEffectiveBalance = 0;
-      try (BurstIterator<Account> accounts = accountService.getAllAccounts(0, -1)) {
-        while(accounts.hasNext()) {
-          long effectiveBalanceBURST = accounts.next().getBalanceNQT();
-          if (effectiveBalanceBURST > 0) {
-            totalEffectiveBalance += effectiveBalanceBURST;
-          }
+      for (Account account : accountService.getAllAccounts(0, -1)) {
+        long effectiveBalanceBURST = account.getBalanceNQT();
+        if (effectiveBalanceBURST > 0) {
+          totalEffectiveBalance += effectiveBalanceBURST;
         }
       }
-      try(BurstIterator<Escrow> escrows = escrowService.getAllEscrowTransactions()) {
-        while(escrows.hasNext()) {
-          totalEffectiveBalance += escrows.next().getAmountNQT();
-        }
+      for (Escrow escrow : escrowService.getAllEscrowTransactions()) {
+        totalEffectiveBalance += escrow.getAmountNQT();
       }
       response.addProperty("totalEffectiveBalanceNXT", totalEffectiveBalance / Constants.ONE_BURST);
 
@@ -101,5 +97,4 @@ final class GetState extends APIServlet.APIRequestHandler {
 
     return response;
   }
-
 }

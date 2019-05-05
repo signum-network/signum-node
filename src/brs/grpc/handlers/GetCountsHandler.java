@@ -5,7 +5,6 @@ import brs.Blockchain;
 import brs.Escrow;
 import brs.Generator;
 import brs.assetexchange.AssetExchange;
-import brs.db.BurstIterator;
 import brs.grpc.GrpcApiHandler;
 import brs.grpc.proto.BrsApi;
 import brs.peer.Peers;
@@ -47,18 +46,14 @@ public class GetCountsHandler implements GrpcApiHandler<Empty, BrsApi.Counts> {
         long numberOfAliases = aliasService.getAliasCount();
         int numberOfPeers = Peers.getAllPeers().size();
         int numberOfGenerators = generator.getAllGenerators().size();
-        try (BurstIterator<Account> accounts = accountService.getAllAccounts(0, -1)) {
-            while(accounts.hasNext()) {
-                long effectiveBalanceBURST = accounts.next().getBalanceNQT();
-                if (effectiveBalanceBURST > 0) {
-                    totalEffectiveBalance += effectiveBalanceBURST;
-                }
+        for (Account account : accountService.getAllAccounts(0, -1)) {
+            long effectiveBalanceBURST = account.getBalanceNQT();
+            if (effectiveBalanceBURST > 0) {
+                totalEffectiveBalance += effectiveBalanceBURST;
             }
         }
-        try(BurstIterator<Escrow> escrows = escrowService.getAllEscrowTransactions()) {
-            while(escrows.hasNext()) {
-                totalEffectiveBalance += escrows.next().getAmountNQT();
-            }
+        for (Escrow escrow : escrowService.getAllEscrowTransactions()) {
+            totalEffectiveBalance += escrow.getAmountNQT();
         }
 
         return BrsApi.Counts.newBuilder()

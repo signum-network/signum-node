@@ -8,7 +8,7 @@ import brs.assetexchange.AssetExchange;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.util.JSON;
@@ -64,7 +64,7 @@ public class GetAssetTransfersTest extends AbstractUnitTest {
     when(mockAsset.getId()).thenReturn(assetId);
 
     final AssetTransfer mockAssetTransfer = mock(AssetTransfer.class);
-    BurstIterator<AssetTransfer> mockAssetTransferIterator = mockBurstIterator(mockAssetTransfer);
+    Collection<AssetTransfer> mockAssetTransferIterator = mockCollection(mockAssetTransfer);
 
     when(mockParameterService.getAsset(eq(req))).thenReturn(mockAsset);
 
@@ -92,7 +92,7 @@ public class GetAssetTransfersTest extends AbstractUnitTest {
     when(mockAccount.getId()).thenReturn(accountId);
 
     final AssetTransfer mockAssetTransfer = mock(AssetTransfer.class);
-    BurstIterator<AssetTransfer> mockAssetTransferIterator = mockBurstIterator(mockAssetTransfer);
+    Collection<AssetTransfer> mockAssetTransferIterator = mockCollection(mockAssetTransfer);
 
     when(mockParameterService.getAccount(eq(req))).thenReturn(mockAccount);
 
@@ -127,7 +127,7 @@ public class GetAssetTransfersTest extends AbstractUnitTest {
 
     final AssetTransfer mockAssetTransfer = mock(AssetTransfer.class);
     when(mockAssetTransfer.getAssetId()).thenReturn(assetId);
-    BurstIterator<AssetTransfer> mockAssetTransferIterator = mockBurstIterator(mockAssetTransfer);
+    Collection<AssetTransfer> mockAssetTransferIterator = mockCollection(mockAssetTransfer);
 
     when(mockParameterService.getAsset(eq(req))).thenReturn(mockAsset);
     when(mockParameterService.getAccount(eq(req))).thenReturn(mockAccount);

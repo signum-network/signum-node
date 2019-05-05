@@ -4,7 +4,8 @@ import brs.Alias;
 import brs.Alias.Offer;
 import brs.Attachment;
 import brs.Transaction;
-import brs.db.BurstIterator;
+
+import java.util.Collection;
 
 public interface AliasService {
 
@@ -16,7 +17,7 @@ public interface AliasService {
 
   long getAliasCount();
 
-  BurstIterator<Alias> getAliasesByOwner(long accountId, int from, int to);
+  Collection<Alias> getAliasesByOwner(long accountId, int from, int to);
 
   void addOrUpdateAlias(Transaction transaction, Attachment.MessagingAliasAssignment attachment);
 

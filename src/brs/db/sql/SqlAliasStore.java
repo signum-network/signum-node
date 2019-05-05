@@ -2,7 +2,6 @@ package brs.db.sql;
 
 import brs.Alias;
 import brs.Burst;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.AliasStore;
@@ -14,6 +13,7 @@ import org.jooq.SortField;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
@@ -136,7 +136,7 @@ public class SqlAliasStore implements AliasStore {
   private final VersionedEntityTable<Alias> aliasTable;
 
   @Override
-  public BurstIterator<Alias> getAliasesByOwner(long accountId, int from, int to) {
+  public Collection<Alias> getAliasesByOwner(long accountId, int from, int to) {
     return aliasTable.getManyBy(brs.schema.Tables.ALIAS.ACCOUNT_ID.eq(accountId), from, to);
   }
 

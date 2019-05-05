@@ -17,7 +17,7 @@ public class GetAssetsByIssuerHandler implements GrpcApiHandler<BrsApi.GetAccoun
     public BrsApi.Assets handleRequest(BrsApi.GetAccountRequest getAccountRequest) throws Exception {
         BrsApi.Assets.Builder builder = BrsApi.Assets.newBuilder();
         assetExchange.getAssetsIssuedBy(getAccountRequest.getAccountId(), 0, -1)
-                .forEachRemaining(asset -> builder.addAssets(ProtoBuilder.buildAsset(assetExchange, asset)));
+                .forEach(asset -> builder.addAssets(ProtoBuilder.buildAsset(assetExchange, asset)));
         return builder.build();
     }
 }

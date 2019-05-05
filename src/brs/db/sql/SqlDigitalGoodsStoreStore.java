@@ -3,7 +3,6 @@ package brs.db.sql;
 import brs.Burst;
 import brs.DigitalGoodsStore;
 import brs.crypto.EncryptedData;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.VersionedValuesTable;
@@ -18,6 +17,7 @@ import org.jooq.SortField;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static brs.schema.Tables.*;
@@ -155,7 +155,7 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
   }
 
   @Override
-  public BurstIterator<DigitalGoodsStore.Purchase> getExpiredPendingPurchases(final int timestamp) {
+  public Collection<DigitalGoodsStore.Purchase> getExpiredPendingPurchases(final int timestamp) {
     return getPurchaseTable().getManyBy(PURCHASE.DEADLINE.lt(timestamp).and(PURCHASE.PENDING.isTrue()), 0, -1);
   }
 
@@ -239,12 +239,12 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
   }
 
   @Override
-  public BurstIterator<DigitalGoodsStore.Goods> getGoodsInStock(int from, int to) {
+  public Collection<DigitalGoodsStore.Goods> getGoodsInStock(int from, int to) {
     return goodsTable.getManyBy(GOODS.DELISTED.isFalse().and(GOODS.QUANTITY.gt(0)), from, to);
   }
 
   @Override
-  public BurstIterator<DigitalGoodsStore.Goods> getSellerGoods(final long sellerId, final boolean inStockOnly, int from, int to) {
+  public Collection<DigitalGoodsStore.Goods> getSellerGoods(final long sellerId, final boolean inStockOnly, int from, int to) {
     List<SortField<?>> sort = new ArrayList<>();
     sort.add(GOODS.field("name", String.class).asc());
     sort.add(GOODS.field("timestamp", Integer.class).desc());
@@ -260,27 +260,27 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
   }
 
   @Override
-  public BurstIterator<DigitalGoodsStore.Purchase> getAllPurchases(int from, int to) {
+  public Collection<DigitalGoodsStore.Purchase> getAllPurchases(int from, int to) {
     return purchaseTable.getAll(from, to);
   }
 
   @Override
-  public BurstIterator<DigitalGoodsStore.Purchase> getSellerPurchases(long sellerId, int from, int to) {
+  public Collection<DigitalGoodsStore.Purchase> getSellerPurchases(long sellerId, int from, int to) {
     return purchaseTable.getManyBy(PURCHASE.SELLER_ID.eq(sellerId), from, to);
   }
 
   @Override
-  public BurstIterator<DigitalGoodsStore.Purchase> getBuyerPurchases(long buyerId, int from, int to) {
+  public Collection<DigitalGoodsStore.Purchase> getBuyerPurchases(long buyerId, int from, int to) {
     return purchaseTable.getManyBy(PURCHASE.BUYER_ID.eq(buyerId), from, to);
   }
 
   @Override
-  public BurstIterator<DigitalGoodsStore.Purchase> getSellerBuyerPurchases(final long sellerId, final long buyerId, int from, int to) {
+  public Collection<DigitalGoodsStore.Purchase> getSellerBuyerPurchases(final long sellerId, final long buyerId, int from, int to) {
     return purchaseTable.getManyBy(PURCHASE.SELLER_ID.eq(sellerId).and(PURCHASE.BUYER_ID.eq(buyerId)), from, to);
   }
 
   @Override
-  public BurstIterator<DigitalGoodsStore.Purchase> getPendingSellerPurchases(final long sellerId, int from, int to) {
+  public Collection<DigitalGoodsStore.Purchase> getPendingSellerPurchases(final long sellerId, int from, int to) {
     return purchaseTable.getManyBy(PURCHASE.SELLER_ID.eq(sellerId).and(PURCHASE.PENDING.isTrue()), from, to);
   }
 

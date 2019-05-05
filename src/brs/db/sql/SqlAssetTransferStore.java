@@ -1,7 +1,6 @@
 package brs.db.sql;
 
 import brs.AssetTransfer;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.store.AssetTransferStore;
 import brs.db.store.DerivedTableManager;
@@ -14,6 +13,7 @@ import org.jooq.SelectQuery;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
 
 import static brs.schema.Tables.ASSET_TRANSFER;
 
@@ -67,12 +67,12 @@ public class SqlAssetTransferStore implements AssetTransferStore {
     return transferDbKeyFactory;
   }
   @Override
-  public BurstIterator<AssetTransfer> getAssetTransfers(long assetId, int from, int to) {
+  public Collection<AssetTransfer> getAssetTransfers(long assetId, int from, int to) {
     return getAssetTransferTable().getManyBy(ASSET_TRANSFER.ASSET_ID.eq(assetId), from, to);
   }
 
   @Override
-  public BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, int from, int to) {
+  public Collection<AssetTransfer> getAccountAssetTransfers(long accountId, int from, int to) {
     DSLContext ctx = Db.getDSLContext();
 
     SelectQuery selectQuery = ctx
@@ -92,7 +92,7 @@ public class SqlAssetTransferStore implements AssetTransferStore {
   }
 
   @Override
-  public BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to) {
+  public Collection<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to) {
     DSLContext ctx = Db.getDSLContext();
 
     SelectQuery<AssetTransferRecord> selectQuery = ctx

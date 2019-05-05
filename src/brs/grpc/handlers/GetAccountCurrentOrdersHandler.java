@@ -26,11 +26,11 @@ public class GetAccountCurrentOrdersHandler implements GrpcApiHandler<BrsApi.Get
         switch (request.getOrderType()) {
             case ASK:
                 (assetId == 0 ? assetExchange.getAskOrdersByAccount(accountId, firstIndex, lastIndex) : assetExchange.getAskOrdersByAccountAsset(accountId, assetId, firstIndex, lastIndex))
-                        .forEachRemaining(order -> builder.addOrders(ProtoBuilder.buildOrder(order)));
+                        .forEach(order -> builder.addOrders(ProtoBuilder.buildOrder(order)));
                 break;
             case BID:
                 (assetId == 0 ? assetExchange.getBidOrdersByAccount(accountId, firstIndex, lastIndex) : assetExchange.getBidOrdersByAccountAsset(accountId, assetId, firstIndex, lastIndex))
-                        .forEachRemaining(order -> builder.addOrders(ProtoBuilder.buildOrder(order)));
+                        .forEach(order -> builder.addOrders(ProtoBuilder.buildOrder(order)));
                 break;
             default:
                 throw new ApiException("Order Type not set");

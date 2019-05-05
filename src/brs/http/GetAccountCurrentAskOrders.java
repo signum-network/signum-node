@@ -3,7 +3,6 @@ package brs.http;
 import brs.BurstException;
 import brs.Order;
 import brs.assetexchange.AssetExchange;
-import brs.db.BurstIterator;
 import brs.services.ParameterService;
 import brs.util.Convert;
 import com.google.gson.JsonArray;
@@ -11,6 +10,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
+
+import java.util.Collection;
+import java.util.Iterator;
 
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.ASK_ORDERS_RESPONSE;
@@ -39,19 +41,15 @@ public final class GetAccountCurrentAskOrders extends APIServlet.APIRequestHandl
     int firstIndex = ParameterParser.getFirstIndex(req);
     int lastIndex = ParameterParser.getLastIndex(req);
 
-    BurstIterator<Order.Ask> askOrders;
+    Iterator<Order.Ask> askOrders;
     if (assetId == 0) {
-      askOrders = assetExchange.getAskOrdersByAccount(accountId, firstIndex, lastIndex);
+      askOrders = assetExchange.getAskOrdersByAccount(accountId, firstIndex, lastIndex).iterator();
     } else {
-      askOrders = assetExchange.getAskOrdersByAccountAsset(accountId, assetId, firstIndex, lastIndex);
+      askOrders = assetExchange.getAskOrdersByAccountAsset(accountId, assetId, firstIndex, lastIndex).iterator();
     }
     JsonArray orders = new JsonArray();
-    try {
-      while (askOrders.hasNext()) {
-        orders.add(JSONData.askOrder(askOrders.next()));
-      }
-    } finally {
-      askOrders.close();
+    while (askOrders.hasNext()) {
+      orders.add(JSONData.askOrder(askOrders.next()));
     }
     JsonObject response = new JsonObject();
     response.add(ASK_ORDERS_RESPONSE, orders);

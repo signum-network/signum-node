@@ -1,6 +1,5 @@
 package brs.db.sql;
 
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedBatchEntityTable;
 import brs.db.cache.DBCacheManagerImpl;
@@ -118,55 +117,55 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
   }
 
   @Override
-  public BurstIterator<T> getManyBy(Condition condition, int from, int to) {
+  public Collection<T> getManyBy(Condition condition, int from, int to) {
     assertInTransaction();
     return super.getManyBy(condition, from, to);
   }
 
   @Override
-  public BurstIterator<T> getManyBy(Condition condition, int from, int to, List<SortField<?>> sort) {
+  public Collection<T> getManyBy(Condition condition, int from, int to, List<SortField<?>> sort) {
     assertInTransaction();
     return super.getManyBy(condition, from, to, sort);
   }
 
   @Override
-  public BurstIterator<T> getManyBy(Condition condition, int height, int from, int to) {
+  public Collection<T> getManyBy(Condition condition, int height, int from, int to) {
     assertInTransaction();
     return super.getManyBy(condition, height, from, to);
   }
 
   @Override
-  public BurstIterator<T> getManyBy(Condition condition, int height, int from, int to, List<SortField<?>> sort) {
+  public Collection<T> getManyBy(Condition condition, int height, int from, int to, List<SortField<?>> sort) {
     assertInTransaction();
     return super.getManyBy(condition, height, from, to, sort);
   }
 
   @Override
-  public BurstIterator<T> getManyBy(DSLContext ctx, SelectQuery<? extends Record> query, boolean cache) {
+  public Collection<T> getManyBy(DSLContext ctx, SelectQuery<? extends Record> query, boolean cache) {
     assertInTransaction();
     return super.getManyBy(ctx, query, cache);
   }
 
   @Override
-  public BurstIterator<T> getAll(int from, int to) {
+  public Collection<T> getAll(int from, int to) {
     assertInTransaction();
     return super.getAll(from, to);
   }
 
   @Override
-  public BurstIterator<T> getAll(int from, int to, List<SortField<?>> sort) {
+  public Collection<T> getAll(int from, int to, List<SortField<?>> sort) {
     assertInTransaction();
     return super.getAll(from, to, sort);
   }
 
   @Override
-  public BurstIterator<T> getAll(int height, int from, int to) {
+  public Collection<T> getAll(int height, int from, int to) {
     assertInTransaction();
     return super.getAll(height, from, to);
   }
 
   @Override
-  public BurstIterator<T> getAll(int height, int from, int to, List<SortField<?>> sort) {
+  public Collection<T> getAll(int height, int from, int to, List<SortField<?>> sort) {
     assertInTransaction();
     return super.getAll(height, from, to, sort);
   }

@@ -2,7 +2,6 @@ package brs.db.sql;
 
 import brs.Asset;
 import brs.Burst;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.store.AssetStore;
 import brs.db.store.DerivedTableManager;
@@ -11,6 +10,7 @@ import org.jooq.Record;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
 
 import static brs.schema.tables.Asset.ASSET;
 
@@ -63,7 +63,7 @@ public class SqlAssetStore implements AssetStore {
   }
 
   @Override
-  public BurstIterator<Asset> getAssetsIssuedBy(long accountId, int from, int to) {
+  public Collection<Asset> getAssetsIssuedBy(long accountId, int from, int to) {
     return assetTable.getManyBy(ASSET.ACCOUNT_ID.eq(accountId), from, to);
   }
 

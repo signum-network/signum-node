@@ -8,7 +8,7 @@ import brs.Escrow.DecisionType;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.db.BurstIterator;
+import java.util.Collection;
 import brs.services.EscrowService;
 import brs.services.ParameterService;
 import brs.util.JSON;
@@ -80,7 +80,7 @@ public class GetAccountEscrowTransactionsTest extends AbstractUnitTest {
     when(escrow.getRecipientId()).thenReturn(5L);
     when(escrow.getSenderId()).thenReturn(6L);
 
-    final BurstIterator<Decision> decisionsIterator = mockBurstIterator(decision, skippedDecision, otherSkippedDecision);
+    final Collection<Decision> decisionsIterator = mockCollection(decision, skippedDecision, otherSkippedDecision);
     when(escrow.getDecisions()).thenReturn(decisionsIterator);
 
     final Collection<Escrow> escrowCollection = Arrays.asList(escrow);

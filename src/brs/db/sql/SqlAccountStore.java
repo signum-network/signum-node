@@ -3,7 +3,6 @@ package brs.db.sql;
 import brs.Account;
 import brs.Burst;
 import brs.db.BurstIterator;
-import brs.db.BurstKey;
 import brs.db.VersionedBatchEntityTable;
 import brs.db.VersionedEntityTable;
 import brs.db.cache.DBCacheManagerImpl;
@@ -17,20 +16,19 @@ import org.slf4j.LoggerFactory;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static brs.schema.Tables.*;
 
 public class SqlAccountStore implements AccountStore {
 
-  private static final DbKey.LongKeyFactory<Account> accountDbKeyFactory = new DbKey.LongKeyFactory<Account>("id") {
+  private static final DbKey.LongKeyFactory<Account> accountDbKeyFactory = new DbKey.LongKeyFactory<Account>(ACCOUNT.ID) {
       @Override
       public DbKey newKey(Account account) {
         return (DbKey) account.nxtKey;
       }
     };
   private static final DbKey.LongKeyFactory<Account.RewardRecipientAssignment> rewardRecipientAssignmentDbKeyFactory
-    = new DbKey.LongKeyFactory<Account.RewardRecipientAssignment>("account_id") {
+    = new DbKey.LongKeyFactory<Account.RewardRecipientAssignment>(REWARD_RECIP_ASSIGN.ACCOUNT_ID) {
         @Override
         public DbKey newKey(Account.RewardRecipientAssignment assignment) {
           return (DbKey) assignment.burstKey;
@@ -49,7 +47,7 @@ public class SqlAccountStore implements AccountStore {
     rewardRecipientAssignmentTable = new VersionedEntitySqlTable<Account.RewardRecipientAssignment>("reward_recip_assign", brs.schema.Tables.REWARD_RECIP_ASSIGN, rewardRecipientAssignmentDbKeyFactory, derivedTableManager) {
 
       @Override
-      protected Account.RewardRecipientAssignment load(DSLContext ctx, ResultSet rs) throws SQLException {
+      protected Account.RewardRecipientAssignment load(DSLContext ctx, Record rs) {
         return new SqlRewardRecipientAssignment(rs);
       }
 
@@ -74,7 +72,7 @@ public class SqlAccountStore implements AccountStore {
       }
 
       @Override
-      protected Account.AccountAsset load(DSLContext ctx, ResultSet rs) throws SQLException {
+      protected Account.AccountAsset load(DSLContext ctx, Record rs) {
         return new SQLAccountAsset(rs);
       }
 
@@ -94,7 +92,7 @@ public class SqlAccountStore implements AccountStore {
 
     accountTable = new VersionedBatchEntitySqlTable<Account>("account", brs.schema.Tables.ACCOUNT, accountDbKeyFactory, derivedTableManager, dbCacheManager, Account.class) {
       @Override
-      protected Account load(DSLContext ctx, ResultSet rs) throws SQLException {
+      protected Account load(DSLContext ctx, Record rs) {
         return new SqlAccount(rs);
       }
 
@@ -122,10 +120,7 @@ public class SqlAccountStore implements AccountStore {
                   .where(ACCOUNT.LATEST.isTrue())
                   .and(ACCOUNT.ID.in(ids))
                   .fetch()) {
-            try {
-              getCache().put(accountDbKeyFactory.newKey(account.getId()), new SqlAccount(account.intoResultSet()));
-            } catch (SQLException ignored) {
-            }
+            getCache().put(accountDbKeyFactory.newKey(account.getId()), new SqlAccount(account));
           }
         }
       }
@@ -242,39 +237,39 @@ public class SqlAccountStore implements AccountStore {
   }
 
   static class SQLAccountAsset extends Account.AccountAsset {
-    SQLAccountAsset(ResultSet rs) throws SQLException {
-      super(rs.getLong("account_id"),
-            rs.getLong("asset_id"),
-            rs.getLong("quantity"),
-            rs.getLong("unconfirmed_quantity"),
-            accountAssetDbKeyFactory.newKey(rs.getLong("account_id"), rs.getLong("asset_id"))
+    SQLAccountAsset(Record rs) {
+      super(rs.get(ACCOUNT_ASSET.ACCOUNT_ID),
+            rs.get(ACCOUNT_ASSET.ASSET_ID),
+            rs.get(ACCOUNT_ASSET.QUANTITY),
+            rs.get(ACCOUNT_ASSET.QUANTITY),
+            accountAssetDbKeyFactory.newKey(rs.get(ACCOUNT_ASSET.ACCOUNT_ID), rs.get(ACCOUNT_ASSET.ASSET_ID))
             );
     }
   }
 
   class SqlAccount extends Account {
-    SqlAccount(ResultSet rs) throws SQLException {
-      super(rs.getLong("id"), accountDbKeyFactory.newKey(rs.getLong("id")),
-            rs.getInt("creation_height"));
-      this.setPublicKey(rs.getBytes("public_key"));
-      this.setKeyHeight(rs.getInt("key_height"));
-      this.balanceNQT = rs.getLong("balance");
-      this.unconfirmedBalanceNQT = rs.getLong("unconfirmed_balance");
-      this.forgedBalanceNQT = rs.getLong("forged_balance");
-      this.name = rs.getString("name");
-      this.description = rs.getString("description");
+    SqlAccount(Record record) {
+      super(record.get(ACCOUNT.ID), accountDbKeyFactory.newKey(record.get(ACCOUNT.ID)),
+            record.get(ACCOUNT.CREATION_HEIGHT));
+      this.setPublicKey(record.get(ACCOUNT.PUBLIC_KEY));
+      this.setKeyHeight(record.get(ACCOUNT.KEY_HEIGHT));
+      this.balanceNQT = record.get(ACCOUNT.BALANCE);
+      this.unconfirmedBalanceNQT = record.get(ACCOUNT.UNCONFIRMED_BALANCE);
+      this.forgedBalanceNQT = record.get(ACCOUNT.FORGED_BALANCE);
+      this.name = record.get(ACCOUNT.NAME);
+      this.description = record.get(ACCOUNT.DESCRIPTION);
     }
   }
 
   class SqlRewardRecipientAssignment extends Account.RewardRecipientAssignment {
-    SqlRewardRecipientAssignment(ResultSet rs) throws SQLException {
+    SqlRewardRecipientAssignment(Record record) {
       super(
-            rs.getLong("account_id"),
-            rs.getLong("prev_recip_id"),
-            rs.getLong("recip_id"),
-            (int) rs.getLong("from_height"),
-            rewardRecipientAssignmentDbKeyFactory.newKey(rs.getLong("account_id"))
-            );
+              record.get(REWARD_RECIP_ASSIGN.ACCOUNT_ID),
+              record.get(REWARD_RECIP_ASSIGN.PREV_RECIP_ID),
+              record.get(REWARD_RECIP_ASSIGN.RECIP_ID),
+              record.get(REWARD_RECIP_ASSIGN.FROM_HEIGHT),
+              rewardRecipientAssignmentDbKeyFactory.newKey(record.get(REWARD_RECIP_ASSIGN.ACCOUNT_ID))
+      );
     }
   }
 

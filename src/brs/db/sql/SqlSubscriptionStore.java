@@ -9,6 +9,7 @@ import brs.db.store.DerivedTableManager;
 import brs.db.store.SubscriptionStore;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Record;
 import org.jooq.SortField;
 
 import java.sql.ResultSet;
@@ -20,7 +21,7 @@ import static brs.schema.Tables.SUBSCRIPTION;
 
 public class SqlSubscriptionStore implements SubscriptionStore {
 
-  private final BurstKey.LongKeyFactory<Subscription> subscriptionDbKeyFactory = new DbKey.LongKeyFactory<Subscription>("id") {
+  private final BurstKey.LongKeyFactory<Subscription> subscriptionDbKeyFactory = new DbKey.LongKeyFactory<Subscription>(SUBSCRIPTION.ID) {
       @Override
       public BurstKey newKey(Subscription subscription) {
         return subscription.dbKey;
@@ -32,7 +33,7 @@ public class SqlSubscriptionStore implements SubscriptionStore {
   public SqlSubscriptionStore(DerivedTableManager derivedTableManager) {
     subscriptionTable = new VersionedEntitySqlTable<Subscription>("subscription", brs.schema.Tables.SUBSCRIPTION, subscriptionDbKeyFactory, derivedTableManager) {
       @Override
-      protected Subscription load(DSLContext ctx, ResultSet rs) throws SQLException {
+      protected Subscription load(DSLContext ctx, Record rs) {
         return new SqlSubscription(rs);
       }
 
@@ -97,15 +98,15 @@ public class SqlSubscriptionStore implements SubscriptionStore {
   }
 
   private class SqlSubscription extends Subscription {
-    SqlSubscription(ResultSet rs) throws SQLException {
+    SqlSubscription(Record record) {
       super(
-            rs.getLong("sender_id"),
-            rs.getLong("recipient_id"),
-            rs.getLong("id"),
-            rs.getLong("amount"),
-            rs.getInt("frequency"),
-            rs.getInt("time_next"),
-            subscriptionDbKeyFactory.newKey(rs.getLong("id"))
+            record.get(SUBSCRIPTION.SENDER_ID),
+            record.get(SUBSCRIPTION.RECIPIENT_ID),
+            record.get(SUBSCRIPTION.ID),
+            record.get(SUBSCRIPTION.AMOUNT),
+            record.get(SUBSCRIPTION.FREQUENCY),
+            record.get(SUBSCRIPTION.TIME_NEXT),
+            subscriptionDbKeyFactory.newKey(record.get(SUBSCRIPTION.ID))
             );
     }
   }

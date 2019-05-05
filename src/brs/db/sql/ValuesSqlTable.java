@@ -3,13 +3,11 @@ package brs.db.sql;
 import brs.db.BurstKey;
 import brs.db.ValuesTable;
 import brs.db.store.DerivedTableManager;
-import org.jooq.*;
+import org.jooq.DSLContext;
+import org.jooq.Record;
 import org.jooq.impl.DSL;
 import org.jooq.impl.TableImpl;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements ValuesTable<T, V> {
@@ -27,7 +25,7 @@ public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements Val
     this.multiversion = multiversion;
   }
 
-  protected abstract V load(DSLContext ctx, ResultSet rs) throws SQLException;
+  protected abstract V load(DSLContext ctx, Record record);
 
   protected abstract void save(DSLContext ctx, T t, V v);
 
@@ -43,27 +41,15 @@ public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements Val
       }
     }
     DSLContext ctx = Db.getDSLContext();
-    values = get(ctx, ctx.selectFrom(tableClass)
+    values = ctx.selectFrom(tableClass)
             .where(dbKey.getPKConditions(tableClass))
             .and(multiversion ? latestField.isTrue() : DSL.noCondition())
             .orderBy(tableClass.field("db_id").desc())
-            .fetchResultSet());
+            .fetch(record -> load(ctx, record));
     if (Db.isInTransaction()) {
       Db.getCache(table).put(dbKey, values);
     }
     return values;
-  }
-
-  private List<V> get(DSLContext ctx, ResultSet rs) {
-    try {
-      List<V> result = new ArrayList<>();
-      while (rs.next()) {
-        result.add(load(ctx, rs));
-      }
-      return result;
-    } catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
   }
 
   @Override

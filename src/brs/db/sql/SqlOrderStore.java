@@ -7,7 +7,10 @@ import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.OrderStore;
+import brs.schema.tables.records.AskOrderRecord;
+import brs.schema.tables.records.BidOrderRecord;
 import org.jooq.DSLContext;
+import org.jooq.Record;
 import org.jooq.SelectQuery;
 import org.jooq.SortField;
 
@@ -20,7 +23,7 @@ import static brs.schema.tables.AskOrder.ASK_ORDER;
 import static brs.schema.tables.BidOrder.BID_ORDER;
 
 public class SqlOrderStore implements OrderStore {
-  private final DbKey.LongKeyFactory<Order.Ask> askOrderDbKeyFactory = new DbKey.LongKeyFactory<Order.Ask>("id") {
+  private final DbKey.LongKeyFactory<Order.Ask> askOrderDbKeyFactory = new DbKey.LongKeyFactory<Order.Ask>(ASK_ORDER.ID) {
 
       @Override
       public BurstKey newKey(Order.Ask ask) {
@@ -33,8 +36,8 @@ public class SqlOrderStore implements OrderStore {
   public SqlOrderStore(DerivedTableManager derivedTableManager) {
     askOrderTable = new VersionedEntitySqlTable<Order.Ask>("ask_order", brs.schema.Tables.ASK_ORDER, askOrderDbKeyFactory, derivedTableManager) {
       @Override
-      protected Order.Ask load(DSLContext ctx, ResultSet rs) throws SQLException {
-        return new SqlAsk(rs);
+      protected Order.Ask load(DSLContext ctx, Record record) {
+        return new SqlAsk(record);
       }
 
       @Override
@@ -53,7 +56,7 @@ public class SqlOrderStore implements OrderStore {
     bidOrderTable = new VersionedEntitySqlTable<Order.Bid>("bid_order", brs.schema.Tables.BID_ORDER, bidOrderDbKeyFactory, derivedTableManager) {
 
       @Override
-      protected Order.Bid load(DSLContext ctx, ResultSet rs) throws SQLException {
+      protected Order.Bid load(DSLContext ctx, Record rs) {
         return new SqlBid(rs);
       }
 
@@ -73,7 +76,7 @@ public class SqlOrderStore implements OrderStore {
 
   }
 
-  private final DbKey.LongKeyFactory<Order.Bid> bidOrderDbKeyFactory = new DbKey.LongKeyFactory<Order.Bid>("id") {
+  private final DbKey.LongKeyFactory<Order.Bid> bidOrderDbKeyFactory = new DbKey.LongKeyFactory<Order.Bid>(BID_ORDER.ID) {
 
       @Override
       public BurstKey newKey(Order.Bid bid) {
@@ -111,7 +114,7 @@ public class SqlOrderStore implements OrderStore {
   @Override
   public Order.Ask getNextOrder(long assetId) {
     DSLContext ctx = Db.getDSLContext();
-    SelectQuery query = ctx.selectFrom(brs.schema.Tables.ASK_ORDER).where(
+    SelectQuery<AskOrderRecord> query = ctx.selectFrom(brs.schema.Tables.ASK_ORDER).where(
       brs.schema.Tables.ASK_ORDER.ASSET_ID.eq(assetId).and(brs.schema.Tables.ASK_ORDER.LATEST.isTrue())
     ).orderBy(
       brs.schema.Tables.ASK_ORDER.PRICE.asc(),
@@ -193,7 +196,7 @@ public class SqlOrderStore implements OrderStore {
   @Override
   public Order.Bid getNextBid(long assetId) {
     DSLContext ctx = Db.getDSLContext();
-    SelectQuery query = ctx.selectFrom(brs.schema.Tables.BID_ORDER).where(
+    SelectQuery<BidOrderRecord> query = ctx.selectFrom(brs.schema.Tables.BID_ORDER).where(
       brs.schema.Tables.BID_ORDER.ASSET_ID.eq(assetId).and(brs.schema.Tables.BID_ORDER.LATEST.isTrue())
     ).orderBy(
       brs.schema.Tables.BID_ORDER.PRICE.desc(),
@@ -213,29 +216,29 @@ public class SqlOrderStore implements OrderStore {
   }
 
   class SqlAsk extends Order.Ask {
-    private SqlAsk(ResultSet rs) throws SQLException {
+    private SqlAsk(Record record) {
       super(
-            rs.getLong("id"),
-            rs.getLong("account_id"),
-            rs.getLong("asset_id"),
-            rs.getLong("price"),
-            rs.getInt("creation_height"),
-            rs.getLong("quantity"),
-            askOrderDbKeyFactory.newKey(rs.getLong("id"))
+            record.get(ASK_ORDER.ID),
+            record.get(ASK_ORDER.ACCOUNT_ID),
+            record.get(ASK_ORDER.ASSET_ID),
+            record.get(ASK_ORDER.PRICE),
+            record.get(ASK_ORDER.CREATION_HEIGHT),
+            record.get(ASK_ORDER.QUANTITY),
+            askOrderDbKeyFactory.newKey(record.get(ASK_ORDER.ID))
             );
     }
   }
 
   class SqlBid extends Order.Bid {
-    private SqlBid(ResultSet rs) throws SQLException {
+    private SqlBid(Record record) {
       super(
-            rs.getLong("id"),
-            rs.getLong("account_id"),
-            rs.getLong("asset_id"),
-            rs.getLong("price"),
-            rs.getInt("creation_height"),
-            rs.getLong("quantity"),
-            bidOrderDbKeyFactory.newKey(rs.getLong("id"))
+            record.get(BID_ORDER.ID),
+            record.get(BID_ORDER.ACCOUNT_ID),
+            record.get(BID_ORDER.ASSET_ID),
+            record.get(BID_ORDER.PRICE),
+            record.get(BID_ORDER.CREATION_HEIGHT),
+            record.get(BID_ORDER.QUANTITY),
+            bidOrderDbKeyFactory.newKey(record.get(BID_ORDER.ID))
             );
     }
 

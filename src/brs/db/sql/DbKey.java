@@ -2,13 +2,8 @@ package brs.db.sql;
 
 import brs.db.BurstKey;
 import brs.util.StringUtils;
-import org.jooq.Condition;
-import org.jooq.Record;
-import org.jooq.SelectQuery;
-import org.jooq.Table;
+import org.jooq.*;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 
 public interface DbKey extends BurstKey {
@@ -29,7 +24,7 @@ public interface DbKey extends BurstKey {
 
     public abstract BurstKey newKey(T t);
 
-    public abstract BurstKey newKey(ResultSet rs);
+    public abstract BurstKey newKey(Record rs);
 
     public final String getPKClause() {
       return pkClause;
@@ -58,33 +53,30 @@ public interface DbKey extends BurstKey {
 
   abstract class LongKeyFactory<T> extends Factory<T> implements BurstKey.LongKeyFactory<T> {
 
-    private final String idColumn;
+    private final Field<Long> idColumn;
 
-    public LongKeyFactory(String idColumn) {
-      super(" WHERE " + idColumn + " = ? ",
-            new String[] {idColumn},
-            " a." + idColumn + " = b." + idColumn + " ");
+    public LongKeyFactory(Field<Long> idColumn) {
+      super(" WHERE " + idColumn.getName() + " = ? ",
+            new String[] {idColumn.getName()},
+            " a." + idColumn.getName() + " = b." + idColumn.getName() + " ");
       this.idColumn = idColumn;
     }
 
     @Override
-    public BurstKey newKey(ResultSet rs) {
-      try {
-        return new LongKey(rs.getLong(idColumn), idColumn);
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
+    public BurstKey newKey(Record record) {
+      Long result = record.get(idColumn);
+      return new LongKey(result, idColumn.getName());
     }
 
     public BurstKey newKey(long id) {
-      return new LongKey(id, idColumn);
+      return new LongKey(id, idColumn.getName());
     }
 
     @Override
     public void applySelfJoin(SelectQuery<Record> query, Table<?> queryTable, Table<?> otherTable) {
       query.addConditions(
-        queryTable.field(idColumn, Long.class).eq(
-          otherTable.field(idColumn, Long.class)
+        queryTable.field(idColumn.getName(), Long.class).eq(
+          otherTable.field(idColumn.getName(), Long.class)
         )
       );
     }
@@ -104,15 +96,11 @@ public interface DbKey extends BurstKey {
     }
 
     @Override
-    public BurstKey newKey(ResultSet rs) {
-      try {
-        return new LinkKey(rs.getLong(idColumnA), rs.getLong(idColumnB), idColumnA, idColumnB);
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
+    public DbKey newKey(Record rs) {
+      return new LinkKey(rs.get(idColumnA, Long.class), rs.get(idColumnB, Long.class), idColumnA, idColumnB);
     }
 
-    public BurstKey newKey(long idA, long idB) {
+    public DbKey newKey(long idA, long idB) {
       return new LinkKey(idA, idB, idColumnA, idColumnB);
     }
 
@@ -202,5 +190,4 @@ public interface DbKey extends BurstKey {
       return conditions;
     }
   }
-
 }

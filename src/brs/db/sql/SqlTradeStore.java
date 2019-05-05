@@ -5,7 +5,9 @@ import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.TradeStore;
+import brs.schema.tables.records.TradeRecord;
 import org.jooq.DSLContext;
+import org.jooq.Record;
 import org.jooq.SelectQuery;
 
 import java.sql.ResultSet;
@@ -29,8 +31,8 @@ public class SqlTradeStore implements TradeStore {
     tradeTable = new EntitySqlTable<Trade>("trade", TRADE, tradeDbKeyFactory, derivedTableManager) {
 
       @Override
-      protected Trade load(DSLContext ctx, ResultSet rs) throws SQLException {
-        return new SqlTrade(rs);
+      protected Trade load(DSLContext ctx, Record record) {
+        return new SqlTrade(record);
       }
 
       @Override
@@ -55,7 +57,7 @@ public class SqlTradeStore implements TradeStore {
   public BurstIterator<Trade> getAccountTrades(long accountId, int from, int to) {
     DSLContext ctx = Db.getDSLContext();
 
-    SelectQuery selectQuery = ctx
+    SelectQuery<TradeRecord> selectQuery = ctx
       .selectFrom(TRADE).where(
         TRADE.SELLER_ID.eq(accountId)
       )
@@ -77,7 +79,7 @@ public class SqlTradeStore implements TradeStore {
   public BurstIterator<Trade> getAccountAssetTrades(long accountId, long assetId, int from, int to) {
     DSLContext ctx = Db.getDSLContext();
 
-    SelectQuery selectQuery = ctx
+    SelectQuery<TradeRecord> selectQuery = ctx
       .selectFrom(TRADE).where(
         TRADE.SELLER_ID.eq(accountId).and(TRADE.ASSET_ID.eq(assetId))
       )
@@ -125,21 +127,21 @@ public class SqlTradeStore implements TradeStore {
 
   private class SqlTrade extends Trade {
 
-    private SqlTrade(ResultSet rs) throws SQLException {
+    private SqlTrade(Record record) {
       super(
-            rs.getInt("timestamp"),
-            rs.getLong("asset_id"),
-            rs.getLong("block_id"),
-            rs.getInt("height"),
-            rs.getLong("ask_order_id"),
-            rs.getLong("bid_order_id"),
-            rs.getInt("ask_order_height"),
-            rs.getInt("bid_order_height"),
-            rs.getLong("seller_id"),
-            rs.getLong("buyer_id"),
-            tradeDbKeyFactory.newKey(rs.getLong("ask_order_id"), rs.getLong("bid_order_id")),
-            rs.getLong("quantity"),
-            rs.getLong("price")
+            record.get(TRADE.TIMESTAMP),
+            record.get(TRADE.ASSET_ID),
+            record.get(TRADE.BLOCK_ID),
+            record.get(TRADE.HEIGHT),
+            record.get(TRADE.ASK_ORDER_ID),
+            record.get(TRADE.BID_ORDER_ID),
+            record.get(TRADE.ASK_ORDER_HEIGHT),
+            record.get(TRADE.BID_ORDER_HEIGHT),
+            record.get(TRADE.SELLER_ID),
+            record.get(TRADE.BUYER_ID),
+            tradeDbKeyFactory.newKey(record.get(TRADE.ASK_ORDER_ID), record.get(TRADE.BID_ORDER_ID)),
+            record.get(TRADE.QUANTITY),
+            record.get(TRADE.PRICE)
             );
     }
   }

@@ -26,7 +26,7 @@ public class SqlATStore implements ATStore {
 
   private static final Logger logger = LoggerFactory.getLogger(DbUtils.class);
 
-  private final BurstKey.LongKeyFactory<brs.AT> atDbKeyFactory = new DbKey.LongKeyFactory<brs.AT>("id") {
+  private final BurstKey.LongKeyFactory<brs.AT> atDbKeyFactory = new DbKey.LongKeyFactory<brs.AT>(AT.ID) {
       @Override
       public BurstKey newKey(brs.AT at) {
         return at.dbKey;
@@ -34,7 +34,7 @@ public class SqlATStore implements ATStore {
     };
   private final VersionedEntityTable<brs.AT> atTable;
 
-  private final BurstKey.LongKeyFactory<brs.AT.ATState> atStateDbKeyFactory = new DbKey.LongKeyFactory<brs.AT.ATState>("at_id") {
+  private final BurstKey.LongKeyFactory<brs.AT.ATState> atStateDbKeyFactory = new DbKey.LongKeyFactory<brs.AT.ATState>(AT_STATE.AT_ID) {
       @Override
       public BurstKey newKey(brs.AT.ATState atState) {
         return atState.dbKey;
@@ -46,7 +46,7 @@ public class SqlATStore implements ATStore {
   public SqlATStore(DerivedTableManager derivedTableManager) {
     atTable = new VersionedEntitySqlTable<brs.AT>("at", brs.schema.Tables.AT, atDbKeyFactory, derivedTableManager) {
       @Override
-      protected brs.AT load(DSLContext ctx, ResultSet rs) {
+      protected brs.AT load(DSLContext ctx, Record rs) {
         //return new AT(rs);
         throw new RuntimeException("AT attempted to be created with atTable.load");
       }
@@ -66,7 +66,7 @@ public class SqlATStore implements ATStore {
 
     atStateTable = new VersionedEntitySqlTable<brs.AT.ATState>("at_state", brs.schema.Tables.AT_STATE, atStateDbKeyFactory, derivedTableManager) {
       @Override
-      protected brs.AT.ATState load(DSLContext ctx, ResultSet rs) throws SQLException {
+      protected brs.AT.ATState load(DSLContext ctx, Record rs) {
         return new SqlATState(rs);
       }
 
@@ -199,8 +199,8 @@ public class SqlATStore implements ATStore {
 
   @Override
   public Long findTransaction(int startHeight, int endHeight, Long atID, int numOfTx, long minAmount) {
-    try ( DSLContext ctx = Db.getDSLContext() ) {
-      SelectQuery query = ctx.select(TRANSACTION.ID).from(TRANSACTION).where(
+    try (DSLContext ctx = Db.getDSLContext()) {
+      SelectQuery<Record1<Long>> query = ctx.select(TRANSACTION.ID).from(TRANSACTION).where(
         TRANSACTION.HEIGHT.between(startHeight, endHeight - 1)
       ).and(
         TRANSACTION.RECIPIENT_ID.eq(atID)
@@ -210,51 +210,41 @@ public class SqlATStore implements ATStore {
         TRANSACTION.HEIGHT, TRANSACTION.ID
       ).getQuery();
       DbUtils.applyLimits(query, numOfTx, numOfTx + 1);
-      try ( ResultSet rs = query.fetchResultSet() ) {
-        return rs.next() ? rs.getLong(1) : 0L;
-      }
-    }
-    catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
+      Result<Record1<Long>> result = query.fetch();
+      return result.isEmpty() ? 0L : result.get(0).get(TRANSACTION.ID);
     }
   }
 
   @Override
   public int findTransactionHeight(Long transactionId, int height, Long atID, long minAmount) {
-
-    DSLContext ctx = Db.getDSLContext();
-    try (Cursor<Record1<Long>> cursor = ctx.select(TRANSACTION.ID)
-            .from(TRANSACTION)
-            .where(TRANSACTION.HEIGHT.eq(height))
-            .and(TRANSACTION.RECIPIENT_ID.eq(atID))
-            .and(TRANSACTION.AMOUNT.greaterOrEqual(minAmount))
-            .orderBy(TRANSACTION.HEIGHT, TRANSACTION.ID)
-            .fetchLazy()) {
-
-      int counter = 0;
-      while (cursor.hasNext()) {
-        counter++;
-        long currentTransactionId = cursor.fetchNext().getValue(TRANSACTION.ID);
-        if (currentTransactionId == transactionId) {
-          break;
-        }
+    try (DSLContext ctx = Db.getDSLContext()) {
+      Result<Record1<Long>> fetch = ctx.select(TRANSACTION.ID)
+              .from(TRANSACTION)
+              .where(TRANSACTION.HEIGHT.eq(height))
+              .and(TRANSACTION.RECIPIENT_ID.eq(atID))
+              .and(TRANSACTION.AMOUNT.greaterOrEqual(minAmount))
+              .orderBy(TRANSACTION.HEIGHT, TRANSACTION.ID)
+              .fetch();
+      for (int i = 0; i < fetch.size(); i++) {
+        long currentTransactionId = fetch.get(i).get(TRANSACTION.ID);
+        if (currentTransactionId == transactionId) return i;
       }
-      return counter;
+      return fetch.size();
     } catch (DataAccessException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }
 
   class SqlATState extends brs.AT.ATState {
-    private SqlATState(ResultSet rs) throws SQLException {
+    private SqlATState(Record record) {
       super(
-            rs.getLong("at_id"),
-            rs.getBytes("state"),
-            rs.getInt("next_height"),
-            rs.getInt("sleep_between"),
-            rs.getLong("prev_balance"),
-            rs.getBoolean("freeze_when_same_balance"),
-            rs.getLong("min_activate_amount")
+            record.get(AT_STATE.AT_ID),
+            record.get(AT_STATE.STATE),
+            record.get(AT_STATE.NEXT_HEIGHT),
+            record.get(AT_STATE.SLEEP_BETWEEN),
+            record.get(AT_STATE.PREV_BALANCE),
+            record.get(AT_STATE.FREEZE_WHEN_SAME_BALANCE),
+            record.get(AT_STATE.MIN_ACTIVATE_AMOUNT)
             );
     }
   }

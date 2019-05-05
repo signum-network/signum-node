@@ -17,8 +17,6 @@ public interface TransactionDb {
 
   Transaction loadTransaction(TransactionRecord transactionRecord) throws BurstException.ValidationException;
 
-  Transaction loadTransaction(DSLContext ctx, ResultSet rs) throws BurstException.ValidationException;
-
   List<Transaction> findBlockTransactions(long blockId);
 
   void saveTransactions(List<Transaction> transactions);

@@ -16,6 +16,6 @@ public abstract class VersionedValuesSqlTable<T, V> extends ValuesSqlTable<T, V>
 
   @Override
   public final void trim(int height) {
-    VersionedEntitySqlTable.trim(table, tableClass, heightField, height, dbKeyFactory);
+    VersionedEntitySqlTable.trim(tableClass, heightField, height, dbKeyFactory);
   }
 }

@@ -4,6 +4,7 @@ import brs.Burst;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.EntityTable;
+import brs.db.IterableBurstIterator;
 import brs.db.store.DerivedTableManager;
 import org.jooq.*;
 import org.jooq.impl.DSL;
@@ -12,6 +13,7 @@ import org.jooq.impl.TableImpl;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -46,7 +48,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     return Db.getCache(table);
   }
 
-  protected abstract T load(DSLContext ctx, ResultSet rs) throws SQLException;
+  protected abstract T load(DSLContext ctx, Record rs);
 
   void save(DSLContext ctx, T t) {
   }
@@ -88,9 +90,6 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
 
       return get(ctx, query, true);
     }
-    catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
   }
 
   @Override
@@ -119,9 +118,6 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
 
       return get(ctx, query, false);
     }
-    catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
   }
 
   @Override
@@ -136,9 +132,6 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
       query.addLimit(1);
 
       return get(ctx, query, true);
-    }
-    catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
     }
   }
 
@@ -167,34 +160,25 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
 
       return get(ctx, query, false);
     }
-    catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
   }
 
-  private T get(DSLContext ctx, SelectQuery query, boolean cache) throws SQLException {
+  private T get(DSLContext ctx, SelectQuery<Record> query, boolean cache) {
     final boolean doCache = cache && Db.isInTransaction();
-    try (ResultSet rs = query.fetchResultSet()) {
-      if (!rs.next()) {
-        return null;
-      }
-      T t = null;
-      DbKey dbKey = null;
-      if (doCache) {
-        dbKey = (DbKey) dbKeyFactory.newKey(rs);
-        t = getCache().get(dbKey);
-      }
-      if (t == null) {
-        t = load(ctx, rs);
-        if (doCache) {
-          Db.getCache(table).put(dbKey, t);
-        }
-      }
-      if (rs.next()) {
-        throw new RuntimeException("Multiple records found");
-      }
-      return t;
+    Record record = query.fetchOne();
+    if (record == null) return null;
+    T t = null;
+    DbKey dbKey = null;
+    if (doCache) {
+      dbKey = (DbKey) dbKeyFactory.newKey(record);
+      t = getCache().get(dbKey);
     }
+    if (t == null) {
+      t = load(ctx, record);
+      if (doCache) {
+        Db.getCache(table).put(dbKey, t);
+      }
+    }
+    return t;
   }
 
   @Override
@@ -258,23 +242,24 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     return getManyBy(ctx, query, true);
   }
 
-  public BurstIterator<T> getManyBy(DSLContext ctx, SelectQuery query, boolean cache) {
+  @Override
+  public BurstIterator<T> getManyBy(DSLContext ctx, SelectQuery<? extends Record> query, boolean cache) {
     final boolean doCache = cache && Db.isInTransaction();
-    return new DbIterator<>(ctx, query.fetchResultSet(), (ctx1, rs) -> {
+    return new IterableBurstIterator<>(query.fetch(record -> {
       T t = null;
       DbKey dbKey = null;
       if (doCache) {
-        dbKey = (DbKey) dbKeyFactory.newKey(rs);
+        dbKey = (DbKey) dbKeyFactory.newKey(record);
         t = getCache().get(dbKey);
       }
       if (t == null) {
-        t = load(ctx1, rs);
+        t = load(ctx, record);
         if (doCache) {
           Db.getCache(table).put(dbKey, t);
         }
       }
       return t;
-    });
+    }));
   }
 
   @Override

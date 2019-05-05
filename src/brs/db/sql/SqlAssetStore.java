@@ -7,6 +7,7 @@ import brs.db.BurstKey;
 import brs.db.store.AssetStore;
 import brs.db.store.DerivedTableManager;
 import org.jooq.DSLContext;
+import org.jooq.Record;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -15,7 +16,7 @@ import static brs.schema.tables.Asset.ASSET;
 
 public class SqlAssetStore implements AssetStore {
 
-  private final BurstKey.LongKeyFactory<Asset> assetDbKeyFactory = new DbKey.LongKeyFactory<Asset>("id") {
+  private final BurstKey.LongKeyFactory<Asset> assetDbKeyFactory = new DbKey.LongKeyFactory<Asset>(ASSET.ID) {
 
       @Override
       public BurstKey newKey(Asset asset) {
@@ -29,8 +30,8 @@ public class SqlAssetStore implements AssetStore {
     assetTable = new EntitySqlTable<Asset>("asset", brs.schema.Tables.ASSET, assetDbKeyFactory, derivedTableManager) {
 
       @Override
-      protected Asset load(DSLContext ctx, ResultSet rs) throws SQLException {
-        return new SqlAsset(rs);
+      protected Asset load(DSLContext ctx, Record record) {
+        return new SqlAsset(record);
       }
 
       @Override
@@ -68,14 +69,14 @@ public class SqlAssetStore implements AssetStore {
 
   private class SqlAsset extends Asset {
 
-    private SqlAsset(ResultSet rs) throws SQLException {
-      super(rs.getLong("id"),
-            assetDbKeyFactory.newKey(rs.getLong("id")),
-            rs.getLong("account_id"),
-            rs.getString("name"),
-            rs.getString("description"),
-            rs.getLong("quantity"),
-            rs.getByte("decimals")
+    private SqlAsset(Record record) {
+      super(record.get(ASSET.ID),
+            assetDbKeyFactory.newKey(record.get(ASSET.ID)),
+            record.get(ASSET.ACCOUNT_ID),
+            record.get(ASSET.NAME),
+            record.get(ASSET.DESCRIPTION),
+            record.get(ASSET.QUANTITY),
+            record.get(ASSET.DECIMALS)
             );
     }
   }

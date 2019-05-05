@@ -9,7 +9,10 @@ import brs.db.VersionedEntityTable;
 import brs.db.VersionedValuesTable;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.DigitalGoodsStoreStore;
+import brs.schema.Tables;
 import org.jooq.DSLContext;
+import org.jooq.Field;
+import org.jooq.Record;
 import org.jooq.SortField;
 
 import java.sql.ResultSet;
@@ -22,7 +25,7 @@ import static brs.schema.Tables.*;
 public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
 
   private static final DbKey.LongKeyFactory<DigitalGoodsStore.Purchase> feedbackDbKeyFactory
-    = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>("id") {
+    = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>(PURCHASE_FEEDBACK.ID) {
         @Override
         public BurstKey newKey(DigitalGoodsStore.Purchase purchase) {
           return purchase.dbKey;
@@ -30,7 +33,7 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
       };
 
   private final BurstKey.LongKeyFactory<DigitalGoodsStore.Purchase> purchaseDbKeyFactory
-    = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>("id") {
+    = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>(PURCHASE.ID) {
         @Override
         public BurstKey newKey(DigitalGoodsStore.Purchase purchase) {
           return purchase.dbKey;
@@ -43,7 +46,7 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
   private final VersionedValuesTable<DigitalGoodsStore.Purchase, EncryptedData> feedbackTable;
 
   private final DbKey.LongKeyFactory<DigitalGoodsStore.Purchase> publicFeedbackDbKeyFactory
-    = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>("id") {
+    = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>(PURCHASE_PUBLIC_FEEDBACK.ID) {
         @Override
         public BurstKey newKey(DigitalGoodsStore.Purchase purchase) {
           return purchase.dbKey;
@@ -52,7 +55,7 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
 
   private final VersionedValuesTable<DigitalGoodsStore.Purchase, String> publicFeedbackTable;
 
-  private final BurstKey.LongKeyFactory<DigitalGoodsStore.Goods> goodsDbKeyFactory = new DbKey.LongKeyFactory<DigitalGoodsStore.Goods>("id") {
+  private final BurstKey.LongKeyFactory<DigitalGoodsStore.Goods> goodsDbKeyFactory = new DbKey.LongKeyFactory<DigitalGoodsStore.Goods>(GOODS.ID) {
       @Override
       public BurstKey newKey(DigitalGoodsStore.Goods goods) {
         return goods.dbKey;
@@ -64,7 +67,7 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
   public SqlDigitalGoodsStoreStore(DerivedTableManager derivedTableManager) {
     purchaseTable = new VersionedEntitySqlTable<DigitalGoodsStore.Purchase>("purchase", brs.schema.Tables.PURCHASE, purchaseDbKeyFactory, derivedTableManager) {
       @Override
-      protected DigitalGoodsStore.Purchase load(DSLContext ctx, ResultSet rs) throws SQLException {
+      protected DigitalGoodsStore.Purchase load(DSLContext ctx, Record rs) {
         return new SQLPurchase(rs);
       }
 
@@ -85,9 +88,9 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
     feedbackTable = new VersionedValuesSqlTable<DigitalGoodsStore.Purchase, EncryptedData>("purchase_feedback", brs.schema.Tables.PURCHASE_FEEDBACK, feedbackDbKeyFactory, derivedTableManager) {
 
       @Override
-      protected EncryptedData load(DSLContext ctx, ResultSet rs) throws SQLException {
-        byte[] data = rs.getBytes("feedback_data");
-        byte[] nonce = rs.getBytes("feedback_nonce");
+      protected EncryptedData load(DSLContext ctx, Record record) {
+        byte[] data = record.get(PURCHASE_FEEDBACK.FEEDBACK_DATA);
+        byte[] nonce = record.get(PURCHASE_FEEDBACK.FEEDBACK_NONCE);
         return new EncryptedData(data, nonce);
       }
 
@@ -116,8 +119,8 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
         = new VersionedValuesSqlTable<DigitalGoodsStore.Purchase, String>("purchase_public_feedback", brs.schema.Tables.PURCHASE_PUBLIC_FEEDBACK, publicFeedbackDbKeyFactory, derivedTableManager) {
 
       @Override
-      protected String load(DSLContext ctx, ResultSet rs) throws SQLException {
-        return rs.getString("public_feedback");
+      protected String load(DSLContext ctx, Record record) {
+        return record.get(PURCHASE_PUBLIC_FEEDBACK.PUBLIC_FEEDBACK);
       }
 
       @Override
@@ -132,7 +135,7 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
     goodsTable = new VersionedEntitySqlTable<DigitalGoodsStore.Goods>("goods", brs.schema.Tables.GOODS, goodsDbKeyFactory, derivedTableManager) {
 
       @Override
-      protected DigitalGoodsStore.Goods load(DSLContext ctx, ResultSet rs) throws SQLException {
+      protected DigitalGoodsStore.Goods load(DSLContext ctx, Record rs) {
         return new SQLGoods(rs);
       }
 
@@ -156,12 +159,12 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
     return getPurchaseTable().getManyBy(PURCHASE.DEADLINE.lt(timestamp).and(PURCHASE.PENDING.isTrue()), 0, -1);
   }
 
-  private EncryptedData loadEncryptedData(ResultSet rs, String dataColumn, String nonceColumn) throws SQLException {
-    byte[] data = rs.getBytes(dataColumn);
+  private EncryptedData loadEncryptedData(Record record, Field<byte[]> dataField, Field<byte[]> nonceField) {
+    byte[] data = record.get(dataField);
     if (data == null) {
       return null;
     }
-    return new EncryptedData(data, rs.getBytes(nonceColumn));
+    return new EncryptedData(data, record.get(nonceField));
   }
 
   @Override
@@ -290,46 +293,43 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
 
 
   private class SQLGoods extends DigitalGoodsStore.Goods {
-    private SQLGoods(ResultSet rs) throws SQLException {
+    private SQLGoods(Record record) {
       super(
-            rs.getLong("id"),
-            goodsDbKeyFactory.newKey(rs.getLong("id")),
-            rs.getLong("seller_id"),
-            rs.getString("name"),
-            rs.getString("description"),
-            rs.getString("tags"),
-            rs.getInt("timestamp"),
-            rs.getInt("quantity"),
-            rs.getLong("price"),
-            rs.getBoolean("delisted")
+            record.get(GOODS.ID),
+            goodsDbKeyFactory.newKey(record.get(GOODS.ID)),
+            record.get(GOODS.SELLER_ID),
+            record.get(GOODS.NAME),
+            record.get(GOODS.DESCRIPTION),
+            record.get(GOODS.TAGS),
+            record.get(GOODS.TIMESTAMP),
+            record.get(GOODS.QUANTITY),
+            record.get(GOODS.PRICE),
+            record.get(GOODS.DELISTED)
             );
     }
   }
 
-
-
-
   class SQLPurchase extends DigitalGoodsStore.Purchase {
 
-    SQLPurchase(ResultSet rs) throws SQLException {
+    SQLPurchase(Record record) {
       super(
-            rs.getLong("id"),
-            purchaseDbKeyFactory.newKey(rs.getLong("id")),
-            rs.getLong("buyer_id"),
-            rs.getLong("goods_id"),
-            rs.getLong("seller_id"),
-            rs.getInt("quantity"),
-            rs.getLong("price"),
-            rs.getInt("deadline"),
-            loadEncryptedData(rs, "note", "nonce"),
-            rs.getInt("timestamp"),
-            rs.getBoolean("pending"),
-            loadEncryptedData(rs, "goods", "goods_nonce"),
-            loadEncryptedData(rs, "refund_note", "refund_nonce"),
-            rs.getBoolean("has_feedback_notes"),
-            rs.getBoolean("has_public_feedbacks"),
-            rs.getLong("discount"),
-            rs.getLong("refund")
+            record.get(PURCHASE.ID),
+            purchaseDbKeyFactory.newKey(record.get(PURCHASE.ID)),
+            record.get(PURCHASE.BUYER_ID),
+            record.get(PURCHASE.GOODS_ID),
+            record.get(PURCHASE.SELLER_ID),
+            record.get(PURCHASE.QUANTITY),
+            record.get(PURCHASE.PRICE),
+            record.get(PURCHASE.DEADLINE),
+            loadEncryptedData(record, PURCHASE.NOTE, PURCHASE.NONCE),
+            record.get(PURCHASE.TIMESTAMP),
+            record.get(PURCHASE.PENDING),
+            loadEncryptedData(record, PURCHASE.GOODS, PURCHASE.GOODS_NONCE),
+            loadEncryptedData(record, PURCHASE.REFUND_NOTE, PURCHASE.REFUND_NONCE),
+            record.get(PURCHASE.HAS_FEEDBACK_NOTES),
+            record.get(PURCHASE.HAS_PUBLIC_FEEDBACKS),
+            record.get(PURCHASE.DISCOUNT),
+            record.get(PURCHASE.REFUND)
             );
     }
   }

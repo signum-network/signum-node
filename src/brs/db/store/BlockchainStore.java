@@ -4,7 +4,10 @@ import brs.Account;
 import brs.Block;
 import brs.Transaction;
 import brs.db.BurstIterator;
+import brs.schema.tables.records.BlockRecord;
+import brs.schema.tables.records.TransactionRecord;
 import org.jooq.DSLContext;
+import org.jooq.Result;
 
 import java.sql.ResultSet;
 import java.util.List;
@@ -20,7 +23,7 @@ public interface BlockchainStore {
 
   BurstIterator<Block> getBlocks(Account account, int timestamp, int from, int to);
 
-  BurstIterator<Block> getBlocks(DSLContext ctx, ResultSet rs);
+  BurstIterator<Block> getBlocks(Result<BlockRecord> blockRecords);
 
   List<Long> getBlockIdsAfter(long blockId, int limit);
 
@@ -33,7 +36,7 @@ public interface BlockchainStore {
   BurstIterator<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
                                                  int blockTimestamp, int from, int to, boolean includeIndirectIncoming);
 
-  BurstIterator<Transaction> getTransactions(DSLContext ctx, ResultSet rs);
+  BurstIterator<Transaction> getTransactions(DSLContext ctx, Result<TransactionRecord> rs);
 
   void addBlock(Block block);
 

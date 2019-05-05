@@ -7,6 +7,7 @@ import brs.db.store.IndirectIncomingStore;
 import brs.schema.tables.records.IndirectIncomingRecord;
 import org.jooq.DSLContext;
 import org.jooq.InsertValuesStep3;
+import org.jooq.Record;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -30,8 +31,8 @@ public class SqlIndirectIncomingStore implements IndirectIncomingStore {
 
         this.indirectIncomingTable = new EntitySqlTable<IndirectIncoming>("indirect_incoming", INDIRECT_INCOMING, indirectIncomingDbKeyFactory, derivedTableManager) {
             @Override
-            protected IndirectIncoming load(DSLContext ctx, ResultSet rs) throws SQLException {
-                return new IndirectIncoming(rs.getLong("account_id"), rs.getLong("transaction_id"), rs.getInt("height"));
+            protected IndirectIncoming load(DSLContext ctx, Record rs) {
+                return new IndirectIncoming(rs.get(INDIRECT_INCOMING.ACCOUNT_ID), rs.get(INDIRECT_INCOMING.TRANSACTION_ID), rs.get(INDIRECT_INCOMING.HEIGHT));
             }
 
             @Override

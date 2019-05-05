@@ -82,37 +82,6 @@ public class SqlBlockDb implements BlockDb {
     }
   }
 
-  public Block loadBlock(DSLContext ctx, ResultSet rs)
-      throws BurstException.ValidationException {
-    try {
-      int version                     = rs.getInt("version");
-      int timestamp                   = rs.getInt("timestamp");
-      long previousBlockId            = rs.getLong("previous_block_id");
-      long totalAmountNQT             = rs.getLong("total_amount");
-      long totalFeeNQT                = rs.getLong("total_fee");
-      int payloadLength               = rs.getInt("payload_length");
-      byte[] generatorPublicKey       = rs.getBytes("generator_public_key");
-      byte[] previousBlockHash        = rs.getBytes("previous_block_hash");
-      BigInteger cumulativeDifficulty = new BigInteger(rs.getBytes("cumulative_difficulty"));
-      long baseTarget                 = rs.getLong("base_target");
-      long nextBlockId                = rs.getLong("next_block_id");
-      int height                      = rs.getInt("height");
-      byte[] generationSignature      = rs.getBytes("generation_signature");
-      byte[] blockSignature           = rs.getBytes("block_signature");
-      byte[] payloadHash              = rs.getBytes("payload_hash");
-      long id                         = rs.getLong("id");
-      long nonce                      = rs.getLong("nonce");
-      byte[] blockATs                 = rs.getBytes("ats");
-
-      return new Block(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT,
-          payloadLength, payloadHash, generatorPublicKey, generationSignature, blockSignature,
-          previousBlockHash, cumulativeDifficulty, baseTarget, nextBlockId, height, id, nonce,
-          blockATs);
-    } catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
-  }
-
   public Block loadBlock(BlockRecord r) throws BurstException.ValidationException {
     int version                     = r.getVersion();
     int timestamp                   = r.getTimestamp();
@@ -184,7 +153,7 @@ public class SqlBlockDb implements BlockDb {
     blockHeightQuery.addFrom(BLOCK);
     blockHeightQuery.addSelect(BLOCK.HEIGHT);
     blockHeightQuery.addConditions(BLOCK.ID.eq(blockId));
-    Integer blockHeight = (Integer) ctx.fetchValue(blockHeightQuery.fetchResultSet());
+    Integer blockHeight = blockHeightQuery.fetchOne().get(BLOCK.HEIGHT);
 
     if (blockHeight != null) {
       DeleteQuery deleteQuery = ctx.deleteQuery(BLOCK);

@@ -1,20 +1,20 @@
 package brs.db;
 
-import java.sql.ResultSet;
+import org.jooq.Record;
 
 public interface BurstKey {
 
   interface Factory<T> {
     BurstKey newKey(T t);
 
-    BurstKey newKey(ResultSet rs);
+    BurstKey newKey(Record rs);
   }
 
   long[] getPKValues();
 
   interface LongKeyFactory<T> extends Factory<T> {
     @Override
-    BurstKey newKey(ResultSet rs);
+    BurstKey newKey(Record rs);
 
     BurstKey newKey(long id);
 

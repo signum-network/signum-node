@@ -142,7 +142,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
   }
 
   @Override
-  public BurstIterator<T> getManyBy(DSLContext ctx, SelectQuery query, boolean cache) {
+  public BurstIterator<T> getManyBy(DSLContext ctx, SelectQuery<? extends Record> query, boolean cache) {
     assertInTransaction();
     return super.getManyBy(ctx, query, cache);
   }

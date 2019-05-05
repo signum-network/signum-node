@@ -1,10 +1,7 @@
 package brs.db;
 
 import org.ehcache.Cache;
-import org.jooq.Condition;
-import org.jooq.DSLContext;
-import org.jooq.SelectQuery;
-import org.jooq.SortField;
+import org.jooq.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +39,7 @@ public interface VersionedBatchEntityTable<T> extends DerivedTable, EntityTable<
   BurstIterator<T> getManyBy(Condition condition, int height, int from, int to, List<SortField<?>> sort);
 
   @Override
-  BurstIterator<T> getManyBy(DSLContext ctx, SelectQuery query, boolean cache);
+  BurstIterator<T> getManyBy(DSLContext ctx, SelectQuery<? extends Record> query, boolean cache);
 
   @Override
   BurstIterator<T> getAll(int from, int to);

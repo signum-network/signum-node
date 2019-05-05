@@ -20,8 +20,6 @@ public interface BlockDb {
 
   Block findLastBlock(int timestamp);
 
-  Block loadBlock(DSLContext ctx, ResultSet rs) throws BurstException.ValidationException;
-
   Block loadBlock(BlockRecord r) throws BurstException.ValidationException;
 
   void saveBlock(DSLContext ctx, Block block);

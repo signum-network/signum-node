@@ -6,6 +6,7 @@ import brs.util.Convert;
 import org.jooq.BatchBindStep;
 import org.jooq.Cursor;
 import org.jooq.DSLContext;
+import org.jooq.Result;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -99,91 +100,18 @@ public class SqlTransactionDb implements TransactionDb {
   }
 
   @Override
-  public Transaction loadTransaction(DSLContext ctx, ResultSet rs) throws BurstException.ValidationException {
-    // TODO: remove this method once SqlBlockchainStore no longer requires it
-    try {
-
-      byte type = rs.getByte("type");
-      byte subtype = rs.getByte("subtype");
-      int timestamp = rs.getInt("timestamp");
-      short deadline = rs.getShort("deadline");
-      byte[] senderPublicKey = rs.getBytes("sender_public_key");
-      long amountNQT = rs.getLong("amount");
-      long feeNQT = rs.getLong("fee");
-      byte[] referencedTransactionFullHash = rs.getBytes("referenced_transaction_fullhash");
-      int ecBlockHeight = rs.getInt("ec_block_height");
-      long ecBlockId = rs.getLong("ec_block_id");
-      byte[] signature = rs.getBytes("signature");
-      long blockId = rs.getLong("block_id");
-      int height = rs.getInt("height");
-      long id = rs.getLong("id");
-      long senderId = rs.getLong("sender_id");
-      byte[] attachmentBytes = rs.getBytes("attachment_bytes");
-      int blockTimestamp = rs.getInt("block_timestamp");
-      byte[] fullHash = rs.getBytes("full_hash");
-      byte version = rs.getByte("version");
-
-      ByteBuffer buffer = null;
-      if (attachmentBytes != null) {
-        buffer = ByteBuffer.wrap(attachmentBytes);
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
-      }
-
-      TransactionType transactionType = TransactionType.findTransactionType(type, subtype);
-      Transaction.Builder builder = new Transaction.Builder(version, senderPublicKey,
-              amountNQT, feeNQT, timestamp, deadline,
-              transactionType.parseAttachment(buffer, version))
-              .referencedTransactionFullHash(referencedTransactionFullHash)
-              .signature(signature)
-              .blockId(blockId)
-              .height(height)
-              .id(id)
-              .senderId(senderId)
-              .blockTimestamp(blockTimestamp)
-              .fullHash(fullHash);
-      if (transactionType.hasRecipient()) {
-        long recipientId = rs.getLong("recipient_id");
-        if (!rs.wasNull()) {
-          builder.recipientId(recipientId);
-        }
-      }
-      if (rs.getBoolean("has_message")) {
-        builder.message(new Appendix.Message(buffer, version));
-      }
-      if (rs.getBoolean("has_encrypted_message")) {
-        builder.encryptedMessage(new Appendix.EncryptedMessage(buffer, version));
-      }
-      if (rs.getBoolean("has_public_key_announcement")) {
-        builder.publicKeyAnnouncement(new Appendix.PublicKeyAnnouncement(buffer, version));
-      }
-      if (rs.getBoolean("has_encrypttoself_message")) {
-        builder.encryptToSelfMessage(new Appendix.EncryptToSelfMessage(buffer, version));
-      }
-      if (version > 0) {
-        builder.ecBlockHeight(ecBlockHeight);
-        builder.ecBlockId(ecBlockId);
-      }
-
-      return builder.build();
-
-    } catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
-  }
-
-  @Override
   public List<Transaction> findBlockTransactions(long blockId) {
-    try (DSLContext ctx = Db.getDSLContext();
-         Cursor<TransactionRecord> transactionRecords = ctx.selectFrom(TRANSACTION).
-                 where(TRANSACTION.BLOCK_ID.eq(blockId).and(TRANSACTION.SIGNATURE.isNotNull())).fetchLazy()) {
-      List<Transaction> list = new ArrayList<>();
-      for (TransactionRecord transactionRecord : transactionRecords) {
-        list.add(loadTransaction(transactionRecord));
-      }
-      return list;
-    } catch (BurstException.ValidationException e) {
-      throw new RuntimeException("Transaction already in database for block_id = " + Convert.toUnsignedLong(blockId)
-              + " does not pass validation!", e);
+    try (DSLContext ctx = Db.getDSLContext()) {
+      return ctx.selectFrom(TRANSACTION)
+              .where(TRANSACTION.BLOCK_ID.eq(blockId))
+              .and(TRANSACTION.SIGNATURE.isNotNull())
+              .fetch(record -> {
+                try {
+                  return loadTransaction(record);
+                } catch (BurstException.ValidationException e) {
+                  throw new RuntimeException("Transaction already in database for block_id = " + Convert.toUnsignedLong(blockId) + " does not pass validation!", e);
+                }
+              });
     }
   }
 

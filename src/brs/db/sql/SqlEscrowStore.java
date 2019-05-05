@@ -10,8 +10,6 @@ import brs.db.store.EscrowStore;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

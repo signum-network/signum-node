@@ -5,7 +5,6 @@ import brs.Asset;
 import brs.BurstException;
 import brs.Trade;
 import brs.assetexchange.AssetExchange;
-import brs.db.sql.DbUtils;
 import brs.http.common.Parameters;
 import brs.services.ParameterService;
 import brs.util.Convert;
@@ -14,7 +13,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
-
 import java.util.Collection;
 
 import static brs.http.common.Parameters.*;

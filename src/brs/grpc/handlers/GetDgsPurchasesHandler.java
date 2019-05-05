@@ -1,12 +1,13 @@
 package brs.grpc.handlers;
 
 import brs.DigitalGoodsStore;
-import java.util.Collection;
 import brs.grpc.GrpcApiHandler;
 import brs.grpc.proto.BrsApi;
 import brs.grpc.proto.ProtoBuilder;
 import brs.services.DGSGoodsStoreService;
 import brs.util.FilteringIterator;
+
+import java.util.Collection;
 
 public class GetDgsPurchasesHandler implements GrpcApiHandler<BrsApi.GetDgsPurchasesRequest, BrsApi.DgsPurchases> {
     

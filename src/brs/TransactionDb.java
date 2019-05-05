@@ -1,9 +1,7 @@
 package brs;
 
 import brs.schema.tables.records.TransactionRecord;
-import org.jooq.DSLContext;
 
-import java.sql.ResultSet;
 import java.util.List;
 
 public interface TransactionDb {

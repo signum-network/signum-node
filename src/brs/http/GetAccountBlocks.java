@@ -13,8 +13,6 @@ import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
-import java.util.Collection;
-
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.BLOCKS_RESPONSE;
 

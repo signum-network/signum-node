@@ -5,7 +5,6 @@ import brs.Alias.Offer;
 import brs.at.AT_API_Helper;
 import brs.crypto.Crypto;
 import brs.crypto.EncryptedData;
-import java.util.Collection;
 import brs.peer.Peer;
 import brs.services.AccountService;
 import brs.util.Convert;

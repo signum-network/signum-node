@@ -2,7 +2,6 @@ package brs.http;
 
 import brs.Account;
 import brs.BurstException;
-import java.util.Collection;
 import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.util.Convert;

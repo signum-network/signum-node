@@ -1,12 +1,5 @@
 package brs.assetexchange;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import brs.Account.AccountAsset;
 import brs.Asset;
 import brs.AssetTransfer;
@@ -14,7 +7,6 @@ import brs.Attachment.ColoredCoinsAssetIssuance;
 import brs.Trade;
 import brs.Transaction;
 import brs.common.AbstractUnitTest;
-import java.util.Collection;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.sql.EntitySqlTable;
@@ -22,6 +14,13 @@ import brs.db.store.AssetStore;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+
+import java.util.Collection;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 public class AssetServiceImplTest extends AbstractUnitTest {
 

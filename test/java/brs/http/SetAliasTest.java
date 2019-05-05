@@ -1,18 +1,5 @@
 package brs.http;
 
-import static brs.TransactionType.Messaging.ALIAS_ASSIGNMENT;
-import static brs.http.JSONResponses.INCORRECT_ALIAS_LENGTH;
-import static brs.http.JSONResponses.INCORRECT_ALIAS_NAME;
-import static brs.http.JSONResponses.INCORRECT_URI_LENGTH;
-import static brs.http.JSONResponses.MISSING_ALIAS_NAME;
-import static brs.http.common.Parameters.ALIAS_NAME_PARAMETER;
-import static brs.http.common.Parameters.ALIAS_URI_PARAMETER;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-
 import brs.Attachment;
 import brs.Blockchain;
 import brs.Burst;
@@ -23,12 +10,23 @@ import brs.fluxcapacitor.FluxCapacitor;
 import brs.fluxcapacitor.FluxValues;
 import brs.services.AliasService;
 import brs.services.ParameterService;
-import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import javax.servlet.http.HttpServletRequest;
+
+import static brs.TransactionType.Messaging.ALIAS_ASSIGNMENT;
+import static brs.http.JSONResponses.*;
+import static brs.http.common.Parameters.ALIAS_NAME_PARAMETER;
+import static brs.http.common.Parameters.ALIAS_URI_PARAMETER;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Burst.class)

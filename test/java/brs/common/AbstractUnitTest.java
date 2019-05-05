@@ -1,17 +1,7 @@
 package brs.common;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mock;
-
-import java.util.Collection;
 import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import org.mockito.stubbing.Answer;
-import org.powermock.api.mockito.PowerMockito;
+import java.util.Collection;
 
 public abstract class AbstractUnitTest {
   @SafeVarargs

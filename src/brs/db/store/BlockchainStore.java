@@ -8,7 +8,6 @@ import brs.schema.tables.records.TransactionRecord;
 import org.jooq.DSLContext;
 import org.jooq.Result;
 
-import java.sql.ResultSet;
 import java.util.Collection;
 import java.util.List;
 

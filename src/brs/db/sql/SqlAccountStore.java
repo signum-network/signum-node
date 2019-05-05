@@ -12,8 +12,6 @@ import brs.util.Convert;
 import org.jooq.*;
 import org.slf4j.LoggerFactory;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.*;
 
 import static brs.schema.Tables.*;

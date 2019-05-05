@@ -6,7 +6,6 @@ import brs.DigitalGoodsStore.Goods;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import java.util.Collection;
 import brs.db.sql.DbUtils;
 import brs.services.DGSGoodsStoreService;
 import brs.util.JSON;
@@ -20,6 +19,7 @@ import org.powermock.core.classloader.annotations.SuppressStaticInitializationFo
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collection;
 
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.*;

@@ -1,7 +1,6 @@
 package brs.http;
 
 import brs.Account;
-import brs.Asset;
 import brs.assetexchange.AssetExchange;
 import brs.services.ParameterService;
 import com.google.gson.JsonArray;

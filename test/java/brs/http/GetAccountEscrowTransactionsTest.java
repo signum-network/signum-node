@@ -8,7 +8,6 @@ import brs.Escrow.DecisionType;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import java.util.Collection;
 import brs.services.EscrowService;
 import brs.services.ParameterService;
 import brs.util.JSON;

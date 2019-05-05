@@ -8,8 +8,6 @@ import brs.db.store.DerivedTableManager;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Collection;
 
 import static brs.schema.tables.Asset.ASSET;

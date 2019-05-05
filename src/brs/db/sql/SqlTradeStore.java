@@ -1,7 +1,6 @@
 package brs.db.sql;
 
 import brs.Trade;
-import java.util.Collection;
 import brs.db.BurstKey;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.TradeStore;
@@ -10,8 +9,7 @@ import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.SelectQuery;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.Collection;
 
 import static brs.schema.Tables.TRADE;
 

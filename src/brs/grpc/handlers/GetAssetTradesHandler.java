@@ -3,10 +3,11 @@ package brs.grpc.handlers;
 import brs.Asset;
 import brs.Trade;
 import brs.assetexchange.AssetExchange;
-import java.util.Collection;
 import brs.grpc.GrpcApiHandler;
 import brs.grpc.proto.BrsApi;
 import brs.grpc.proto.ProtoBuilder;
+
+import java.util.Collection;
 
 public class GetAssetTradesHandler implements GrpcApiHandler<BrsApi.GetAssetTransfersRequest, BrsApi.AssetTrades> {
 

@@ -1,7 +1,6 @@
 package brs.grpc.handlers;
 
 import brs.Account;
-import brs.Block;
 import brs.Blockchain;
 import brs.grpc.GrpcApiHandler;
 import brs.grpc.proto.ApiException;
@@ -10,8 +9,6 @@ import brs.grpc.proto.ProtoBuilder;
 import brs.services.AccountService;
 import brs.services.BlockService;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class GetAccountBlocksHandler implements GrpcApiHandler<BrsApi.GetAccountBlocksRequest, BrsApi.Blocks> {

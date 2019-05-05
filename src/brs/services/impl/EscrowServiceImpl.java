@@ -3,7 +3,6 @@ package brs.services.impl;
 import brs.*;
 import brs.Escrow.Decision;
 import brs.Escrow.DecisionType;
-import java.util.Collection;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.VersionedEntityTable;
@@ -14,7 +13,6 @@ import brs.services.AliasService;
 import brs.services.EscrowService;
 import org.jooq.Condition;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentSkipListSet;

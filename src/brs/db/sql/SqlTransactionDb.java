@@ -4,15 +4,10 @@ import brs.*;
 import brs.schema.tables.records.TransactionRecord;
 import brs.util.Convert;
 import org.jooq.BatchBindStep;
-import org.jooq.Cursor;
 import org.jooq.DSLContext;
-import org.jooq.Result;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 

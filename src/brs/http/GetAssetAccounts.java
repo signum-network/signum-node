@@ -4,7 +4,6 @@ import brs.Account;
 import brs.Asset;
 import brs.BurstException;
 import brs.assetexchange.AssetExchange;
-import java.util.Collection;
 import brs.services.ParameterService;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;

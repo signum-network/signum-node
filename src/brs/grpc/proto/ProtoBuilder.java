@@ -3,7 +3,6 @@ package brs.grpc.proto;
 import brs.*;
 import brs.assetexchange.AssetExchange;
 import brs.crypto.EncryptedData;
-import java.util.Collection;
 import brs.services.AccountService;
 import brs.services.BlockService;
 import brs.util.Convert;

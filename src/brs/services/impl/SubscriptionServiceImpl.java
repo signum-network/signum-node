@@ -5,7 +5,6 @@ import brs.BurstException.NotValidException;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.VersionedEntityTable;
-import brs.db.sql.DbKey;
 import brs.db.store.SubscriptionStore;
 import brs.services.AccountService;
 import brs.services.AliasService;

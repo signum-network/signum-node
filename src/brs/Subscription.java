@@ -1,7 +1,6 @@
 package brs;
 
 import brs.db.BurstKey;
-import brs.db.sql.DbKey;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

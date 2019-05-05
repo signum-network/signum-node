@@ -2,8 +2,6 @@ package brs.http;
 
 import brs.BurstException;
 import brs.DigitalGoodsStore;
-import java.util.Collection;
-import brs.db.sql.DbUtils;
 import brs.http.common.Parameters;
 import brs.services.DGSGoodsStoreService;
 import com.google.gson.JsonArray;
@@ -11,6 +9,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collection;
 
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.GOODS_RESPONSE;

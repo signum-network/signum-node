@@ -1,24 +1,25 @@
 package brs.feesuggestions;
 
-import static brs.Constants.FEE_QUANT;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import brs.Block;
 import brs.BlockchainProcessor;
 import brs.BlockchainProcessor.Event;
 import brs.Transaction;
 import brs.common.AbstractUnitTest;
-import java.util.Collection;
 import brs.db.store.BlockchainStore;
 import brs.util.Listener;
-import java.util.ArrayList;
-import java.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+
+import static brs.Constants.FEE_QUANT;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class FeeSuggestionCalculatorTest extends AbstractUnitTest {
 

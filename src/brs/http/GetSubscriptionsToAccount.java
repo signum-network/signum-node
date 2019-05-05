@@ -11,8 +11,6 @@ import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
-import java.util.Collection;
-
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 
 final class GetSubscriptionsToAccount extends APIServlet.APIRequestHandler {

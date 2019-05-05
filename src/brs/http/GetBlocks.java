@@ -2,7 +2,6 @@ package brs.http;
 
 import brs.Block;
 import brs.Blockchain;
-import java.util.Collection;
 import brs.http.common.Parameters;
 import brs.services.BlockService;
 import com.google.gson.JsonArray;

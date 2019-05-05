@@ -1,24 +1,5 @@
 package brs.http;
 
-import static brs.Constants.MAX_ASSET_DESCRIPTION_LENGTH;
-import static brs.Constants.MAX_ASSET_NAME_LENGTH;
-import static brs.Constants.MIN_ASSET_NAME_LENGTH;
-import static brs.TransactionType.ColoredCoins.ASSET_ISSUANCE;
-import static brs.http.JSONResponses.INCORRECT_ASSET_DESCRIPTION;
-import static brs.http.JSONResponses.INCORRECT_ASSET_NAME;
-import static brs.http.JSONResponses.INCORRECT_ASSET_NAME_LENGTH;
-import static brs.http.JSONResponses.INCORRECT_DECIMALS;
-import static brs.http.JSONResponses.MISSING_NAME;
-import static brs.http.common.Parameters.DECIMALS_PARAMETER;
-import static brs.http.common.Parameters.DESCRIPTION_PARAMETER;
-import static brs.http.common.Parameters.NAME_PARAMETER;
-import static brs.http.common.Parameters.QUANTITY_QNT_PARAMETER;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-
 import brs.Attachment;
 import brs.Blockchain;
 import brs.Burst;
@@ -28,12 +9,23 @@ import brs.common.QuickMocker.MockParam;
 import brs.fluxcapacitor.FluxCapacitor;
 import brs.fluxcapacitor.FluxValues;
 import brs.services.ParameterService;
-import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import javax.servlet.http.HttpServletRequest;
+
+import static brs.Constants.*;
+import static brs.TransactionType.ColoredCoins.ASSET_ISSUANCE;
+import static brs.http.JSONResponses.*;
+import static brs.http.common.Parameters.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Burst.class)

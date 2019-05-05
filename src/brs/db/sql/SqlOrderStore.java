@@ -13,8 +13,6 @@ import org.jooq.Record;
 import org.jooq.SelectQuery;
 import org.jooq.SortField;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;

@@ -5,8 +5,6 @@ import brs.BurstException;
 import brs.schema.tables.records.BlockRecord;
 import org.jooq.DSLContext;
 
-import java.sql.ResultSet;
-
 public interface BlockDb {
   Block findBlock(long blockId);
 

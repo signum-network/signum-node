@@ -1,8 +1,8 @@
 package brs.common;
 
-import static brs.Constants.ONE_BURST;
-
 import brs.crypto.Crypto;
+
+import static brs.Constants.ONE_BURST;
 
 public class TestConstants {
 

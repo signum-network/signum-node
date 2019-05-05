@@ -4,7 +4,6 @@ import brs.Account;
 import brs.BurstException;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
-import java.util.Collection;
 import brs.services.AccountService;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -12,6 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collection;
 
 import static brs.http.common.Parameters.ACCOUNTS_RESPONSE;
 import static brs.http.common.Parameters.NAME_PARAMETER;

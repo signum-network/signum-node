@@ -3,7 +3,6 @@ package brs.blockchainlistener;
 import brs.Account;
 import brs.Block;
 import brs.DigitalGoodsStore.Purchase;
-import java.util.Collection;
 import brs.services.AccountService;
 import brs.services.DGSGoodsStoreService;
 import brs.util.Convert;

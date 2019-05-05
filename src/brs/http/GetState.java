@@ -2,7 +2,6 @@ package brs.http;
 
 import brs.*;
 import brs.assetexchange.AssetExchange;
-import java.util.Collection;
 import brs.peer.Peer;
 import brs.peer.Peers;
 import brs.props.PropertyService;

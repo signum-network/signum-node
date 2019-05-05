@@ -1,18 +1,17 @@
 package brs.services.impl;
 
-import static org.junit.Assert.*;
+import brs.AT;
+import brs.db.store.ATStore;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Collection;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
-import brs.AT;
-import brs.db.store.ATStore;
-import brs.services.ATService;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
 
 public class ATServiceImplTest {
 

@@ -1,17 +1,18 @@
 package brs.assetexchange;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import brs.Trade;
 import brs.common.AbstractUnitTest;
-import java.util.Collection;
 import brs.db.sql.EntitySqlTable;
 import brs.db.store.TradeStore;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Collection;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TradeServiceImplTest extends AbstractUnitTest {
 

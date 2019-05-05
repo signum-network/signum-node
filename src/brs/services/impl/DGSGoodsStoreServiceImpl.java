@@ -5,7 +5,6 @@ import brs.DigitalGoodsStore.Event;
 import brs.DigitalGoodsStore.Goods;
 import brs.DigitalGoodsStore.Purchase;
 import brs.crypto.EncryptedData;
-import java.util.Collection;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.VersionedEntityTable;
@@ -18,6 +17,7 @@ import brs.util.Listener;
 import brs.util.Listeners;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class DGSGoodsStoreServiceImpl implements DGSGoodsStoreService {

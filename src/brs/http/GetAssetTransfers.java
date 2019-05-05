@@ -5,8 +5,6 @@ import brs.Asset;
 import brs.AssetTransfer;
 import brs.BurstException;
 import brs.assetexchange.AssetExchange;
-import java.util.Collection;
-import brs.db.sql.DbUtils;
 import brs.http.common.Parameters;
 import brs.services.AccountService;
 import brs.services.ParameterService;
@@ -16,6 +14,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collection;
 
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.TRANSFERS_RESPONSE;

@@ -1,19 +1,18 @@
 package brs.blockchainlistener;
 
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import brs.Account;
 import brs.Block;
 import brs.DigitalGoodsStore.Purchase;
 import brs.common.AbstractUnitTest;
-import java.util.Collection;
 import brs.services.AccountService;
 import brs.services.DGSGoodsStoreService;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Collection;
+
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 public class DevNullListenerTest extends AbstractUnitTest {
 

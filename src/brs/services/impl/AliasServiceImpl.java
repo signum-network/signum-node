@@ -4,11 +4,12 @@ import brs.Alias;
 import brs.Alias.Offer;
 import brs.Attachment;
 import brs.Transaction;
-import java.util.Collection;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.AliasStore;
 import brs.services.AliasService;
+
+import java.util.Collection;
 
 public class AliasServiceImpl implements AliasService {
 

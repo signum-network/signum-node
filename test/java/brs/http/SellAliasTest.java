@@ -1,12 +1,22 @@
 package brs.http;
 
+import brs.*;
+import brs.common.QuickMocker;
+import brs.common.QuickMocker.MockParam;
+import brs.fluxcapacitor.FluxCapacitor;
+import brs.fluxcapacitor.FluxValues;
+import brs.services.ParameterService;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import javax.servlet.http.HttpServletRequest;
+
 import static brs.Constants.MAX_BALANCE_NQT;
-import static brs.TransactionType.Messaging.ALIAS_BUY;
 import static brs.TransactionType.Messaging.ALIAS_SELL;
-import static brs.http.JSONResponses.INCORRECT_ALIAS_OWNER;
-import static brs.http.JSONResponses.INCORRECT_PRICE;
-import static brs.http.JSONResponses.INCORRECT_RECIPIENT;
-import static brs.http.JSONResponses.MISSING_PRICE;
+import static brs.http.JSONResponses.*;
 import static brs.http.common.Parameters.PRICE_NQT_PARAMETER;
 import static brs.http.common.Parameters.RECIPIENT_PARAMETER;
 import static org.junit.Assert.assertEquals;
@@ -14,24 +24,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
-
-import brs.Account;
-import brs.Alias;
-import brs.Attachment;
-import brs.Blockchain;
-import brs.Burst;
-import brs.BurstException;
-import brs.common.QuickMocker;
-import brs.common.QuickMocker.MockParam;
-import brs.fluxcapacitor.FluxCapacitor;
-import brs.fluxcapacitor.FluxValues;
-import brs.services.ParameterService;
-import javax.servlet.http.HttpServletRequest;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Burst.class)

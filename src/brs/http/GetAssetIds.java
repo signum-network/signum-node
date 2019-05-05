@@ -2,7 +2,6 @@ package brs.http;
 
 import brs.Asset;
 import brs.assetexchange.AssetExchange;
-import java.util.Collection;
 import brs.util.Convert;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;

@@ -10,8 +10,6 @@ import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.SortField;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

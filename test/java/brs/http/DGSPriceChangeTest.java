@@ -1,5 +1,20 @@
 package brs.http;
 
+import brs.*;
+import brs.DigitalGoodsStore.Goods;
+import brs.common.QuickMocker;
+import brs.common.QuickMocker.MockParam;
+import brs.fluxcapacitor.FluxCapacitor;
+import brs.fluxcapacitor.FluxValues;
+import brs.services.ParameterService;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import javax.servlet.http.HttpServletRequest;
+
 import static brs.TransactionType.DigitalGoods.PRICE_CHANGE;
 import static brs.http.JSONResponses.UNKNOWN_GOODS;
 import static brs.http.common.Parameters.PRICE_NQT_PARAMETER;
@@ -9,24 +24,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
-
-import brs.Account;
-import brs.Attachment;
-import brs.Blockchain;
-import brs.Burst;
-import brs.BurstException;
-import brs.DigitalGoodsStore.Goods;
-import brs.common.QuickMocker;
-import brs.common.QuickMocker.MockParam;
-import brs.fluxcapacitor.FluxCapacitor;
-import brs.fluxcapacitor.FluxValues;
-import brs.services.ParameterService;
-import javax.servlet.http.HttpServletRequest;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Burst.class)

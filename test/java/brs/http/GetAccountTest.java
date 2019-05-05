@@ -5,7 +5,6 @@ import brs.Account.AccountAsset;
 import brs.BurstException;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
-import java.util.Collection;
 import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.util.JSON;
@@ -15,7 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
+import java.util.Collection;
 
 import static brs.http.common.ResultFields.*;
 import static org.junit.Assert.assertEquals;

@@ -7,7 +7,6 @@ import brs.BurstException;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import java.util.Collection;
 import brs.services.BlockService;
 import brs.services.ParameterService;
 import com.google.gson.JsonArray;
@@ -17,7 +16,7 @@ import org.junit.Test;
 import org.powermock.core.classloader.annotations.SuppressStaticInitializationFor;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
+import java.util.Collection;
 
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.BLOCKS_RESPONSE;

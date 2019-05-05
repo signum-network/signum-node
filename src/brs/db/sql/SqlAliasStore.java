@@ -6,6 +6,7 @@ import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.AliasStore;
 import brs.db.store.DerivedTableManager;
+import brs.util.Convert;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.SortField;
@@ -85,7 +86,7 @@ public class SqlAliasStore implements AliasStore {
 
   private class SqlOffer extends Alias.Offer {
     private SqlOffer(Record record) {
-      super(record.get(ALIAS_OFFER.ID), record.get(ALIAS_OFFER.PRICE), record.get(ALIAS_OFFER.BUYER_ID), offerDbKeyFactory.newKey(record.get(ALIAS_OFFER.ID)));
+      super(record.get(ALIAS_OFFER.ID), record.get(ALIAS_OFFER.PRICE), Convert.nullToZero(record.get(ALIAS_OFFER.BUYER_ID)), offerDbKeyFactory.newKey(record.get(ALIAS_OFFER.ID)));
     }
   }
 

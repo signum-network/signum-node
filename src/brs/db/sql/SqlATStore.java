@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import static brs.schema.Tables.*;
@@ -146,7 +147,6 @@ public class SqlATStore implements ATStore {
             where(AT.LATEST.isTrue().
                     and(AT_STATE.LATEST.isTrue()).
                     and(AT.ID.eq(id))).fetchOne();
-
     if (record == null) {
       return null;
     }
@@ -209,25 +209,28 @@ public class SqlATStore implements ATStore {
       ).getQuery();
       DbUtils.applyLimits(query, numOfTx, numOfTx + 1);
       Result<Record1<Long>> result = query.fetch();
-      return result.isEmpty() ? 0L : result.get(0).get(TRANSACTION.ID);
+      return result.isEmpty() ? 0L : result.get(0).value1();
     }
   }
 
   @Override
   public int findTransactionHeight(Long transactionId, int height, Long atID, long minAmount) {
     try (DSLContext ctx = Db.getDSLContext()) {
-      Result<Record1<Long>> fetch = ctx.select(TRANSACTION.ID)
+      Iterator<Record1<Long>> fetch = ctx.select(TRANSACTION.ID)
               .from(TRANSACTION)
               .where(TRANSACTION.HEIGHT.eq(height))
               .and(TRANSACTION.RECIPIENT_ID.eq(atID))
               .and(TRANSACTION.AMOUNT.greaterOrEqual(minAmount))
               .orderBy(TRANSACTION.HEIGHT, TRANSACTION.ID)
-              .fetch();
-      for (int i = 0; i < fetch.size(); i++) {
-        long currentTransactionId = fetch.get(i).get(TRANSACTION.ID);
-        if (currentTransactionId == transactionId) return i;
+              .fetch()
+              .iterator();
+      int counter = 0;
+      while (fetch.hasNext()) {
+        counter++;
+        long currentTransactionId = fetch.next().value1();
+        if (currentTransactionId == transactionId) break;
       }
-      return fetch.size();
+      return counter;
     } catch (DataAccessException e) {
       throw new RuntimeException(e.toString(), e);
     }

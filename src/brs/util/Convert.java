@@ -95,6 +95,10 @@ public final class Convert {
     return s == null ? "" : s;
   }
 
+  public static long nullToZero(Long l) {
+    return l == null ? 0 : l;
+  }
+
   public static byte[] emptyToNull(byte[] bytes) {
     if (bytes == null) {
       return null;

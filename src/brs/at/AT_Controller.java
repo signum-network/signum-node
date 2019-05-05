@@ -306,12 +306,12 @@ public abstract class AT_Controller {
       return new AT_Block( totalFee, totalAmount, bytesForBlock );
   }
 
-  public static AT_Block validateATs( byte[] blockATs, int blockHeight ) throws NoSuchAlgorithmException, AT_Exception {
+  public static AT_Block validateATs(byte[] blockATs, int blockHeight) throws NoSuchAlgorithmException, AT_Exception {
     if (blockATs == null) {
       return new AT_Block(0, 0, null, true);
     }
 
-    LinkedHashMap< ByteBuffer, byte[] > ats = getATsFromBlock( blockATs );
+    LinkedHashMap<ByteBuffer, byte[]> ats = getATsFromBlock(blockATs);
 
     List< AT > processedATs = new ArrayList< >();
 
@@ -324,7 +324,6 @@ public abstract class AT_Controller {
     for ( ByteBuffer atIdBuffer : ats.keySet() ) {
       byte[] atId = atIdBuffer.array();
       AT at = AT.getAT( atId );
-
       try {
         at.clearTransactions();
         at.setHeight(blockHeight);
@@ -367,10 +366,10 @@ public abstract class AT_Controller {
         totalFee += fee;
         AT.addPendingFee(atId, fee);
 
-        processedATs.add( at );
+        processedATs.add(at);
 
-        md5 = digest.digest( at.getBytes() );
-        if ( !Arrays.equals( md5, ats.get( atIdBuffer ) ) ) {
+        md5 = digest.digest(at.getBytes());
+        if (!Arrays.equals(md5, ats.get(atIdBuffer))) {
           throw new AT_Exception( "Calculated md5 and recieved md5 are not matching" );
         }
       }

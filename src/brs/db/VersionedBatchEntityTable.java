@@ -70,6 +70,4 @@ public interface VersionedBatchEntityTable<T> extends DerivedTable, EntityTable<
   Cache getCache();
 
   void flushCache();
-
-  void fillCache(Set<Long> ids);
 }

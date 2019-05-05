@@ -30,7 +30,7 @@ public final class Db {
 
   private static HikariDataSource cp;
   private static SQLDialect dialect;
-  private static final ThreadLocal<DbConnection> localConnection = new ThreadLocal<>();
+  private static final ThreadLocal<Connection> localConnection = new ThreadLocal<>();
   private static final ThreadLocal<Map<String, Map<BurstKey, Object>>> transactionCaches = new ThreadLocal<>();
   private static final ThreadLocal<Map<String, Map<BurstKey, Object>>> transactionBatches = new ThreadLocal<>();
 
@@ -163,10 +163,11 @@ public final class Db {
     if (con != null) {
       return con;
     }
+
     con = getPooledConnection();
     con.setAutoCommit(true);
 
-    return new DbConnection(con);
+    return con;
   }
 
   public static DSLContext getDSLContext() {
@@ -214,9 +215,7 @@ public final class Db {
       Connection con = cp.getConnection();
       con.setAutoCommit(false);
 
-      con = new DbConnection(con);
-
-      localConnection.set((DbConnection) con);
+      localConnection.set(con);
       transactionCaches.set(new HashMap<>());
       transactionBatches.set(new HashMap<>());
 
@@ -228,12 +227,12 @@ public final class Db {
   }
 
   public static void commitTransaction() {
-    DbConnection con = localConnection.get();
+    Connection con = localConnection.get();
     if (con == null) {
       throw new IllegalStateException("Not in transaction");
     }
     try {
-      con.doCommit();
+      con.commit();
     }
     catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
@@ -241,12 +240,12 @@ public final class Db {
   }
 
   public static void rollbackTransaction() {
-    DbConnection con = localConnection.get();
+    Connection con = localConnection.get();
     if (con == null) {
       throw new IllegalStateException("Not in transaction");
     }
     try {
-      con.doRollback();
+      con.rollback();
     }
     catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
@@ -267,62 +266,5 @@ public final class Db {
     transactionBatches.get().clear();
     transactionBatches.set(null);
     DbUtils.close(con);
-  }
-
-  private static class DbConnection extends FilteredConnection {
-
-    private DbConnection(Connection con) {
-      super(con);
-    }
-
-    @Override
-    public void setAutoCommit(boolean autoCommit) {
-      throw new UnsupportedOperationException("Use Db.beginTransaction() to start a new transaction");
-    }
-
-    @Override
-    public void commit() throws SQLException {
-      if (localConnection.get() == null) {
-        super.commit();
-      }
-      else if (!this.equals(localConnection.get())) {
-        throw new IllegalStateException("Previous connection not committed");
-      }
-      else {
-        throw new UnsupportedOperationException("Use Db.commitTransaction() to commit the transaction");
-      }
-    }
-
-    private void doCommit() throws SQLException {
-      super.commit();
-    }
-
-    @Override
-    public void rollback() throws SQLException {
-      if (localConnection.get() == null) {
-        super.rollback();
-      }
-      else if (!this.equals(localConnection.get())) {
-        throw new IllegalStateException("Previous connection not committed");
-      }
-      else {
-        throw new UnsupportedOperationException("Use Db.rollbackTransaction() to rollback the transaction");
-      }
-    }
-
-    private void doRollback() throws SQLException {
-      super.rollback();
-    }
-
-    @Override
-    public void close() throws SQLException {
-      if (localConnection.get() == null) {
-        super.close();
-      }
-      else if (!this.equals(localConnection.get())) {
-        throw new IllegalStateException("Previous connection not committed");
-      }
-    }
-
   }
 }

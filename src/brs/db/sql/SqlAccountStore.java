@@ -7,7 +7,6 @@ import brs.db.VersionedEntityTable;
 import brs.db.cache.DBCacheManagerImpl;
 import brs.db.store.AccountStore;
 import brs.db.store.DerivedTableManager;
-import brs.schema.tables.records.AccountRecord;
 import brs.util.Convert;
 import org.jooq.*;
 import org.slf4j.LoggerFactory;
@@ -23,7 +22,7 @@ public class SqlAccountStore implements AccountStore {
       public DbKey newKey(Account account) {
         return (DbKey) account.nxtKey;
       }
-    };
+  };
   private static final DbKey.LongKeyFactory<Account.RewardRecipientAssignment> rewardRecipientAssignmentDbKeyFactory
     = new DbKey.LongKeyFactory<Account.RewardRecipientAssignment>(REWARD_RECIP_ASSIGN.ACCOUNT_ID) {
         @Override
@@ -108,18 +107,6 @@ public class SqlAccountStore implements AccountStore {
           );
         }
         ctx.batch(accountQueries).execute();
-      }
-
-      @Override
-      public void fillCache(Set<Long> ids) {
-        try (DSLContext ctx = Db.getDSLContext()) {
-          for (AccountRecord account : ctx.selectFrom(ACCOUNT)
-                  .where(ACCOUNT.LATEST.isTrue())
-                  .and(ACCOUNT.ID.in(ids))
-                  .fetch()) {
-            getCache().put(accountDbKeyFactory.newKey(account.getId()), new SqlAccount(account));
-          }
-        }
       }
     };
   }

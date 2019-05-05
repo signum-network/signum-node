@@ -208,8 +208,4 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
   public void flushCache() {
     getCache().clear();
   }
-
-  @Override
-  public void fillCache(Set<Long> ids) {
-  }
 }

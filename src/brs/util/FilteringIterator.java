@@ -16,7 +16,6 @@ public final class FilteringIterator<T> implements Iterator<T> {
   private final int to;
   private T next;
   private boolean hasNext;
-  private boolean iterated;
   private int count;
 
   public FilteringIterator(Collection<T> collection, Filter<T> filter) {

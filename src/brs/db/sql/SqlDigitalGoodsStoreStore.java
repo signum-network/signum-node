@@ -22,7 +22,7 @@ import static brs.schema.Tables.*;
 public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
 
   private static final DbKey.LongKeyFactory<DigitalGoodsStore.Purchase> feedbackDbKeyFactory
-    = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>(PURCHASE_FEEDBACK.ID) {
+    = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>(PURCHASE.ID) {
         @Override
         public BurstKey newKey(DigitalGoodsStore.Purchase purchase) {
           return purchase.dbKey;
@@ -43,7 +43,7 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
   private final VersionedValuesTable<DigitalGoodsStore.Purchase, EncryptedData> feedbackTable;
 
   private final DbKey.LongKeyFactory<DigitalGoodsStore.Purchase> publicFeedbackDbKeyFactory
-    = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>(PURCHASE_PUBLIC_FEEDBACK.ID) {
+    = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>(PURCHASE.ID) {
         @Override
         public BurstKey newKey(DigitalGoodsStore.Purchase purchase) {
           return purchase.dbKey;

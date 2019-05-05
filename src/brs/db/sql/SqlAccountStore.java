@@ -238,7 +238,7 @@ public class SqlAccountStore implements AccountStore {
       super(rs.get(ACCOUNT_ASSET.ACCOUNT_ID),
             rs.get(ACCOUNT_ASSET.ASSET_ID),
             rs.get(ACCOUNT_ASSET.QUANTITY),
-            rs.get(ACCOUNT_ASSET.QUANTITY),
+            rs.get(ACCOUNT_ASSET.UNCONFIRMED_QUANTITY),
             accountAssetDbKeyFactory.newKey(rs.get(ACCOUNT_ASSET.ACCOUNT_ID), rs.get(ACCOUNT_ASSET.ASSET_ID))
             );
     }

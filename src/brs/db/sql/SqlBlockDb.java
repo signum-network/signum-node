@@ -106,7 +106,6 @@ public class SqlBlockDb implements BlockDb {
   }
 
   public void saveBlock(DSLContext ctx, Block block) {
-    try {
       ctx.insertInto(BLOCK, BLOCK.ID, BLOCK.VERSION, BLOCK.TIMESTAMP, BLOCK.PREVIOUS_BLOCK_ID,
               BLOCK.TOTAL_AMOUNT, BLOCK.TOTAL_FEE, BLOCK.PAYLOAD_LENGTH, BLOCK.GENERATOR_PUBLIC_KEY,
               BLOCK.PREVIOUS_BLOCK_HASH, BLOCK.CUMULATIVE_DIFFICULTY, BLOCK.BASE_TARGET, BLOCK.HEIGHT,
@@ -120,7 +119,6 @@ public class SqlBlockDb implements BlockDb {
                       block.getGenerationSignature(), block.getBlockSignature(), block.getPayloadHash(),
                       block.getGeneratorId(), block.getNonce(), block.getBlockATs())
               .execute();
-    }
 
     Burst.getDbs().getTransactionDb().saveTransactions(block.getTransactions());
 

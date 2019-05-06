@@ -1,38 +1,20 @@
 package brs.crypto;
 
 import brs.BurstException;
+import burst.kit.entity.BurstEncryptedMessage;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.security.SecureRandom;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
+// TODO replace this class with the one from burstkit4j
 public class EncryptedData {
-
-  private static final ThreadLocal<SecureRandom> secureRandom = ThreadLocal.withInitial(SecureRandom::new);
-
   private static final EncryptedData EMPTY_DATA = new EncryptedData(new byte[0], new byte[0]);
 
   public static EncryptedData encrypt(byte[] plaintext, byte[] myPrivateKey, byte[] theirPublicKey) {
     if (plaintext.length == 0) {
       return EMPTY_DATA;
     }
-    try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-         GZIPOutputStream gzip = new GZIPOutputStream(bos)) {
-      gzip.write(plaintext);
-      gzip.flush();
-      gzip.close();
-      byte[] compressedPlaintext = bos.toByteArray();
-      byte[] nonce = new byte[32];
-      secureRandom.get().nextBytes(nonce);
-      byte[] data = Crypto.aesEncrypt(compressedPlaintext, myPrivateKey, theirPublicKey, nonce);
-      return new EncryptedData(data, nonce);
-    } catch (IOException e) {
-      throw new RuntimeException(e.getMessage(), e);
-    }
+    BurstEncryptedMessage message = Crypto.burstCrypto.encryptBytesMessage(plaintext, myPrivateKey, theirPublicKey);
+    return new EncryptedData(message.getData(), message.getNonce());
   }
 
   public static EncryptedData readEncryptedData(ByteBuffer buffer, int length, int maxLength)
@@ -62,20 +44,7 @@ public class EncryptedData {
     if (data.length == 0) {
       return data;
     }
-    byte[] compressedPlaintext = Crypto.aesDecrypt(data, myPrivateKey, theirPublicKey, nonce);
-    try (ByteArrayInputStream bis = new ByteArrayInputStream(compressedPlaintext);
-         GZIPInputStream gzip = new GZIPInputStream(bis);
-         ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-      byte[] buffer = new byte[1024];
-      int nRead;
-      while ((nRead = gzip.read(buffer, 0, buffer.length)) > 0) {
-        bos.write(buffer, 0, nRead);
-      }
-      bos.flush();
-      return bos.toByteArray();
-    } catch (IOException e) {
-      throw new RuntimeException(e.getMessage(), e);
-    }
+    return Crypto.burstCrypto.decryptMessage(new BurstEncryptedMessage(data, nonce, false), myPrivateKey, theirPublicKey);
   }
 
   public byte[] getData() {
@@ -89,5 +58,4 @@ public class EncryptedData {
   public int getSize() {
     return data.length + nonce.length;
   }
-
 }

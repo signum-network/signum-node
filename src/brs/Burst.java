@@ -4,7 +4,6 @@ import brs.AT.HandleATBlockTransactionsListener;
 import brs.assetexchange.AssetExchange;
 import brs.assetexchange.AssetExchangeImpl;
 import brs.blockchainlistener.DevNullListener;
-import brs.crypto.hash.ShabalProvider;
 import brs.db.BlockDb;
 import brs.db.cache.DBCacheManagerImpl;
 import brs.db.sql.Db;
@@ -158,8 +157,6 @@ public final class Burst {
 
     try {
       long startTime = System.currentTimeMillis();
-
-      ShabalProvider.init();
 
       final TimeService timeService = new TimeServiceImpl();
 

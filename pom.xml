@@ -20,6 +20,7 @@
 
   <properties>
     <bcprov-jdk15on.version>1.61</bcprov-jdk15on.version>
+    <burstkit4j.version>v0.10-beta1</burstkit4j.version>
     <ehcache.version>3.7.1</ehcache.version>
     <flywaydb.version>6.0.0-beta</flywaydb.version>
     <grpc.version>1.20.0</grpc.version>
@@ -54,7 +55,20 @@
     <grpc.source.dir>src/brs/grpc</grpc.source.dir>
   </properties>
 
+  <repositories>
+    <repository>
+      <id>jitpack.io</id>
+      <url>https://jitpack.io</url>
+    </repository>
+  </repositories>
+
   <dependencies>
+
+    <dependency>
+      <groupId>com.github.burst-apps-team</groupId>
+      <artifactId>burstkit4j</artifactId>
+      <version>${burstkit4j.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>org.jocl</groupId>

@@ -2,7 +2,6 @@ package brs;
 
 import brs.common.QuickMocker;
 import brs.common.TestConstants;
-import brs.crypto.hash.ShabalProvider;
 import brs.fluxcapacitor.FluxCapacitor;
 import brs.fluxcapacitor.FluxValues;
 import brs.services.TimeService;
@@ -28,8 +27,6 @@ public class GeneratorImplTest {
 
     @Before
     public void setUpGeneratorImplTest() {
-        ShabalProvider.init();
-
         Blockchain blockchain = mock(Blockchain.class);
 
         TimeService timeService = mock(TimeService.class);

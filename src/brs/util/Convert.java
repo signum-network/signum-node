@@ -3,33 +3,24 @@ package brs.util;
 import brs.BurstException;
 import brs.Constants;
 import brs.crypto.Crypto;
-import org.bouncycastle.util.encoders.DecoderException;
+import burst.kit.crypto.BurstCrypto;
+import burst.kit.entity.BurstAddress;
 import org.bouncycastle.util.encoders.Hex;
 
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Date;
 
 public final class Convert {
 
-  private static final long[] multipliers = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
+  private static final BurstCrypto burstCrypto = BurstCrypto.getInstance();
 
-  public static final BigInteger two64 = new BigInteger("18446744073709551616");
+  private static final long[] multipliers = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
 
   private Convert() {} //never
 
   public static byte[] parseHexString(String hex) {
-    if (hex == null) return null;
-    try {
-      if (hex.length() % 2 != 0) {
-        hex = hex.substring(0, hex.length() - 1);
-      }
-      return Hex.decode(hex);
-    } catch (DecoderException e) {
-      throw new RuntimeException("Could not parse hex string " + hex, e);
-    }
+    return Hex.decode(hex);
   }
 
   public static String toHexString(byte[] bytes) {
@@ -49,15 +40,8 @@ public final class Convert {
   }
 
   public static long parseAccountId(String account) {
-    if (account == null) {
-      return 0;
-    }
-    account = account.toUpperCase();
-    if (account.startsWith("BURST-")) {
-      return Crypto.rsDecode(account.substring(6));
-    } else {
-      return parseUnsignedLong(account);
-    }
+    BurstAddress address = BurstAddress.fromEither(account);
+    return address == null ? 0 : address.getBurstID().getSignedLongId();
   }
 
   public static String rsAccount(long accountId) {
@@ -65,22 +49,14 @@ public final class Convert {
   }
 
   public static long fullHashToId(byte[] hash) {
-    if (hash == null || hash.length < 8) {
-      throw new IllegalArgumentException("Invalid hash: " + Arrays.toString(hash));
-    }
-    long result = 0;
-    for (int i = 0; i < 8; i++) {
-      result <<= 8;
-      result |= (hash[7-i] & 0xFF);
-    }
-    return result;
+    return burstCrypto.hashToId(hash).getSignedLongId();
   }
 
   public static long fullHashToId(String hash) {
     if (hash == null) {
       return 0;
     }
-    return fullHashToId(Convert.parseHexString(hash));
+    return fullHashToId(parseHexString(hash));
   }
 
   public static Date fromEpochTime(int epochTime) {

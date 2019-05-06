@@ -72,6 +72,7 @@ public final class Constants {
 
   static final long UNCONFIRMED_POOL_DEPOSIT_NQT = (Burst.getPropertyService().getBoolean(Props.DEV_TESTNET) ? 50 : 100) * ONE_BURST;
 
+  // TODO burstkit4j integration
   public static final long EPOCH_BEGINNING;
 
   static {

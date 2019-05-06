@@ -2,6 +2,7 @@ package brs.util;
 
 import brs.Constants;
 
+// TODO burstkit4j integration
 public interface Time {
 
   int getTime();
@@ -17,7 +18,6 @@ public interface Time {
     public long getTimeInMillis() {
       return ((System.currentTimeMillis() - Constants.EPOCH_BEGINNING + 500));
     }
-
   }
 
   final class FasterTime implements Time {
@@ -42,7 +42,5 @@ public interface Time {
     public long getTimeInMillis() {
       return time + ((System.currentTimeMillis() - systemStartTime) / multiplier);
     }
-
   }
-
 }

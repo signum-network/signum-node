@@ -24,7 +24,6 @@ import brs.peer.Peers;
 import brs.props.PropertyService;
 import brs.props.PropertyServiceImpl;
 import brs.props.Props;
-import brs.schema.tables.records.UnconfirmedTransactionRecord;
 import brs.services.*;
 import brs.services.impl.*;
 import brs.statistics.StatisticsManagerImpl;
@@ -34,8 +33,6 @@ import brs.util.ThreadPool;
 import brs.util.Time;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
-import org.jooq.DSLContext;
-import org.jooq.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,8 +40,6 @@ import java.io.*;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static brs.schema.Tables.UNCONFIRMED_TRANSACTION;
 
 public final class Burst {
 
@@ -246,29 +241,6 @@ public final class Burst {
 
       if (propertyService.getBoolean(Props.BRS_DEBUG_TRACE_ENABLED))
         DebugTrace.init(propertyService, blockchainProcessor, accountService, assetExchange, digitalGoodsStoreService);
-
-      // backward compatibility for those who have some unconfirmed transactions in their db TODO remove
-      try {
-        stores.beginTransaction();
-        try (DSLContext ctx = Db.getDSLContext()) {
-          Result<UnconfirmedTransactionRecord> rs = ctx.selectFrom(UNCONFIRMED_TRANSACTION).fetch();
-          for (UnconfirmedTransactionRecord r : rs) {
-            byte[] transactionBytes = r.getTransactionBytes();
-            Transaction transaction = Transaction.parseTransaction(transactionBytes);
-            transaction.setHeight(r.getTransactionHeight());
-            transactionService.undoUnconfirmed(transaction);
-          }
-          ctx.truncate(UNCONFIRMED_TRANSACTION).execute();
-        }
-        accountService.flushAccountTable();
-        stores.commitTransaction();
-      } catch (Exception e) {
-        logger.error(e.toString(), e);
-        stores.rollbackTransaction();
-        throw e;
-      } finally {
-        stores.endTransaction();
-      }
 
       int timeMultiplier = (propertyService.getBoolean(Props.DEV_TESTNET) && propertyService.getBoolean(Props.DEV_OFFLINE)) ? Math.max(propertyService.getInt(Props.DEV_TIMEWARP), 1) : 1;
 

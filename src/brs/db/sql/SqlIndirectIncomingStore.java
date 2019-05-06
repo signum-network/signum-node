@@ -41,10 +41,13 @@ public class SqlIndirectIncomingStore implements IndirectIncomingStore {
 
             @Override
             void save(DSLContext ctx, IndirectIncoming[] indirectIncomings) {
+                if (indirectIncomings.length == 0) return;
+                // We don't want to insert an extra value at the beginning of the table with all zero fields so this is a method of avoiding that
                 BatchBindStep batch = ctx.batch(ctx.mergeInto(INDIRECT_INCOMING, INDIRECT_INCOMING.ACCOUNT_ID, INDIRECT_INCOMING.TRANSACTION_ID, INDIRECT_INCOMING.HEIGHT)
                                 .key(INDIRECT_INCOMING.ACCOUNT_ID, INDIRECT_INCOMING.TRANSACTION_ID)
-                                .values(0L, 0L, 0));
-                for (IndirectIncoming indirectIncoming : indirectIncomings) {
+                                .values(indirectIncomings[0].getAccountId(), indirectIncomings[0].getTransactionId(), indirectIncomings[0].getHeight()));
+                for (int i = 1, indirectIncomingsLength = indirectIncomings.length; i < indirectIncomingsLength; i++) {
+                    IndirectIncoming indirectIncoming = indirectIncomings[i];
                     batch.bind(indirectIncoming.getAccountId(), indirectIncoming.getTransactionId(), indirectIncoming.getHeight());
                 }
                 batch.execute();

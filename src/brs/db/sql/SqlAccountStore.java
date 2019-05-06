@@ -94,19 +94,15 @@ public class SqlAccountStore implements AccountStore {
 
       @Override
       protected void bulkInsert(DSLContext ctx, Collection<Account> accounts) {
-        List<Query> accountQueries = new ArrayList<>();
         int height = Burst.getBlockchain().getHeight();
+        BatchBindStep batch = ctx.batch(ctx.mergeInto(ACCOUNT, ACCOUNT.ID, ACCOUNT.HEIGHT, ACCOUNT.CREATION_HEIGHT, ACCOUNT.PUBLIC_KEY, ACCOUNT.KEY_HEIGHT, ACCOUNT.BALANCE, ACCOUNT.UNCONFIRMED_BALANCE, ACCOUNT.FORGED_BALANCE, ACCOUNT.NAME, ACCOUNT.DESCRIPTION, ACCOUNT.LATEST)
+                .key(ACCOUNT.ID, ACCOUNT.HEIGHT)
+                .values((Long) null, null, null,  null,  null,  null,  null,  null,  null,  null, null));
         for (Account account: accounts) {
           if (account == null) continue;
-          accountQueries.add(
-                  ctx.mergeInto(ACCOUNT, ACCOUNT.ID, ACCOUNT.HEIGHT, ACCOUNT.CREATION_HEIGHT, ACCOUNT.PUBLIC_KEY, ACCOUNT.KEY_HEIGHT, ACCOUNT.BALANCE,
-                          ACCOUNT.UNCONFIRMED_BALANCE, ACCOUNT.FORGED_BALANCE, ACCOUNT.NAME, ACCOUNT.DESCRIPTION, ACCOUNT.LATEST)
-                          .key(ACCOUNT.ID, ACCOUNT.HEIGHT)
-                          .values(account.getId(), height, account.getCreationHeight(), account.getPublicKey(), account.getKeyHeight(),
-                          account.getBalanceNQT(), account.getUnconfirmedBalanceNQT(), account.getForgedBalanceNQT(), account.getName(), account.getDescription(), true)
-          );
+          batch.bind(account.getId(), height, account.getCreationHeight(), account.getPublicKey(), account.getKeyHeight(), account.getBalanceNQT(), account.getUnconfirmedBalanceNQT(), account.getForgedBalanceNQT(), account.getName(), account.getDescription(), true);
         }
-        ctx.batch(accountQueries).execute();
+        batch.execute();
       }
     };
   }

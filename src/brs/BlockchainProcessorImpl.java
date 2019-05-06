@@ -240,6 +240,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
       @Override
       public void run() {
+        if (propertyService.getBoolean(Props.DEV_OFFLINE)) return;
         while (!Thread.currentThread().isInterrupted() && ThreadPool.running.get()) {
           try {
             try {

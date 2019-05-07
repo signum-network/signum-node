@@ -7,6 +7,7 @@ import burst.kit.crypto.BurstCrypto;
 import burst.kit.entity.BurstAddress;
 import org.bouncycastle.util.encoders.Hex;
 
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -16,6 +17,8 @@ public final class Convert {
   private static final BurstCrypto burstCrypto = BurstCrypto.getInstance();
 
   private static final long[] multipliers = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
+
+  public static final BigInteger two64 = BigInteger.valueOf(2).pow(64);
 
   private Convert() {} //never
 

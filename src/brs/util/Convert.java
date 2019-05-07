@@ -5,6 +5,7 @@ import brs.Constants;
 import brs.crypto.Crypto;
 import burst.kit.crypto.BurstCrypto;
 import burst.kit.entity.BurstAddress;
+import org.bouncycastle.util.encoders.DecoderException;
 import org.bouncycastle.util.encoders.Hex;
 
 import java.math.BigInteger;
@@ -23,7 +24,15 @@ public final class Convert {
   private Convert() {} //never
 
   public static byte[] parseHexString(String hex) {
-    return Hex.decode(hex);
+    if (hex == null) return null;
+    try {
+      if (hex.length() % 2 != 0) {
+        hex = hex.substring(0, hex.length() - 1);
+      }
+      return Hex.decode(hex);
+    } catch (DecoderException e) {
+      throw new RuntimeException("Could not parse hex string " + hex, e);
+    }
   }
 
   public static String toHexString(byte[] bytes) {

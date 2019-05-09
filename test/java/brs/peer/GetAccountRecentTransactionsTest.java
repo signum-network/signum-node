@@ -8,7 +8,6 @@ import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.JSONParam;
 import brs.common.TestConstants;
-import brs.db.BurstIterator;
 import brs.services.AccountService;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -16,9 +15,11 @@ import com.google.gson.JsonPrimitive;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Collection;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -51,7 +52,7 @@ public class GetAccountRecentTransactionsTest extends AbstractUnitTest {
 
     final Transaction mockTransaction = mock(Transaction.class);
     when(mockTransaction.getType()).thenReturn(DigitalGoods.DELISTING);
-    final BurstIterator<Transaction> transactionsIterator = mockBurstIterator(mockTransaction);
+    final Collection<Transaction> transactionsIterator = mockCollection(mockTransaction);
 
     when(mockAccountService.getAccount(eq(TestConstants.TEST_ACCOUNT_NUMERIC_ID_PARSED))).thenReturn(mockAccount);
     when(mockBlockchain.getTransactions(eq(mockAccount), eq(0), eq((byte) -1), eq((byte) 0), eq(0), eq(0), eq(9), eq(false))).thenReturn(transactionsIterator);

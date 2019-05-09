@@ -1,17 +1,7 @@
 package brs.services.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import brs.Account;
 import brs.Account.RewardRecipientAssignment;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.VersionedBatchEntityTable;
@@ -19,6 +9,13 @@ import brs.db.store.AccountStore;
 import brs.db.store.AssetTransferStore;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Collection;
+
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 public class AccountServiceImplTest {
 
@@ -163,7 +160,7 @@ public class AccountServiceImplTest {
   @Test
   public void getAccountsWithRewardRecipient() {
     final Long recipientId = 123l;
-    final BurstIterator<RewardRecipientAssignment> mockAccountsIterator = mock(BurstIterator.class);
+    final Collection<RewardRecipientAssignment> mockAccountsIterator = mock(Collection.class);
 
     when(accountStoreMock.getAccountsWithRewardRecipient(eq(recipientId))).thenReturn(mockAccountsIterator);
 
@@ -174,7 +171,7 @@ public class AccountServiceImplTest {
   public void getAllAccounts() {
     final int from = 1;
     final int to = 5;
-    final BurstIterator<Account> mockAccountsIterator = mock(BurstIterator.class);
+    final Collection<Account> mockAccountsIterator = mock(Collection.class);
 
     when(accountTableMock.getAll(eq(from), eq(to))).thenReturn(mockAccountsIterator);
 

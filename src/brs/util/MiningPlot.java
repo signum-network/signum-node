@@ -2,12 +2,11 @@ package brs.util;
 
 import brs.crypto.Crypto;
 import brs.fluxcapacitor.FluxCapacitor;
+import brs.fluxcapacitor.FluxValues;
 
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.util.Arrays;
-
-import static brs.fluxcapacitor.FeatureToggle.POC2;
 
 public class MiningPlot {
   private static final int HASH_SIZE = 32;
@@ -41,7 +40,7 @@ public class MiningPlot {
       data[i] = (byte) (gendata[i] ^ finalhash[i % HASH_SIZE]);
     }
     //PoC2 Rearrangement
-    if (fluxCapacitor.isActive(POC2, blockHeight)) {
+    if (fluxCapacitor.getValue(FluxValues.POC2, blockHeight)) {
       byte[] hashBuffer = new byte[HASH_SIZE];
       int revPos = PLOT_SIZE - HASH_SIZE; //Start at second hash in last scoop
       for (int pos = 32; pos < (PLOT_SIZE / 2); pos += 64) { //Start at second hash in first scoop

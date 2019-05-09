@@ -6,7 +6,6 @@ import brs.BurstException;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.db.BurstIterator;
 import brs.services.AccountService;
 import brs.services.ParameterService;
 import com.google.gson.JsonArray;
@@ -15,16 +14,15 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collection;
 
 import static brs.http.common.Parameters.ACCOUNTS_RESPONSE;
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
-;
 
 public class GetAccountsWithRewardRecipientTest extends AbstractUnitTest {
 
@@ -57,7 +55,7 @@ public class GetAccountsWithRewardRecipientTest extends AbstractUnitTest {
     final RewardRecipientAssignment assignment = mock(RewardRecipientAssignment.class);
     when(assignment.getAccountId()).thenReturn(targetAccountId);
 
-    final BurstIterator assignmentIterator = mockBurstIterator(assignment);
+    final Collection<RewardRecipientAssignment> assignmentIterator = mockCollection(assignment);
 
     when(accountService.getAccountsWithRewardRecipient(eq(targetAccountId))).thenReturn(assignmentIterator);
 
@@ -85,7 +83,7 @@ public class GetAccountsWithRewardRecipientTest extends AbstractUnitTest {
     final RewardRecipientAssignment assignment = mock(RewardRecipientAssignment.class);
     when(assignment.getAccountId()).thenReturn(targetAccountId);
 
-    final BurstIterator assignmentIterator = mockBurstIterator(assignment);
+    final Collection<RewardRecipientAssignment> assignmentIterator = mockCollection(assignment);
 
     when(accountService.getAccountsWithRewardRecipient(eq(targetAccountId))).thenReturn(assignmentIterator);
     when(accountService.getRewardRecipientAssignment(eq(targetAccount))).thenReturn(assignment);

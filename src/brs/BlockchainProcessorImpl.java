@@ -10,8 +10,7 @@ import brs.db.cache.DBCacheManagerImpl;
 import brs.db.store.BlockchainStore;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.Stores;
-import brs.fluxcapacitor.FeatureToggle;
-import brs.fluxcapacitor.FluxInt;
+import brs.fluxcapacitor.FluxValues;
 import brs.peer.Peer;
 import brs.peer.Peers;
 import brs.props.PropertyService;
@@ -34,6 +33,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -44,7 +44,6 @@ import java.util.stream.Stream;
 
 import static brs.Constants.FEE_QUANT;
 import static brs.Constants.ONE_BURST;
-import static brs.fluxcapacitor.FeatureToggle.PRE_DYMAXION;
 
 public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
@@ -87,6 +86,14 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   private boolean forceScan;
   private boolean validateAtScan;
 
+  private final boolean forgeFatBlocks;
+
+  private Integer ttsd;
+
+  private final boolean autoPopOffEnabled;
+  private int autoPopOffLastStuckHeight = 0;
+  private int autoPopOffNumberOfBlocks = 0;
+
   public final void setOclVerify(Boolean b) {
     oclVerify = b;
   }
@@ -120,6 +127,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     this.dbCacheManager = dbCacheManager;
     this.accountService = accountService;
     this.indirectIncomingService = indirectIncomingService;
+
+    autoPopOffEnabled = propertyService.getBoolean(Props.AUTO_POP_OFF_ENABLED);
 
     oclVerify = propertyService.getBoolean(Props.GPU_ACCELERATION); // use GPU acceleration ?
     oclUnverifiedQueue = propertyService.getInt(Props.GPU_UNVERIFIED_QUEUE);
@@ -229,6 +238,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
       @Override
       public void run() {
+        if (propertyService.getBoolean(Props.DEV_OFFLINE)) return;
         while (!Thread.currentThread().isInterrupted() && ThreadPool.running.get()) {
           try {
             try {
@@ -613,7 +623,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
       }
     };
-    threadPool.scheduleThread("GetMoreBlocks", getMoreBlocksThread, 2);
+    threadPool.scheduleThread("GetMoreBlocks", getMoreBlocksThread, Constants.BLOCK_PROCESS_THREAD_DELAY, TimeUnit.MILLISECONDS);
     /* this should fetch first block in cache */
     //resetting cache because we have blocks that cannot be processed.
     //pushblock removes the block from cache.
@@ -639,8 +649,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             Thread.currentThread().interrupt();
           } catch (BlockNotAcceptedException e) {
             logger.error("Block not accepted", e);
-            blacklistClean(currentBlock, e,
-                    "found invalid pull/push data during importing the block");
+            blacklistClean(currentBlock, e, "found invalid pull/push data during importing the block");
+            autoPopOff(currentBlock.getHeight());
             break;
           }
         } catch (Exception exception) {
@@ -648,7 +658,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
       }
     };
-    threadPool.scheduleThread("ImportBlocks", blockImporterThread, 10);
+    threadPool.scheduleThread("ImportBlocks", blockImporterThread, Constants.BLOCK_PROCESS_THREAD_DELAY, TimeUnit.MILLISECONDS);
     //Is there anything to verify
     //should we use Ocl?
     //is Ocl ready ?
@@ -716,10 +726,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     };
     if (propertyService.getBoolean(Props.GPU_ACCELERATION)) {
       logger.debug("Starting preverifier thread in Open CL mode.");
-      threadPool.scheduleThread("VerifyPoc", pocVerificationThread, 9);
+      threadPool.scheduleThread("VerifyPoc", pocVerificationThread, Constants.BLOCK_PROCESS_THREAD_DELAY, TimeUnit.MILLISECONDS);
     } else {
       logger.debug("Starting preverifier thread in CPU mode.");
-      threadPool.scheduleThreadCores("VerifyPoc", pocVerificationThread, 9);
+      threadPool.scheduleThreadCores("VerifyPoc", pocVerificationThread, Constants.BLOCK_PROCESS_THREAD_DELAY, TimeUnit.MILLISECONDS);
     }
   }
 
@@ -736,6 +746,26 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     logger.debug("Blacklisted peer and cleaned queue");
   }
 
+  private void autoPopOff(int height) {
+    if (!autoPopOffEnabled) {
+      logger.warn("Not automatically popping off as it is disabled via properties. If your node becomes stuck you will need to manually pop off.");
+      return;
+    }
+    synchronized (transactionProcessor.getUnconfirmedTransactionsSyncObj()) {
+      logger.warn("Auto popping off as failed to push block");
+      if (height != autoPopOffLastStuckHeight) {
+        autoPopOffLastStuckHeight = height;
+        autoPopOffNumberOfBlocks = 0;
+      }
+      if (autoPopOffNumberOfBlocks == 0) {
+        logger.warn("Not popping anything off as this was the first failure at this height");
+      } else {
+        logger.warn("Popping off " + autoPopOffNumberOfBlocks + " blocks due to previous failures to push this block");
+        popOffTo(blockchain.getHeight() - autoPopOffNumberOfBlocks);
+      }
+      autoPopOffNumberOfBlocks++;
+    }
+  }
 
   @Override
   public boolean addListener(Listener<Block> listener, BlockchainProcessor.Event eventType) {
@@ -823,9 +853,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   }
 
   private void addBlock(Block block) {
-    if (blockchainStore.addBlock(block)) {
-      blockchain.setLastBlock(block);
-    }
+    blockchainStore.addBlock(block);
+    blockchain.setLastBlock(block);
   }
 
   private void addGenesisBlock() {
@@ -902,17 +931,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         long calculatedTotalFee = 0;
         MessageDigest digest = Crypto.sha256();
 
-        ArrayList<Long> accountIds = new ArrayList<>();
-        block.getTransactions().forEach(t -> {
-          if (t.getRecipientId() != 0L)
-            accountIds.add(t.getRecipientId());
-          if (t.getSenderId() != 0L)
-            accountIds.add(t.getSenderId());
-        });
-        if (!accountIds.isEmpty()) {
-          stores.getAccountStore().getAccountTable().fillCache(accountIds);
-        }
-
         long[] feeArray = new long[block.getTransactions().size()];
         int slotIdx = 0;
 
@@ -956,7 +974,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 + transaction.getStringId() + " at height " + previousLastBlock.getHeight(),
                 transaction);
           }
-          if (Burst.getFluxCapacitor().isActive(FeatureToggle.AUTOMATED_TRANSACTION_BLOCK)) {
+          if (Burst.getFluxCapacitor().getValue(FluxValues.AUTOMATED_TRANSACTION_BLOCK)) {
             if (!economicClustering.verifyFork(transaction)) {
               logger.debug("Block " + block.getStringId() + " height "
                   + (previousLastBlock.getHeight() + 1)
@@ -1007,8 +1025,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           throw new BlockNotAcceptedException("Payload hash doesn't match for block " + block.getHeight());
         }
 
-        long remainingAmount =
-            Convert.safeSubtract(block.getTotalAmountNQT(), calculatedTotalAmount);
+        long remainingAmount = Convert.safeSubtract(block.getTotalAmountNQT(), calculatedTotalAmount);
         long remainingFee = Convert.safeSubtract(block.getTotalFeeNQT(), calculatedTotalFee);
 
         blockService.setPrevious(block, previousLastBlock);
@@ -1034,6 +1051,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       blockListeners.notify(block, Event.BLOCK_PUSHED);
       if (block.getTimestamp() >= timeService.getEpochTime() - MAX_TIMESTAMP_DIFFERENCE) {
         Peers.sendToSomePeers(block);
+      }
+      if (block.getHeight() >= autoPopOffLastStuckHeight) {
+        autoPopOffNumberOfBlocks = 0;
       }
     }
   }
@@ -1157,8 +1177,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       UnconfirmedTransactionStore unconfirmedTransactionStore = stores.getUnconfirmedTransactionStore();
       SortedSet<Transaction> orderedBlockTransactions = new TreeSet<>();
 
-      int blockSize   = Burst.getFluxCapacitor().getInt(FluxInt.MAX_NUMBER_TRANSACTIONS);
-      int payloadSize = Burst.getFluxCapacitor().getInt(FluxInt.MAX_PAYLOAD_LENGTH);
+      int blockSize   = Burst.getFluxCapacitor().getValue(FluxValues.MAX_NUMBER_TRANSACTIONS);
+      int payloadSize = Burst.getFluxCapacitor().getValue(FluxValues.MAX_PAYLOAD_LENGTH);
 
       long totalAmountNQT = 0;
       long totalFeeNQT = 0;
@@ -1189,7 +1209,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                 && transaction.getExpiration() >= blockTimestamp
                                 && transaction.getTimestamp() <= blockTimestamp + MAX_TIMESTAMP_DIFFERENCE
                                 && (
-                                !Burst.getFluxCapacitor().isActive(FeatureToggle.AUTOMATED_TRANSACTION_BLOCK)
+                                !Burst.getFluxCapacitor().getValue(FluxValues.AUTOMATED_TRANSACTION_BLOCK)
                                         || economicClustering.verifyFork(transaction)
                         ))
                 .filter(transaction -> preCheckUnconfirmedTransaction(transactionDuplicatesChecker, unconfirmedTransactionStore, transaction)); // Extra check for transactions that are to be considered
@@ -1213,7 +1233,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                       highestSlot.set(slot);
                     }
                   });
-          System.out.println("Highest slot is " + highestSlot.get());
           List<Long> slotsWithNoTransactions = new ArrayList<>();
           for (long slot = 1; slot <= highestSlot.get(); slot++) {
             Map<Long, Transaction> transactions = unconfirmedTransactionsOrderedBySlotThenPriority.get(slot);
@@ -1221,7 +1240,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               slotsWithNoTransactions.add(slot);
             }
           }
-          System.out.println("Slots with no transactions: " + slotsWithNoTransactions);
           Map<Long, Transaction> unconfirmedTransactionsOrderedBySlot = new HashMap<>();
           unconfirmedTransactionsOrderedBySlotThenPriority.forEach((slot, transactions) -> {
             AtomicLong highestPriority = new AtomicLong();
@@ -1233,8 +1251,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             unconfirmedTransactionsOrderedBySlot.put(slot, transactions.get(highestPriority.get()));
             transactions.remove(highestPriority.get()); // This is to help with filling slots with no transactions
           });
-
-          System.out.println("unconfirmedTransactionsOrderedBySlotThenPriority: " + unconfirmedTransactionsOrderedBySlotThenPriority);
 
           // If a slot does not have any transactions in it, the next highest priority transaction from the slot above should be used.
           slotsWithNoTransactions.sort(Comparator.reverseOrder());
@@ -1257,7 +1273,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           });
           transactionsToBeIncluded = unconfirmedTransactionsOrderedBySlot;
         } else { // Before Pre-Dymaxion HF, just choose highest priority
-          System.out.println("oops");
           Map<Long, Transaction> transactionsOrderedByPriority = inclusionCandidates.collect(Collectors.toMap(priorityCalculator, tx -> tx));
           Map<Long, Transaction> transactionsOrderedBySlot = new HashMap<>();
           AtomicLong currentSlot = new AtomicLong(1);
@@ -1270,8 +1285,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                   });
           transactionsToBeIncluded = transactionsOrderedBySlot;
         }
-
-        System.out.println("transactionsToBeIncluded: " + transactionsToBeIncluded);
 
         for (Map.Entry<Long, Transaction> entry : transactionsToBeIncluded.entrySet()) {
           long slot = entry.getKey();
@@ -1346,7 +1359,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       byte[] previousBlockHash = Crypto.sha256().digest(previousBlock.getBytes());
       try {
         block = new Block(getBlockVersion(), blockTimestamp,
-            previousBlock.getId(), totalAmountNQT, totalFeeNQT, Burst.getFluxCapacitor().getInt(FluxInt.MAX_PAYLOAD_LENGTH) - payloadSize, payloadHash, publicKey,
+            previousBlock.getId(), totalAmountNQT, totalFeeNQT, Burst.getFluxCapacitor().getValue(FluxValues.MAX_PAYLOAD_LENGTH) - payloadSize, payloadHash, publicKey,
             generationSignature, null, previousBlockHash, new ArrayList<>(orderedBlockTransactions), nonce,
             byteATs, previousBlock.getHeight());
 

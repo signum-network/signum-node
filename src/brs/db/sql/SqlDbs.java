@@ -11,7 +11,6 @@ public class SqlDbs implements Dbs {
   private final TransactionDb transactionDb;
   private final PeerDb peerDb;
 
-
   public SqlDbs() {
     this.blockDb       = new SqlBlockDb();
     this.transactionDb = new SqlTransactionDb();
@@ -32,5 +31,4 @@ public class SqlDbs implements Dbs {
   public PeerDb getPeerDb() {
     return peerDb;
   }
-
 }

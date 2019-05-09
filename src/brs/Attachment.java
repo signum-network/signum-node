@@ -4,6 +4,7 @@ import brs.TransactionType.Payment;
 import brs.at.AT_Constants;
 import brs.crypto.EncryptedData;
 import brs.grpc.proto.BrsApi;
+import brs.grpc.proto.ProtoBuilder;
 import brs.util.Convert;
 import brs.util.JSON;
 import com.google.gson.JsonArray;
@@ -11,7 +12,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.Empty;
+import com.google.protobuf.InvalidProtocolBufferException;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -53,6 +54,81 @@ public interface Attachment extends Appendix {
       getTransactionType().apply(transaction, senderAccount, recipientAccount);
     }
 
+    public static AbstractAttachment parseProtobufMessage(Any attachment) throws InvalidProtocolBufferException, BurstException.NotValidException {
+      // Yes, this is fairly horrible. I wish there was a better way to do this but any does not let us switch on its contained class.
+      if (attachment.is(BrsApi.OrdinaryPaymentAttachment.class)) {
+        return ORDINARY_PAYMENT;
+      } else if (attachment.is(BrsApi.ArbitraryMessageAttachment.class)) {
+        return ARBITRARY_MESSAGE;
+      } else if (attachment.is(BrsApi.ATPaymentAttachment.class)) {
+        return AT_PAYMENT;
+      } else if (attachment.is(BrsApi.MultiOutAttachment.class)) {
+        return new PaymentMultiOutCreation(attachment.unpack(BrsApi.MultiOutAttachment.class));
+      } else if (attachment.is(BrsApi.MultiOutSameAttachment.class)) {
+        return new PaymentMultiSameOutCreation(attachment.unpack(BrsApi.MultiOutSameAttachment.class));
+      } else if (attachment.is(BrsApi.AliasAssignmentAttachment.class)) {
+        return new MessagingAliasAssignment(attachment.unpack(BrsApi.AliasAssignmentAttachment.class));
+      } else if (attachment.is(BrsApi.AliasSellAttachment.class)) {
+        return new MessagingAliasSell(attachment.unpack(BrsApi.AliasSellAttachment.class));
+      } else if (attachment.is(BrsApi.AliasBuyAttachment.class)) {
+        return new MessagingAliasBuy(attachment.unpack(BrsApi.AliasBuyAttachment.class));
+      } else if (attachment.is(BrsApi.AccountInfoAttachment.class)) {
+        return new MessagingAccountInfo(attachment.unpack(BrsApi.AccountInfoAttachment.class));
+      } else if (attachment.is(BrsApi.AssetIssuanceAttachment.class)) {
+        return new ColoredCoinsAssetIssuance(attachment.unpack(BrsApi.AssetIssuanceAttachment.class));
+      } else if (attachment.is(BrsApi.AssetTransferAttachment.class)) {
+        return new ColoredCoinsAssetTransfer(attachment.unpack(BrsApi.AssetTransferAttachment.class));
+      } else if (attachment.is(BrsApi.AssetOrderPlacementAttachment.class)) {
+        BrsApi.AssetOrderPlacementAttachment placementAttachment = attachment.unpack(BrsApi.AssetOrderPlacementAttachment.class);
+        if (placementAttachment.getType() == BrsApi.OrderType.ASK) {
+          return new ColoredCoinsAskOrderPlacement(placementAttachment);
+        } else if (placementAttachment.getType() == BrsApi.OrderType.BID) {
+          return new ColoredCoinsBidOrderPlacement(placementAttachment);
+        }
+      } else if (attachment.is(BrsApi.AssetOrderCancellationAttachment.class)) {
+        BrsApi.AssetOrderCancellationAttachment placementAttachment = attachment.unpack(BrsApi.AssetOrderCancellationAttachment.class);
+        if (placementAttachment.getType() == BrsApi.OrderType.ASK) {
+          return new ColoredCoinsAskOrderCancellation(placementAttachment);
+        } else if (placementAttachment.getType() == BrsApi.OrderType.BID) {
+          return new ColoredCoinsBidOrderCancellation(placementAttachment);
+        }
+      } else if (attachment.is(BrsApi.DigitalGoodsListingAttachment.class)) {
+        return new DigitalGoodsListing(attachment.unpack(BrsApi.DigitalGoodsListingAttachment.class));
+      } else if (attachment.is(BrsApi.DigitalGoodsDelistingAttachment.class)) {
+        return new DigitalGoodsDelisting(attachment.unpack(BrsApi.DigitalGoodsDelistingAttachment.class));
+      } else if (attachment.is(BrsApi.DigitalGoodsPriceChangeAttachment.class)) {
+        return new DigitalGoodsPriceChange(attachment.unpack(BrsApi.DigitalGoodsPriceChangeAttachment.class));
+      } else if (attachment.is(BrsApi.DigitalGoodsQuantityChangeAttachment.class)) {
+        return new DigitalGoodsQuantityChange(attachment.unpack(BrsApi.DigitalGoodsQuantityChangeAttachment.class));
+      } else if (attachment.is(BrsApi.DigitalGoodsPurchaseAttachment.class)) {
+        return new DigitalGoodsPurchase(attachment.unpack(BrsApi.DigitalGoodsPurchaseAttachment.class));
+      } else if (attachment.is(BrsApi.DigitalGoodsDeliveryAttachment.class)) {
+        return new DigitalGoodsDelivery(attachment.unpack(BrsApi.DigitalGoodsDeliveryAttachment.class));
+      } else if (attachment.is(BrsApi.DigitalGoodsFeedbackAttachment.class)) {
+        return new DigitalGoodsFeedback(attachment.unpack(BrsApi.DigitalGoodsFeedbackAttachment.class));
+      } else if (attachment.is(BrsApi.DigitalGoodsRefundAttachment.class)) {
+        return new DigitalGoodsRefund(attachment.unpack(BrsApi.DigitalGoodsRefundAttachment.class));
+      } else if (attachment.is(BrsApi.EffectiveBalanceLeasingAttachment.class)) {
+        return new AccountControlEffectiveBalanceLeasing(attachment.unpack(BrsApi.EffectiveBalanceLeasingAttachment.class));
+      } else if (attachment.is(BrsApi.RewardRecipientAssignmentAttachment.class)) {
+        return new BurstMiningRewardRecipientAssignment(attachment.unpack(BrsApi.RewardRecipientAssignmentAttachment.class));
+      } else if (attachment.is(BrsApi.EscrowCreationAttachment.class)) {
+        return new AdvancedPaymentEscrowCreation(attachment.unpack(BrsApi.EscrowCreationAttachment.class));
+      } else if (attachment.is(BrsApi.EscrowSignAttachment.class)) {
+        return new AdvancedPaymentEscrowSign(attachment.unpack(BrsApi.EscrowSignAttachment.class));
+      } else if (attachment.is(BrsApi.EscrowResultAttachment.class)) {
+        return new AdvancedPaymentEscrowResult(attachment.unpack(BrsApi.EscrowResultAttachment.class));
+      } else if (attachment.is(BrsApi.SubscriptionSubscribeAttachment.class)) {
+        return new AdvancedPaymentSubscriptionSubscribe(attachment.unpack(BrsApi.SubscriptionSubscribeAttachment.class));
+      } else if (attachment.is(BrsApi.SubscriptionCancelAttachment.class)) {
+        return new AdvancedPaymentSubscriptionCancel(attachment.unpack(BrsApi.SubscriptionCancelAttachment.class));
+      } else if (attachment.is(BrsApi.SubscriptionPaymentAttachment.class)) {
+        return new AdvancedPaymentSubscriptionPayment(attachment.unpack(BrsApi.SubscriptionPaymentAttachment.class));
+      } else if (attachment.is(BrsApi.ATCreationAttachment.class)) {
+        return new AutomatedTransactionsCreation(attachment.unpack(BrsApi.ATCreationAttachment.class));
+      }
+      return ORDINARY_PAYMENT; // TODO ??
+    }
   }
 
   abstract class EmptyAttachment extends AbstractAttachment {
@@ -75,11 +151,6 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    public Any getProtobufMessage() {
-      return Any.pack(Empty.newBuilder().build());
-    }
-
-    @Override
     final boolean verifyVersion(byte transactionVersion) {
       return true;
     }
@@ -87,6 +158,11 @@ public interface Attachment extends Appendix {
   }
 
   EmptyAttachment ORDINARY_PAYMENT = new EmptyAttachment() {
+
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(BrsApi.OrdinaryPaymentAttachment.getDefaultInstance());
+    }
 
     @Override
     String getAppendixName() {
@@ -165,6 +241,26 @@ public interface Attachment extends Appendix {
           throw new BurstException.NotValidException("Duplicate recipient on multi out transaction");
 
         if (amountNQT <= 0)
+          throw new BurstException.NotValidException("Insufficient amountNQT on multi out transaction");
+
+        recipientOf.put(recipientId, true);
+        this.recipients.add(new ArrayList<>(Arrays.asList(recipientId, amountNQT)));
+      }
+      if (recipients.size() > Constants.MAX_MULTI_OUT_RECIPIENTS || recipients.size() <= 1) {
+        throw new BurstException.NotValidException("Invalid number of recipients listed on multi out transaction");
+      }
+    }
+
+    PaymentMultiOutCreation(BrsApi.MultiOutAttachment attachment) throws BurstException.NotValidException {
+      super(((byte) attachment.getVersion()));
+      HashMap<Long,Boolean> recipientOf = new HashMap<>();
+      for (BrsApi.MultiOutAttachment.MultiOutRecipient recipient : attachment.getRecipientsList()) {
+        long recipientId = recipient.getRecipient();
+        long amountNQT = recipient.getAmount();
+        if (recipientOf.containsKey(recipientId))
+          throw new BurstException.NotValidException("Duplicate recipient on multi out transaction");
+
+        if (amountNQT  <=0)
           throw new BurstException.NotValidException("Insufficient amountNQT on multi out transaction");
 
         recipientOf.put(recipientId, true);
@@ -298,6 +394,22 @@ public interface Attachment extends Appendix {
       }
     }
 
+    PaymentMultiSameOutCreation(BrsApi.MultiOutSameAttachment attachment) throws BurstException.NotValidException {
+      super(((byte) attachment.getVersion()));
+      HashMap<Long,Boolean> recipientOf = new HashMap<>();
+      for(Long recipientId : attachment.getRecipientsList()) {
+        if (recipientOf.containsKey(recipientId))
+          throw new BurstException.NotValidException("Duplicate recipient on multi same out transaction");
+
+        recipientOf.put(recipientId, true);
+        this.recipients.add(recipientId);
+      }
+      if (recipients.size() > Constants.MAX_MULTI_SAME_OUT_RECIPIENTS || recipients.size() <= 1) {
+        throw new BurstException.NotValidException(
+                "Invalid number of recipients listed on multi same out transaction");
+      }
+    }
+
     @Override
     String getAppendixName() {
       return "MultiSameOutCreation";
@@ -342,7 +454,12 @@ public interface Attachment extends Appendix {
   // the message payload is in the Appendix
   EmptyAttachment ARBITRARY_MESSAGE = new EmptyAttachment() {
 
-      @Override
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(BrsApi.ArbitraryMessageAttachment.getDefaultInstance());
+    }
+
+    @Override
       String getAppendixName() {
         return "ArbitraryMessage";
       }
@@ -356,7 +473,12 @@ public interface Attachment extends Appendix {
 
   EmptyAttachment AT_PAYMENT = new EmptyAttachment() {
 
-      @Override
+    @Override
+    public Any getProtobufMessage() {
+      return Any.pack(BrsApi.ATPaymentAttachment.getDefaultInstance());
+    }
+
+    @Override
       public TransactionType getTransactionType() {
         return TransactionType.AutomatedTransactions.AT_PAYMENT;
       }
@@ -390,6 +512,12 @@ public interface Attachment extends Appendix {
       super(blockchainHeight);
       this.aliasName = aliasName.trim();
       this.aliasURI = aliasURI.trim();
+    }
+
+    MessagingAliasAssignment(BrsApi.AliasAssignmentAttachment attachment) {
+      super((byte) attachment.getVersion());
+      this.aliasName = attachment.getName();
+      this.aliasURI = attachment.getUri();
     }
 
     @Override
@@ -464,6 +592,12 @@ public interface Attachment extends Appendix {
       this.priceNQT = priceNQT;
     }
 
+    MessagingAliasSell(BrsApi.AliasSellAttachment attachment) {
+      super((byte) attachment.getVersion());
+      this.aliasName = attachment.getName();
+      this.priceNQT = attachment.getPrice();
+    }
+
     @Override
     String getAppendixName() {
       return "AliasSell";
@@ -530,6 +664,11 @@ public interface Attachment extends Appendix {
       this.aliasName = aliasName;
     }
 
+    MessagingAliasBuy(BrsApi.AliasBuyAttachment attachment) {
+      super((byte) attachment.getVersion());
+      this.aliasName = attachment.getName();
+    }
+
     @Override
     String getAppendixName() {
       return "AliasBuy";
@@ -591,6 +730,12 @@ public interface Attachment extends Appendix {
       super(blockchainHeight);
       this.name = name;
       this.description = description;
+    }
+
+    MessagingAccountInfo(BrsApi.AccountInfoAttachment attachment) {
+      super((byte) attachment.getVersion());
+      this.name = attachment.getName();
+      this.description = attachment.getDescription();
     }
 
     @Override
@@ -671,6 +816,14 @@ public interface Attachment extends Appendix {
       this.description = Convert.nullToEmpty(description);
       this.quantityQNT = quantityQNT;
       this.decimals = decimals;
+    }
+
+    ColoredCoinsAssetIssuance(BrsApi.AssetIssuanceAttachment attachment) {
+        super((byte) attachment.getVersion());
+        this.name = attachment.getName();
+        this.description = attachment.getDescription();
+        this.quantityQNT = attachment.getQuantity();
+        this.decimals = (byte) attachment.getDecimals();
     }
 
     @Override
@@ -763,6 +916,13 @@ public interface Attachment extends Appendix {
       this.comment = null;
     }
 
+    ColoredCoinsAssetTransfer(BrsApi.AssetTransferAttachment attachment) {
+        super((byte) attachment.getVersion());
+        this.assetId = attachment.getAsset();
+        this.quantityQNT = attachment.getQuantity();
+        this.comment = attachment.getComment();
+    }
+
     @Override
     String getAppendixName() {
       return "AssetTransfer";
@@ -814,7 +974,7 @@ public interface Attachment extends Appendix {
     public Any getProtobufMessage() {
       return Any.pack(BrsApi.AssetTransferAttachment.newBuilder()
               .setVersion(getVersion())
-              .setId(assetId)
+              .setAsset(assetId)
               .setQuantity(quantityQNT)
               .setComment(comment)
               .build());
@@ -848,6 +1008,13 @@ public interface Attachment extends Appendix {
       this.priceNQT = priceNQT;
     }
 
+    ColoredCoinsOrderPlacement(BrsApi.AssetOrderPlacementAttachment attachment) {
+      super((byte) attachment.getVersion());
+      this.assetId = attachment.getAsset();
+      this.quantityQNT = attachment.getQuantity();
+      this.priceNQT = attachment.getPrice();
+    }
+
     @Override
     int getMySize() {
       return 8 + 8 + 8;
@@ -871,7 +1038,7 @@ public interface Attachment extends Appendix {
     public Any getProtobufMessage() {
       return Any.pack(BrsApi.AssetOrderPlacementAttachment.newBuilder()
               .setVersion(getVersion())
-              .setId(assetId)
+              .setAsset(assetId)
               .setQuantity(quantityQNT)
               .setPrice(priceNQT)
               .setType(getType())
@@ -890,7 +1057,7 @@ public interface Attachment extends Appendix {
       return priceNQT;
     }
 
-    protected abstract BrsApi.AssetOrderPlacementAttachment.Type getType();
+    protected abstract BrsApi.OrderType getType();
   }
 
   final class ColoredCoinsAskOrderPlacement extends ColoredCoinsOrderPlacement {
@@ -907,9 +1074,14 @@ public interface Attachment extends Appendix {
       super(assetId, quantityQNT, priceNQT, blockchainHeight);
     }
 
+    ColoredCoinsAskOrderPlacement(BrsApi.AssetOrderPlacementAttachment attachment) {
+      super(attachment);
+      if (attachment.getType() != getType()) throw new IllegalArgumentException("Type does not match");
+    }
+
     @Override
-    protected BrsApi.AssetOrderPlacementAttachment.Type getType() {
-      return BrsApi.AssetOrderPlacementAttachment.Type.ASK;
+    protected BrsApi.OrderType getType() {
+      return BrsApi.OrderType.ASK;
     }
 
     @Override
@@ -938,9 +1110,14 @@ public interface Attachment extends Appendix {
       super(assetId, quantityQNT, priceNQT, blockchainHeight);
     }
 
+    ColoredCoinsBidOrderPlacement(BrsApi.AssetOrderPlacementAttachment attachment) {
+      super(attachment);
+      if (attachment.getType() != getType()) throw new IllegalArgumentException("Type does not match");
+    }
+
     @Override
-    protected BrsApi.AssetOrderPlacementAttachment.Type getType() {
-      return BrsApi.AssetOrderPlacementAttachment.Type.BID;
+    protected BrsApi.OrderType getType() {
+      return BrsApi.OrderType.BID;
     }
 
     @Override
@@ -974,6 +1151,11 @@ public interface Attachment extends Appendix {
       this.orderId = orderId;
     }
 
+    ColoredCoinsOrderCancellation(BrsApi.AssetOrderCancellationAttachment attachment) {
+      super((byte) attachment.getVersion());
+      this.orderId = attachment.getOrder();
+    }
+
     @Override
     int getMySize() {
       return 8;
@@ -993,7 +1175,7 @@ public interface Attachment extends Appendix {
     public Any getProtobufMessage() {
       return Any.pack(BrsApi.AssetOrderCancellationAttachment.newBuilder()
               .setVersion(getVersion())
-              .setOrderId(orderId)
+              .setOrder(orderId)
               .setType(getType())
               .build());
     }
@@ -1002,7 +1184,7 @@ public interface Attachment extends Appendix {
       return orderId;
     }
 
-    protected abstract BrsApi.AssetOrderCancellationAttachment.Type getType();
+    protected abstract BrsApi.OrderType getType();
   }
 
   final class ColoredCoinsAskOrderCancellation extends ColoredCoinsOrderCancellation {
@@ -1019,9 +1201,14 @@ public interface Attachment extends Appendix {
       super(orderId, blockchainHeight);
     }
 
+    ColoredCoinsAskOrderCancellation(BrsApi.AssetOrderCancellationAttachment attachment) {
+      super(attachment);
+      if (attachment.getType() != getType()) throw new IllegalArgumentException("Type does not match");
+    }
+
     @Override
-    protected BrsApi.AssetOrderCancellationAttachment.Type getType() {
-      return BrsApi.AssetOrderCancellationAttachment.Type.ASK;
+    protected BrsApi.OrderType getType() {
+      return BrsApi.OrderType.ASK;
     }
 
     @Override
@@ -1050,9 +1237,14 @@ public interface Attachment extends Appendix {
       super(orderId, blockchainHeight);
     }
 
+    ColoredCoinsBidOrderCancellation(BrsApi.AssetOrderCancellationAttachment attachment) {
+      super(attachment);
+      if (attachment.getType() != getType()) throw new IllegalArgumentException("Type does not match");
+    }
+
     @Override
-    protected BrsApi.AssetOrderCancellationAttachment.Type getType() {
-      return BrsApi.AssetOrderCancellationAttachment.Type.BID;
+    protected BrsApi.OrderType getType() {
+      return BrsApi.OrderType.BID;
     }
 
     @Override
@@ -1100,6 +1292,15 @@ public interface Attachment extends Appendix {
       this.tags = tags;
       this.quantity = quantity;
       this.priceNQT = priceNQT;
+    }
+
+    DigitalGoodsListing(BrsApi.DigitalGoodsListingAttachment attachment) {
+      super((byte) attachment.getVersion());
+      this.name = attachment.getName();
+      this.description = attachment.getDescription();
+      this.tags = attachment.getTags();
+      this.quantity = attachment.getQuantity();
+      this.priceNQT = attachment.getPrice();
     }
 
     @Override
@@ -1184,6 +1385,11 @@ public interface Attachment extends Appendix {
       this.goodsId = goodsId;
     }
 
+    DigitalGoodsDelisting(BrsApi.DigitalGoodsDelistingAttachment attachment) {
+      super((byte) attachment.getVersion());
+      this.goodsId = attachment.getGoods();
+    }
+
     @Override
     String getAppendixName() {
       return "DigitalGoodsDelisting";
@@ -1215,7 +1421,7 @@ public interface Attachment extends Appendix {
     public Any getProtobufMessage() {
       return Any.pack(BrsApi.DigitalGoodsDelistingAttachment.newBuilder()
               .setVersion(getVersion())
-              .setGoodsId(goodsId)
+              .setGoods(goodsId)
               .build());
     }
   }
@@ -1241,6 +1447,12 @@ public interface Attachment extends Appendix {
       super(blockchainHeight);
       this.goodsId = goodsId;
       this.priceNQT = priceNQT;
+    }
+
+    DigitalGoodsPriceChange(BrsApi.DigitalGoodsPriceChangeAttachment attachment) {
+      super((byte) attachment.getVersion());
+      this.goodsId = attachment.getGoods();
+      this.priceNQT = attachment.getPrice();
     }
 
     @Override
@@ -1278,7 +1490,7 @@ public interface Attachment extends Appendix {
     public Any getProtobufMessage() {
       return Any.pack(BrsApi.DigitalGoodsPriceChangeAttachment.newBuilder()
               .setVersion(getVersion())
-              .setGoodsId(goodsId)
+              .setGoods(goodsId)
               .setPrice(priceNQT)
               .build());
     }
@@ -1305,6 +1517,12 @@ public interface Attachment extends Appendix {
       super(blockchainHeight);
       this.goodsId = goodsId;
       this.deltaQuantity = deltaQuantity;
+    }
+
+    DigitalGoodsQuantityChange(BrsApi.DigitalGoodsQuantityChangeAttachment attachment) {
+      super((byte) attachment.getVersion());
+      this.goodsId = attachment.getGoods();
+      this.deltaQuantity = attachment.getDeltaQuantity();
     }
 
     @Override
@@ -1342,7 +1560,7 @@ public interface Attachment extends Appendix {
     public Any getProtobufMessage() {
       return Any.pack(BrsApi.DigitalGoodsQuantityChangeAttachment.newBuilder()
               .setVersion(getVersion())
-              .setGoodsId(goodsId)
+              .setGoods(goodsId)
               .setDeltaQuantity(deltaQuantity)
               .build());
     }
@@ -1377,6 +1595,14 @@ public interface Attachment extends Appendix {
       this.quantity = quantity;
       this.priceNQT = priceNQT;
       this.deliveryDeadlineTimestamp = deliveryDeadlineTimestamp;
+    }
+
+    DigitalGoodsPurchase(BrsApi.DigitalGoodsPurchaseAttachment attachment) {
+      super((byte) attachment.getVersion());
+      this.goodsId = attachment.getGoods();
+      this.quantity = attachment.getQuantity();
+      this.priceNQT = attachment.getPrice();
+      this.deliveryDeadlineTimestamp = attachment.getDeliveryDeadlineTimestmap();
     }
 
     @Override
@@ -1422,7 +1648,7 @@ public interface Attachment extends Appendix {
     public Any getProtobufMessage() {
       return Any.pack(BrsApi.DigitalGoodsPurchaseAttachment.newBuilder()
               .setVersion(getVersion())
-              .setGoodsId(goodsId)
+              .setGoods(goodsId)
               .setQuantity(quantity)
               .setPrice(priceNQT)
               .setDeliveryDeadlineTimestmap(deliveryDeadlineTimestamp)
@@ -1464,6 +1690,14 @@ public interface Attachment extends Appendix {
       this.goods = goods;
       this.discountNQT = discountNQT;
       this.goodsIsText = goodsIsText;
+    }
+
+    DigitalGoodsDelivery(BrsApi.DigitalGoodsDeliveryAttachment attachment) {
+      super((byte) attachment.getVersion());
+      this.purchaseId = attachment.getPurchase();
+      this.goods = ProtoBuilder.parseEncryptedData(attachment.getGoods());
+      this.goodsIsText = attachment.getIsText();
+      this.discountNQT = attachment.getDiscount();
     }
 
     @Override
@@ -1513,10 +1747,9 @@ public interface Attachment extends Appendix {
     public Any getProtobufMessage() {
       return Any.pack(BrsApi.DigitalGoodsDeliveryAttachment.newBuilder()
               .setVersion(getVersion())
-              .setPurchaseId(purchaseId)
+              .setPurchase(purchaseId)
               .setDiscount(discountNQT)
-              .setData(ByteString.copyFrom(goods.getData()))
-              .setNonce(ByteString.copyFrom(goods.getNonce()))
+              .setGoods(ProtoBuilder.buildEncryptedData(goods))
               .setIsText(goodsIsText)
               .build());
     }
@@ -1539,6 +1772,11 @@ public interface Attachment extends Appendix {
     public DigitalGoodsFeedback(long purchaseId, int blockchainHeight) {
       super(blockchainHeight);
       this.purchaseId = purchaseId;
+    }
+
+    DigitalGoodsFeedback(BrsApi.DigitalGoodsFeedbackAttachment attachment) {
+      super((byte) attachment.getVersion());
+      this.purchaseId = attachment.getPurchase();
     }
 
     @Override
@@ -1572,7 +1810,7 @@ public interface Attachment extends Appendix {
     public Any getProtobufMessage() {
       return Any.pack(BrsApi.DigitalGoodsFeedbackAttachment.newBuilder()
               .setVersion(getVersion())
-              .setPurchaseId(purchaseId)
+              .setPurchase(purchaseId)
               .build());
     }
   }
@@ -1598,6 +1836,12 @@ public interface Attachment extends Appendix {
       super(blockchainHeight);
       this.purchaseId = purchaseId;
       this.refundNQT = refundNQT;
+    }
+
+    DigitalGoodsRefund(BrsApi.DigitalGoodsRefundAttachment attachment) {
+      super((byte) attachment.getVersion());
+      this.purchaseId = attachment.getPurchase();
+      this.refundNQT = attachment.getRefund();
     }
 
     @Override
@@ -1635,7 +1879,7 @@ public interface Attachment extends Appendix {
     public Any getProtobufMessage() {
       return Any.pack(BrsApi.DigitalGoodsRefundAttachment.newBuilder()
               .setVersion(getVersion())
-              .setPurchaseId(purchaseId)
+              .setPurchase(purchaseId)
               .setRefund(refundNQT)
               .build());
     }
@@ -1658,6 +1902,11 @@ public interface Attachment extends Appendix {
     public AccountControlEffectiveBalanceLeasing(short period, int blockchainHeight) {
       super(blockchainHeight);
       this.period = period;
+    }
+
+    AccountControlEffectiveBalanceLeasing(BrsApi.EffectiveBalanceLeasingAttachment attachment) {
+      super((byte) attachment.getVersion());
+      this.period = (short) attachment.getPeriod();
     }
 
     @Override
@@ -1710,6 +1959,10 @@ public interface Attachment extends Appendix {
 
     public BurstMiningRewardRecipientAssignment(int blockchainHeight) {
       super(blockchainHeight);
+    }
+
+    BurstMiningRewardRecipientAssignment(BrsApi.RewardRecipientAssignmentAttachment attachment) {
+      super((byte) attachment.getVersion());
     }
 
     @Override
@@ -1803,6 +2056,21 @@ public interface Attachment extends Appendix {
       }
     }
 
+    AdvancedPaymentEscrowCreation(BrsApi.EscrowCreationAttachment attachment) throws BurstException.NotValidException {
+      super((byte) attachment.getVersion());
+      this.amountNQT = attachment.getAmount();
+      this.requiredSigners = (byte) attachment.getRequiredSigners();
+      this.deadline = attachment.getDeadline();
+      this.deadlineAction = Escrow.protoBufToDecision(attachment.getDeadlineAction());
+      this.signers.addAll(attachment.getSignersList());
+      if(signers.size() > 10 || signers.isEmpty()) {
+        throw new BurstException.NotValidException("Invalid number of signers listed on create escrow transaction");
+      }
+      if(this.signers.size() != attachment.getSignersList().size()) {
+        throw new BurstException.NotValidException("Duplicate signer on escrow creation");
+      }
+    }
+
     @Override
     String getAppendixName() {
       return "EscrowCreation";
@@ -1892,6 +2160,12 @@ public interface Attachment extends Appendix {
       this.decision = decision;
     }
 
+    AdvancedPaymentEscrowSign(BrsApi.EscrowSignAttachment attachment) {
+      super((byte) attachment.getVersion());
+      this.escrowId = attachment.getEscrow();
+      this.decision = Escrow.protoBufToDecision(attachment.getDecision());
+    }
+
     @Override
     String getAppendixName() {
       return "EscrowSign";
@@ -1927,7 +2201,7 @@ public interface Attachment extends Appendix {
     public Any getProtobufMessage() {
       return Any.pack(BrsApi.EscrowSignAttachment.newBuilder()
               .setVersion(getVersion())
-              .setEscrowId(escrowId)
+              .setEscrow(escrowId)
               .setDecision(Escrow.decisionToProtobuf(decision))
               .build());
     }
@@ -1954,6 +2228,12 @@ public interface Attachment extends Appendix {
       super(blockchainHeight);
       this.escrowId = escrowId;
       this.decision = decision;
+    }
+
+    AdvancedPaymentEscrowResult(BrsApi.EscrowResultAttachment attachment) {
+      super((byte) attachment.getVersion());
+      this.escrowId = attachment.getEscrow();
+      this.decision = Escrow.protoBufToDecision(attachment.getDecision());
     }
 
     @Override
@@ -1987,7 +2267,7 @@ public interface Attachment extends Appendix {
     public Any getProtobufMessage() {
       return Any.pack(BrsApi.EscrowResultAttachment.newBuilder()
               .setVersion(getVersion())
-              .setEscrowId(2)
+              .setEscrow(2)
               .setDecision(Escrow.decisionToProtobuf(decision))
               .build());
     }
@@ -2010,6 +2290,11 @@ public interface Attachment extends Appendix {
     public AdvancedPaymentSubscriptionSubscribe(int frequency, int blockchainHeight) {
       super(blockchainHeight);
       this.frequency = frequency;
+    }
+
+    AdvancedPaymentSubscriptionSubscribe(BrsApi.SubscriptionSubscribeAttachment attachment) {
+      super((byte) attachment.getVersion());
+      this.frequency = attachment.getFrequency();
     }
 
     @Override
@@ -2067,6 +2352,11 @@ public interface Attachment extends Appendix {
       this.subscriptionId = subscriptionId;
     }
 
+    AdvancedPaymentSubscriptionCancel(BrsApi.SubscriptionCancelAttachment attachment) {
+      super((byte) attachment.getVersion());
+      this.subscriptionId = attachment.getSubscription();
+    }
+
     @Override
     String getAppendixName() {
       return "SubscriptionCancel";
@@ -2098,7 +2388,7 @@ public interface Attachment extends Appendix {
     public Any getProtobufMessage() {
       return Any.pack(BrsApi.SubscriptionCancelAttachment.newBuilder()
               .setVersion(getVersion())
-              .setSubscriptionId(subscriptionId)
+              .setSubscription(subscriptionId)
               .build());
     }
   }
@@ -2120,6 +2410,11 @@ public interface Attachment extends Appendix {
     public AdvancedPaymentSubscriptionPayment(Long subscriptionId, int blockchainHeight) {
       super(blockchainHeight);
       this.subscriptionId = subscriptionId;
+    }
+
+    AdvancedPaymentSubscriptionPayment(BrsApi.SubscriptionPaymentAttachment attachment) {
+      super((byte) attachment.getVersion());
+      this.subscriptionId = attachment.getSubscription();
     }
 
     @Override
@@ -2151,7 +2446,7 @@ public interface Attachment extends Appendix {
     public Any getProtobufMessage() {
       return Any.pack(BrsApi.SubscriptionPaymentAttachment.newBuilder()
               .setVersion(getVersion())
-              .setSucscriptionId(subscriptionId)
+              .setSubscription(subscriptionId)
               .build());
     }
   }
@@ -2240,6 +2535,13 @@ public interface Attachment extends Appendix {
       this.name = name;
       this.description = description;
       this.creationBytes = creationBytes;
+    }
+
+    AutomatedTransactionsCreation(BrsApi.ATCreationAttachment attachment) {
+      super((byte) attachment.getVersion());
+      this.name = attachment.getName();
+      this.description = attachment.getDescription();
+      this.creationBytes = attachment.getCreationBytes().toByteArray();
     }
 
     @Override

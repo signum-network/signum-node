@@ -1,19 +1,18 @@
 package brs.blockchainlistener;
 
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import brs.Account;
 import brs.Block;
 import brs.DigitalGoodsStore.Purchase;
 import brs.common.AbstractUnitTest;
-import brs.db.BurstIterator;
 import brs.services.AccountService;
 import brs.services.DGSGoodsStoreService;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Collection;
+
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 public class DevNullListenerTest extends AbstractUnitTest {
 
@@ -46,7 +45,7 @@ public class DevNullListenerTest extends AbstractUnitTest {
     when(expiredPurchase.getPriceNQT()).thenReturn(3000L);
     when(expiredPurchase.getBuyerId()).thenReturn(purchaseBuyerId);
 
-    final BurstIterator<Purchase> mockIterator = mockBurstIterator(expiredPurchase);
+    final Collection<Purchase> mockIterator = mockCollection(expiredPurchase);
     when(dgsGoodsStoreServiceMock.getExpiredPendingPurchases(eq(blockTimestamp))).thenReturn(mockIterator);
 
     t.notify(block);

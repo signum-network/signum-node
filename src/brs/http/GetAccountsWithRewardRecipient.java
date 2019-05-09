@@ -2,7 +2,6 @@ package brs.http;
 
 import brs.Account;
 import brs.BurstException;
-import brs.db.BurstIterator;
 import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.util.Convert;
@@ -34,11 +33,10 @@ public final class GetAccountsWithRewardRecipient extends APIServlet.APIRequestH
 
     JsonArray accounts = new JsonArray();
 
-    BurstIterator<Account.RewardRecipientAssignment> assignments = accountService.getAccountsWithRewardRecipient(targetAccount.getId());
-    while(assignments.hasNext()) {
-      Account.RewardRecipientAssignment assignment = assignments.next();
+    for (Account.RewardRecipientAssignment assignment : accountService.getAccountsWithRewardRecipient(targetAccount.getId())) {
       accounts.add(Convert.toUnsignedLong(assignment.getAccountId()));
     }
+
     if(accountService.getRewardRecipientAssignment(targetAccount) == null) {
       accounts.add(Convert.toUnsignedLong(targetAccount.getId()));
     }

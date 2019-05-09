@@ -1,6 +1,6 @@
 package brs;
 
-import brs.fluxcapacitor.FeatureToggle;
+import brs.fluxcapacitor.FluxValues;
 import brs.util.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +44,7 @@ public final class EconomicClustering {
 
   public boolean verifyFork(Transaction transaction) {
     try {
-      if (!Burst.getFluxCapacitor().isActive(FeatureToggle.DIGITAL_GOODS_STORE)) {
+      if (!Burst.getFluxCapacitor().getValue(FluxValues.DIGITAL_GOODS_STORE)) {
         return true;
       }
       if (transaction.getReferencedTransactionFullHash() != null) {

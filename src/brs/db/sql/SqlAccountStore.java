@@ -2,37 +2,29 @@ package brs.db.sql;
 
 import brs.Account;
 import brs.Burst;
-import brs.db.BurstIterator;
 import brs.db.VersionedBatchEntityTable;
 import brs.db.VersionedEntityTable;
 import brs.db.cache.DBCacheManagerImpl;
 import brs.db.store.AccountStore;
 import brs.db.store.DerivedTableManager;
-import brs.schema.tables.records.AccountRecord;
 import brs.util.Convert;
 import org.jooq.*;
 import org.slf4j.LoggerFactory;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.*;
 
 import static brs.schema.Tables.*;
 
 public class SqlAccountStore implements AccountStore {
 
-  private static final DbKey.LongKeyFactory<Account> accountDbKeyFactory = new DbKey.LongKeyFactory<Account>("id") {
+  private static final DbKey.LongKeyFactory<Account> accountDbKeyFactory = new DbKey.LongKeyFactory<Account>(ACCOUNT.ID) {
       @Override
       public DbKey newKey(Account account) {
         return (DbKey) account.nxtKey;
       }
-    };
+  };
   private static final DbKey.LongKeyFactory<Account.RewardRecipientAssignment> rewardRecipientAssignmentDbKeyFactory
-    = new DbKey.LongKeyFactory<Account.RewardRecipientAssignment>("account_id") {
+    = new DbKey.LongKeyFactory<Account.RewardRecipientAssignment>(REWARD_RECIP_ASSIGN.ACCOUNT_ID) {
         @Override
         public DbKey newKey(Account.RewardRecipientAssignment assignment) {
           return (DbKey) assignment.burstKey;
@@ -51,102 +43,66 @@ public class SqlAccountStore implements AccountStore {
     rewardRecipientAssignmentTable = new VersionedEntitySqlTable<Account.RewardRecipientAssignment>("reward_recip_assign", brs.schema.Tables.REWARD_RECIP_ASSIGN, rewardRecipientAssignmentDbKeyFactory, derivedTableManager) {
 
       @Override
-      protected Account.RewardRecipientAssignment load(DSLContext ctx, ResultSet rs) throws SQLException {
+      protected Account.RewardRecipientAssignment load(DSLContext ctx, Record rs) {
         return new SqlRewardRecipientAssignment(rs);
       }
 
       @Override
       protected void save(DSLContext ctx, Account.RewardRecipientAssignment assignment) {
-        brs.schema.tables.records.RewardRecipAssignRecord rewardRecord = ctx.newRecord(brs.schema.Tables.REWARD_RECIP_ASSIGN);
-        rewardRecord.setAccountId(assignment.accountId);
-        rewardRecord.setPrevRecipId(assignment.getPrevRecipientId());
-        rewardRecord.setRecipId(assignment.getRecipientId());
-        rewardRecord.setFromHeight(assignment.getFromHeight());
-        rewardRecord.setHeight(Burst.getBlockchain().getHeight());
-        rewardRecord.setLatest(true);
-        DbUtils.mergeInto(
-            ctx, rewardRecord, brs.schema.Tables.REWARD_RECIP_ASSIGN,
-            ( new Field[] { rewardRecord.field("account_id"), rewardRecord.field("height") } )
-        );
+        ctx.mergeInto(REWARD_RECIP_ASSIGN, REWARD_RECIP_ASSIGN.ACCOUNT_ID, REWARD_RECIP_ASSIGN.PREV_RECIP_ID, REWARD_RECIP_ASSIGN.RECIP_ID, REWARD_RECIP_ASSIGN.FROM_HEIGHT, REWARD_RECIP_ASSIGN.HEIGHT, REWARD_RECIP_ASSIGN.LATEST)
+                .key(REWARD_RECIP_ASSIGN.ACCOUNT_ID, REWARD_RECIP_ASSIGN.HEIGHT)
+                .values(assignment.accountId, assignment.getPrevRecipientId(), assignment.getRecipientId(), assignment.getFromHeight(), Burst.getBlockchain().getHeight(), true)
+                .execute();
       }
     };
 
     accountAssetTable = new VersionedEntitySqlTable<Account.AccountAsset>("account_asset", brs.schema.Tables.ACCOUNT_ASSET, accountAssetDbKeyFactory, derivedTableManager) {
+      private final List<SortField<?>> sort = initializeSort();
+
+      private List<SortField<?>> initializeSort() {
+        List<SortField<?>> sort = new ArrayList<>();
+        sort.add(tableClass.field("quantity", Long.class).desc());
+        sort.add(tableClass.field("account_id", Long.class).asc());
+        sort.add(tableClass.field("asset_id", Long.class).asc());
+        return Collections.unmodifiableList(sort);
+      }
 
       @Override
-      protected Account.AccountAsset load(DSLContext ctx, ResultSet rs) throws SQLException {
+      protected Account.AccountAsset load(DSLContext ctx, Record rs) {
         return new SQLAccountAsset(rs);
       }
 
       @Override
       protected void save(DSLContext ctx, Account.AccountAsset accountAsset) {
-        brs.schema.tables.records.AccountAssetRecord assetRecord = ctx.newRecord(brs.schema.Tables.ACCOUNT_ASSET);
-        assetRecord.setAccountId(accountAsset.accountId);
-        assetRecord.setAssetId(accountAsset.assetId);
-        assetRecord.setQuantity(accountAsset.getQuantityQNT());
-        assetRecord.setUnconfirmedQuantity(accountAsset.getUnconfirmedQuantityQNT());
-        assetRecord.setHeight(Burst.getBlockchain().getHeight());
-        assetRecord.setLatest(true);
-        DbUtils.mergeInto(
-            ctx, assetRecord, brs.schema.Tables.ACCOUNT_ASSET,
-            ( new Field[] { assetRecord.field("account_id"), assetRecord.field("asset_id"), assetRecord.field("height") } )
-        );
+        ctx.mergeInto(ACCOUNT_ASSET, ACCOUNT_ASSET.ACCOUNT_ID, ACCOUNT_ASSET.ASSET_ID, ACCOUNT_ASSET.QUANTITY, ACCOUNT_ASSET.UNCONFIRMED_QUANTITY, ACCOUNT_ASSET.HEIGHT, ACCOUNT_ASSET.LATEST)
+                .key(ACCOUNT_ASSET.ACCOUNT_ID, ACCOUNT_ASSET.ASSET_ID, ACCOUNT_ASSET.HEIGHT)
+                .values(accountAsset.accountId, accountAsset.assetId, accountAsset.getQuantityQNT(), accountAsset.getUnconfirmedQuantityQNT(), Burst.getBlockchain().getHeight(), true)
+                .execute();
       }
 
       @Override
-      protected List<SortField> defaultSort() {
-        List<SortField> sort = new ArrayList<>();
-        sort.add(tableClass.field("quantity", Long.class).desc());
-        sort.add(tableClass.field("account_id", Long.class).asc());
-        sort.add(tableClass.field("asset_id", Long.class).asc());
+      protected List<SortField<?>> defaultSort() {
         return sort;
       }
-
     };
 
-    accountTable = new VersionedBatchEntitySqlTable<Account>("account", brs.schema.Tables.ACCOUNT, accountDbKeyFactory, derivedTableManager, dbCacheManager) {
+    accountTable = new VersionedBatchEntitySqlTable<Account>("account", brs.schema.Tables.ACCOUNT, accountDbKeyFactory, derivedTableManager, dbCacheManager, Account.class) {
       @Override
-      protected Account load(DSLContext ctx, ResultSet rs) throws SQLException {
+      protected Account load(DSLContext ctx, Record rs) {
         return new SqlAccount(rs);
       }
 
       @Override
       protected void bulkInsert(DSLContext ctx, Collection<Account> accounts) {
-        ArrayList<Query> accountQueries = new ArrayList<>();
         int height = Burst.getBlockchain().getHeight();
-        for ( Account account: accounts ) {
-          accountQueries.add(
-                  ctx.mergeInto(ACCOUNT, ACCOUNT.ID, ACCOUNT.HEIGHT, ACCOUNT.CREATION_HEIGHT, ACCOUNT.PUBLIC_KEY, ACCOUNT.KEY_HEIGHT, ACCOUNT.BALANCE,
-                          ACCOUNT.UNCONFIRMED_BALANCE, ACCOUNT.FORGED_BALANCE, ACCOUNT.NAME, ACCOUNT.DESCRIPTION, ACCOUNT.LATEST)
-                          .key(ACCOUNT.ID, ACCOUNT.HEIGHT)
-                          .values(account.getId(), height, account.getCreationHeight(), account.getPublicKey(), account.getKeyHeight(),
-                          account.getBalanceNQT(), account.getUnconfirmedBalanceNQT(), account.getForgedBalanceNQT(), account.getName(), account.getDescription(), true)
-          );
+        BatchBindStep batch = ctx.batch(ctx.mergeInto(ACCOUNT, ACCOUNT.ID, ACCOUNT.HEIGHT, ACCOUNT.CREATION_HEIGHT, ACCOUNT.PUBLIC_KEY, ACCOUNT.KEY_HEIGHT, ACCOUNT.BALANCE, ACCOUNT.UNCONFIRMED_BALANCE, ACCOUNT.FORGED_BALANCE, ACCOUNT.NAME, ACCOUNT.DESCRIPTION, ACCOUNT.LATEST)
+                .key(ACCOUNT.ID, ACCOUNT.HEIGHT)
+                .values((Long) null, null, null,  null,  null,  null,  null,  null,  null,  null, null));
+        for (Account account: accounts) {
+          if (account == null) continue;
+          batch.bind(account.getId(), height, account.getCreationHeight(), account.getPublicKey(), account.getKeyHeight(), account.getBalanceNQT(), account.getUnconfirmedBalanceNQT(), account.getForgedBalanceNQT(), account.getName(), account.getDescription(), true);
         }
-        ctx.batch(accountQueries).execute();
-      }
-
-      @Override
-      public void fillCache(ArrayList<Long> ids) {
-        try ( DSLContext ctx = Db.getDSLContext() ) {
-          try (Cursor<AccountRecord> cursor = ctx.selectFrom(brs.schema.Tables.ACCOUNT).where(
-                  brs.schema.Tables.ACCOUNT.LATEST.isTrue()
-          ).and(
-                  brs.schema.Tables.ACCOUNT.ID
-                          .in(ids.stream().distinct().collect(Collectors.toList()))
-          ).fetchLazy()) {
-
-            while (cursor.hasNext()) {
-              AccountRecord account = cursor.fetchNext();
-              try {
-                DbKey dbKey = (DbKey) accountDbKeyFactory.newKey(account.getId());
-                getCache().put(dbKey, new SqlAccount(account.intoResultSet()));
-              } catch (SQLException e) {
-                // ignore
-              }
-            }
-          }
-        }
+        batch.execute();
       }
     };
   }
@@ -198,30 +154,30 @@ public class SqlAccountStore implements AccountStore {
   }
 
   @Override
-  public BurstIterator<Account.RewardRecipientAssignment> getAccountsWithRewardRecipient(Long recipientId) {
+  public Collection<Account.RewardRecipientAssignment> getAccountsWithRewardRecipient(Long recipientId) {
     return getRewardRecipientAssignmentTable().getManyBy(getAccountsWithRewardRecipientClause(recipientId, Burst.getBlockchain().getHeight() + 1), 0, -1);
   }
 
   @Override
-  public BurstIterator<Account.AccountAsset> getAssets(int from, int to, Long id) {
+  public Collection<Account.AccountAsset> getAssets(int from, int to, Long id) {
     return getAccountAssetTable().getManyBy(ACCOUNT_ASSET.ACCOUNT_ID.eq(id), from, to);
   }
 
   @Override
-  public BurstIterator<Account.AccountAsset> getAssetAccounts(long assetId, int from, int to) {
-    List<SortField> sort = new ArrayList<>();
+  public Collection<Account.AccountAsset> getAssetAccounts(long assetId, int from, int to) {
+    List<SortField<?>> sort = new ArrayList<>();
     sort.add(ACCOUNT_ASSET.field("quantity", Long.class).desc());
     sort.add(ACCOUNT_ASSET.field("account_id", Long.class).asc());
     return getAccountAssetTable().getManyBy(ACCOUNT_ASSET.ASSET_ID.eq(assetId), from, to, sort);
   }
 
   @Override
-  public BurstIterator<Account.AccountAsset> getAssetAccounts(long assetId, int height, int from, int to) {
+  public Collection<Account.AccountAsset> getAssetAccounts(long assetId, int height, int from, int to) {
     if (height < 0) {
       return getAssetAccounts(assetId, from, to);
     }
 
-    List<SortField> sort = new ArrayList<>();
+    List<SortField<?>> sort = new ArrayList<>();
     sort.add(ACCOUNT_ASSET.field("quantity", Long.class).desc());
     sort.add(ACCOUNT_ASSET.field("account_id", Long.class).asc());
     return getAccountAssetTable().getManyBy(ACCOUNT_ASSET.ASSET_ID.eq(assetId), height, from, to, sort);
@@ -261,43 +217,39 @@ public class SqlAccountStore implements AccountStore {
   }
 
   static class SQLAccountAsset extends Account.AccountAsset {
-    SQLAccountAsset(ResultSet rs) throws SQLException {
-      super(rs.getLong("account_id"),
-            rs.getLong("asset_id"),
-            rs.getLong("quantity"),
-            rs.getLong("unconfirmed_quantity"),
-            accountAssetDbKeyFactory.newKey(rs.getLong("account_id"), rs.getLong("asset_id"))
+    SQLAccountAsset(Record rs) {
+      super(rs.get(ACCOUNT_ASSET.ACCOUNT_ID),
+            rs.get(ACCOUNT_ASSET.ASSET_ID),
+            rs.get(ACCOUNT_ASSET.QUANTITY),
+            rs.get(ACCOUNT_ASSET.UNCONFIRMED_QUANTITY),
+            accountAssetDbKeyFactory.newKey(rs.get(ACCOUNT_ASSET.ACCOUNT_ID), rs.get(ACCOUNT_ASSET.ASSET_ID))
             );
     }
   }
 
   class SqlAccount extends Account {
-    SqlAccount(Long id) {
-      super(id);
-    }
-
-    SqlAccount(ResultSet rs) throws SQLException {
-      super(rs.getLong("id"), accountDbKeyFactory.newKey(rs.getLong("id")),
-            rs.getInt("creation_height"));
-      this.setPublicKey(rs.getBytes("public_key"));
-      this.setKeyHeight(rs.getInt("key_height"));
-      this.balanceNQT = rs.getLong("balance");
-      this.unconfirmedBalanceNQT = rs.getLong("unconfirmed_balance");
-      this.forgedBalanceNQT = rs.getLong("forged_balance");
-      this.name = rs.getString("name");
-      this.description = rs.getString("description");
+    SqlAccount(Record record) {
+      super(record.get(ACCOUNT.ID), accountDbKeyFactory.newKey(record.get(ACCOUNT.ID)),
+            record.get(ACCOUNT.CREATION_HEIGHT));
+      this.setPublicKey(record.get(ACCOUNT.PUBLIC_KEY));
+      this.setKeyHeight(record.get(ACCOUNT.KEY_HEIGHT));
+      this.balanceNQT = record.get(ACCOUNT.BALANCE);
+      this.unconfirmedBalanceNQT = record.get(ACCOUNT.UNCONFIRMED_BALANCE);
+      this.forgedBalanceNQT = record.get(ACCOUNT.FORGED_BALANCE);
+      this.name = record.get(ACCOUNT.NAME);
+      this.description = record.get(ACCOUNT.DESCRIPTION);
     }
   }
 
   class SqlRewardRecipientAssignment extends Account.RewardRecipientAssignment {
-    SqlRewardRecipientAssignment(ResultSet rs) throws SQLException {
+    SqlRewardRecipientAssignment(Record record) {
       super(
-            rs.getLong("account_id"),
-            rs.getLong("prev_recip_id"),
-            rs.getLong("recip_id"),
-            (int) rs.getLong("from_height"),
-            rewardRecipientAssignmentDbKeyFactory.newKey(rs.getLong("account_id"))
-            );
+              record.get(REWARD_RECIP_ASSIGN.ACCOUNT_ID),
+              record.get(REWARD_RECIP_ASSIGN.PREV_RECIP_ID),
+              record.get(REWARD_RECIP_ASSIGN.RECIP_ID),
+              record.get(REWARD_RECIP_ASSIGN.FROM_HEIGHT),
+              rewardRecipientAssignmentDbKeyFactory.newKey(record.get(REWARD_RECIP_ASSIGN.ACCOUNT_ID))
+      );
     }
   }
 

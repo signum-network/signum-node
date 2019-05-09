@@ -1,9 +1,9 @@
 package brs;
 
+import brs.common.QuickMocker;
 import brs.common.TestConstants;
-import brs.crypto.hash.ShabalProvider;
-import brs.fluxcapacitor.FeatureToggle;
 import brs.fluxcapacitor.FluxCapacitor;
+import brs.fluxcapacitor.FluxValues;
 import brs.services.TimeService;
 import brs.util.Convert;
 import org.junit.Before;
@@ -14,10 +14,7 @@ import org.junit.runners.JUnit4;
 import java.math.BigInteger;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @RunWith(JUnit4.class)
 public class GeneratorImplTest {
@@ -30,14 +27,11 @@ public class GeneratorImplTest {
 
     @Before
     public void setUpGeneratorImplTest() {
-        ShabalProvider.init();
-
         Blockchain blockchain = mock(Blockchain.class);
 
         TimeService timeService = mock(TimeService.class);
 
-        FluxCapacitor fluxCapacitor = mock(FluxCapacitor.class);
-        when(fluxCapacitor.isActive(eq(FeatureToggle.POC2), anyInt())).thenReturn(true);
+        FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(FluxValues.POC2);
 
         generator = new GeneratorImpl(blockchain, timeService, fluxCapacitor);
     }

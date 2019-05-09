@@ -3,7 +3,7 @@ package brs.services.impl;
 import brs.*;
 import brs.BlockchainProcessor.BlockOutOfOrderException;
 import brs.crypto.Crypto;
-import brs.fluxcapacitor.FeatureToggle;
+import brs.fluxcapacitor.FluxValues;
 import brs.services.AccountService;
 import brs.services.BlockService;
 import brs.services.TransactionService;
@@ -51,7 +51,7 @@ public class BlockServiceImpl implements BlockService {
       Account genAccount = accountService.getAccount(block.getGeneratorPublicKey());
       Account.RewardRecipientAssignment rewardAssignment;
       rewardAssignment = genAccount == null ? null : accountService.getRewardRecipientAssignment(genAccount);
-      if (genAccount == null || rewardAssignment == null || !Burst.getFluxCapacitor().isActive(FeatureToggle.REWARD_RECIPIENT_ENABLE)) {
+      if (genAccount == null || rewardAssignment == null || !Burst.getFluxCapacitor().getValue(FluxValues.REWARD_RECIPIENT_ENABLE)) {
         publicKey = block.getGeneratorPublicKey();
       } else {
         if (previousBlock.getHeight() + 1 >= rewardAssignment.getFromHeight()) {
@@ -138,7 +138,7 @@ public class BlockServiceImpl implements BlockService {
   public void apply(Block block) {
     Account generatorAccount = accountService.getOrAddAccount(block.getGeneratorId());
     generatorAccount.apply(block.getGeneratorPublicKey(), block.getHeight());
-    if (!Burst.getFluxCapacitor().isActive(FeatureToggle.REWARD_RECIPIENT_ENABLE)) {
+    if (!Burst.getFluxCapacitor().getValue(FluxValues.REWARD_RECIPIENT_ENABLE)) {
       accountService.addToBalanceAndUnconfirmedBalanceNQT(generatorAccount, block.getTotalFeeNQT() + getBlockReward(block));
       accountService.addToForgedBalanceNQT(generatorAccount, block.getTotalFeeNQT() + getBlockReward(block));
     } else {

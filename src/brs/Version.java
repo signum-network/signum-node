@@ -22,6 +22,9 @@ public final class Version {
     }
 
     public static Version parse(String version) throws IllegalArgumentException {
+        if (version == null || Objects.equals(version, "")) {
+            return EMPTY;
+        }
         try {
             version = version.replace("-", ".").toLowerCase(Locale.ENGLISH);
             if (version.startsWith("v")) version = version.substring(1);
@@ -40,23 +43,6 @@ public final class Version {
         } catch (Exception e) {
             throw new IllegalArgumentException("Version not formatted correctly", e);
         }
-    }
-
-    public boolean backwardsCompatibilityNeeded() { // TODO remove once Constants.MIN_VERSION is greater than 2.3.0
-        return (major < 2 || (major == 2 && minor < 3));
-    }
-
-    public String toBackwardsCompatibleStringIfNeeded(Version peerVersion) { // TODO remove once Constants.MIN_VERSION is greater than 2.3.0
-        // Old peers do not understand new versioning system. It is supported from version major=2,minor=3
-        if (peerVersion.backwardsCompatibilityNeeded()) {
-            return toBackwardsCompatibleString();
-        } else {
-            return toString();
-        }
-    }
-
-    public String toBackwardsCompatibleString() { // TODO remove once Constants.MIN_VERSION is greater than 2.3.0
-        return major + "." + minor + "." + patch;
     }
 
     @Override

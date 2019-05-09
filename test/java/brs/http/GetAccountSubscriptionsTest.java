@@ -6,7 +6,6 @@ import brs.Subscription;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.db.BurstIterator;
 import brs.services.ParameterService;
 import brs.services.SubscriptionService;
 import brs.util.JSON;
@@ -16,17 +15,16 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collection;
 
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.SUBSCRIPTIONS_RESPONSE;
 import static brs.http.common.ResultFields.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
-;
 
 public class GetAccountSubscriptionsTest extends AbstractUnitTest {
 
@@ -61,7 +59,7 @@ public class GetAccountSubscriptionsTest extends AbstractUnitTest {
     when(subscription.getFrequency()).thenReturn(3);
     when(subscription.getTimeNext()).thenReturn(4);
 
-    final BurstIterator<Subscription> subscriptionIterator = this.mockBurstIterator(subscription);
+    final Collection<Subscription> subscriptionIterator = this.mockCollection(subscription);
     when(subscriptionServiceMock.getSubscriptionsByParticipant(eq(userId))).thenReturn(subscriptionIterator);
 
     final JsonObject result = (JsonObject) t.processRequest(req);

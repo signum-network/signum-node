@@ -1,8 +1,6 @@
 package brs.http;
 
-import brs.Asset;
 import brs.assetexchange.AssetExchange;
-import brs.db.BurstIterator;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -28,9 +26,7 @@ public final class GetAllAssets extends AbstractAssetsRetrieval {
 
     JsonObject response = new JsonObject();
 
-    try (BurstIterator<Asset> assets = assetExchange.getAllAssets(firstIndex, lastIndex)) {
-      response.add(ASSETS_RESPONSE, assetsToJson(assets));
-    }
+    response.add(ASSETS_RESPONSE, assetsToJson(assetExchange.getAllAssets(firstIndex, lastIndex).iterator()));
 
     return response;
   }

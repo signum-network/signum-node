@@ -4,13 +4,10 @@ import brs.db.BurstKey;
 import brs.db.ValuesTable;
 import brs.db.store.DerivedTableManager;
 import org.jooq.DSLContext;
-import org.jooq.SelectQuery;
-import org.jooq.UpdateQuery;
+import org.jooq.Record;
+import org.jooq.impl.DSL;
 import org.jooq.impl.TableImpl;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements ValuesTable<T, V> {
@@ -28,45 +25,31 @@ public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements Val
     this.multiversion = multiversion;
   }
 
-  protected abstract V load(DSLContext ctx, ResultSet rs) throws SQLException;
+  protected abstract V load(DSLContext ctx, Record record);
 
   protected abstract void save(DSLContext ctx, T t, V v);
 
+  @SuppressWarnings("unchecked")
   @Override
   public final List<V> get(BurstKey nxtKey) {
     DbKey dbKey = (DbKey) nxtKey;
     List<V> values;
     if (Db.isInTransaction()) {
-      values = (List<V>)Db.getCache(table).get(dbKey);
+      values = (List<V>) Db.getCache(table).get(dbKey);
       if (values != null) {
         return values;
       }
     }
     DSLContext ctx = Db.getDSLContext();
-    SelectQuery query = ctx.selectQuery();
-    query.addFrom(tableClass);
-    query.addConditions(dbKey.getPKConditions(tableClass));
-    if ( multiversion ) {
-      query.addConditions(tableClass.field("latest", Boolean.class).isTrue());
-    }
-    query.addOrderBy(tableClass.field("db_id").desc());
-    values = get(ctx, query.fetchResultSet());
+    values = ctx.selectFrom(tableClass)
+            .where(dbKey.getPKConditions(tableClass))
+            .and(multiversion ? latestField.isTrue() : DSL.noCondition())
+            .orderBy(tableClass.field("db_id").desc())
+            .fetch(record -> load(ctx, record));
     if (Db.isInTransaction()) {
       Db.getCache(table).put(dbKey, values);
     }
     return values;
-  }
-
-  private List<V> get(DSLContext ctx, ResultSet rs) {
-    try {
-      List<V> result = new ArrayList<>();
-      while (rs.next()) {
-        result.add(load(ctx, rs));
-      }
-      return result;
-    } catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
   }
 
   @Override
@@ -78,14 +61,11 @@ public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements Val
     Db.getCache(table).put(dbKey, values);
     try ( DSLContext ctx = Db.getDSLContext() ) {
       if (multiversion) {
-        UpdateQuery query = ctx.updateQuery(tableClass);
-        query.addValue(
-          tableClass.field("latest", Boolean.class),
-          false
-        );
-        query.addConditions(dbKey.getPKConditions(tableClass));
-        query.addConditions(tableClass.field("latest", Boolean.class).isTrue());
-        query.execute();
+        ctx.update(tableClass)
+                .set(latestField, false)
+                .where(dbKey.getPKConditions(tableClass))
+                .and(latestField.isTrue())
+                .execute();
       }
       for (V v : values) {
         save(ctx, t, v);
@@ -104,5 +84,4 @@ public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements Val
     super.truncate();
     Db.getCache(table).clear();
   }
-
 }

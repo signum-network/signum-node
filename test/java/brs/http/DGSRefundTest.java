@@ -1,38 +1,31 @@
 package brs.http;
 
-import static brs.TransactionType.DigitalGoods.REFUND;
-import static brs.fluxcapacitor.FeatureToggle.DIGITAL_GOODS_STORE;
-import static brs.http.JSONResponses.DUPLICATE_REFUND;
-import static brs.http.JSONResponses.GOODS_NOT_DELIVERED;
-import static brs.http.JSONResponses.INCORRECT_DGS_REFUND;
-import static brs.http.JSONResponses.INCORRECT_PURCHASE;
-import static brs.http.common.Parameters.REFUND_NQT_PARAMETER;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-
-import brs.Account;
-import brs.Attachment;
-import brs.Blockchain;
-import brs.Burst;
-import brs.BurstException;
-import brs.Constants;
+import brs.*;
 import brs.DigitalGoodsStore.Purchase;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.crypto.EncryptedData;
 import brs.fluxcapacitor.FluxCapacitor;
+import brs.fluxcapacitor.FluxValues;
 import brs.services.AccountService;
 import brs.services.ParameterService;
-import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import javax.servlet.http.HttpServletRequest;
+
+import static brs.TransactionType.DigitalGoods.REFUND;
+import static brs.http.JSONResponses.*;
+import static brs.http.common.Parameters.REFUND_NQT_PARAMETER;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Burst.class)
@@ -82,7 +75,7 @@ public class DGSRefundTest extends AbstractTransactionTest {
     when(mockAccountService.getAccount(eq(mockPurchase.getBuyerId()))).thenReturn(mockBuyerAccount);
 
     mockStatic(Burst.class);
-    final FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(DIGITAL_GOODS_STORE);
+    final FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(FluxValues.DIGITAL_GOODS_STORE);
     when(Burst.getFluxCapacitor()).thenReturn(fluxCapacitor);
 
     final Attachment.DigitalGoodsRefund attachment = (Attachment.DigitalGoodsRefund) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);

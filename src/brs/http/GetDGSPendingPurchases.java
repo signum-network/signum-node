@@ -2,7 +2,6 @@ package brs.http;
 
 import brs.BurstException;
 import brs.DigitalGoodsStore;
-import brs.db.BurstIterator;
 import brs.services.DGSGoodsStoreService;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -37,10 +36,8 @@ public final class GetDGSPendingPurchases extends APIServlet.APIRequestHandler {
     JsonObject response = new JsonObject();
     JsonArray purchasesJSON = new JsonArray();
 
-    try (BurstIterator<DigitalGoodsStore.Purchase> purchases = dgsGoodStoreService.getPendingSellerPurchases(sellerId, firstIndex, lastIndex)) {
-      while (purchases.hasNext()) {
-        purchasesJSON.add(JSONData.purchase(purchases.next()));
-      }
+    for (DigitalGoodsStore.Purchase purchase : dgsGoodStoreService.getPendingSellerPurchases(sellerId, firstIndex, lastIndex)) {
+      purchasesJSON.add(JSONData.purchase(purchase));
     }
 
     response.add(PURCHASES_RESPONSE, purchasesJSON);

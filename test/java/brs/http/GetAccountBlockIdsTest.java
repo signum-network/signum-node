@@ -7,7 +7,6 @@ import brs.BurstException;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.db.BurstIterator;
 import brs.services.ParameterService;
 import brs.util.JSON;
 import com.google.gson.JsonArray;
@@ -16,12 +15,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collection;
 
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.BLOCK_IDS_RESPONSE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -59,7 +59,7 @@ public class GetAccountBlockIdsTest extends AbstractUnitTest {
     String mockBlockStringId = "mockBlockStringId";
     final Block mockBlock = mock(Block.class);
     when(mockBlock.getStringId()).thenReturn(mockBlockStringId);
-    final BurstIterator<Block> mockBlocksIterator = mockBurstIterator(mockBlock);
+    final Collection<Block> mockBlocksIterator = mockCollection(mockBlock);
 
     when(mockParameterService.getAccount(req)).thenReturn(mockAccount);
     when(mockBlockchain.getBlocks(eq(mockAccount), eq(timestamp), eq(firstIndex), eq(lastIndex)))

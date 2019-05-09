@@ -5,7 +5,6 @@ import brs.Account.AccountAsset;
 import brs.BurstException;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
-import brs.db.BurstIterator;
 import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.util.JSON;
@@ -15,12 +14,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
+import java.util.Collection;
 
 import static brs.http.common.ResultFields.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mock;
 
@@ -65,7 +64,7 @@ public class GetAccountTest extends AbstractUnitTest {
     when(mockAccountAsset.getAssetId()).thenReturn(mockAssetId);
     when(mockAccountAsset.getUnconfirmedQuantityQNT()).thenReturn(mockUnconfirmedQuantityNQT);
     when(mockAccountAsset.getQuantityQNT()).thenReturn(balanceNQT);
-    BurstIterator<AccountAsset> mockAssetOverview = mockBurstIterator(Arrays.asList(mockAccountAsset));
+    Collection<AccountAsset> mockAssetOverview = mockCollection(mockAccountAsset);
     when(accountServiceMock.getAssets(eq(mockAccountId), eq(0), eq(-1))).thenReturn(mockAssetOverview);
 
     final JsonObject response = (JsonObject) t.processRequest(req);

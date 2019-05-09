@@ -1,8 +1,9 @@
 package brs.assetexchange;
 
 import brs.Account.AccountAsset;
-import brs.db.BurstIterator;
 import brs.db.store.AccountStore;
+
+import java.util.Collection;
 
 class AssetAccountServiceImpl {
 
@@ -12,11 +13,11 @@ class AssetAccountServiceImpl {
     this.accountStore = accountStore;
   }
 
-  public BurstIterator<AccountAsset> getAssetAccounts(long assetId, int from, int to) {
+  public Collection<AccountAsset> getAssetAccounts(long assetId, int from, int to) {
     return accountStore.getAssetAccounts(assetId, from, to);
   }
 
-  public BurstIterator<AccountAsset> getAssetAccounts(long assetId, int height, int from, int to) {
+  public Collection<AccountAsset> getAssetAccounts(long assetId, int height, int from, int to) {
     if (height < 0) {
       return getAssetAccounts(assetId, from, to);
     }

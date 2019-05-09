@@ -1,28 +1,485 @@
 syntax = "proto3";
+
 import "google/protobuf/empty.proto";
 import "google/protobuf/any.proto";
 option java_package = "brs.grpc.proto";
 
-
 service BrsApiService {
-    rpc GetBlock(GetBlockRequest) returns (Block) {}
+    rpc BroadcastTransaction(TransactionBytes) returns (TransactionBroadcastResult) {}
+    rpc CompleteBasicTransaction(BasicTransaction) returns (BasicTransaction) {}
     rpc GetAccount(GetAccountRequest) returns (Account) {}
+    rpc GetAccountATs(GetAccountRequest) returns (AccountATs) {}
+    rpc GetAccountBlocks(GetAccountBlocksRequest) returns (Blocks) {}
+    rpc GetAccountCurrentOrders(GetAccountOrdersRequest) returns (Orders) {}
+    rpc GetAccountEscrowTransactions(GetAccountRequest) returns (EscrowTransactions) {}
     rpc GetAccounts(GetAccountsRequest) returns (Accounts) {}
+    rpc GetAccountSubscriptions(GetAccountRequest) returns (Subscriptions) {}
+    rpc GetAccountTransactions(GetAccountTransactionsRequest) returns (Transactions) {}
+    rpc GetAlias(GetAliasRequest) returns (Alias) {}
+    rpc GetAliases(GetAliasesRequest) returns (Aliases) {}
+    rpc GetAsset(GetByIdRequest) returns (Asset) {}
+    rpc GetAssetBalances(GetAssetBalancesRequest) returns (AssetBalances) {}
+    rpc GetAssets(GetAssetsRequest) returns (Assets) {}
+    rpc GetAssetsByIssuer(GetAccountRequest) returns (Assets) {}
+    rpc GetAssetTrades(GetAssetTransfersRequest) returns (AssetTrades) {}
+    rpc GetAssetTransfers(GetAssetTransfersRequest) returns (AssetTransfers) {}
+    rpc GetAT(GetByIdRequest) returns (AT) {}
+    rpc GetATIds(google.protobuf.Empty) returns (ATIds) {}
+    rpc GetBlock(GetBlockRequest) returns (Block) {}
+    rpc GetBlocks(GetBlocksRequest) returns (Blocks) {}
+    rpc GetConstants(google.protobuf.Empty) returns (Constants) {}
+    rpc GetCounts(google.protobuf.Empty) returns (Counts) {}
+    rpc GetCurrentTime(google.protobuf.Empty) returns (Time) {}
+    rpc GetDgsGood(GetByIdRequest) returns (DgsGood) {}
+    rpc GetDgsGoods(GetDgsGoodsRequest) returns (DgsGoods) {}
+    rpc GetDgsPendingPurchases(GetDgsPendingPurchasesRequest) returns (DgsPurchases) {}
+    rpc GetDgsPurchase(GetByIdRequest) returns (DgsPurchase) {}
+    rpc GetDgsPurchases(GetDgsPurchasesRequest) returns (DgsPurchases) {}
+    rpc GetEscrowTransaction(GetByIdRequest) returns (EscrowTransaction) {}
     rpc GetMiningInfo(google.protobuf.Empty) returns (stream MiningInfo) {}
+    rpc GetOrder(GetOrderRequest) returns (Order) {}
+    rpc GetOrders(GetOrdersRequest) returns (Orders) {}
+    rpc GetPeer(GetPeerRequest) returns (Peer) {}
+    rpc GetPeers(GetPeersRequest) returns (Peers) {}
+    rpc GetState(google.protobuf.Empty) returns (State) {}
+    rpc GetSubscription(GetByIdRequest) returns (Subscription) {}
+    rpc GetSubscriptionsToAccount(GetAccountRequest) returns (Subscriptions) {}
     rpc GetTransaction(GetTransactionRequest) returns (Transaction) {}
-    rpc GetTransactionBytes(GetTransactionRequest) returns (TransactionBytes) {}
+    rpc GetTransactionBytes(BasicTransaction) returns (TransactionBytes) {}
+    rpc GetUnconfirmedTransactions(GetAccountRequest) returns (UnconfirmedTransactions) {}
+    rpc ParseTransaction(TransactionBytes) returns (BasicTransaction) {}
     rpc SubmitNonce(SubmitNonceRequest) returns (SubmitNonceResponse) {}
+    rpc SuggestFee(google.protobuf.Empty) returns (FeeSuggestion) {}
+}
+
+message GetAccountTransactionsRequest {
+    uint64 accountId = 1;
+    uint32 timestamp = 2;
+    IndexRange indexRange = 3;
+    uint32 confirmations = 4;
+    bool filterByType = 5; // This is needed because protobuf cannot distinguish between 0 and unset values.
+    uint32 type = 6;
+    uint32 subtype = 7;
+}
+
+message GetAccountBlocksRequest {
+    uint64 accountId = 1;
+    uint32 timestamp = 2;
+    IndexRange indexRange = 3;
+    bool includeTransactions = 4;
+}
+
+message GetByIdRequest {
+    uint64 id = 1;
+}
+
+message GetDgsPendingPurchasesRequest {
+    uint64 seller = 1;
+    IndexRange indexRange = 2;
+}
+
+message GetDgsPurchasesRequest {
+    uint64 seller = 1;
+    uint64 buyer = 2;
+    bool completed = 3;
+    IndexRange indexRange = 4;
+}
+
+message EncryptedData {
+    bytes data = 1;
+    bytes nonce = 2;
+}
+
+message DgsPurchases {
+    repeated DgsPurchase dgsPurchases = 1;
+}
+
+message DgsPurchase {
+    uint64 id = 1;
+    uint64 good = 2;
+    uint64 seller = 3;
+    uint64 buyer = 4;
+    uint64 price = 5;
+    uint64 quantity = 6;
+    uint32 timestamp = 7;
+    uint32 deliveryDeadlineTimestamp = 8;
+    string goodName = 9;
+    string goodDescription = 10;
+    EncryptedData note = 11;
+    bool isPending = 12;
+    EncryptedData deliveredData = 13;
+    bool deliveredDataIsText = 14;
+    repeated EncryptedData feedback = 15;
+    repeated string publicFeedback = 16;
+    EncryptedData refundNote = 17;
+    uint64 discount = 18;
+    uint64 refund = 19;
+}
+
+message GetDgsGoodsRequest {
+    uint64 seller = 1;
+    bool inStockOnly = 2;
+    IndexRange indexRange = 3;
+}
+
+message DgsGoods {
+    repeated DgsGood goods = 1;
+}
+
+message DgsGood {
+    uint64 id = 1;
+    uint64 seller = 2;
+    uint64 price = 3;
+    uint64 quantity = 4;
+    bool isDelisted = 5;
+    uint32 timestamp = 6;
+    string name = 7;
+    string description = 8;
+    string tags = 9;
+}
+
+enum AssetTradeType {
+    AssetTradeType_UNSET = 0;
+    BUY = 1;
+    SELL = 2;
+}
+
+message GetAssetTransfersRequest {
+    uint64 asset = 1;
+    uint64 account = 2;
+    IndexRange indexRange = 3;
+}
+
+message AssetTrades {
+    repeated AssetTrade trades = 1;
+}
+
+message AssetTransfers {
+    repeated AssetTransfer assetTransfers = 1;
+}
+
+message AssetTransfer {
+    uint64 id = 1;
+    uint64 asset = 2;
+    uint64 sender = 3;
+    uint64 recipient = 4;
+    uint64 quantity = 5;
+    uint32 height = 6;
+    uint32 timestamp = 7;
+    string assetName = 8;
+    string assetDescription = 9;
+}
+
+message AssetTrade {
+    uint64 asset = 1;
+    AssetTradeType tradeType = 2;
+    uint64 seller = 3;
+    uint64 buyer = 4;
+    uint64 price = 5;
+    uint64 quantity = 6;
+    uint64 askOrder = 7;
+    uint64 bidOrder = 8;
+    uint32 askOrderHeight = 9;
+    uint32 bidOrderHeight = 10;
+    uint64 block = 11;
+    uint32 height = 12;
+    uint32 timestamp = 13;
+    string assetName = 14;
+    string assetDescription = 15;
+}
+
+message GetOrdersRequest {
+    uint64 asset = 1; // If 0 returns all open orders.
+    OrderType orderType = 2;
+    IndexRange indexRange = 3;
+}
+
+message GetOrderRequest {
+    uint64 orderId = 1;
+    OrderType orderType = 2;
+}
+
+message GetOpenOrdersRequest {
+    OrderType orderType = 1;
+    IndexRange indexRange = 2;
+}
+
+message GetAssetBalancesRequest {
+    uint64 asset = 1;
+    uint32 height = 2;
+    IndexRange indexRange = 3;
+}
+
+message GetAssetsRequest {
+    repeated uint64 asset = 1;
+}
+
+message Assets {
+    repeated Asset assets = 1;
+}
+
+message Asset {
+    uint64 asset = 1;
+    uint64 account = 2;
+    string name = 3;
+    string description = 4;
+    uint64 quantity = 5;
+    uint32 decimals = 6;
+    uint32 numberOfTrades = 7;
+    uint32 numberOfTransfers = 8;
+    uint32 numberOfAccounts = 9;
+}
+
+message Transactions {
+    repeated Transaction transactions = 1;
+}
+
+message Subscriptions {
+    repeated Subscription subscriptions = 1;
+}
+
+message Subscription {
+    uint64 id = 1;
+    uint64 sender = 2;
+    uint64 recipient = 3;
+    uint64 amount = 4;
+    uint32 frequency = 5;
+    uint32 timeNext = 6;
+}
+
+message Counts {
+    uint32 numberOfBlocks = 1;
+    uint32 numberOfTransactions = 2;
+    uint32 numberOfAccounts = 3;
+    uint32 numberOfAssets = 4;
+    uint32 numberOfOrders = 5;
+    uint32 numberOfAskOrders = 6;
+    uint32 numberOfBidOrders = 7;
+    uint32 numberOfTrades = 8;
+    uint32 numberOfTransfers = 9;
+    uint64 numberOfAliases = 10;
+    uint32 numberOfPeers = 11;
+    uint32 numberOfGenerators = 12;
+    uint64 totalEffectiveBalance = 13;
+}
+
+message Constants {
+    uint64 genesisBlock = 1;
+    uint64 genesisAccount = 2;
+    uint32 maxBlockPayloadLength = 3;
+    uint32 maxArbitraryMessageLength = 4;
+    repeated TransactionType transactionTypes = 5;
+
+    message TransactionType {
+        uint32 type = 1;
+        string description = 2;
+        repeated TransactionSubtype subtypes = 3;
+
+        message TransactionSubtype {
+            uint32 subtype = 1;
+            string description = 2;
+        }
+    }
+}
+
+message EscrowTransactions {
+    repeated EscrowTransaction escrowTransactions = 1;
+}
+
+message EscrowTransaction {
+    uint64 escrowId = 1;
+    uint64 sender = 2;
+    uint64 recipient = 3;
+    uint64 amount = 4;
+    uint32 requiredSigners = 5;
+    uint32 deadline = 6;
+    EscrowDecisionType deadlineAction = 7;
+}
+
+message Orders {
+    repeated Order orders = 1;
+}
+
+message Order {
+    uint64 id = 1;
+    uint64 asset = 2;
+    uint64 account = 3;
+    uint64 quantity = 4;
+    uint64 price = 5;
+    uint32 height = 6;
+    OrderType type = 7;
+}
+
+message GetAccountOrdersRequest {
+    uint64 account = 1;
+    uint64 asset = 2;
+    IndexRange indexRange = 3;
+    OrderType orderType = 4;
+}
+
+message IndexRange {
+    uint32 firstIndex = 1;
+    uint32 lastIndex = 2;
+}
+
+message GetBlocksRequest {
+    IndexRange indexRange = 1;
+    bool includeTransactions = 2;
+}
+
+message Blocks {
+    repeated Block blocks = 1;
+}
+
+message GetAliasesRequest {
+    uint64 owner = 1;
+    uint32 timestamp = 2;
+    IndexRange indexRange = 3;
+}
+
+message UnconfirmedTransactions {
+    repeated Transaction unconfirmedTransactions = 1;
+}
+
+message Aliases {
+    repeated Alias aliases = 1;
+}
+
+message ATIds {
+    repeated uint64 ids = 1;
+}
+
+message AT {
+    uint64 id = 1;
+    uint64 creator = 2;
+    uint32 version = 3;
+    string name = 4;
+    string description = 5;
+    bytes machineCode = 6;
+    bytes machineData = 7;
+    uint64 balance = 8;
+    uint64 previousBalance = 9;
+    uint32 nextBlock = 10;
+    bool frozen = 11;
+    bool running = 12;
+    bool stopped = 13;
+    bool finished = 14;
+    bool dead = 15;
+    uint64 minActivation = 16;
+    uint32 creationBlock = 17;
+}
+
+message AccountATs {
+    repeated AT ats = 1;
+}
+
+message BasicTransaction {
+    bytes sender = 1;
+    uint64 recipient = 2;
+    uint32 version = 3; // Auto-filled if needed
+    uint32 type = 4; // Auto-filled if needed
+    uint32 subtype = 5; // Auto-filled if needed
+    uint64 amount = 6;
+    uint64 fee = 7;
+    uint32 timestamp = 8; // Auto-filled if needed
+    uint32 deadline = 9;
+    repeated google.protobuf.Any appendages = 10;
+    google.protobuf.Any attachment = 11;
+    bytes referencedTransactionFullHash = 12;
+}
+
+message GetPeerRequest {
+    string peerAddress = 1;
+}
+
+message GetPeersRequest {
+    bool active = 1;
+    PeerState state = 2;
+}
+
+enum PeerState {
+    PeerState_UNSET = 0;
+    NON_CONNECTED = 1;
+    CONNECTED = 2;
+    DISCONNECTED = 3;
+}
+
+message Peer {
+    PeerState state = 1;
+    string announcedAddress = 2;
+    bool shareAddress = 3;
+    uint64 downloadedVolume = 4;
+    uint64 uploadedVolume = 5;
+    string application = 6;
+    string version = 7;
+    string platform = 8;
+    bool blacklisted = 9;
+    uint32 lastUpdated = 10;
+}
+
+message Peers {
+    repeated string peerAddresses = 1;
+}
+
+message GetAliasRequest {
+    uint64 id = 1;
+    string name = 2;
+}
+
+message Alias {
+    uint64 id = 1;
+    uint64 owner = 2;
+    string name = 3;
+    string uri = 4;
+    uint32 timestamp = 5;
+    bool offered = 6;
+    uint64 price = 7;
+    uint64 buyer = 8;
+}
+
+message Time {
+    uint32 time = 1;
+}
+
+message State {
+    string application = 1;
+    string version = 2;
+    Time time = 3;
+    uint64 lastBlock = 4;
+    uint32 lastHeight = 5;
+    string cumulativeDifficulty = 6;
+    uint32 numberOfPeers = 7;
+    uint32 numberOfActivePeers = 8;
+    uint32 numberOfForgers = 9;
+    string lastBlockchainFeeder = 10;
+    uint32 lastBlockchainFeederHeight = 11;
+    bool isScanning = 12;
+    uint32 availableProcessors = 13;
+    uint64 maxMemory = 14;
+    uint64 totalMemory = 15;
+    uint64 freeMemory = 16;
+    bool indirectIncomingServiceEnabled = 17;
+}
+
+message FeeSuggestion {
+    uint64 cheap = 1;
+    uint64 standard = 2;
+    uint64 priority = 3;
+}
+
+message TransactionBroadcastResult {
+    uint32 numberOfPeersSentTo = 1; // Does not include ourselves!
 }
 
 message GetBlockRequest {
-    uint64 id = 1;
+    uint64 blockId = 1;
     uint32 height = 2;
     uint32 timestamp = 3;
     bool includeTransactions = 4;
 }
 
 message GetAccountRequest {
-    uint64 id = 1;
+    uint64 accountId = 1;
 }
 
 message GetAccountsRequest {
@@ -32,7 +489,7 @@ message GetAccountsRequest {
 }
 
 message GetTransactionRequest {
-    uint64 id = 1;
+    uint64 transactionId = 1;
     bytes fullHash = 2;
 }
 
@@ -72,26 +529,17 @@ message Block {
 }
 
 message Transaction {
-    uint64 id = 1;
-    uint32 version = 2;
-    uint32 type = 3;
-    uint32 subtype = 4;
-    uint32 timestamp = 5;
-    uint32 deadline = 6;
-    bytes sender = 7;
-    uint64 recipient = 8;
-    uint64 amount = 9;
-    uint64 fee = 10;
-    uint64 block = 11;
-    uint32 blockHeight = 12;
-    uint32 blockTimestamp = 13;
-    repeated google.protobuf.Any appendices = 14;
-    bytes signature = 15;
-    bytes referencedTransactionFullHash = 16;
-    bytes fullHash = 17;
-    sint32 confirmations = 18;
-    uint64 ecBlockId = 19;
-    uint32 ecBlockHeight = 20;
+    BasicTransaction transaction = 1;
+    uint64 id = 2;
+    bytes transactionBytes = 3;
+    uint64 block = 4;
+    uint32 blockHeight = 5;
+    uint32 blockTimestamp = 6;
+    bytes signature = 7;
+    bytes fullHash = 8;
+    sint32 confirmations = 9;
+    uint64 ecBlockId = 10;
+    uint32 ecBlockHeight = 11;
 }
 
 message MessageAppendix {
@@ -102,14 +550,14 @@ message MessageAppendix {
 
 message EncryptedMessageAppendix {
     uint32 version = 1;
-    bytes data = 2;
-    bytes nonce = 3;
-    bool isText = 4;
-    Type type = 5;
+    EncryptedData encryptedData = 2;
+    bool isText = 3;
+    Type type = 4;
 
     enum Type {
-        TO_RECIPIENT = 0;
-        TO_SELF = 1;
+        Type_UNSET = 0;
+        TO_RECIPIENT = 1;
+        TO_SELF = 2;
     }
 }
 
@@ -166,33 +614,29 @@ message AssetIssuanceAttachment {
 
 message AssetTransferAttachment {
     uint32 version = 1;
-    uint64 id = 2;
+    uint64 asset = 2;
     uint64 quantity = 3;
     string comment = 4;
 }
 
+enum OrderType {
+    OrderType_UNSET = 0;
+    ASK = 1;
+    BID = 2;
+}
+
 message AssetOrderPlacementAttachment {
     uint32 version = 1;
-    uint64 id = 2;
+    uint64 asset = 2;
     uint64 quantity = 3;
     uint64 price = 4;
-    Type type = 5;
-
-    enum Type {
-        ASK = 0;
-        BID = 1;
-    }
+    OrderType type = 5;
 }
 
 message AssetOrderCancellationAttachment {
     uint32 version = 1;
-    uint64 orderId = 2;
-    Type type = 3;
-
-    enum Type {
-        ASK = 0;
-        BID = 1;
-    }
+    uint64 order = 2;
+    OrderType type = 3;
 }
 
 message DigitalGoodsListingAttachment {
@@ -206,24 +650,24 @@ message DigitalGoodsListingAttachment {
 
 message DigitalGoodsDelistingAttachment {
     uint32 version = 1;
-    uint64 goodsId = 2;
+    uint64 goods = 2;
 }
 
 message DigitalGoodsPriceChangeAttachment {
     uint32 version = 1;
-    uint64 goodsId = 2;
+    uint64 goods = 2;
     uint64 price = 3;
 }
 
 message DigitalGoodsQuantityChangeAttachment {
     uint32 version = 1;
-    uint64 goodsId = 2;
+    uint64 goods = 2;
     sint32 deltaQuantity = 3;
 }
 
 message DigitalGoodsPurchaseAttachment {
     uint32 version = 1;
-    uint64 goodsId = 2;
+    uint64 goods = 2;
     uint32 quantity = 3;
     uint64 price = 4;
     uint32 deliveryDeadlineTimestmap = 5;
@@ -231,21 +675,20 @@ message DigitalGoodsPurchaseAttachment {
 
 message DigitalGoodsDeliveryAttachment {
     uint32 version = 1;
-    uint64 purchaseId = 2;
+    uint64 purchase = 2;
     uint64 discount = 3;
-    bytes data = 4;
-    bytes nonce = 5;
-    bool isText = 6;
+    EncryptedData goods = 4;
+    bool isText = 5;
 }
 
 message DigitalGoodsFeedbackAttachment {
     uint32 version = 1;
-    uint64 purchaseId = 2;
+    uint64 purchase = 2;
 }
 
 message DigitalGoodsRefundAttachment {
     uint32 version = 1;
-    uint64 purchaseId = 2;
+    uint64 purchase = 2;
     uint64 refund = 3;
 }
 
@@ -269,13 +712,13 @@ message EscrowCreationAttachment {
 
 message EscrowSignAttachment {
     uint32 version = 1;
-    uint64 escrowId = 2;
+    uint64 escrow = 2;
     EscrowDecisionType decision = 3;
 }
 
 message EscrowResultAttachment {
     uint32 version = 1;
-    uint64 escrowId = 2;
+    uint64 escrow = 2;
     EscrowDecisionType decision = 3;
 }
 
@@ -286,12 +729,12 @@ message SubscriptionSubscribeAttachment {
 
 message SubscriptionCancelAttachment {
     uint32 version = 1;
-    uint64 subscriptionId = 2;
+    uint64 subscription = 2;
 }
 
 message SubscriptionPaymentAttachment {
     uint32 version = 1;
-    uint64 sucscriptionId = 2;
+    uint64 subscription = 2;
 }
 
 message ATCreationAttachment {
@@ -302,14 +745,15 @@ message ATCreationAttachment {
 }
 
 enum EscrowDecisionType {
-    UNDECIDED = 0;
-    RELEASE = 1;
-    REFUND = 2;
-    SPLIT = 3;
+    EscrowDecisionType_UNSET = 0;
+    UNDECIDED = 1;
+    RELEASE = 2;
+    REFUND = 3;
+    SPLIT = 4;
 }
 
 message Accounts {
-    repeated uint64 accountIDs = 1;
+    repeated uint64 ids = 1;
     repeated Account accounts = 2;
 }
 
@@ -325,10 +769,15 @@ message Account {
     repeated AssetBalance assetBalances = 9;
 }
 
+message AssetBalances {
+    repeated AssetBalance assetBalances = 1;
+}
+
 message AssetBalance {
-    uint64 id = 1;
-    uint64 balance = 2;
-    uint64 unconfirmedBalance = 3;
+    uint64 asset = 1;
+    uint64 account = 2;
+    uint64 balance = 3;
+    uint64 unconfirmedBalance = 4;
 }
 
 message MiningInfo {
@@ -339,4 +788,16 @@ message MiningInfo {
 
 message TransactionBytes {
     bytes transactionBytes = 1;
+}
+
+message OrdinaryPaymentAttachment {
+    // Empty.
+}
+
+message ArbitraryMessageAttachment {
+    // Empty.
+}
+
+message ATPaymentAttachment {
+    // Empty.
 }

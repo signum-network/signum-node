@@ -1,9 +1,9 @@
 package brs;
 
 import brs.db.BlockDb;
-import brs.db.BurstIterator;
 import brs.db.store.BlockchainStore;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.StampedLock;
@@ -114,17 +114,17 @@ public class BlockchainImpl implements Blockchain {
   }
 
   @Override
-  public BurstIterator<Block> getBlocks(int from, int to) {
+  public Collection<Block> getBlocks(int from, int to) {
     return blockchainStore.getBlocks(from, to);
   }
 
   @Override
-  public BurstIterator<Block> getBlocks(Account account, int timestamp) {
+  public Collection<Block> getBlocks(Account account, int timestamp) {
     return getBlocks(account, timestamp, 0, -1);
   }
 
   @Override
-  public BurstIterator<Block> getBlocks(Account account, int timestamp, int from, int to) {
+  public Collection<Block> getBlocks(Account account, int timestamp, int from, int to) {
     return blockchainStore.getBlocks(account, timestamp, from, to);
   }
 
@@ -188,18 +188,18 @@ public class BlockchainImpl implements Blockchain {
   }
 
   @Override
-  public BurstIterator<Transaction> getAllTransactions() {
+  public Collection<Transaction> getAllTransactions() {
     return blockchainStore.getAllTransactions();
   }
 
   @Override
-  public BurstIterator<Transaction> getTransactions(Account account, byte type, byte subtype, int blockTimestamp, boolean includeIndirectIncoming) {
+  public Collection<Transaction> getTransactions(Account account, byte type, byte subtype, int blockTimestamp, boolean includeIndirectIncoming) {
     return getTransactions(account, 0, type, subtype, blockTimestamp, 0, -1, includeIndirectIncoming);
   }
 
   @Override
-  public BurstIterator<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
-                                                      int blockTimestamp, int from, int to, boolean includeIndirectIncoming) {
+  public Collection<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
+                                                 int blockTimestamp, int from, int to, boolean includeIndirectIncoming) {
     return blockchainStore.getTransactions(account, numberOfConfirmations, type, subtype, blockTimestamp, from, to, includeIndirectIncoming);
   }
 }

@@ -2,10 +2,11 @@ package brs.assetexchange;
 
 import brs.Account.AccountAsset;
 import brs.*;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.sql.EntitySqlTable;
 import brs.db.store.AssetStore;
+
+import java.util.Collection;
 
 class AssetServiceImpl {
 
@@ -31,30 +32,30 @@ class AssetServiceImpl {
     return assetTable.get(assetDbKeyFactory.newKey(id));
   }
 
-  public BurstIterator<AccountAsset> getAccounts(long assetId, int from, int to) {
+  public Collection<AccountAsset> getAccounts(long assetId, int from, int to) {
     return assetAccountService.getAssetAccounts(assetId, from, to);
   }
 
-  public BurstIterator<AccountAsset> getAccounts(long assetId, int height, int from, int to) {
+  public Collection<AccountAsset> getAccounts(long assetId, int height, int from, int to) {
     if (height < 0) {
       return getAccounts(assetId, from, to);
     }
     return assetAccountService.getAssetAccounts(assetId, height, from, to);
   }
 
-  public BurstIterator<Trade> getTrades(long assetId, int from, int to) {
+  public Collection<Trade> getTrades(long assetId, int from, int to) {
     return tradeService.getAssetTrades(assetId, from, to);
   }
 
-  public BurstIterator<AssetTransfer> getAssetTransfers(long assetId, int from, int to) {
+  public Collection<AssetTransfer> getAssetTransfers(long assetId, int from, int to) {
     return assetTransferService.getAssetTransfers(assetId, from, to);
   }
 
-  public BurstIterator<Asset> getAllAssets(int from, int to) {
+  public Collection<Asset> getAllAssets(int from, int to) {
     return assetTable.getAll(from, to);
   }
 
-  public BurstIterator<Asset> getAssetsIssuedBy(long accountId, int from, int to) {
+  public Collection<Asset> getAssetsIssuedBy(long accountId, int from, int to) {
     return assetStore.getAssetsIssuedBy(accountId, from, to);
   }
 

@@ -3,7 +3,7 @@ package brs;
 import brs.Appendix.AbstractAppendix;
 import brs.TransactionType.Payment;
 import brs.crypto.Crypto;
-import brs.fluxcapacitor.FeatureToggle;
+import brs.fluxcapacitor.FluxValues;
 import brs.transactionduplicates.TransactionDuplicationKey;
 import brs.util.Convert;
 import brs.util.JSON;
@@ -433,7 +433,7 @@ public class Transaction implements Comparable<Transaction> {
       buffer.put((byte) ((version << 4) | ( type.getSubtype() & 0xff ) ));
       buffer.putInt(timestamp);
       buffer.putShort(deadline);
-      if(type.isSigned() || ! Burst.getFluxCapacitor().isActive(FeatureToggle.AT_FIX_BLOCK_4)) {
+      if(type.isSigned() || ! Burst.getFluxCapacitor().getValue(FluxValues.AT_FIX_BLOCK_4)) {
         buffer.put(senderPublicKey);
       }
       else {

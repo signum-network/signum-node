@@ -2,7 +2,6 @@ package brs.db.store;
 
 import brs.Escrow;
 import brs.Transaction;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.sql.DbKey;
@@ -24,5 +23,5 @@ public interface EscrowStore {
 
   List<Transaction> getResultTransactions();
 
-  BurstIterator<Escrow.Decision> getDecisions(Long id);
+  Collection<Escrow.Decision> getDecisions(Long id);
 }

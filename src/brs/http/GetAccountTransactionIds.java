@@ -4,7 +4,6 @@ import brs.Account;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.Transaction;
-import brs.db.BurstIterator;
 import brs.services.ParameterService;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -50,12 +49,8 @@ final class GetAccountTransactionIds extends APIServlet.APIRequestHandler {
     int lastIndex = ParameterParser.getLastIndex(req);
 
     JsonArray transactionIds = new JsonArray();
-    try (BurstIterator<? extends Transaction> iterator = blockchain.getTransactions(account, numberOfConfirmations, type, subtype, timestamp,
-        firstIndex, lastIndex, parameterService.getIncludeIndirect(req))) {
-      while (iterator.hasNext()) {
-        Transaction transaction = iterator.next();
-        transactionIds.add(transaction.getStringId());
-      }
+    for (Transaction transaction : blockchain.getTransactions(account, numberOfConfirmations, type, subtype, timestamp, firstIndex, lastIndex, parameterService.getIncludeIndirect(req))) {
+      transactionIds.add(transaction.getStringId());
     }
 
     JsonObject response = new JsonObject();

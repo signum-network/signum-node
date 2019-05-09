@@ -14,10 +14,9 @@ import org.jooq.exception.DataAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import static brs.schema.Tables.*;
@@ -26,7 +25,7 @@ public class SqlATStore implements ATStore {
 
   private static final Logger logger = LoggerFactory.getLogger(DbUtils.class);
 
-  private final BurstKey.LongKeyFactory<brs.AT> atDbKeyFactory = new DbKey.LongKeyFactory<brs.AT>("id") {
+  private final BurstKey.LongKeyFactory<brs.AT> atDbKeyFactory = new DbKey.LongKeyFactory<brs.AT>(AT.ID) {
       @Override
       public BurstKey newKey(brs.AT at) {
         return at.dbKey;
@@ -34,7 +33,7 @@ public class SqlATStore implements ATStore {
     };
   private final VersionedEntityTable<brs.AT> atTable;
 
-  private final BurstKey.LongKeyFactory<brs.AT.ATState> atStateDbKeyFactory = new DbKey.LongKeyFactory<brs.AT.ATState>("at_id") {
+  private final BurstKey.LongKeyFactory<brs.AT.ATState> atStateDbKeyFactory = new DbKey.LongKeyFactory<brs.AT.ATState>(AT_STATE.AT_ID) {
       @Override
       public BurstKey newKey(brs.AT.ATState atState) {
         return atState.dbKey;
@@ -46,7 +45,7 @@ public class SqlATStore implements ATStore {
   public SqlATStore(DerivedTableManager derivedTableManager) {
     atTable = new VersionedEntitySqlTable<brs.AT>("at", brs.schema.Tables.AT, atDbKeyFactory, derivedTableManager) {
       @Override
-      protected brs.AT load(DSLContext ctx, ResultSet rs) {
+      protected brs.AT load(DSLContext ctx, Record rs) {
         //return new AT(rs);
         throw new RuntimeException("AT attempted to be created with atTable.load");
       }
@@ -57,8 +56,8 @@ public class SqlATStore implements ATStore {
       }
 
       @Override
-      protected List<SortField> defaultSort() {
-        List<SortField> sort = new ArrayList<>();
+      protected List<SortField<?>> defaultSort() {
+        List<SortField<?>> sort = new ArrayList<>();
         sort.add(tableClass.field("id", Long.class).asc());
         return sort;
       }
@@ -66,7 +65,7 @@ public class SqlATStore implements ATStore {
 
     atStateTable = new VersionedEntitySqlTable<brs.AT.ATState>("at_state", brs.schema.Tables.AT_STATE, atStateDbKeyFactory, derivedTableManager) {
       @Override
-      protected brs.AT.ATState load(DSLContext ctx, ResultSet rs) throws SQLException {
+      protected brs.AT.ATState load(DSLContext ctx, Record rs) {
         return new SqlATState(rs);
       }
 
@@ -76,10 +75,10 @@ public class SqlATStore implements ATStore {
       }
 
       @Override
-      protected List<SortField> defaultSort() {
-        List<SortField> sort = new ArrayList<>();
+      protected List<SortField<?>> defaultSort() {
+        List<SortField<?>> sort = new ArrayList<>();
         sort.add(tableClass.field("prev_height", Integer.class).asc());
-        sort.add(tableClass.field("height", Integer.class).asc());
+        sort.add(heightField.asc());
         sort.add(tableClass.field("at_id", Long.class).asc());
         return sort;
       }
@@ -87,21 +86,10 @@ public class SqlATStore implements ATStore {
   }
 
   private void saveATState(DSLContext ctx, brs.AT.ATState atState) {
-    brs.schema.tables.records.AtStateRecord atStateRecord = ctx.newRecord(brs.schema.Tables.AT_STATE);
-    atStateRecord.setAtId(atState.getATId());
-    atStateRecord.setState(brs.AT.compressState(atState.getState()));
-    atStateRecord.setPrevHeight(atState.getPrevHeight());
-    atStateRecord.setNextHeight(atState.getNextHeight());
-    atStateRecord.setSleepBetween(atState.getSleepBetween());
-    atStateRecord.setPrevBalance(atState.getPrevBalance());
-    atStateRecord.setFreezeWhenSameBalance(atState.getFreezeWhenSameBalance());
-    atStateRecord.setMinActivateAmount(atState.getMinActivationAmount());
-    atStateRecord.setHeight(Burst.getBlockchain().getHeight());
-    atStateRecord.setLatest(true);
-    DbUtils.mergeInto(
-      ctx, atStateRecord, brs.schema.Tables.AT_STATE,
-      ( new Field[] { atStateRecord.field("at_id"), atStateRecord.field("height") } )
-    );
+    ctx.mergeInto(AT_STATE, AT_STATE.AT_ID, AT_STATE.STATE, AT_STATE.PREV_HEIGHT, AT_STATE.NEXT_HEIGHT, AT_STATE.SLEEP_BETWEEN, AT_STATE.PREV_BALANCE, AT_STATE.FREEZE_WHEN_SAME_BALANCE, AT_STATE.MIN_ACTIVATE_AMOUNT, AT_STATE.HEIGHT, AT_STATE.LATEST)
+            .key(AT_STATE.AT_ID, AT_STATE.HEIGHT)
+            .values(atState.getATId(), brs.AT.compressState(atState.getState()), atState.getPrevHeight(), atState.getNextHeight(), atState.getSleepBetween(), atState.getPrevBalance(), atState.getFreezeWhenSameBalance(), atState.getMinActivationAmount(), Burst.getBlockchain().getHeight(), true)
+            .execute();
   }
 
   private void saveAT(DSLContext ctx, brs.AT at) {
@@ -159,7 +147,6 @@ public class SqlATStore implements ATStore {
             where(AT.LATEST.isTrue().
                     and(AT_STATE.LATEST.isTrue()).
                     and(AT.ID.eq(id))).fetchOne();
-
     if (record == null) {
       return null;
     }
@@ -210,8 +197,8 @@ public class SqlATStore implements ATStore {
 
   @Override
   public Long findTransaction(int startHeight, int endHeight, Long atID, int numOfTx, long minAmount) {
-    try ( DSLContext ctx = Db.getDSLContext() ) {
-      SelectQuery query = ctx.select(TRANSACTION.ID).from(TRANSACTION).where(
+    try (DSLContext ctx = Db.getDSLContext()) {
+      SelectQuery<Record1<Long>> query = ctx.select(TRANSACTION.ID).from(TRANSACTION).where(
         TRANSACTION.HEIGHT.between(startHeight, endHeight - 1)
       ).and(
         TRANSACTION.RECIPIENT_ID.eq(atID)
@@ -221,34 +208,27 @@ public class SqlATStore implements ATStore {
         TRANSACTION.HEIGHT, TRANSACTION.ID
       ).getQuery();
       DbUtils.applyLimits(query, numOfTx, numOfTx + 1);
-      try ( ResultSet rs = query.fetchResultSet() ) {
-        return rs.next() ? rs.getLong(1) : 0L;
-      }
-    }
-    catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
+      Result<Record1<Long>> result = query.fetch();
+      return result.isEmpty() ? 0L : result.get(0).value1();
     }
   }
 
   @Override
   public int findTransactionHeight(Long transactionId, int height, Long atID, long minAmount) {
-
-    DSLContext ctx = Db.getDSLContext();
-    try (Cursor<Record1<Long>> cursor = ctx.select(TRANSACTION.ID)
-            .from(TRANSACTION)
-            .where(TRANSACTION.HEIGHT.eq(height))
-            .and(TRANSACTION.RECIPIENT_ID.eq(atID))
-            .and(TRANSACTION.AMOUNT.greaterOrEqual(minAmount))
-            .orderBy(TRANSACTION.HEIGHT, TRANSACTION.ID)
-            .fetchLazy()) {
-
+    try (DSLContext ctx = Db.getDSLContext()) {
+      Iterator<Record1<Long>> fetch = ctx.select(TRANSACTION.ID)
+              .from(TRANSACTION)
+              .where(TRANSACTION.HEIGHT.eq(height))
+              .and(TRANSACTION.RECIPIENT_ID.eq(atID))
+              .and(TRANSACTION.AMOUNT.greaterOrEqual(minAmount))
+              .orderBy(TRANSACTION.HEIGHT, TRANSACTION.ID)
+              .fetch()
+              .iterator();
       int counter = 0;
-      while (cursor.hasNext()) {
+      while (fetch.hasNext()) {
         counter++;
-        long currentTransactionId = cursor.fetchNext().getValue(TRANSACTION.ID);
-        if (currentTransactionId == transactionId) {
-          break;
-        }
+        long currentTransactionId = fetch.next().value1();
+        if (currentTransactionId == transactionId) break;
       }
       return counter;
     } catch (DataAccessException e) {
@@ -257,15 +237,15 @@ public class SqlATStore implements ATStore {
   }
 
   class SqlATState extends brs.AT.ATState {
-    private SqlATState(ResultSet rs) throws SQLException {
+    private SqlATState(Record record) {
       super(
-            rs.getLong("at_id"),
-            rs.getBytes("state"),
-            rs.getInt("next_height"),
-            rs.getInt("sleep_between"),
-            rs.getLong("prev_balance"),
-            rs.getBoolean("freeze_when_same_balance"),
-            rs.getLong("min_activate_amount")
+            record.get(AT_STATE.AT_ID),
+            record.get(AT_STATE.STATE),
+            record.get(AT_STATE.NEXT_HEIGHT),
+            record.get(AT_STATE.SLEEP_BETWEEN),
+            record.get(AT_STATE.PREV_BALANCE),
+            record.get(AT_STATE.FREEZE_WHEN_SAME_BALANCE),
+            record.get(AT_STATE.MIN_ACTIVATE_AMOUNT)
             );
     }
   }

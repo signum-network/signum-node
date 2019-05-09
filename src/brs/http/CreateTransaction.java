@@ -4,6 +4,7 @@ import brs.Account;
 import brs.Attachment;
 import brs.Burst;
 import brs.BurstException;
+import brs.fluxcapacitor.FluxValues;
 import com.google.gson.JsonElement;
 
 import javax.servlet.http.HttpServletRequest;
@@ -11,7 +12,6 @@ import java.util.Arrays;
 
 import static brs.Constants.FEE_QUANT;
 import static brs.Constants.ONE_BURST;
-import static brs.fluxcapacitor.FeatureToggle.PRE_DYMAXION;
 import static brs.http.common.Parameters.*;
 
 abstract class CreateTransaction extends APIServlet.APIRequestHandler {
@@ -62,7 +62,7 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
   }
 
   private long minimumFeeNQT() {
-    return Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? FEE_QUANT : ONE_BURST;
+    return Burst.getFluxCapacitor().getValue(FluxValues.PRE_DYMAXION) ? FEE_QUANT : ONE_BURST;
   }
 
 }

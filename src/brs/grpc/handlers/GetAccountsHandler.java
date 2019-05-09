@@ -20,16 +20,16 @@ public class GetAccountsHandler implements GrpcApiHandler<BrsApi.GetAccountsRequ
         BrsApi.Accounts.Builder builder = BrsApi.Accounts.newBuilder();
         if (!Objects.equals(request.getName(), "")) {
             if (request.getIncludeAccounts()) {
-                accountService.getAccountsWithName(request.getName()).forEachRemaining(account -> builder.addAccounts(ProtoBuilder.buildAccount(account, accountService)));
+                accountService.getAccountsWithName(request.getName()).forEach(account -> builder.addAccounts(ProtoBuilder.buildAccount(account, accountService)));
             } else {
-                accountService.getAccountsWithName(request.getName()).forEachRemaining(account -> builder.addAccountIDs(account.getId()));
+                accountService.getAccountsWithName(request.getName()).forEach(account -> builder.addIds(account.getId()));
             }
         }
         if (request.getRewardRecipient() != 0) {
             if (request.getIncludeAccounts()) {
-                accountService.getAccountsWithRewardRecipient(request.getRewardRecipient()).forEachRemaining(assignment -> builder.addAccounts(ProtoBuilder.buildAccount(accountService.getAccount(assignment.getAccountId()), accountService)));
+                accountService.getAccountsWithRewardRecipient(request.getRewardRecipient()).forEach(assignment -> builder.addAccounts(ProtoBuilder.buildAccount(accountService.getAccount(assignment.getAccountId()), accountService)));
             } else {
-                accountService.getAccountsWithRewardRecipient(request.getRewardRecipient()).forEachRemaining(assignment -> builder.addAccountIDs(assignment.getAccountId()));
+                accountService.getAccountsWithRewardRecipient(request.getRewardRecipient()).forEach(assignment -> builder.addIds(assignment.getAccountId()));
             }
         }
         return builder.build();

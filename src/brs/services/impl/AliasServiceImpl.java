@@ -4,11 +4,12 @@ import brs.Alias;
 import brs.Alias.Offer;
 import brs.Attachment;
 import brs.Transaction;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.AliasStore;
 import brs.services.AliasService;
+
+import java.util.Collection;
 
 public class AliasServiceImpl implements AliasService {
 
@@ -45,7 +46,7 @@ public class AliasServiceImpl implements AliasService {
   }
 
   @Override
-  public BurstIterator<Alias> getAliasesByOwner(long accountId, int from, int to) {
+  public Collection<Alias> getAliasesByOwner(long accountId, int from, int to) {
     return aliasStore.getAliasesByOwner(accountId, from, to);
   }
 

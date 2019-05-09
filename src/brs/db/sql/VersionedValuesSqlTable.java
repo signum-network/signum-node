@@ -11,11 +11,11 @@ public abstract class VersionedValuesSqlTable<T, V> extends ValuesSqlTable<T, V>
 
   @Override
   public final void rollback(int height) {
-    VersionedEntitySqlTable.rollback(table, tableClass, height, dbKeyFactory);
+    VersionedEntitySqlTable.rollback(table, tableClass, heightField, latestField, height, dbKeyFactory);
   }
 
   @Override
   public final void trim(int height) {
-    VersionedEntitySqlTable.trim(table, tableClass, height, dbKeyFactory);
+    VersionedEntitySqlTable.trim(tableClass, heightField, height, dbKeyFactory);
   }
 }

@@ -6,8 +6,8 @@ import brs.feesuggestions.FeeSuggestionType;
 import brs.http.APIServlet.PrimitiveRequestHandler;
 import brs.http.common.Parameters;
 import brs.util.Convert;
+import brs.util.StringUtils;
 import com.google.zxing.WriterException;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -5,8 +5,6 @@ import brs.Asset;
 import brs.AssetTransfer;
 import brs.BurstException;
 import brs.assetexchange.AssetExchange;
-import brs.db.BurstIterator;
-import brs.db.sql.DbUtils;
 import brs.http.common.Parameters;
 import brs.services.AccountService;
 import brs.services.ParameterService;
@@ -16,6 +14,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collection;
 
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.TRANSFERS_RESPONSE;
@@ -35,7 +34,6 @@ public final class GetAssetTransfers extends APIServlet.APIRequestHandler {
 
   @Override
   JsonElement processRequest(HttpServletRequest req) throws BurstException {
-
     String assetId = Convert.emptyToNull(req.getParameter(ASSET_PARAMETER));
     String accountId = Convert.emptyToNull(req.getParameter(ACCOUNT_PARAMETER));
 
@@ -45,27 +43,21 @@ public final class GetAssetTransfers extends APIServlet.APIRequestHandler {
 
     JsonObject response = new JsonObject();
     JsonArray transfersData = new JsonArray();
-    BurstIterator<AssetTransfer> transfers = null;
-    try {
-      if (accountId == null) {
-        Asset asset = parameterService.getAsset(req);
-        transfers = assetExchange.getAssetTransfers(asset.getId(), firstIndex, lastIndex);
-      } else if (assetId == null) {
-        Account account = parameterService.getAccount(req);
-        transfers = accountService.getAssetTransfers(account.getId(), firstIndex, lastIndex);
-      } else {
-        Asset asset = parameterService.getAsset(req);
-        Account account = parameterService.getAccount(req);
-        transfers = assetExchange.getAccountAssetTransfers(account.getId(), asset.getId(), firstIndex, lastIndex);
-      }
-      while (transfers.hasNext()) {
-        final AssetTransfer transfer = transfers.next();
-        final Asset asset = includeAssetInfo ? assetExchange.getAsset(transfer.getAssetId()) : null;
-
-        transfersData.add(JSONData.assetTransfer(transfer, asset));
-      }
-    } finally {
-      DbUtils.close(transfers);
+    Collection<AssetTransfer> transfers = null;
+    if (accountId == null) {
+      Asset asset = parameterService.getAsset(req);
+      transfers = assetExchange.getAssetTransfers(asset.getId(), firstIndex, lastIndex);
+    } else if (assetId == null) {
+      Account account = parameterService.getAccount(req);
+      transfers = accountService.getAssetTransfers(account.getId(), firstIndex, lastIndex);
+    } else {
+      Asset asset = parameterService.getAsset(req);
+      Account account = parameterService.getAccount(req);
+      transfers = assetExchange.getAccountAssetTransfers(account.getId(), asset.getId(), firstIndex, lastIndex);
+    }
+    for (AssetTransfer transfer : transfers) {
+      final Asset asset = includeAssetInfo ? assetExchange.getAsset(transfer.getAssetId()) : null;
+      transfersData.add(JSONData.assetTransfer(transfer, asset));
     }
 
     response.add(TRANSFERS_RESPONSE, transfersData);

@@ -4,7 +4,6 @@ import brs.AT.HandleATBlockTransactionsListener;
 import brs.assetexchange.AssetExchange;
 import brs.assetexchange.AssetExchangeImpl;
 import brs.blockchainlistener.DevNullListener;
-import brs.crypto.hash.ShabalProvider;
 import brs.db.BlockDb;
 import brs.db.cache.DBCacheManagerImpl;
 import brs.db.sql.Db;
@@ -33,17 +32,13 @@ import brs.util.ThreadPool;
 import brs.util.Time;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
-import org.jooq.DSLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.sql.ResultSet;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static brs.schema.Tables.UNCONFIRMED_TRANSACTION;
 
 public final class Burst {
 
@@ -158,8 +153,6 @@ public final class Burst {
     try {
       long startTime = System.currentTimeMillis();
 
-      ShabalProvider.init();
-
       final TimeService timeService = new TimeServiceImpl();
 
       final DerivedTableManager derivedTableManager = new DerivedTableManager();
@@ -237,36 +230,14 @@ public final class Burst {
       if (propertyService.getBoolean(Props.API_V2_SERVER)) {
           int port = propertyService.getBoolean(Props.DEV_TESTNET) ? propertyService.getInt(Props.DEV_API_V2_PORT) : propertyService.getInt(Props.API_V2_PORT);
           logger.info("Starting V2 API Server on port {}", port);
-          BrsService apiV2 = new BrsService(blockchainProcessor, blockchain, blockService, accountService, generator, transactionProcessor);
+          BrsService apiV2 = new BrsService(blockchainProcessor, blockchain, blockService, accountService, generator, transactionProcessor, timeService, feeSuggestionCalculator, atService, aliasService, indirectIncomingService, fluxCapacitor, escrowService, assetExchange, subscriptionService, digitalGoodsStoreService, propertyService);
           apiV2Server = ServerBuilder.forPort(port).addService(apiV2).build().start();
       } else {
           logger.info("Not starting V2 API Server - it is disabled.");
       }
 
-      DebugTrace.init(propertyService, blockchainProcessor, accountService, assetExchange, digitalGoodsStoreService);
-
-      // backward compatibility for those who have some unconfirmed transactions in their db
-      try {
-        stores.beginTransaction();
-        try (DSLContext ctx = Db.getDSLContext()) {
-          ResultSet rs = ctx.selectFrom(UNCONFIRMED_TRANSACTION).fetchResultSet();
-          while ( rs.next() ) {
-            byte[] transactionBytes = rs.getBytes("transaction_bytes");
-            Transaction transaction = Transaction.parseTransaction(transactionBytes);
-            transaction.setHeight(rs.getInt("transaction_height"));
-            transactionService.undoUnconfirmed(transaction);
-          }
-          ctx.truncate(UNCONFIRMED_TRANSACTION).execute();
-        }
-        accountService.flushAccountTable();
-        stores.commitTransaction();
-      } catch (Exception e) {
-        logger.error(e.toString(), e);
-        stores.rollbackTransaction();
-        throw e;
-      } finally {
-        stores.endTransaction();
-      }
+      if (propertyService.getBoolean(Props.BRS_DEBUG_TRACE_ENABLED))
+        DebugTrace.init(propertyService, blockchainProcessor, accountService, assetExchange, digitalGoodsStoreService);
 
       int timeMultiplier = (propertyService.getBoolean(Props.DEV_TESTNET) && propertyService.getBoolean(Props.DEV_OFFLINE)) ? Math.max(propertyService.getInt(Props.DEV_TIMEWARP), 1) : 1;
 

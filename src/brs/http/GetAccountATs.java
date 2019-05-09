@@ -30,7 +30,7 @@ public final class GetAccountATs extends APIServlet.APIRequestHandler {
 	
   @Override
   JsonElement processRequest(HttpServletRequest req) throws BurstException {
-    Account account = parameterService.getAccount(req);
+    Account account = parameterService.getAccount(req); // TODO this is super redundant
 		
     List<Long> atIds = atService.getATsIssuedBy(account.getId());
     JsonArray ats = new JsonArray();

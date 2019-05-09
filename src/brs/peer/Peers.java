@@ -105,9 +105,7 @@ public final class Peers {
   private static int lastSavedPeers;
 
   static JsonElement myPeerInfoRequest;
-  static JsonElement myPeerInfoRequestBackwardsCompatible;
   static JsonElement myPeerInfoResponse;
-  static JsonElement myPeerInfoResponseBackwardsCompatible;
 
   private static final Listeners<Peer,Event> listeners = new Listeners<>();
 
@@ -179,15 +177,12 @@ public final class Peers {
     }
 
     json.addProperty("application",  Burst.APPLICATION);
-    json.addProperty("version",      Burst.VERSION.toBackwardsCompatibleString());
+    json.addProperty("version",      Burst.VERSION.toString());
     json.addProperty("platform",     Peers.myPlatform);
     json.addProperty("shareAddress", Peers.shareMyAddress);
-    logger.debug("My peer info:\n" + JSON.toJsonString(json));
-    myPeerInfoResponseBackwardsCompatible = JSON.cloneJson(json);
+    logger.debug("My peer info: " + JSON.toJsonString(json));
+    myPeerInfoResponse = JSON.cloneJson(json);
     json.addProperty("requestType", "getInfo");
-    myPeerInfoRequestBackwardsCompatible = prepareRequest(JSON.getAsJsonObject(JSON.cloneJson(json)));
-    json.addProperty("version", Burst.VERSION.toString());
-    myPeerInfoResponse = json;
     myPeerInfoRequest = prepareRequest(json);
 
 

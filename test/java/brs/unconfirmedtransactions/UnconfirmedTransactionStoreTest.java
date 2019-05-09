@@ -5,13 +5,14 @@ import brs.Attachment.MessagingAliasSell;
 import brs.BurstException.NotCurrentlyValidException;
 import brs.BurstException.ValidationException;
 import brs.Transaction.Builder;
+import brs.common.QuickMocker;
 import brs.common.TestConstants;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.VersionedBatchEntityTable;
 import brs.db.store.AccountStore;
-import brs.fluxcapacitor.FeatureToggle;
 import brs.fluxcapacitor.FluxCapacitor;
+import brs.fluxcapacitor.FluxValues;
 import brs.peer.Peer;
 import brs.props.PropertyService;
 import brs.props.Props;
@@ -30,7 +31,6 @@ import static brs.Attachment.ORDINARY_PAYMENT;
 import static brs.Constants.FEE_QUANT;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mock;
@@ -75,10 +75,7 @@ public class UnconfirmedTransactionStoreTest {
     when(accountTableMock.get(eq(mockAccountKey))).thenReturn(mockAccount);
     when(mockAccount.getUnconfirmedBalanceNQT()).thenReturn(Constants.MAX_BALANCE_NQT);
 
-    FluxCapacitor mockFluxCapacitor = mock(FluxCapacitor.class);
-    when(mockFluxCapacitor.isActive(eq(FeatureToggle.PRE_DYMAXION))).thenReturn(true);
-    when(mockFluxCapacitor.isActive(eq(FeatureToggle.PRE_DYMAXION), anyInt())).thenReturn(true);
-    when(mockFluxCapacitor.isActive(eq(FeatureToggle.DIGITAL_GOODS_STORE), anyInt())).thenReturn(true);
+    FluxCapacitor mockFluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(FluxValues.PRE_DYMAXION, FluxValues.DIGITAL_GOODS_STORE);
 
     when(Burst.getFluxCapacitor()).thenReturn(mockFluxCapacitor);
 

@@ -1,9 +1,10 @@
 package brs.grpc;
 
 import brs.grpc.proto.ProtoBuilder;
+import com.google.protobuf.Message;
 import io.grpc.stub.StreamObserver;
 
-public interface GrpcApiHandler<Request, Response> {
+public interface GrpcApiHandler<Request extends Message, Response extends Message> {
 
     /**
      * This should only ever be internally called.

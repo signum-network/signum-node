@@ -1,7 +1,7 @@
 package brs.common;
 
-import brs.fluxcapacitor.FeatureToggle;
 import brs.fluxcapacitor.FluxCapacitor;
+import brs.fluxcapacitor.FluxEnable;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -11,16 +11,19 @@ import java.util.Arrays;
 import java.util.List;
 
 import static brs.http.common.Parameters.*;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class QuickMocker {
 
-  public static FluxCapacitor fluxCapacitorEnabledFunctionalities(FeatureToggle... enabledToggles) {
+  public static FluxCapacitor fluxCapacitorEnabledFunctionalities(FluxEnable... enabledToggles) {
     final FluxCapacitor mockCapacitor = mock(FluxCapacitor.class);
-    for (FeatureToggle ft : enabledToggles) {
-      when(mockCapacitor.isActive(eq(ft))).thenReturn(true);
+    when(mockCapacitor.getValue(any())).thenReturn(false);
+    when(mockCapacitor.getValue(any(), anyInt())).thenReturn(false);
+    for (FluxEnable ft : enabledToggles) {
+      when(mockCapacitor.getValue(eq(ft))).thenReturn(true);
+      when(mockCapacitor.getValue(eq(ft), anyInt())).thenReturn(true);
     }
     return mockCapacitor;
   }

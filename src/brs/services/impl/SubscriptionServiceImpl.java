@@ -2,7 +2,6 @@ package brs.services.impl;
 
 import brs.*;
 import brs.BurstException.NotValidException;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.VersionedEntityTable;
@@ -12,10 +11,7 @@ import brs.services.AliasService;
 import brs.services.SubscriptionService;
 import brs.util.Convert;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class SubscriptionServiceImpl implements SubscriptionService {
 
@@ -49,12 +45,12 @@ public class SubscriptionServiceImpl implements SubscriptionService {
   }
 
   @Override
-  public BurstIterator<Subscription> getSubscriptionsByParticipant(Long accountId) {
+  public Collection<Subscription> getSubscriptionsByParticipant(Long accountId) {
     return subscriptionStore.getSubscriptionsByParticipant(accountId);
   }
 
   @Override
-  public BurstIterator<Subscription> getSubscriptionsToId(Long accountId) {
+  public Collection<Subscription> getSubscriptionsToId(Long accountId) {
     return subscriptionStore.getSubscriptionsToId(accountId);
   }
 
@@ -104,10 +100,8 @@ public class SubscriptionServiceImpl implements SubscriptionService {
   @Override
   public long calculateFees(int timestamp) {
     long totalFeeNQT = 0;
-    BurstIterator<Subscription> updateSubscriptions = subscriptionStore.getUpdateSubscriptions(timestamp);
     List<Subscription> appliedUnconfirmedSubscriptions = new ArrayList<>();
-    while (updateSubscriptions.hasNext()) {
-      Subscription subscription = updateSubscriptions.next();
+    for (Subscription subscription : subscriptionStore.getUpdateSubscriptions(timestamp)){
       if (removeSubscriptions.contains(subscription.getId())) {
         continue;
       }
@@ -138,9 +132,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
   public long applyUnconfirmed(int timestamp) {
     appliedSubscriptions.clear();
     long totalFees = 0;
-    BurstIterator<Subscription> updateSubscriptions = subscriptionStore.getUpdateSubscriptions(timestamp);
-    while (updateSubscriptions.hasNext()) {
-      Subscription subscription = updateSubscriptions.next();
+    for (Subscription subscription : subscriptionStore.getUpdateSubscriptions(timestamp)) {
       if (removeSubscriptions.contains(subscription.getId())) {
         continue;
       }

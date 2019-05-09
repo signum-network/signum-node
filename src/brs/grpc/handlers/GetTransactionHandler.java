@@ -21,11 +21,11 @@ public class GetTransactionHandler implements GrpcApiHandler<BrsApi.GetTransacti
 
     @Override
     public BrsApi.Transaction handleRequest(BrsApi.GetTransactionRequest request) throws Exception {
-        return ProtoBuilder.buildTransaction(blockchain, getTransaction(blockchain, transactionProcessor, request));
+        return ProtoBuilder.buildTransaction(getTransaction(blockchain, transactionProcessor, request), blockchain.getHeight());
     }
 
     public static Transaction getTransaction(Blockchain blockchain, TransactionProcessor transactionProcessor, BrsApi.GetTransactionRequest request) throws ApiException {
-        long id = request.getId();
+        long id = request.getTransactionId();
         byte[] fullHash = request.getFullHash().toByteArray();
         Transaction transaction;
         if (fullHash.length > 0) {

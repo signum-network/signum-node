@@ -62,17 +62,17 @@ public final class Constants {
   public static final int NQT_BLOCK = 0;
   public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK = 0;
   public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP = 0;
-  public static final int PUBLIC_KEY_ANNOUNCEMENT_BLOCK = Integer.MAX_VALUE;
 
   public static final int MAX_AUTOMATED_TRANSACTION_NAME_LENGTH = 30;
   public static final int MAX_AUTOMATED_TRANSACTION_DESCRIPTION_LENGTH = 1000;
 
   public static final String HTTP = "http://";
 
-  public static final Version MIN_VERSION = Version.parse("2.2.6");
+  public static final Version MIN_VERSION = Version.parse("v2.3.0");
 
   static final long UNCONFIRMED_POOL_DEPOSIT_NQT = (Burst.getPropertyService().getBoolean(Props.DEV_TESTNET) ? 50 : 100) * ONE_BURST;
 
+  // TODO burstkit4j integration
   public static final long EPOCH_BEGINNING;
 
   static {
@@ -104,6 +104,8 @@ public final class Constants {
   public static final String TOKEN = "token";
   public static final String WEBSITE = "website";
   public static final String PROTOCOL = "protocol";
+
+  public static final int BLOCK_PROCESS_THREAD_DELAY = 500; // Milliseconds
 
   private Constants() {
   } // never

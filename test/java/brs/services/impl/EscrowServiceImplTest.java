@@ -1,13 +1,7 @@
 package brs.services.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import brs.Blockchain;
 import brs.Escrow;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.VersionedEntityTable;
@@ -16,6 +10,13 @@ import brs.services.AccountService;
 import brs.services.AliasService;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Collection;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class EscrowServiceImplTest {
 
@@ -47,7 +48,7 @@ public class EscrowServiceImplTest {
 
   @Test
   public void getAllEscrowTransactions() {
-    final BurstIterator<Escrow> mockEscrowIterator = mock(BurstIterator.class);
+    final Collection<Escrow> mockEscrowIterator = mock(Collection.class);
 
     when(mockEscrowTable.getAll(eq(0), eq(-1))).thenReturn(mockEscrowIterator);
 

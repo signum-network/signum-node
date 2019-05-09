@@ -4,7 +4,6 @@ import brs.Account;
 import brs.Block;
 import brs.Blockchain;
 import brs.BurstException;
-import brs.db.BurstIterator;
 import brs.http.common.Parameters;
 import brs.services.BlockService;
 import brs.services.ParameterService;
@@ -41,11 +40,8 @@ public final class GetAccountBlocks extends APIServlet.APIRequestHandler {
     boolean includeTransactions = Parameters.isTrue(req.getParameter(INCLUDE_TRANSACTIONS_PARAMETER));
 
     JsonArray blocks = new JsonArray();
-    try (BurstIterator<? extends Block> iterator = blockchain.getBlocks(account, timestamp, firstIndex, lastIndex)) {
-      while (iterator.hasNext()) {
-        Block block = iterator.next();
-        blocks.add(JSONData.block(block, includeTransactions, blockchain.getHeight(), blockService.getBlockReward(block), blockService.getScoopNum(block)));
-      }
+    for (Block block : blockchain.getBlocks(account, timestamp, firstIndex, lastIndex)) {
+      blocks.add(JSONData.block(block, includeTransactions, blockchain.getHeight(), blockService.getBlockReward(block), blockService.getScoopNum(block)));
     }
 
     JsonObject response = new JsonObject();

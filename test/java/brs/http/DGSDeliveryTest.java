@@ -5,6 +5,7 @@ import brs.DigitalGoodsStore.Purchase;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.fluxcapacitor.FluxCapacitor;
+import brs.fluxcapacitor.FluxValues;
 import brs.services.AccountService;
 import brs.services.ParameterService;
 import org.junit.Before;
@@ -18,12 +19,11 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.Constants.MAX_BALANCE_NQT;
 import static brs.TransactionType.DigitalGoods.DELIVERY;
 import static brs.common.TestConstants.TEST_SECRET_PHRASE;
-import static brs.fluxcapacitor.FeatureToggle.DIGITAL_GOODS_STORE;
 import static brs.http.JSONResponses.*;
 import static brs.http.common.Parameters.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -77,7 +77,7 @@ public class DGSDeliveryTest extends AbstractTransactionTest {
     when(accountServiceMock.getAccount(eq(mockPurchase.getBuyerId()))).thenReturn(mockBuyerAccount);
 
     mockStatic(Burst.class);
-    final FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(DIGITAL_GOODS_STORE);
+    final FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(FluxValues.DIGITAL_GOODS_STORE);
     when(Burst.getFluxCapacitor()).thenReturn(fluxCapacitor);
 
     final Attachment.DigitalGoodsDelivery attachment = (Attachment.DigitalGoodsDelivery) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);

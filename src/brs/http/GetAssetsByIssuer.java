@@ -1,9 +1,7 @@
 package brs.http;
 
 import brs.Account;
-import brs.Asset;
 import brs.assetexchange.AssetExchange;
-import brs.db.BurstIterator;
 import brs.services.ParameterService;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -36,9 +34,7 @@ public final class GetAssetsByIssuer extends AbstractAssetsRetrieval {
     JsonArray accountsJsonArray = new JsonArray();
     response.add(ASSETS_RESPONSE, accountsJsonArray);
     for (Account account : accounts) {
-      try (BurstIterator<Asset> assets = assetExchange.getAssetsIssuedBy(account.getId(), firstIndex, lastIndex)) {
-        accountsJsonArray.add(assetsToJson(assets));
-      }
+      accountsJsonArray.add(assetsToJson(assetExchange.getAssetsIssuedBy(account.getId(), firstIndex, lastIndex).iterator()));
     }
     return response;
   }

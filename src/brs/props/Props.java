@@ -34,6 +34,7 @@ public class Props {
   public static final Prop<Integer> DEV_POC2_BLOCK_HEIGHT = new Prop<>("DEV.poc2.startBlock", -1);
   public static final Prop<Integer> DEV_NEXT_FORK_BLOCK_HEIGHT = new Prop<>("DEV.nextFork.startBlock", -1);
 
+  public static final Prop<Boolean> BRS_DEBUG_TRACE_ENABLED = new Prop<>("brs.debugTraceEnable", false);
   public static final Prop<String> BRS_DEBUG_TRACE_QUOTE = new Prop<>("brs.debugTraceQuote", "\"");
   public static final Prop<String> BRS_DEBUG_TRACE_SEPARATOR = new Prop<>("brs.debugTraceSeparator", "\t");
   public static final Prop<Boolean> BRS_DEBUG_LOG_CONFIRMED = new Prop<>("brs.debugLogUnconfirmed", false);
@@ -165,6 +166,8 @@ public class Props {
   public static final Prop<String> JETTY_P2P_DOS_FILTER_MANAGED_ATTR = new Prop<>("JETTY.P2P.DoSFilter.managedAttr", "true");
 
   public static final Prop<Boolean> INDIRECT_INCOMING_SERVICE_ENABLE = new Prop<>("IndirectIncomingService.Enable", true);
+
+  public static final Prop<Boolean> AUTO_POP_OFF_ENABLED = new Prop<>("AutoPopOff.Enable", true);
 
   private Props() { //no need to construct
   }

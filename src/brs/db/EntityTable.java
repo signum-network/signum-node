@@ -1,10 +1,8 @@
 package brs.db;
 
-import org.jooq.Condition;
-import org.jooq.DSLContext;
-import org.jooq.SelectQuery;
-import org.jooq.SortField;
+import org.jooq.*;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface EntityTable<T> extends DerivedTable {
@@ -18,23 +16,23 @@ public interface EntityTable<T> extends DerivedTable {
 
   T getBy(Condition condition, int height);
 
-  BurstIterator<T> getManyBy(Condition condition, int from, int to);
+  Collection<T> getManyBy(Condition condition, int from, int to);
 
-  BurstIterator<T> getManyBy(Condition condition, int from, int to, List<SortField> sort);
+  Collection<T> getManyBy(Condition condition, int from, int to, List<SortField<?>> sort);
 
-  BurstIterator<T> getManyBy(Condition condition, int height, int from, int to);
+  Collection<T> getManyBy(Condition condition, int height, int from, int to);
 
-  BurstIterator<T> getManyBy(Condition condition, int height, int from, int to, List<SortField> sort);
+  Collection<T> getManyBy(Condition condition, int height, int from, int to, List<SortField<?>> sort);
 
-  BurstIterator<T> getManyBy(DSLContext ctx, SelectQuery query, boolean cache);
+  Collection<T> getManyBy(DSLContext ctx, SelectQuery<? extends Record> query, boolean cache);
 
-  BurstIterator<T> getAll(int from, int to);
+  Collection<T> getAll(int from, int to);
 
-  BurstIterator<T> getAll(int from, int to, List<SortField> sort);
+  Collection<T> getAll(int from, int to, List<SortField<?>> sort);
 
-  BurstIterator<T> getAll(int height, int from, int to);
+  Collection<T> getAll(int height, int from, int to);
 
-  BurstIterator<T> getAll(int height, int from, int to, List<SortField> sort);
+  Collection<T> getAll(int height, int from, int to, List<SortField<?>> sort);
 
   int getCount();
 

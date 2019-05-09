@@ -30,5 +30,4 @@ public class SqlPeerDb implements PeerDb {
         List<Insert<PeerRecord>> inserts = peers.stream().map(peer -> ctx.insertInto(PEER).set(PEER.ADDRESS, peer)).collect(Collectors.toList());
         ctx.batch(inserts).execute();
     }
-
 }

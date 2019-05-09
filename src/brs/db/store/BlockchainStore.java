@@ -3,10 +3,12 @@ package brs.db.store;
 import brs.Account;
 import brs.Block;
 import brs.Transaction;
-import brs.db.BurstIterator;
+import brs.schema.tables.records.BlockRecord;
+import brs.schema.tables.records.TransactionRecord;
 import org.jooq.DSLContext;
+import org.jooq.Result;
 
-import java.sql.ResultSet;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -16,11 +18,11 @@ import java.util.List;
 public interface BlockchainStore {
 
 
-  BurstIterator<Block> getBlocks(int from, int to);
+  Collection<Block> getBlocks(int from, int to);
 
-  BurstIterator<Block> getBlocks(Account account, int timestamp, int from, int to);
+  Collection<Block> getBlocks(Account account, int timestamp, int from, int to);
 
-  BurstIterator<Block> getBlocks(DSLContext ctx, ResultSet rs);
+  Collection<Block> getBlocks(Result<BlockRecord> blockRecords);
 
   List<Long> getBlockIdsAfter(long blockId, int limit);
 
@@ -28,16 +30,14 @@ public interface BlockchainStore {
 
   int getTransactionCount();
 
-  BurstIterator<Transaction> getAllTransactions();
+  Collection<Transaction> getAllTransactions();
 
-  BurstIterator<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
+  Collection<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
                                                  int blockTimestamp, int from, int to, boolean includeIndirectIncoming);
 
-  BurstIterator<Transaction> getTransactions(DSLContext ctx, ResultSet rs);
+  Collection<Transaction> getTransactions(DSLContext ctx, Result<TransactionRecord> rs);
 
-  boolean addBlock(Block block);
+  void addBlock(Block block);
 
-  void scan(int height);
-
-  BurstIterator<Block> getLatestBlocks(int amountBlocks);
+  Collection<Block> getLatestBlocks(int amountBlocks);
 }

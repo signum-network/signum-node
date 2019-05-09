@@ -4,7 +4,6 @@ import brs.Account;
 import brs.Asset;
 import brs.BurstException;
 import brs.assetexchange.AssetExchange;
-import brs.db.BurstIterator;
 import brs.services.ParameterService;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -34,17 +33,12 @@ final class GetAssetAccounts extends APIServlet.APIRequestHandler {
     int height = parameterService.getHeight(req);
 
     JsonArray accountAssets = new JsonArray();
-    try (BurstIterator<Account.AccountAsset> iterator = assetExchange.getAccountAssetsOverview(asset.getId(), height, firstIndex, lastIndex)) {
-      while (iterator.hasNext()) {
-        Account.AccountAsset accountAsset = iterator.next();
-        accountAssets.add(JSONData.accountAsset(accountAsset));
-      }
+    for (Account.AccountAsset accountAsset : assetExchange.getAccountAssetsOverview(asset.getId(), height, firstIndex, lastIndex)) {
+      accountAssets.add(JSONData.accountAsset(accountAsset));
     }
 
     JsonObject response = new JsonObject();
     response.add("accountAssets", accountAssets);
     return response;
-
   }
-
 }

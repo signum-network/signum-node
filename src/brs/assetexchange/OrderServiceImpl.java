@@ -3,13 +3,14 @@ package brs.assetexchange;
 import brs.*;
 import brs.Order.Ask;
 import brs.Order.Bid;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.VersionedEntityTable;
 import brs.db.store.OrderStore;
 import brs.services.AccountService;
 import brs.util.Convert;
+
+import java.util.Collection;
 
 class OrderServiceImpl {
 
@@ -40,27 +41,27 @@ class OrderServiceImpl {
     return bidOrderTable.get(bidOrderDbKeyFactory.newKey(orderId));
   }
 
-  public BurstIterator<Ask> getAllAskOrders(int from, int to) {
+  public Collection<Ask> getAllAskOrders(int from, int to) {
     return askOrderTable.getAll(from, to);
   }
 
-  public BurstIterator<Bid> getAllBidOrders(int from, int to) {
+  public Collection<Bid> getAllBidOrders(int from, int to) {
     return bidOrderTable.getAll(from, to);
   }
 
-  public BurstIterator<Bid> getSortedBidOrders(long assetId, int from, int to) {
+  public Collection<Bid> getSortedBidOrders(long assetId, int from, int to) {
     return orderStore.getSortedBids(assetId, from, to);
   }
 
-  public BurstIterator<Ask> getAskOrdersByAccount(long accountId, int from, int to) {
+  public Collection<Ask> getAskOrdersByAccount(long accountId, int from, int to) {
     return orderStore.getAskOrdersByAccount(accountId, from, to);
   }
 
-  public BurstIterator<Ask> getAskOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
+  public Collection<Ask> getAskOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
     return orderStore.getAskOrdersByAccountAsset(accountId, assetId, from, to);
   }
 
-  public BurstIterator<Ask> getSortedAskOrders(long assetId, int from, int to) {
+  public Collection<Ask> getSortedAskOrders(long assetId, int from, int to) {
     return orderStore.getSortedAsks(assetId, from, to);
   }
 
@@ -72,11 +73,11 @@ class OrderServiceImpl {
     return askOrderTable.getCount();
   }
 
-  public BurstIterator<Bid> getBidOrdersByAccount(long accountId, int from, int to) {
+  public Collection<Bid> getBidOrdersByAccount(long accountId, int from, int to) {
     return orderStore.getBidOrdersByAccount(accountId, from, to);
   }
 
-  public BurstIterator<Bid> getBidOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
+  public Collection<Bid> getBidOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
     return orderStore.getBidOrdersByAccountAsset(accountId, assetId, from, to);
   }
 

@@ -6,7 +6,6 @@ import brs.DigitalGoodsStore.Goods;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.db.BurstIterator;
 import brs.db.sql.DbUtils;
 import brs.services.DGSGoodsStoreService;
 import brs.util.JSON;
@@ -20,16 +19,15 @@ import org.powermock.core.classloader.annotations.SuppressStaticInitializationFo
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collection;
 
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
-;
 
 @SuppressStaticInitializationFor("brs.db.sql.DbUtils")
 @PrepareForTest(DbUtils.class)
@@ -61,7 +59,7 @@ public class GetDGSGoodsTest extends AbstractUnitTest {
     );
 
     final Goods mockGood = mockGood();
-    final BurstIterator<Goods> mockGoodIterator = mockBurstIterator(mockGood);
+    final Collection<Goods> mockGoodIterator = mockCollection(mockGood);
 
     when(mockDGSGoodsStoreService.getSellerGoods(eq(sellerId), eq(true), eq(firstIndex), eq(lastIndex)))
         .thenReturn(mockGoodIterator);
@@ -101,7 +99,7 @@ public class GetDGSGoodsTest extends AbstractUnitTest {
     );
 
     final Goods mockGood = mockGood();
-    final BurstIterator<Goods> mockGoodIterator = mockBurstIterator(mockGood);
+    final Collection<Goods> mockGoodIterator = mockCollection(mockGood);
 
     when(mockDGSGoodsStoreService.getAllGoods(eq(firstIndex), eq(lastIndex)))
         .thenReturn(mockGoodIterator);
@@ -141,7 +139,7 @@ public class GetDGSGoodsTest extends AbstractUnitTest {
     );
 
     final Goods mockGood = mockGood();
-    final BurstIterator<Goods> mockGoodIterator = mockBurstIterator(mockGood);
+    final Collection<Goods> mockGoodIterator = mockCollection(mockGood);
 
     when(mockDGSGoodsStoreService.getGoodsInStock(eq(firstIndex), eq(lastIndex)))
         .thenReturn(mockGoodIterator);

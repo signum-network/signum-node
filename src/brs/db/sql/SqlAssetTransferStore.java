@@ -1,21 +1,21 @@
 package brs.db.sql;
 
 import brs.AssetTransfer;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.store.AssetTransferStore;
 import brs.db.store.DerivedTableManager;
+import brs.schema.tables.records.AssetTransferRecord;
 import org.jooq.DSLContext;
+import org.jooq.Record;
 import org.jooq.SelectQuery;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.Collection;
 
 import static brs.schema.Tables.ASSET_TRANSFER;
 
 public class SqlAssetTransferStore implements AssetTransferStore {
 
-  private static final BurstKey.LongKeyFactory<AssetTransfer> transferDbKeyFactory = new DbKey.LongKeyFactory<AssetTransfer>("id") {
+  private static final BurstKey.LongKeyFactory<AssetTransfer> transferDbKeyFactory = new DbKey.LongKeyFactory<AssetTransfer>(ASSET_TRANSFER.ID) {
 
       @Override
       public BurstKey newKey(AssetTransfer assetTransfer) {
@@ -28,8 +28,8 @@ public class SqlAssetTransferStore implements AssetTransferStore {
     assetTransferTable = new EntitySqlTable<AssetTransfer>("asset_transfer", brs.schema.Tables.ASSET_TRANSFER, transferDbKeyFactory, derivedTableManager) {
 
       @Override
-      protected AssetTransfer load(DSLContext ctx, ResultSet rs) throws SQLException {
-        return new SqlAssetTransfer(rs);
+      protected AssetTransfer load(DSLContext ctx, Record record) {
+        return new SqlAssetTransfer(record);
       }
 
       @Override
@@ -63,12 +63,12 @@ public class SqlAssetTransferStore implements AssetTransferStore {
     return transferDbKeyFactory;
   }
   @Override
-  public BurstIterator<AssetTransfer> getAssetTransfers(long assetId, int from, int to) {
+  public Collection<AssetTransfer> getAssetTransfers(long assetId, int from, int to) {
     return getAssetTransferTable().getManyBy(ASSET_TRANSFER.ASSET_ID.eq(assetId), from, to);
   }
 
   @Override
-  public BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, int from, int to) {
+  public Collection<AssetTransfer> getAccountAssetTransfers(long accountId, int from, int to) {
     DSLContext ctx = Db.getDSLContext();
 
     SelectQuery selectQuery = ctx
@@ -88,10 +88,10 @@ public class SqlAssetTransferStore implements AssetTransferStore {
   }
 
   @Override
-  public BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to) {
+  public Collection<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to) {
     DSLContext ctx = Db.getDSLContext();
 
-    SelectQuery selectQuery = ctx
+    SelectQuery<AssetTransferRecord> selectQuery = ctx
       .selectFrom(ASSET_TRANSFER).where(
         ASSET_TRANSFER.SENDER_ID.eq(accountId).and(ASSET_TRANSFER.ASSET_ID.eq(assetId))
       )
@@ -116,15 +116,15 @@ public class SqlAssetTransferStore implements AssetTransferStore {
 
   class SqlAssetTransfer extends AssetTransfer {
 
-    SqlAssetTransfer(ResultSet rs) throws SQLException {
-      super(rs.getLong("id"),
-            transferDbKeyFactory.newKey(rs.getLong("id")),
-            rs.getLong("asset_id"),
-            rs.getInt("height"),
-            rs.getLong("sender_id"),
-            rs.getLong("recipient_id"),
-            rs.getLong("quantity"),
-            rs.getInt("timestamp")
+    SqlAssetTransfer(Record record) {
+      super(record.get(ASSET_TRANSFER.ID),
+            transferDbKeyFactory.newKey(record.get(ASSET_TRANSFER.ID)),
+            record.get(ASSET_TRANSFER.ASSET_ID),
+            record.get(ASSET_TRANSFER.HEIGHT),
+            record.get(ASSET_TRANSFER.SENDER_ID),
+            record.get(ASSET_TRANSFER.RECIPIENT_ID),
+            record.get(ASSET_TRANSFER.QUANTITY),
+            record.get(ASSET_TRANSFER.TIMESTAMP)
             );
     }
   }

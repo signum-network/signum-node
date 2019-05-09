@@ -2,7 +2,6 @@ package brs.http;
 
 import brs.*;
 import brs.assetexchange.AssetExchange;
-import brs.db.BurstIterator;
 import brs.peer.Peer;
 import brs.peer.Peers;
 import brs.props.PropertyService;
@@ -54,25 +53,19 @@ final class GetState extends APIServlet.APIRequestHandler {
     response.addProperty("lastBlock", blockchain.getLastBlock().getStringId());
     response.addProperty("cumulativeDifficulty", blockchain.getLastBlock().getCumulativeDifficulty().toString());
 
-
-    long totalEffectiveBalance = 0;
-    try (BurstIterator<Account> accounts = accountService.getAllAccounts(0, -1)) {
-      while(accounts.hasNext()) {
-        long effectiveBalanceBURST = accounts.next().getBalanceNQT();
+    if (!"false".equalsIgnoreCase(req.getParameter("includeCounts"))) {
+      long totalEffectiveBalance = 0;
+      for (Account account : accountService.getAllAccounts(0, -1)) {
+        long effectiveBalanceBURST = account.getBalanceNQT();
         if (effectiveBalanceBURST > 0) {
           totalEffectiveBalance += effectiveBalanceBURST;
         }
       }
-    }
-    try(BurstIterator<Escrow> escrows = escrowService.getAllEscrowTransactions()) {
-      while(escrows.hasNext()) {
-        totalEffectiveBalance += escrows.next().getAmountNQT();
+      for (Escrow escrow : escrowService.getAllEscrowTransactions()) {
+        totalEffectiveBalance += escrow.getAmountNQT();
       }
-    }
-    response.addProperty("totalEffectiveBalanceNXT", totalEffectiveBalance / Constants.ONE_BURST);
+      response.addProperty("totalEffectiveBalanceNXT", totalEffectiveBalance / Constants.ONE_BURST);
 
-
-    if (!"false".equalsIgnoreCase(req.getParameter("includeCounts"))) {
       response.addProperty("numberOfBlocks", blockchain.getHeight() + 1);
       response.addProperty("numberOfTransactions", blockchain.getTransactionCount());
       response.addProperty("numberOfAccounts", accountService.getCount());
@@ -103,5 +96,4 @@ final class GetState extends APIServlet.APIRequestHandler {
 
     return response;
   }
-
 }

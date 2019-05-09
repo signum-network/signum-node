@@ -9,13 +9,9 @@ import org.mockito.ArgumentCaptor;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static org.mockito.ArgumentMatchers.nullable;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
-;
 
 public abstract class AbstractTransactionTest extends AbstractUnitTest {
 

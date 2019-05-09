@@ -1,17 +1,17 @@
 package brs.assetexchange;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import brs.AssetTransfer;
-import brs.assetexchange.AssetTransferServiceImpl;
-import brs.db.BurstIterator;
 import brs.db.sql.EntitySqlTable;
 import brs.db.store.AssetTransferStore;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Collection;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class AssetTransferServiceImplTest {
 
@@ -36,7 +36,7 @@ public class AssetTransferServiceImplTest {
     final int from = 1;
     final int to = 4;
 
-    final BurstIterator<AssetTransfer> mockAssetTransferIterator = mock(BurstIterator.class);
+    final Collection<AssetTransfer> mockAssetTransferIterator = mock(Collection.class);
 
     when(mockAssetTransferStore.getAssetTransfers(eq(assetId), eq(from), eq(to))).thenReturn(mockAssetTransferIterator);
 
@@ -50,7 +50,7 @@ public class AssetTransferServiceImplTest {
     final int from = 1;
     final int to = 4;
 
-    final BurstIterator<AssetTransfer> mockAccountAssetTransferIterator = mock(BurstIterator.class);
+    final Collection<AssetTransfer> mockAccountAssetTransferIterator = mock(Collection.class);
 
     when(mockAssetTransferStore.getAccountAssetTransfers(eq(accountId), eq(assetId), eq(from), eq(to))).thenReturn(mockAccountAssetTransferIterator);
 

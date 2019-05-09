@@ -1,15 +1,16 @@
 package brs.assetexchange;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import brs.Account.AccountAsset;
-import brs.db.BurstIterator;
 import brs.db.store.AccountStore;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Collection;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class AssetAccountServiceImplTest {
 
@@ -30,7 +31,7 @@ public class AssetAccountServiceImplTest {
     final int from = 1;
     final int to = 5;
 
-    final BurstIterator<AccountAsset> mockAccountIterator = mock(BurstIterator.class);
+    final Collection<AccountAsset> mockAccountIterator = mock(Collection.class);
 
     when(mockAccountStore.getAssetAccounts(eq(assetId), eq(from), eq(to))).thenReturn(mockAccountIterator);
 
@@ -44,7 +45,7 @@ public class AssetAccountServiceImplTest {
     final int to = 5;
     final int height = 3;
 
-    final BurstIterator<AccountAsset> mockAccountIterator = mock(BurstIterator.class);
+    final Collection<AccountAsset> mockAccountIterator = mock(Collection.class);
 
     when(mockAccountStore.getAssetAccounts(eq(assetId), eq(height), eq(from), eq(to))).thenReturn(mockAccountIterator);
 
@@ -58,7 +59,7 @@ public class AssetAccountServiceImplTest {
     final int to = 5;
     final int height = -2;
 
-    final BurstIterator<AccountAsset> mockAccountIterator = mock(BurstIterator.class);
+    final Collection<AccountAsset> mockAccountIterator = mock(Collection.class);
 
     when(mockAccountStore.getAssetAccounts(eq(assetId), eq(from), eq(to))).thenReturn(mockAccountIterator);
 

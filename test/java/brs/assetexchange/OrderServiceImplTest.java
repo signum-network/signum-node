@@ -1,13 +1,7 @@
 package brs.assetexchange;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import brs.Order.Ask;
 import brs.Order.Bid;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.VersionedEntityTable;
@@ -15,6 +9,13 @@ import brs.db.store.OrderStore;
 import brs.services.AccountService;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Collection;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class OrderServiceImplTest {
 
@@ -79,7 +80,7 @@ public class OrderServiceImplTest {
     final int from = 1;
     final int to = 5;
 
-    final BurstIterator<Ask> mockAskIterator = mock(BurstIterator.class);
+    final Collection<Ask> mockAskIterator = mock(Collection.class);
 
     when(mockAskOrderTable.getAll(eq(from), eq(to))).thenReturn(mockAskIterator);
 
@@ -91,7 +92,7 @@ public class OrderServiceImplTest {
     final int from = 1;
     final int to = 5;
 
-    final BurstIterator<Bid> mockBidIterator = mock(BurstIterator.class);
+    final Collection<Bid> mockBidIterator = mock(Collection.class);
 
     when(mockBidOrderTable.getAll(eq(from), eq(to))).thenReturn(mockBidIterator);
 
@@ -104,7 +105,7 @@ public class OrderServiceImplTest {
     final int from = 1;
     final int to = 5;
 
-    final BurstIterator<Bid> mockBidIterator = mock(BurstIterator.class);
+    final Collection<Bid> mockBidIterator = mock(Collection.class);
 
     when(orderStoreMock.getSortedBids(eq(assetId), eq(from), eq(to))).thenReturn(mockBidIterator);
 
@@ -117,7 +118,7 @@ public class OrderServiceImplTest {
     final int from = 1;
     final int to = 5;
 
-    final BurstIterator<Ask> mockAskIterator = mock(BurstIterator.class);
+    final Collection<Ask> mockAskIterator = mock(Collection.class);
 
     when(orderStoreMock.getAskOrdersByAccount(eq(accountId), eq(from), eq(to))).thenReturn(mockAskIterator);
 
@@ -131,7 +132,7 @@ public class OrderServiceImplTest {
     final int from = 1;
     final int to = 5;
 
-    final BurstIterator<Ask> mockAskIterator = mock(BurstIterator.class);
+    final Collection<Ask> mockAskIterator = mock(Collection.class);
 
     when(orderStoreMock.getAskOrdersByAccountAsset(eq(accountId), eq(assetId), eq(from), eq(to))).thenReturn(mockAskIterator);
 
@@ -144,7 +145,7 @@ public class OrderServiceImplTest {
     final int from = 1;
     final int to = 5;
 
-    final BurstIterator<Ask> mockAskIterator = mock(BurstIterator.class);
+    final Collection<Ask> mockAskIterator = mock(Collection.class);
 
     when(orderStoreMock.getSortedAsks(eq(assetId), eq(from), eq(to))).thenReturn(mockAskIterator);
 
@@ -171,7 +172,7 @@ public class OrderServiceImplTest {
     final int from = 1;
     final int to = 5;
 
-    final BurstIterator<Bid> mockBidIterator = mock(BurstIterator.class);
+    final Collection<Bid> mockBidIterator = mock(Collection.class);
 
     when(orderStoreMock.getBidOrdersByAccount(eq(accountId), eq(from), eq(to))).thenReturn(mockBidIterator);
 
@@ -185,7 +186,7 @@ public class OrderServiceImplTest {
     final int from = 1;
     final int to = 5;
 
-    final BurstIterator<Bid> mockBidIterator = mock(BurstIterator.class);
+    final Collection<Bid> mockBidIterator = mock(Collection.class);
 
     when(orderStoreMock.getBidOrdersByAccountAsset(eq(accountId), eq(assetId), eq(from), eq(to))).thenReturn(mockBidIterator);
 

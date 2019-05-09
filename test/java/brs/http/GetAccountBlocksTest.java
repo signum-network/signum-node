@@ -7,7 +7,6 @@ import brs.BurstException;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.db.BurstIterator;
 import brs.services.BlockService;
 import brs.services.ParameterService;
 import com.google.gson.JsonArray;
@@ -17,13 +16,13 @@ import org.junit.Test;
 import org.powermock.core.classloader.annotations.SuppressStaticInitializationFor;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
+import java.util.Collection;
 
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.BLOCKS_RESPONSE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -65,7 +64,7 @@ public class GetAccountBlocksTest extends AbstractUnitTest {
 
     when(parameterServiceMock.getAccount(req)).thenReturn(mockAccount);
 
-    final BurstIterator<Block> mockBlockIterator = mockBurstIterator(Arrays.asList(mockBlock));
+    final Collection<Block> mockBlockIterator = mockCollection(mockBlock);
     when(blockchainMock.getBlocks(eq(mockAccount), eq(mockTimestamp), eq(mockFirstIndex), eq(mockLastIndex))).thenReturn(mockBlockIterator);
 
     final JsonObject result = (JsonObject) t.processRequest(req);

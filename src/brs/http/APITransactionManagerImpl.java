@@ -8,7 +8,7 @@ import brs.Appendix.PublicKeyAnnouncement;
 import brs.Transaction.Builder;
 import brs.crypto.Crypto;
 import brs.crypto.EncryptedData;
-import brs.fluxcapacitor.FeatureToggle;
+import brs.fluxcapacitor.FluxValues;
 import brs.http.common.Parameters;
 import brs.services.AccountService;
 import brs.services.ParameterService;
@@ -70,24 +70,24 @@ public class APITransactionManagerImpl implements APITransactionManager {
     Message message = null;
     String messageValue = Convert.emptyToNull(req.getParameter(MESSAGE_PARAMETER));
     if (messageValue != null) {
-      boolean messageIsText = Burst.getFluxCapacitor().isActive(FeatureToggle.DIGITAL_GOODS_STORE, blockchainHeight)
+      boolean messageIsText = Burst.getFluxCapacitor().getValue(FluxValues.DIGITAL_GOODS_STORE, blockchainHeight)
           && !Parameters.isFalse(req.getParameter(MESSAGE_IS_TEXT_PARAMETER));
       try {
         message = messageIsText ? new Message(messageValue, blockchainHeight) : new Message(Convert.parseHexString(messageValue), blockchainHeight);
       } catch (RuntimeException e) {
         throw new ParameterException(INCORRECT_ARBITRARY_MESSAGE);
       }
-    } else if (attachment instanceof Attachment.ColoredCoinsAssetTransfer && Burst.getFluxCapacitor().isActive(FeatureToggle.DIGITAL_GOODS_STORE, blockchainHeight)) {
+    } else if (attachment instanceof Attachment.ColoredCoinsAssetTransfer && Burst.getFluxCapacitor().getValue(FluxValues.DIGITAL_GOODS_STORE, blockchainHeight)) {
       String commentValue = Convert.emptyToNull(req.getParameter(COMMENT_PARAMETER));
       if (commentValue != null) {
         message = new Message(commentValue, blockchainHeight);
       }
-    } else if (attachment == Attachment.ARBITRARY_MESSAGE && ! Burst.getFluxCapacitor().isActive(FeatureToggle.DIGITAL_GOODS_STORE, blockchainHeight)) {
+    } else if (attachment == Attachment.ARBITRARY_MESSAGE && ! Burst.getFluxCapacitor().getValue(FluxValues.DIGITAL_GOODS_STORE, blockchainHeight)) {
       message = new Message(new byte[0], blockchainHeight);
     }
     PublicKeyAnnouncement publicKeyAnnouncement = null;
     String recipientPublicKey = Convert.emptyToNull(req.getParameter(RECIPIENT_PUBLIC_KEY_PARAMETER));
-    if (recipientPublicKey != null && Burst.getFluxCapacitor().isActive(FeatureToggle.DIGITAL_GOODS_STORE, blockchainHeight)) {
+    if (recipientPublicKey != null && Burst.getFluxCapacitor().getValue(FluxValues.DIGITAL_GOODS_STORE, blockchainHeight)) {
       publicKeyAnnouncement = new PublicKeyAnnouncement(Convert.parseHexString(recipientPublicKey), blockchainHeight);
     }
 

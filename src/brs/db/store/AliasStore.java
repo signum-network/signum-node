@@ -1,9 +1,10 @@
 package brs.db.store;
 
 import brs.Alias;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
+
+import java.util.Collection;
 
 public interface AliasStore {
   BurstKey.LongKeyFactory<Alias> getAliasDbKeyFactory();
@@ -13,7 +14,7 @@ public interface AliasStore {
 
   VersionedEntityTable<Alias.Offer> getOfferTable();
 
-  BurstIterator<Alias> getAliasesByOwner(long accountId, int from, int to);
+  Collection<Alias> getAliasesByOwner(long accountId, int from, int to);
 
   Alias getAlias(String aliasName);
 }

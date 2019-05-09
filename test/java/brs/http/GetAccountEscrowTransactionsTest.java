@@ -8,7 +8,6 @@ import brs.Escrow.DecisionType;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.db.BurstIterator;
 import brs.services.EscrowService;
 import brs.services.ParameterService;
 import brs.util.JSON;
@@ -26,7 +25,7 @@ import static brs.http.common.Parameters.ESCROWS_RESPONSE;
 import static brs.http.common.ResultFields.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -80,7 +79,7 @@ public class GetAccountEscrowTransactionsTest extends AbstractUnitTest {
     when(escrow.getRecipientId()).thenReturn(5L);
     when(escrow.getSenderId()).thenReturn(6L);
 
-    final BurstIterator<Decision> decisionsIterator = mockBurstIterator(decision, skippedDecision, otherSkippedDecision);
+    final Collection<Decision> decisionsIterator = mockCollection(decision, skippedDecision, otherSkippedDecision);
     when(escrow.getDecisions()).thenReturn(decisionsIterator);
 
     final Collection<Escrow> escrowCollection = Arrays.asList(escrow);

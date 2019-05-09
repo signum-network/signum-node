@@ -2,46 +2,69 @@ package brs.fluxcapacitor;
 
 import brs.Blockchain;
 import brs.props.PropertyService;
+import brs.props.Props;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class FluxCapacitorImpl implements FluxCapacitor {
 
-  private final Blockchain blockchain;
+    private final PropertyService propertyService;
+    private final Blockchain blockchain;
 
-  private final FeatureCapacitor featureCapacitor;
-  private final TypeCapacitor<Integer> intCapacitor;
+    // Map of Flux Value -> Change Height -> Index of ValueChange in FluxValue. Used as a cache.
+    private final Map<FluxValue<?>, Map<Integer, Integer>> valueChangesPerFluxValue = new HashMap<>();
 
-  public FluxCapacitorImpl(Blockchain blockchain, PropertyService propertyService) {
-    this.blockchain = blockchain;
+    public FluxCapacitorImpl(Blockchain blockchain, PropertyService propertyService) {
+        this.propertyService = propertyService;
+        this.blockchain = blockchain;
+    }
 
-    final HistorianImpl historian = new HistorianImpl(propertyService);
+    @Override
+    public <T> T getValue(FluxValue<T> fluxValue) {
+        return getValueAt(fluxValue, blockchain.getHeight());
+    }
 
-    featureCapacitor = new FeatureCapacitor(historian);
-    intCapacitor = new IntCapacitor(historian);
-  }
+    @Override
+    public <T> T getValue(FluxValue<T> fluxValue, int height) {
+        return getValueAt(fluxValue, height);
+    }
 
-  @Override
-  public boolean isActive(FeatureToggle featureToggle) {
-    return isActive(featureToggle, blockchain.getHeight());
-  }
+    private int getHistoricalMomentHeight(HistoricalMoments historicalMoment) {
+        if (propertyService.getBoolean(Props.DEV_TESTNET)) {
+            int overridingHeight = propertyService.getInt(historicalMoment.getOverridingProperty());
+            return overridingHeight >= 0 ? overridingHeight : historicalMoment.getTestnetHeight();
+        } else {
+            return historicalMoment.getMainnetHeight();
+        }
+    }
 
-  @Override
-  public boolean isActive(FeatureToggle featureToggle, int height) {
-    return featureCapacitor.getValueAtHeight(featureToggle.getFlux(), height);
-  }
+    private <T> Map<Integer, Integer> computeValuesAtHeights(FluxValue<T> fluxValue) {
+        return valueChangesPerFluxValue.computeIfAbsent(fluxValue, fv -> {
+            Map<Integer, Integer> valueChangeIndexAtHeight = new HashMap<>();
+            FluxValue.ValueChange<T>[] valueChanges = fluxValue.getValueChanges();
+            for (int i = 0; i < valueChanges.length; i++) {
+                valueChangeIndexAtHeight.put(getHistoricalMomentHeight(valueChanges[i].getHistoricalMoment()), i);
+            }
+            return valueChangeIndexAtHeight;
+        });
+    }
 
-  @Override
-  public Integer getInt(FluxInt fluxInt) {
-    return this.getInt(fluxInt, blockchain.getHeight());
-  }
+    private <T> T getValueAt(FluxValue<T> fluxValue, int height) {
+        T mostRecentValue = fluxValue.getDefaultValue();
+        int mostRecentChangeHeight = 0;
+        for (Map.Entry<Integer, Integer> entry : computeValuesAtHeights(fluxValue).entrySet()) {
+            int entryHeight = entry.getKey();
+            if (entryHeight <= height && entryHeight >= mostRecentChangeHeight) {
+                mostRecentValue = fluxValue.getValueChanges()[entry.getValue()].getNewValue();
+                mostRecentChangeHeight = entryHeight;
+            }
+        }
+        return mostRecentValue;
+    }
 
-  @Override
-  public Integer getInt(FluxInt fluxInt, int height) {
-    return intCapacitor.getValueAtHeight(fluxInt.getFlux(), height);
-  }
-
-  @Override
-  public Integer getStartingHeight(FeatureToggle featureToggle) {
-    return featureCapacitor.getStartingHeight(featureToggle.getFlux());
-  }
-
+    @Override
+    public Integer getStartingHeight(FluxEnable fluxEnable) {
+        return getHistoricalMomentHeight(fluxEnable.getEnablePoint());
+    }
 }

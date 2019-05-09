@@ -3,7 +3,6 @@ package brs.db.sql;
 import brs.Burst;
 import brs.DigitalGoodsStore;
 import brs.crypto.EncryptedData;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.VersionedValuesTable;
@@ -11,11 +10,11 @@ import brs.db.store.DerivedTableManager;
 import brs.db.store.DigitalGoodsStoreStore;
 import org.jooq.DSLContext;
 import org.jooq.Field;
+import org.jooq.Record;
 import org.jooq.SortField;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static brs.schema.Tables.*;
@@ -23,7 +22,7 @@ import static brs.schema.Tables.*;
 public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
 
   private static final DbKey.LongKeyFactory<DigitalGoodsStore.Purchase> feedbackDbKeyFactory
-    = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>("id") {
+    = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>(PURCHASE.ID) {
         @Override
         public BurstKey newKey(DigitalGoodsStore.Purchase purchase) {
           return purchase.dbKey;
@@ -31,7 +30,7 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
       };
 
   private final BurstKey.LongKeyFactory<DigitalGoodsStore.Purchase> purchaseDbKeyFactory
-    = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>("id") {
+    = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>(PURCHASE.ID) {
         @Override
         public BurstKey newKey(DigitalGoodsStore.Purchase purchase) {
           return purchase.dbKey;
@@ -44,7 +43,7 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
   private final VersionedValuesTable<DigitalGoodsStore.Purchase, EncryptedData> feedbackTable;
 
   private final DbKey.LongKeyFactory<DigitalGoodsStore.Purchase> publicFeedbackDbKeyFactory
-    = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>("id") {
+    = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>(PURCHASE.ID) {
         @Override
         public BurstKey newKey(DigitalGoodsStore.Purchase purchase) {
           return purchase.dbKey;
@@ -53,7 +52,7 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
 
   private final VersionedValuesTable<DigitalGoodsStore.Purchase, String> publicFeedbackTable;
 
-  private final BurstKey.LongKeyFactory<DigitalGoodsStore.Goods> goodsDbKeyFactory = new DbKey.LongKeyFactory<DigitalGoodsStore.Goods>("id") {
+  private final BurstKey.LongKeyFactory<DigitalGoodsStore.Goods> goodsDbKeyFactory = new DbKey.LongKeyFactory<DigitalGoodsStore.Goods>(GOODS.ID) {
       @Override
       public BurstKey newKey(DigitalGoodsStore.Goods goods) {
         return goods.dbKey;
@@ -65,7 +64,7 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
   public SqlDigitalGoodsStoreStore(DerivedTableManager derivedTableManager) {
     purchaseTable = new VersionedEntitySqlTable<DigitalGoodsStore.Purchase>("purchase", brs.schema.Tables.PURCHASE, purchaseDbKeyFactory, derivedTableManager) {
       @Override
-      protected DigitalGoodsStore.Purchase load(DSLContext ctx, ResultSet rs) throws SQLException {
+      protected DigitalGoodsStore.Purchase load(DSLContext ctx, Record rs) {
         return new SQLPurchase(rs);
       }
 
@@ -75,8 +74,8 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
       }
 
       @Override
-      protected List<SortField> defaultSort() {
-        List<SortField> sort = new ArrayList<>();
+      protected List<SortField<?>> defaultSort() {
+        List<SortField<?>> sort = new ArrayList<>();
         sort.add(tableClass.field("timestamp", Integer.class).desc());
         sort.add(tableClass.field("id", Long.class).asc());
         return sort;
@@ -86,9 +85,9 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
     feedbackTable = new VersionedValuesSqlTable<DigitalGoodsStore.Purchase, EncryptedData>("purchase_feedback", brs.schema.Tables.PURCHASE_FEEDBACK, feedbackDbKeyFactory, derivedTableManager) {
 
       @Override
-      protected EncryptedData load(DSLContext ctx, ResultSet rs) throws SQLException {
-        byte[] data = rs.getBytes("feedback_data");
-        byte[] nonce = rs.getBytes("feedback_nonce");
+      protected EncryptedData load(DSLContext ctx, Record record) {
+        byte[] data = record.get(PURCHASE_FEEDBACK.FEEDBACK_DATA);
+        byte[] nonce = record.get(PURCHASE_FEEDBACK.FEEDBACK_NONCE);
         return new EncryptedData(data, nonce);
       }
 
@@ -117,30 +116,23 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
         = new VersionedValuesSqlTable<DigitalGoodsStore.Purchase, String>("purchase_public_feedback", brs.schema.Tables.PURCHASE_PUBLIC_FEEDBACK, publicFeedbackDbKeyFactory, derivedTableManager) {
 
       @Override
-      protected String load(DSLContext ctx, ResultSet rs) throws SQLException {
-        return rs.getString("public_feedback");
+      protected String load(DSLContext ctx, Record record) {
+        return record.get(PURCHASE_PUBLIC_FEEDBACK.PUBLIC_FEEDBACK);
       }
 
       @Override
       protected void save(DSLContext ctx, DigitalGoodsStore.Purchase purchase, String publicFeedback) {
-        brs.schema.tables.records.PurchasePublicFeedbackRecord feedbackRecord = ctx.newRecord(
-            PURCHASE_PUBLIC_FEEDBACK
-        );
-        feedbackRecord.setId(purchase.getId());
-        feedbackRecord.setPublicFeedback(publicFeedback);
-        feedbackRecord.setHeight(brs.Burst.getBlockchain().getHeight());
-        feedbackRecord.setLatest(true);
-        DbUtils.mergeInto(
-            ctx, feedbackRecord, PURCHASE_PUBLIC_FEEDBACK,
-            ( new Field[] { feedbackRecord.field("id"), feedbackRecord.field("height") } )
-        );
+        ctx.mergeInto(PURCHASE_PUBLIC_FEEDBACK, PURCHASE_PUBLIC_FEEDBACK.ID, PURCHASE_PUBLIC_FEEDBACK.PUBLIC_FEEDBACK, PURCHASE_PUBLIC_FEEDBACK.HEIGHT, PURCHASE_PUBLIC_FEEDBACK.LATEST)
+                .key(PURCHASE_PUBLIC_FEEDBACK.ID, PURCHASE_PUBLIC_FEEDBACK.HEIGHT)
+                .values(purchase.getId(), publicFeedback, Burst.getBlockchain().getHeight(), true)
+                .execute();
       }
     };
 
     goodsTable = new VersionedEntitySqlTable<DigitalGoodsStore.Goods>("goods", brs.schema.Tables.GOODS, goodsDbKeyFactory, derivedTableManager) {
 
       @Override
-      protected DigitalGoodsStore.Goods load(DSLContext ctx, ResultSet rs) throws SQLException {
+      protected DigitalGoodsStore.Goods load(DSLContext ctx, Record rs) {
         return new SQLGoods(rs);
       }
 
@@ -150,8 +142,8 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
       }
 
       @Override
-      protected List<SortField> defaultSort() {
-        List<SortField> sort = new ArrayList<>();
+      protected List<SortField<?>> defaultSort() {
+        List<SortField<?>> sort = new ArrayList<>();
         sort.add(brs.schema.Tables.GOODS.field("timestamp", Integer.class).desc());
         sort.add(brs.schema.Tables.GOODS.field("id", Long.class).asc());
         return sort;
@@ -160,16 +152,16 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
   }
 
   @Override
-  public BurstIterator<DigitalGoodsStore.Purchase> getExpiredPendingPurchases(final int timestamp) {
+  public Collection<DigitalGoodsStore.Purchase> getExpiredPendingPurchases(final int timestamp) {
     return getPurchaseTable().getManyBy(PURCHASE.DEADLINE.lt(timestamp).and(PURCHASE.PENDING.isTrue()), 0, -1);
   }
 
-  private EncryptedData loadEncryptedData(ResultSet rs, String dataColumn, String nonceColumn) throws SQLException {
-    byte[] data = rs.getBytes(dataColumn);
+  private EncryptedData loadEncryptedData(Record record, Field<byte[]> dataField, Field<byte[]> nonceField) {
+    byte[] data = record.get(dataField);
     if (data == null) {
       return null;
     }
-    return new EncryptedData(data, rs.getBytes(nonceColumn));
+    return new EncryptedData(data, record.get(nonceField));
   }
 
   @Override
@@ -212,22 +204,10 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
   }
 
   private void saveGoods(DSLContext ctx, DigitalGoodsStore.Goods goods) {
-    brs.schema.tables.records.GoodsRecord goodsRecord = ctx.newRecord(GOODS);
-    goodsRecord.setId(goods.getId());
-    goodsRecord.setSellerId(goods.getSellerId());
-    goodsRecord.setName(goods.getName());
-    goodsRecord.setDescription(goods.getDescription());
-    goodsRecord.setTags(goods.getTags());
-    goodsRecord.setTimestamp(goods.getTimestamp());
-    goodsRecord.setQuantity(goods.getQuantity());
-    goodsRecord.setPrice(goods.getPriceNQT());
-    goodsRecord.setDelisted(goods.isDelisted());
-    goodsRecord.setHeight(brs.Burst.getBlockchain().getHeight());
-    goodsRecord.setLatest(true);
-    DbUtils.mergeInto(
-      ctx, goodsRecord, GOODS,
-      ( new Field[] { goodsRecord.field("id"), goodsRecord.field("height") } )
-    );
+    ctx.mergeInto(GOODS, GOODS.ID, GOODS.SELLER_ID, GOODS.NAME, GOODS.DESCRIPTION, GOODS.TAGS, GOODS.TIMESTAMP, GOODS.QUANTITY, GOODS.PRICE, GOODS.DELISTED, GOODS.HEIGHT, GOODS.LATEST)
+            .key(GOODS.ID, GOODS.HEIGHT)
+            .values(goods.getId(), goods.getSellerId(), goods.getName(), goods.getDescription(), goods.getTags(), goods.getTimestamp(), goods.getQuantity(), goods.getPriceNQT(), goods.isDelisted(), Burst.getBlockchain().getHeight(), true)
+            .execute();
   }
 
   private void savePurchase(DSLContext ctx, DigitalGoodsStore.Purchase purchase) {
@@ -249,42 +229,20 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
       refundNote  = purchase.getRefundNote().getData();
       refundNonce = purchase.getRefundNote().getNonce();
     }
-    brs.schema.tables.records.PurchaseRecord purchaseRecord = ctx.newRecord(PURCHASE);
-    purchaseRecord.setId(purchase.getId());
-    purchaseRecord.setBuyerId(purchase.getBuyerId());
-    purchaseRecord.setGoodsId(purchase.getGoodsId());
-    purchaseRecord.setSellerId(purchase.getSellerId());
-    purchaseRecord.setQuantity(purchase.getQuantity());
-    purchaseRecord.setPrice(purchase.getPriceNQT());
-    purchaseRecord.setDeadline(purchase.getDeliveryDeadlineTimestamp());
-    purchaseRecord.setNote(note);
-    purchaseRecord.setNonce(nonce);
-    purchaseRecord.setTimestamp(purchase.getTimestamp());
-    purchaseRecord.setPending(purchase.isPending());
-    purchaseRecord.setGoods(goods);
-    purchaseRecord.setGoodsNonce(goodsNonce);
-    purchaseRecord.setRefundNote(refundNote);
-    purchaseRecord.setRefundNonce(refundNonce);
-    purchaseRecord.setHasFeedbackNotes(purchase.getFeedbackNotes() != null && purchase.getFeedbackNotes().size() > 0);
-    purchaseRecord.setHasPublicFeedbacks(purchase.getPublicFeedback() != null && purchase.getPublicFeedback().size() > 0);
-    purchaseRecord.setDiscount(purchase.getDiscountNQT());
-    purchaseRecord.setRefund(purchase.getRefundNQT());
-    purchaseRecord.setHeight(Burst.getBlockchain().getHeight());
-    purchaseRecord.setLatest(true);
-    DbUtils.mergeInto(
-      ctx, purchaseRecord, PURCHASE,
-      ( new Field[] { purchaseRecord.field("id"), purchaseRecord.field("height") } )
-    );
+    ctx.mergeInto(PURCHASE, PURCHASE.ID, PURCHASE.BUYER_ID, PURCHASE.GOODS_ID, PURCHASE.SELLER_ID, PURCHASE.QUANTITY, PURCHASE.PRICE, PURCHASE.DEADLINE, PURCHASE.NOTE, PURCHASE.NONCE, PURCHASE.TIMESTAMP, PURCHASE.PENDING, PURCHASE.GOODS, PURCHASE.GOODS_NONCE, PURCHASE.REFUND_NOTE, PURCHASE.REFUND_NONCE, PURCHASE.HAS_FEEDBACK_NOTES, PURCHASE.HAS_PUBLIC_FEEDBACKS, PURCHASE.DISCOUNT, PURCHASE.REFUND, PURCHASE.HEIGHT, PURCHASE.LATEST)
+            .key(PURCHASE.ID, PURCHASE.HEIGHT)
+            .values(purchase.getId(), purchase.getBuyerId(), purchase.getGoodsId(), purchase.getSellerId(), purchase.getQuantity(), purchase.getPriceNQT(), purchase.getDeliveryDeadlineTimestamp(), note, nonce, purchase.getTimestamp(), purchase.isPending(), goods, goodsNonce, refundNote, refundNonce, purchase.getFeedbackNotes() != null && purchase.getFeedbackNotes().size() > 0, purchase.getPublicFeedback().size() > 0, purchase.getDiscountNQT(), purchase.getRefundNQT(), Burst.getBlockchain().getHeight(), true)
+            .execute();
   }
 
   @Override
-  public BurstIterator<DigitalGoodsStore.Goods> getGoodsInStock(int from, int to) {
+  public Collection<DigitalGoodsStore.Goods> getGoodsInStock(int from, int to) {
     return goodsTable.getManyBy(GOODS.DELISTED.isFalse().and(GOODS.QUANTITY.gt(0)), from, to);
   }
 
   @Override
-  public BurstIterator<DigitalGoodsStore.Goods> getSellerGoods(final long sellerId, final boolean inStockOnly, int from, int to) {
-    List<SortField> sort = new ArrayList<>();
+  public Collection<DigitalGoodsStore.Goods> getSellerGoods(final long sellerId, final boolean inStockOnly, int from, int to) {
+    List<SortField<?>> sort = new ArrayList<>();
     sort.add(GOODS.field("name", String.class).asc());
     sort.add(GOODS.field("timestamp", Integer.class).desc());
     sort.add(GOODS.field("id", Long.class).asc());
@@ -299,27 +257,27 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
   }
 
   @Override
-  public BurstIterator<DigitalGoodsStore.Purchase> getAllPurchases(int from, int to) {
+  public Collection<DigitalGoodsStore.Purchase> getAllPurchases(int from, int to) {
     return purchaseTable.getAll(from, to);
   }
 
   @Override
-  public BurstIterator<DigitalGoodsStore.Purchase> getSellerPurchases(long sellerId, int from, int to) {
+  public Collection<DigitalGoodsStore.Purchase> getSellerPurchases(long sellerId, int from, int to) {
     return purchaseTable.getManyBy(PURCHASE.SELLER_ID.eq(sellerId), from, to);
   }
 
   @Override
-  public BurstIterator<DigitalGoodsStore.Purchase> getBuyerPurchases(long buyerId, int from, int to) {
+  public Collection<DigitalGoodsStore.Purchase> getBuyerPurchases(long buyerId, int from, int to) {
     return purchaseTable.getManyBy(PURCHASE.BUYER_ID.eq(buyerId), from, to);
   }
 
   @Override
-  public BurstIterator<DigitalGoodsStore.Purchase> getSellerBuyerPurchases(final long sellerId, final long buyerId, int from, int to) {
+  public Collection<DigitalGoodsStore.Purchase> getSellerBuyerPurchases(final long sellerId, final long buyerId, int from, int to) {
     return purchaseTable.getManyBy(PURCHASE.SELLER_ID.eq(sellerId).and(PURCHASE.BUYER_ID.eq(buyerId)), from, to);
   }
 
   @Override
-  public BurstIterator<DigitalGoodsStore.Purchase> getPendingSellerPurchases(final long sellerId, int from, int to) {
+  public Collection<DigitalGoodsStore.Purchase> getPendingSellerPurchases(final long sellerId, int from, int to) {
     return purchaseTable.getManyBy(PURCHASE.SELLER_ID.eq(sellerId).and(PURCHASE.PENDING.isTrue()), from, to);
   }
 
@@ -332,46 +290,43 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
 
 
   private class SQLGoods extends DigitalGoodsStore.Goods {
-    private SQLGoods(ResultSet rs) throws SQLException {
+    private SQLGoods(Record record) {
       super(
-            rs.getLong("id"),
-            goodsDbKeyFactory.newKey(rs.getLong("id")),
-            rs.getLong("seller_id"),
-            rs.getString("name"),
-            rs.getString("description"),
-            rs.getString("tags"),
-            rs.getInt("timestamp"),
-            rs.getInt("quantity"),
-            rs.getLong("price"),
-            rs.getBoolean("delisted")
+            record.get(GOODS.ID),
+            goodsDbKeyFactory.newKey(record.get(GOODS.ID)),
+            record.get(GOODS.SELLER_ID),
+            record.get(GOODS.NAME),
+            record.get(GOODS.DESCRIPTION),
+            record.get(GOODS.TAGS),
+            record.get(GOODS.TIMESTAMP),
+            record.get(GOODS.QUANTITY),
+            record.get(GOODS.PRICE),
+            record.get(GOODS.DELISTED)
             );
     }
   }
 
-
-
-
   class SQLPurchase extends DigitalGoodsStore.Purchase {
 
-    SQLPurchase(ResultSet rs) throws SQLException {
+    SQLPurchase(Record record) {
       super(
-            rs.getLong("id"),
-            purchaseDbKeyFactory.newKey(rs.getLong("id")),
-            rs.getLong("buyer_id"),
-            rs.getLong("goods_id"),
-            rs.getLong("seller_id"),
-            rs.getInt("quantity"),
-            rs.getLong("price"),
-            rs.getInt("deadline"),
-            loadEncryptedData(rs, "note", "nonce"),
-            rs.getInt("timestamp"),
-            rs.getBoolean("pending"),
-            loadEncryptedData(rs, "goods", "goods_nonce"),
-            loadEncryptedData(rs, "refund_note", "refund_nonce"),
-            rs.getBoolean("has_feedback_notes"),
-            rs.getBoolean("has_public_feedbacks"),
-            rs.getLong("discount"),
-            rs.getLong("refund")
+            record.get(PURCHASE.ID),
+            purchaseDbKeyFactory.newKey(record.get(PURCHASE.ID)),
+            record.get(PURCHASE.BUYER_ID),
+            record.get(PURCHASE.GOODS_ID),
+            record.get(PURCHASE.SELLER_ID),
+            record.get(PURCHASE.QUANTITY),
+            record.get(PURCHASE.PRICE),
+            record.get(PURCHASE.DEADLINE),
+            loadEncryptedData(record, PURCHASE.NOTE, PURCHASE.NONCE),
+            record.get(PURCHASE.TIMESTAMP),
+            record.get(PURCHASE.PENDING),
+            loadEncryptedData(record, PURCHASE.GOODS, PURCHASE.GOODS_NONCE),
+            loadEncryptedData(record, PURCHASE.REFUND_NOTE, PURCHASE.REFUND_NONCE),
+            record.get(PURCHASE.HAS_FEEDBACK_NOTES),
+            record.get(PURCHASE.HAS_PUBLIC_FEEDBACKS),
+            record.get(PURCHASE.DISCOUNT),
+            record.get(PURCHASE.REFUND)
             );
     }
   }

@@ -8,8 +8,8 @@
 package brs.at;
 
 import brs.Burst;
-import brs.crypto.hash.RIPEMD160;
-import brs.fluxcapacitor.FeatureToggle;
+import brs.crypto.Crypto;
+import brs.fluxcapacitor.FluxValues;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -536,7 +536,7 @@ public class AT_API_Impl implements AT_API {
 
   @Override
   public long check_MD5_A_with_B(AT_Machine_State state) {
-    if (Burst.getFluxCapacitor().isActive(FeatureToggle.AT_FIX_BLOCK_3)) {
+    if (Burst.getFluxCapacitor().getValue(FluxValues.AT_FIX_BLOCK_3)) {
       ByteBuffer b = ByteBuffer.allocate( 16 );
       b.order( ByteOrder.LITTLE_ENDIAN );
 
@@ -572,8 +572,7 @@ public class AT_API_Impl implements AT_API {
     b.put(state.get_A3());
     b.put(state.get_A4());
 
-    RIPEMD160 ripemd160 = new RIPEMD160();
-    ByteBuffer ripemdb = ByteBuffer.wrap(ripemd160.digest(b.array()));
+    ByteBuffer ripemdb = ByteBuffer.wrap(Crypto.ripemd160().digest(b.array()));
     ripemdb.order(ByteOrder.LITTLE_ENDIAN);
 
     state.set_B1(AT_API_Helper.getByteArray(ripemdb.getLong(0)));
@@ -584,7 +583,7 @@ public class AT_API_Impl implements AT_API {
 
   @Override
   public long check_HASH160_A_with_B(AT_Machine_State state) {
-    if ( Burst.getFluxCapacitor().isActive(FeatureToggle.AT_FIX_BLOCK_3) ) {
+    if ( Burst.getFluxCapacitor().getValue(FluxValues.AT_FIX_BLOCK_3) ) {
       ByteBuffer b = ByteBuffer.allocate( 32 );
       b.order( ByteOrder.LITTLE_ENDIAN );
 
@@ -593,8 +592,7 @@ public class AT_API_Impl implements AT_API {
       b.put( state.get_A3() );
       b.put( state.get_A4() );
 
-      RIPEMD160 ripemd160 = new RIPEMD160();
-      ByteBuffer ripemdb = ByteBuffer.wrap( ripemd160.digest( b.array() ) );
+      ByteBuffer ripemdb = ByteBuffer.wrap(Crypto.ripemd160().digest( b.array()));
       ripemdb.order( ByteOrder.LITTLE_ENDIAN );
 
       return ( ripemdb.getLong(0) == AT_API_Helper.getLong( state.get_B1() ) &&
@@ -637,7 +635,7 @@ public class AT_API_Impl implements AT_API {
 
   @Override
   public long check_SHA256_A_with_B(AT_Machine_State state) {
-    if ( Burst.getFluxCapacitor().isActive(FeatureToggle.AT_FIX_BLOCK_3) ) {
+    if ( Burst.getFluxCapacitor().getValue(FluxValues.AT_FIX_BLOCK_3) ) {
       ByteBuffer b = ByteBuffer.allocate(32);
       b.order( ByteOrder.LITTLE_ENDIAN );
 

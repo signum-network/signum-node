@@ -7,7 +7,6 @@ import brs.assetexchange.AssetExchange;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.db.BurstIterator;
 import brs.services.ParameterService;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -15,6 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collection;
 
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.ASK_ORDERS_RESPONSE;
@@ -61,7 +61,7 @@ public class GetAccountCurrentAskOrdersTest extends AbstractUnitTest {
     final long mockAskId = 1L;
     when(mockAsk.getId()).thenReturn(mockAskId);
 
-    final BurstIterator<Ask> mockAskIterator = mockBurstIterator(mockAsk);
+    final Collection<Ask> mockAskIterator = mockCollection(mockAsk);
 
     when(mockAssetExchange.getAskOrdersByAccount(eq(accountId), eq(firstIndex), eq(lastIndex))).thenReturn(mockAskIterator);
 
@@ -93,7 +93,7 @@ public class GetAccountCurrentAskOrdersTest extends AbstractUnitTest {
     final long mockAskId = 1L;
     when(mockAsk.getId()).thenReturn(mockAskId);
 
-    final BurstIterator<Ask> mockAskIterator = mockBurstIterator(mockAsk);
+    final Collection<Ask> mockAskIterator = mockCollection(mockAsk);
 
     when(mockAssetExchange.getAskOrdersByAccountAsset(eq(accountId), eq(assetId), eq(firstIndex), eq(lastIndex))).thenReturn(mockAskIterator);
 

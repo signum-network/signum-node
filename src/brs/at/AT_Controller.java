@@ -3,7 +3,7 @@ package brs.at;
 import brs.AT;
 import brs.Account;
 import brs.Burst;
-import brs.fluxcapacitor.FeatureToggle;
+import brs.fluxcapacitor.FluxValues;
 import brs.util.Convert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -271,7 +271,7 @@ public abstract class AT_Controller {
           at.setP_balance( at.getG_balance() );
 
           long amount = makeTransactions( at );
-          if (! Burst.getFluxCapacitor().isActive(FeatureToggle.AT_FIX_BLOCK_4, blockHeight)) {
+          if (! Burst.getFluxCapacitor().getValue(FluxValues.AT_FIX_BLOCK_4, blockHeight)) {
             totalAmount = amount;
           }
           else {
@@ -306,12 +306,12 @@ public abstract class AT_Controller {
       return new AT_Block( totalFee, totalAmount, bytesForBlock );
   }
 
-  public static AT_Block validateATs( byte[] blockATs, int blockHeight ) throws NoSuchAlgorithmException, AT_Exception {
+  public static AT_Block validateATs(byte[] blockATs, int blockHeight) throws NoSuchAlgorithmException, AT_Exception {
     if (blockATs == null) {
       return new AT_Block(0, 0, null, true);
     }
 
-    LinkedHashMap< ByteBuffer, byte[] > ats = getATsFromBlock( blockATs );
+    LinkedHashMap<ByteBuffer, byte[]> ats = getATsFromBlock(blockATs);
 
     List< AT > processedATs = new ArrayList< >();
 
@@ -324,7 +324,6 @@ public abstract class AT_Controller {
     for ( ByteBuffer atIdBuffer : ats.keySet() ) {
       byte[] atId = atIdBuffer.array();
       AT at = AT.getAT( atId );
-
       try {
         at.clearTransactions();
         at.setHeight(blockHeight);
@@ -357,7 +356,7 @@ public abstract class AT_Controller {
         }
         at.setP_balance( at.getG_balance() );
 
-        if (! Burst.getFluxCapacitor().isActive(FeatureToggle.AT_FIX_BLOCK_4, blockHeight)) {
+        if (! Burst.getFluxCapacitor().getValue(FluxValues.AT_FIX_BLOCK_4, blockHeight)) {
           totalAmount = makeTransactions( at );
         }
         else {
@@ -367,10 +366,10 @@ public abstract class AT_Controller {
         totalFee += fee;
         AT.addPendingFee(atId, fee);
 
-        processedATs.add( at );
+        processedATs.add(at);
 
-        md5 = digest.digest( at.getBytes() );
-        if ( !Arrays.equals( md5, ats.get( atIdBuffer ) ) ) {
+        md5 = digest.digest(at.getBytes());
+        if (!Arrays.equals(md5, ats.get(atIdBuffer))) {
           throw new AT_Exception( "Calculated md5 and recieved md5 are not matching" );
         }
       }
@@ -447,7 +446,7 @@ public abstract class AT_Controller {
   //platform based
   private static long makeTransactions( AT at ) throws AT_Exception {
     long totalAmount = 0;
-    if (! Burst.getFluxCapacitor().isActive(FeatureToggle.AT_FIX_BLOCK_4, at.getHeight())) {
+    if (! Burst.getFluxCapacitor().getValue(FluxValues.AT_FIX_BLOCK_4, at.getHeight())) {
       for (AT_Transaction tx : at.getTransactions()) {
         if (AT.findPendingTransaction(tx.getRecipientId())) {
           throw new AT_Exception("Conflicting transaction found");

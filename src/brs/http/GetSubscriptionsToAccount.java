@@ -3,7 +3,6 @@ package brs.http;
 import brs.Account;
 import brs.BurstException;
 import brs.Subscription;
-import brs.db.BurstIterator;
 import brs.services.ParameterService;
 import brs.services.SubscriptionService;
 import com.google.gson.JsonArray;
@@ -33,10 +32,8 @@ final class GetSubscriptionsToAccount extends APIServlet.APIRequestHandler {
 		
     JsonArray subscriptions = new JsonArray();
 
-    BurstIterator<Subscription> accountSubscriptions = subscriptionService.getSubscriptionsToId(account.getId());
-		
-    while(accountSubscriptions.hasNext()) {
-      subscriptions.add(JSONData.subscription(accountSubscriptions.next()));
+    for (Subscription subscription : subscriptionService.getSubscriptionsToId(account.getId())) {
+      subscriptions.add(JSONData.subscription(subscription));
     }
 		
     response.add("subscriptions", subscriptions);

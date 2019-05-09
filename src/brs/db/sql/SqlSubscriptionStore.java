@@ -1,26 +1,25 @@
 package brs.db.sql;
 
+import brs.Burst;
 import brs.Subscription;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.SubscriptionStore;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
-import org.jooq.Field;
+import org.jooq.Record;
 import org.jooq.SortField;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static brs.schema.Tables.SUBSCRIPTION;
 
 public class SqlSubscriptionStore implements SubscriptionStore {
 
-  private final BurstKey.LongKeyFactory<Subscription> subscriptionDbKeyFactory = new DbKey.LongKeyFactory<Subscription>("id") {
+  private final BurstKey.LongKeyFactory<Subscription> subscriptionDbKeyFactory = new DbKey.LongKeyFactory<Subscription>(SUBSCRIPTION.ID) {
       @Override
       public BurstKey newKey(Subscription subscription) {
         return subscription.dbKey;
@@ -32,7 +31,7 @@ public class SqlSubscriptionStore implements SubscriptionStore {
   public SqlSubscriptionStore(DerivedTableManager derivedTableManager) {
     subscriptionTable = new VersionedEntitySqlTable<Subscription>("subscription", brs.schema.Tables.SUBSCRIPTION, subscriptionDbKeyFactory, derivedTableManager) {
       @Override
-      protected Subscription load(DSLContext ctx, ResultSet rs) throws SQLException {
+      protected Subscription load(DSLContext ctx, Record rs) {
         return new SqlSubscription(rs);
       }
 
@@ -42,8 +41,8 @@ public class SqlSubscriptionStore implements SubscriptionStore {
       }
 
       @Override
-      protected List<SortField> defaultSort() {
-        List<SortField> sort = new ArrayList<>();
+      protected List<SortField<?>> defaultSort() {
+        List<SortField<?>> sort = new ArrayList<>();
         sort.add(tableClass.field("time_next", Integer.class).asc());
         sort.add(tableClass.field("id", Long.class).asc());
         return sort;
@@ -70,66 +69,43 @@ public class SqlSubscriptionStore implements SubscriptionStore {
   }
 
   @Override
-  public BurstIterator<Subscription> getSubscriptionsByParticipant(Long accountId) {
+  public Collection<Subscription> getSubscriptionsByParticipant(Long accountId) {
     return subscriptionTable.getManyBy(getByParticipantClause(accountId), 0, -1);
   }
 
   @Override
-  public BurstIterator<Subscription> getIdSubscriptions(Long accountId) {
+  public Collection<Subscription> getIdSubscriptions(Long accountId) {
     return subscriptionTable.getManyBy(SUBSCRIPTION.SENDER_ID.eq(accountId), 0, -1);
   }
 
   @Override
-  public BurstIterator<Subscription> getSubscriptionsToId(Long accountId) {
+  public Collection<Subscription> getSubscriptionsToId(Long accountId) {
     return subscriptionTable.getManyBy(SUBSCRIPTION.RECIPIENT_ID.eq(accountId), 0, -1);
   }
 
   @Override
-  public BurstIterator<Subscription> getUpdateSubscriptions(int timestamp) {
+  public Collection<Subscription> getUpdateSubscriptions(int timestamp) {
     return subscriptionTable.getManyBy(getUpdateOnBlockClause(timestamp), 0, -1);
   }
 
   private void saveSubscription(DSLContext ctx, Subscription subscription) {
-    brs.schema.tables.records.SubscriptionRecord subscriptionRecord = ctx.newRecord(SUBSCRIPTION);
-    subscriptionRecord.setId(subscription.id);
-    subscriptionRecord.setSenderId(subscription.senderId);
-    subscriptionRecord.setRecipientId(subscription.recipientId);
-    subscriptionRecord.setAmount(subscription.amountNQT);
-    subscriptionRecord.setFrequency(subscription.frequency);
-    subscriptionRecord.setTimeNext(subscription.getTimeNext());
-    subscriptionRecord.setHeight(brs.Burst.getBlockchain().getHeight());
-    subscriptionRecord.setLatest(true);
-    DbUtils.mergeInto(
-      ctx, subscriptionRecord, SUBSCRIPTION,
-      (
-        new Field[] {
-          subscriptionRecord.field("id"),
-          subscriptionRecord.field("sender_id"),
-          subscriptionRecord.field("recipient_id"),
-          subscriptionRecord.field("amount"),
-          subscriptionRecord.field("frequency"),
-          subscriptionRecord.field("time_next"),
-          subscriptionRecord.field("height"),
-          subscriptionRecord.field("latest")
-        }
-       )
-    );
+    ctx.mergeInto(SUBSCRIPTION, SUBSCRIPTION.ID, SUBSCRIPTION.SENDER_ID, SUBSCRIPTION.RECIPIENT_ID, SUBSCRIPTION.AMOUNT, SUBSCRIPTION.FREQUENCY, SUBSCRIPTION.TIME_NEXT, SUBSCRIPTION.HEIGHT, SUBSCRIPTION.LATEST)
+            .key(SUBSCRIPTION.ID, SUBSCRIPTION.SENDER_ID, SUBSCRIPTION.RECIPIENT_ID, SUBSCRIPTION.AMOUNT, SUBSCRIPTION.FREQUENCY, SUBSCRIPTION.TIME_NEXT, SUBSCRIPTION.HEIGHT, SUBSCRIPTION.LATEST)
+            .values(subscription.id, subscription.senderId, subscription.recipientId, subscription.amountNQT, subscription.frequency, subscription.getTimeNext(), Burst.getBlockchain().getHeight(), true)
+            .execute();
   }
 
   private class SqlSubscription extends Subscription {
-    SqlSubscription(ResultSet rs) throws SQLException {
+    SqlSubscription(Record record) {
       super(
-            rs.getLong("sender_id"),
-            rs.getLong("recipient_id"),
-            rs.getLong("id"),
-            rs.getLong("amount"),
-            rs.getInt("frequency"),
-            rs.getInt("time_next"),
-            subscriptionDbKeyFactory.newKey(rs.getLong("id"))
-
+            record.get(SUBSCRIPTION.SENDER_ID),
+            record.get(SUBSCRIPTION.RECIPIENT_ID),
+            record.get(SUBSCRIPTION.ID),
+            record.get(SUBSCRIPTION.AMOUNT),
+            record.get(SUBSCRIPTION.FREQUENCY),
+            record.get(SUBSCRIPTION.TIME_NEXT),
+            subscriptionDbKeyFactory.newKey(record.get(SUBSCRIPTION.ID))
             );
     }
-
-
   }
 }

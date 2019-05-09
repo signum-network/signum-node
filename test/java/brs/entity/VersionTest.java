@@ -22,6 +22,8 @@ public class VersionTest {
                 "v1a.2.3-dev",
                 "1.0-dev",
                 "v1.2.3-123dev123",
+                "",
+                null
         };
 
         for (String versionString : validVersions) {
@@ -36,7 +38,8 @@ public class VersionTest {
         for (String versionString : invalidVersions) {
             try {
                 Version version = Version.parse(versionString);
-                throw new RuntimeException("Did not fail to parse: " + versionString);
+                if (version == Version.EMPTY) throw new IllegalArgumentException();
+                throw new AssertionError("Did not fail to parse: " + versionString);
             } catch (IllegalArgumentException ignored) {
             }
         }
@@ -57,16 +60,6 @@ public class VersionTest {
         assertTrue(higherPreRelease.isGreaterThan(higher));
         assertFalse(higher.isPrelease());
         assertTrue(higherPreRelease.isPrelease());
-    }
-
-    @Test
-    public void testBackwardsCompatibility() {
-        Version version = Version.parse("v2.3.0");
-        assertTrue(Version.EMPTY.backwardsCompatibilityNeeded());
-        assertTrue(Version.parse("v2.2.7").backwardsCompatibilityNeeded());
-        assertFalse(Version.parse("v2.3.0").backwardsCompatibilityNeeded());
-        assertEquals("2.3.0", version.toBackwardsCompatibleString());
-        assertEquals("2.3.0", version.toBackwardsCompatibleStringIfNeeded(Version.parse("v2.2.7")));
-        assertEquals("v2.3.0", version.toBackwardsCompatibleStringIfNeeded(Version.parse("v2.3.0")));
+        assertTrue(higherPreRelease.isGreaterThanOrEqualTo(higherPreRelease));
     }
 }

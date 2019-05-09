@@ -5,8 +5,6 @@ import brs.Asset;
 import brs.BurstException;
 import brs.Trade;
 import brs.assetexchange.AssetExchange;
-import brs.db.BurstIterator;
-import brs.db.sql.DbUtils;
 import brs.http.common.Parameters;
 import brs.services.ParameterService;
 import brs.util.Convert;
@@ -15,6 +13,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collection;
 
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.TRADES_RESPONSE;
@@ -42,27 +41,21 @@ public final class GetTrades extends APIServlet.APIRequestHandler {
 
     JsonObject response = new JsonObject();
     JsonArray tradesData = new JsonArray();
-    BurstIterator<Trade> trades = null;
-    try {
-      if (accountId == null) {
-        Asset asset = parameterService.getAsset(req);
-        trades = assetExchange.getTrades(asset.getId(), firstIndex, lastIndex);
-      } else if (assetId == null) {
-        Account account = parameterService.getAccount(req);
-        trades = assetExchange.getAccountTrades(account.getId(), firstIndex, lastIndex);
-      } else {
-        Asset asset = parameterService.getAsset(req);
-        Account account = parameterService.getAccount(req);
-        trades = assetExchange.getAccountAssetTrades(account.getId(), asset.getId(), firstIndex, lastIndex);
-      }
-      while (trades.hasNext()) {
-        final Trade trade = trades.next();
-        final Asset asset = includeAssetInfo ? assetExchange.getAsset(trade.getAssetId()) : null;
-
-        tradesData.add(JSONData.trade(trade, asset));
-      }
-    } finally {
-      DbUtils.close(trades);
+    Collection<Trade> trades;
+    if (accountId == null) {
+      Asset asset = parameterService.getAsset(req);
+      trades = assetExchange.getTrades(asset.getId(), firstIndex, lastIndex);
+    } else if (assetId == null) {
+      Account account = parameterService.getAccount(req);
+      trades = assetExchange.getAccountTrades(account.getId(), firstIndex, lastIndex);
+    } else {
+      Asset asset = parameterService.getAsset(req);
+      Account account = parameterService.getAccount(req);
+      trades = assetExchange.getAccountAssetTrades(account.getId(), asset.getId(), firstIndex, lastIndex);
+    }
+    for (Trade trade : trades) {
+      final Asset asset = includeAssetInfo ? assetExchange.getAsset(trade.getAssetId()) : null;
+      tradesData.add(JSONData.trade(trade, asset));
     }
     response.add(TRADES_RESPONSE, tradesData);
 

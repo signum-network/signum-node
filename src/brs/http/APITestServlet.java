@@ -1,6 +1,7 @@
 package brs.http;
 
 import brs.util.Convert;
+import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -149,15 +150,21 @@ public class APITestServlet extends HttpServlet {
       + "</body>\n"
       + "</html>\n";
 
-  private static final List<String> allRequestTypes = new ArrayList<>(APIServlet.apiRequestHandlers.keySet());
-  static {
-    Collections.sort(allRequestTypes);
+  private final List<String> requestTypes;
+  private final Map<String, APIServlet.APIRequestHandler> apiRequestHandlers;
+  private final SortedMap<String, SortedSet<String>> requestTags;
+
+  public APITestServlet(APIServlet apiServlet) {
+    apiRequestHandlers = apiServlet.apiRequestHandlers;
+    requestTags = buildRequestTags();
+    requestTypes = new ArrayList<>(apiRequestHandlers.keySet());
+    Collections.sort(requestTypes);
   }
 
-  private static final SortedMap<String, SortedSet<String>> requestTags = buildRequestTags();
-  private static SortedMap<String, SortedSet<String>> buildRequestTags () {
+
+  private SortedMap<String, SortedSet<String>> buildRequestTags() {
     SortedMap<String, SortedSet<String>> r = new TreeMap<>();
-    for (Map.Entry<String, APIServlet.APIRequestHandler> entry : APIServlet.apiRequestHandlers.entrySet()) {
+    for (Map.Entry<String, APIServlet.APIRequestHandler> entry : apiRequestHandlers.entrySet()) {
       final String requestType = entry.getKey();
       final Set<APITag> apiTags = entry.getValue().getAPITags();
       for (APITag apiTag : apiTags) {
@@ -168,7 +175,7 @@ public class APITestServlet extends HttpServlet {
     return r;
   }
 
-  private static String buildLinks(HttpServletRequest req) {
+  private String buildLinks(HttpServletRequest req) {
     final StringBuilder buf = new StringBuilder();
     final String requestTag = Convert.nullToEmpty(req.getParameter("requestTag"));
     buf.append("<li");
@@ -190,7 +197,6 @@ public class APITestServlet extends HttpServlet {
   }
 
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
-
     resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, private");
     resp.setHeader("Pragma", "no-cache");
     resp.setDateHeader("Expires", 0);
@@ -211,8 +217,8 @@ public class APITestServlet extends HttpServlet {
         writer.print(header1);
         writer.print(buildLinks(req));
         writer.print(header2);
-        String requestType = Convert.nullToEmpty(req.getParameter("requestType"));
-        APIServlet.APIRequestHandler requestHandler = APIServlet.apiRequestHandlers.get(requestType);
+        String requestType = Convert.nullToEmpty(Encode.forHtml(req.getParameter("requestType")));
+        APIServlet.APIRequestHandler requestHandler = apiRequestHandlers.get(requestType);
         StringBuilder bufJSCalls = new StringBuilder();
         if (requestHandler != null) {
           writer.print(form(requestType, true, requestHandler.getClass().getName(), requestHandler.getParameters(), requestHandler.requirePost()));
@@ -221,10 +227,10 @@ public class APITestServlet extends HttpServlet {
         else {
           String requestTag = Convert.nullToEmpty(req.getParameter("requestTag"));
           Set<String> taggedTypes = requestTags.get(requestTag);
-          for (String type : (taggedTypes != null ? taggedTypes : allRequestTypes)) {
-            requestHandler = APIServlet.apiRequestHandlers.get(type);
-            writer.print(form(type, false, requestHandler.getClass().getName(), APIServlet.apiRequestHandlers.get(type).getParameters(), 
-                              APIServlet.apiRequestHandlers.get(type).requirePost()));
+          for (String type : (taggedTypes != null ? taggedTypes : requestTypes)) {
+            requestHandler = apiRequestHandlers.get(type);
+            writer.print(form(type, false, requestHandler.getClass().getName(), apiRequestHandlers.get(type).getParameters(),
+                              apiRequestHandlers.get(type).requirePost()));
             bufJSCalls.append("apiCalls.push(\"").append(type).append("\");\n");
           }
         }
@@ -238,7 +244,7 @@ public class APITestServlet extends HttpServlet {
     }
   }
 
-  private static String form(String requestType, boolean singleView, String className, List<String> parameters, boolean requirePost) {
+  private String form(String requestType, boolean singleView, String className, List<String> parameters, boolean requirePost) {
     StringBuilder buf = new StringBuilder();
     buf.append("<div class=\"panel panel-default api-call-All\" ");
     buf.append("id=\"api-call-").append(requestType).append("\">");
@@ -298,5 +304,4 @@ public class APITestServlet extends HttpServlet {
     buf.append("</div>");
     return buf.toString();
   }
-
 }

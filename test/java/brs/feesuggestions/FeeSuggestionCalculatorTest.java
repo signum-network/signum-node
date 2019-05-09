@@ -1,24 +1,25 @@
 package brs.feesuggestions;
 
-import static brs.Constants.FEE_QUANT;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import brs.Block;
 import brs.BlockchainProcessor;
 import brs.BlockchainProcessor.Event;
 import brs.Transaction;
 import brs.common.AbstractUnitTest;
-import brs.db.BurstIterator;
 import brs.db.store.BlockchainStore;
 import brs.util.Listener;
-import java.util.ArrayList;
-import java.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+
+import static brs.Constants.FEE_QUANT;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class FeeSuggestionCalculatorTest extends AbstractUnitTest {
 
@@ -42,8 +43,6 @@ public class FeeSuggestionCalculatorTest extends AbstractUnitTest {
 
   @Test
   public void getFeeSuggestion() {
-    BurstIterator<Block> mockBlocksIterator = mockBurstIterator();
-    when(blockchainStoreMock.getLatestBlocks(eq(5))).thenReturn(mockBlocksIterator);
 
     Block mockBlock1 = mock(Block.class);
     when(mockBlock1.getTransactions()).thenReturn(new ArrayList<>());
@@ -55,6 +54,9 @@ public class FeeSuggestionCalculatorTest extends AbstractUnitTest {
     when(mockBlock4.getTransactions()).thenReturn(Arrays.asList(mock(Transaction.class)));
     Block mockBlock5 = mock(Block.class);
     when(mockBlock5.getTransactions()).thenReturn(Arrays.asList(mock(Transaction.class)));
+
+    Collection<Block> mockBlocksIterator = mockCollection(mockBlock1, mockBlock2, mockBlock3, mockBlock4, mockBlock5);
+    when(blockchainStoreMock.getLatestBlocks(eq(5))).thenReturn(mockBlocksIterator);
 
     listenerArgumentCaptor.getValue().notify(mockBlock1);
     listenerArgumentCaptor.getValue().notify(mockBlock2);

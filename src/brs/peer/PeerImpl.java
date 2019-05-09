@@ -326,7 +326,7 @@ final class PeerImpl implements Peer {
       connection.setDoOutput(true);
       connection.setConnectTimeout(Peers.connectTimeout);
       connection.setReadTimeout(Peers.readTimeout);
-      connection.addRequestProperty("User-Agent", "BRS/" + Burst.VERSION.toBackwardsCompatibleStringIfNeeded(this.version.get()));
+      connection.addRequestProperty("User-Agent", "BRS/" + Burst.VERSION.toString());
       connection.setRequestProperty("Accept-Encoding", "gzip");
       connection.setRequestProperty("Connection", "close");
 
@@ -418,7 +418,7 @@ final class PeerImpl implements Peer {
   }
 
   void connect(int currentTime) {
-    JsonObject response = send(version.get().backwardsCompatibilityNeeded() ? Peers.myPeerInfoRequestBackwardsCompatible : Peers.myPeerInfoRequest);
+    JsonObject response = send(Peers.myPeerInfoRequest);
     if (response != null) {
       application.set(JSON.getAsString(response.get("application")));
       setVersion(JSON.getAsString(response.get("version")));

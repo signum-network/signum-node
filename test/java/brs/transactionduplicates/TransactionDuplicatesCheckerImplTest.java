@@ -1,17 +1,5 @@
 package brs.transactionduplicates;
 
-import static brs.fluxcapacitor.FeatureToggle.PRE_DYMAXION;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-
 import brs.Attachment.AdvancedPaymentEscrowResult;
 import brs.Attachment.AdvancedPaymentSubscriptionSubscribe;
 import brs.Attachment.MessagingAliasSell;
@@ -21,14 +9,22 @@ import brs.BurstException.NotValidException;
 import brs.Escrow.DecisionType;
 import brs.Transaction;
 import brs.TransactionType;
+import brs.common.QuickMocker;
 import brs.common.TestConstants;
 import brs.fluxcapacitor.FluxCapacitor;
+import brs.fluxcapacitor.FluxValues;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Burst.class)
@@ -40,9 +36,8 @@ public class TransactionDuplicatesCheckerImplTest {
   public void setUp() {
     mockStatic(Burst.class);
 
-    final FluxCapacitor mockFluxCapacitor = mock(FluxCapacitor.class);
+    final FluxCapacitor mockFluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(FluxValues.PRE_DYMAXION);
     when(Burst.getFluxCapacitor()).thenReturn(mockFluxCapacitor);
-    when(mockFluxCapacitor.isActive(eq(PRE_DYMAXION), anyInt())).thenReturn(true);
     BlockchainImpl mockBlockchain = mock(BlockchainImpl.class);
     when(mockBlockchain.getHeight()).thenReturn(4);
     when(Burst.getBlockchain()).thenReturn(mockBlockchain);

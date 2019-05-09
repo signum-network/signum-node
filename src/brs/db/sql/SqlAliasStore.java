@@ -2,17 +2,17 @@ package brs.db.sql;
 
 import brs.Alias;
 import brs.Burst;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.AliasStore;
 import brs.db.store.DerivedTableManager;
+import brs.util.Convert;
 import org.jooq.DSLContext;
+import org.jooq.Record;
 import org.jooq.SortField;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
@@ -21,7 +21,7 @@ import static brs.schema.Tables.ALIAS_OFFER;
 
 public class SqlAliasStore implements AliasStore {
 
-  private static final DbKey.LongKeyFactory<Alias.Offer> offerDbKeyFactory = new DbKey.LongKeyFactory<Alias.Offer>("id") {
+  private static final DbKey.LongKeyFactory<Alias.Offer> offerDbKeyFactory = new DbKey.LongKeyFactory<Alias.Offer>(ALIAS_OFFER.ID) {
       @Override
       public BurstKey newKey(Alias.Offer offer) {
         return offer.dbKey;
@@ -31,8 +31,8 @@ public class SqlAliasStore implements AliasStore {
   public SqlAliasStore(DerivedTableManager derivedTableManager) {
     offerTable = new VersionedEntitySqlTable<Alias.Offer>("alias_offer", ALIAS_OFFER, offerDbKeyFactory, derivedTableManager) {
       @Override
-      protected Alias.Offer load(DSLContext ctx, ResultSet rs) throws SQLException {
-        return new SqlOffer(rs);
+      protected Alias.Offer load(DSLContext ctx, Record record) {
+        return new SqlOffer(record);
       }
 
       @Override
@@ -43,8 +43,8 @@ public class SqlAliasStore implements AliasStore {
 
     aliasTable = new VersionedEntitySqlTable<Alias>("alias", brs.schema.Tables.ALIAS, aliasDbKeyFactory, derivedTableManager) {
       @Override
-      protected Alias load(DSLContext ctx, ResultSet rs) throws SQLException {
-        return new SqlAlias(rs);
+      protected Alias load(DSLContext ctx, Record record) {
+        return new SqlAlias(record);
       }
 
       @Override
@@ -53,8 +53,8 @@ public class SqlAliasStore implements AliasStore {
       }
 
       @Override
-      protected List<SortField> defaultSort() {
-        List<SortField> sort = new ArrayList<>();
+      protected List<SortField<?>> defaultSort() {
+        List<SortField<?>> sort = new ArrayList<>();
         sort.add(tableClass.field("alias_name_lower", String.class).asc());
         return sort;
       }
@@ -66,7 +66,7 @@ public class SqlAliasStore implements AliasStore {
     return offerDbKeyFactory;
   }
 
-  private static final BurstKey.LongKeyFactory<Alias> aliasDbKeyFactory = new DbKey.LongKeyFactory<Alias>("id") {
+  private static final BurstKey.LongKeyFactory<Alias> aliasDbKeyFactory = new DbKey.LongKeyFactory<Alias>(ALIAS.ID) {
 
       @Override
       public BurstKey newKey(Alias alias) {
@@ -85,8 +85,8 @@ public class SqlAliasStore implements AliasStore {
   }
 
   private class SqlOffer extends Alias.Offer {
-    private SqlOffer(ResultSet rs) throws SQLException {
-      super(rs.getLong("id"), rs.getLong("price"), rs.getLong("buyer_id"), offerDbKeyFactory.newKey(rs.getLong("id")));
+    private SqlOffer(Record record) {
+      super(record.get(ALIAS_OFFER.ID), record.get(ALIAS_OFFER.PRICE), Convert.nullToZero(record.get(ALIAS_OFFER.BUYER_ID)), offerDbKeyFactory.newKey(record.get(ALIAS_OFFER.ID)));
     }
   }
 
@@ -109,14 +109,14 @@ public class SqlAliasStore implements AliasStore {
   }
 
   private class SqlAlias extends Alias {
-    private SqlAlias(ResultSet rs) throws SQLException {
+    private SqlAlias(Record record) {
       super(
-            rs.getLong("id"),
-            rs.getLong("account_id"),
-            rs.getString("alias_name"),
-            rs.getString("alias_uri"),
-            rs.getInt("timestamp"),
-            aliasDbKeyFactory.newKey(rs.getLong("id"))
+            record.get(ALIAS.ID),
+            record.get(ALIAS.ACCOUNT_ID),
+            record.get(ALIAS.ALIAS_NAME),
+            record.get(ALIAS.ALIAS_URI),
+            record.get(ALIAS.TIMESTAMP),
+            aliasDbKeyFactory.newKey(record.get(ALIAS.ID))
             );
     }
   }
@@ -135,7 +135,7 @@ public class SqlAliasStore implements AliasStore {
   private final VersionedEntityTable<Alias> aliasTable;
 
   @Override
-  public BurstIterator<Alias> getAliasesByOwner(long accountId, int from, int to) {
+  public Collection<Alias> getAliasesByOwner(long accountId, int from, int to) {
     return aliasTable.getManyBy(brs.schema.Tables.ALIAS.ACCOUNT_ID.eq(accountId), from, to);
   }
 

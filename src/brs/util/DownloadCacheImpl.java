@@ -4,6 +4,7 @@ import brs.Block;
 import brs.Blockchain;
 import brs.Constants;
 import brs.fluxcapacitor.FluxCapacitor;
+import brs.fluxcapacitor.FluxValues;
 import brs.props.PropertyService;
 import brs.props.Props;
 import org.slf4j.Logger;
@@ -12,8 +13,6 @@ import org.slf4j.LoggerFactory;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.locks.StampedLock;
-
-import static brs.fluxcapacitor.FeatureToggle.POC2;
 
 public final class DownloadCacheImpl {
   private final int blockCacheMB;
@@ -404,7 +403,7 @@ public final class DownloadCacheImpl {
 
   public int getPoCVersion(long blockId) {
     Block blockImpl = getBlock(blockId);
-    return (blockImpl == null || ! fluxCapacitor.isActive(POC2, blockImpl.getHeight()) ) ? 1 : 2;
+    return (blockImpl == null || ! fluxCapacitor.getValue(FluxValues.POC2, blockImpl.getHeight()) ) ? 1 : 2;
   }
   
   public long getLastBlockId() {

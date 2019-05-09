@@ -113,7 +113,7 @@ final class OCLPoC {
       ctxProps.addProperty(CL_CONTEXT_PLATFORM, platform);
 
       ctx = clCreateContext(ctxProps, 1, new cl_device_id[] {device}, null, null, null);
-      queue = clCreateCommandQueue(ctx, device, 0, null);
+      queue = clCreateCommandQueueWithProperties(ctx, device, new cl_queue_properties(), null);
 
       String source;
       try {

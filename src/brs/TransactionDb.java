@@ -1,9 +1,7 @@
 package brs;
 
 import brs.schema.tables.records.TransactionRecord;
-import org.jooq.DSLContext;
 
-import java.sql.ResultSet;
 import java.util.List;
 
 public interface TransactionDb {
@@ -16,8 +14,6 @@ public interface TransactionDb {
   boolean hasTransactionByFullHash(String fullHash); // TODO add byte[] method
 
   Transaction loadTransaction(TransactionRecord transactionRecord) throws BurstException.ValidationException;
-
-  Transaction loadTransaction(DSLContext ctx, ResultSet rs) throws BurstException.ValidationException;
 
   List<Transaction> findBlockTransactions(long blockId);
 

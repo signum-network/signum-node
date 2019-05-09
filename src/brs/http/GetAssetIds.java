@@ -2,7 +2,6 @@ package brs.http;
 
 import brs.Asset;
 import brs.assetexchange.AssetExchange;
-import brs.db.BurstIterator;
 import brs.util.Convert;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -30,10 +29,8 @@ public final class GetAssetIds extends APIServlet.APIRequestHandler {
     int lastIndex = ParameterParser.getLastIndex(req);
 
     JsonArray assetIds = new JsonArray();
-    try (BurstIterator<Asset> assets = assetExchange.getAllAssets(firstIndex, lastIndex)) {
-      while (assets.hasNext()) {
-        assetIds.add(Convert.toUnsignedLong(assets.next().getId()));
-      }
+    for (Asset asset : assetExchange.getAllAssets(firstIndex, lastIndex)) {
+      assetIds.add(Convert.toUnsignedLong(asset.getId()));
     }
     JsonObject response = new JsonObject();
     response.add(ASSET_IDS_RESPONSE, assetIds);

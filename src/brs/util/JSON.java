@@ -7,6 +7,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.Writer;
 import java.util.Map;
+import java.util.stream.Collector;
 
 import static brs.Constants.PROTOCOL;
 
@@ -82,5 +83,9 @@ public final class JSON {
 
     public static boolean getAsBoolean(JsonElement jsonElement) {
         return (jsonElement != null && jsonElement.isJsonPrimitive()) && jsonElement.getAsBoolean();
+    }
+
+    public static <T extends JsonElement> Collector<T, ?, JsonArray> jsonArrayCollector() {
+        return Collector.of(JsonArray::new, JsonArray::add, (left, right) -> { left.addAll(right); return left; });
     }
 }

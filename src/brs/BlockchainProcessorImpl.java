@@ -86,10 +86,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   private boolean forceScan;
   private boolean validateAtScan;
 
-  private final boolean forgeFatBlocks;
-
-  private Integer ttsd;
-
   private final boolean autoPopOffEnabled;
   private int autoPopOffLastStuckHeight = 0;
   private int autoPopOffNumberOfBlocks = 0;
@@ -1012,7 +1008,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           throw new BlockNotAcceptedException("Total amount or fee don't match transaction totals for block " + block.getHeight());
         }
 
-        if (Burst.getFluxCapacitor().isActive(FeatureToggle.NEXT_FORK)) {
+        if (Burst.getFluxCapacitor().getValue(FluxValues.NEXT_FORK)) {
           Arrays.sort(feeArray);
           for (int i = 0; i < feeArray.length; i++) {
             if (feeArray[i] >= Constants.FEE_QUANT * (i + 1)) {
@@ -1214,7 +1210,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         ))
                 .filter(transaction -> preCheckUnconfirmedTransaction(transactionDuplicatesChecker, unconfirmedTransactionStore, transaction)); // Extra check for transactions that are to be considered
 
-        if (Burst.getFluxCapacitor().isActive(FeatureToggle.PRE_DYMAXION)) {
+        if (Burst.getFluxCapacitor().getValue(FluxValues.PRE_DYMAXION)) {
           // In this step we get all unconfirmed transactions and then sort them by slot, followed by priority
           Map<Long, Map<Long, Transaction>> unconfirmedTransactionsOrderedBySlotThenPriority = new HashMap<>();
           inclusionCandidates.collect(Collectors.toMap(tx -> tx, priorityCalculator)).forEach((transaction, priority) -> {
@@ -1222,8 +1218,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             unconfirmedTransactionsOrderedBySlotThenPriority.computeIfAbsent(slot, k -> new HashMap<>());
             unconfirmedTransactionsOrderedBySlotThenPriority.get(slot).put(priority, transaction);
           });
-
-          System.out.println("unconfirmedTransactionsOrderedBySlotThenPriority: " + unconfirmedTransactionsOrderedBySlotThenPriority);
 
           // In this step we sort through each slot and find the highest priority transaction in each.
           AtomicLong highestSlot = new AtomicLong();
@@ -1296,7 +1290,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             continue;
           }
 
-          long slotFee = Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? slot * FEE_QUANT : ONE_BURST;
+          long slotFee = Burst.getFluxCapacitor().getValue(FluxValues.PRE_DYMAXION) ? slot * FEE_QUANT : ONE_BURST;
           if (transaction.getFeeNQT() >= slotFee) {
             if (transactionService.applyUnconfirmed(transaction)) {
               try {

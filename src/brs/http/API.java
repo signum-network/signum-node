@@ -9,8 +9,10 @@ import brs.props.Props;
 import brs.services.*;
 import brs.util.Subnet;
 import brs.util.ThreadPool;
+import org.eclipse.jetty.rewrite.handler.RewriteHandler;
+import org.eclipse.jetty.rewrite.handler.RewriteRegexRule;
+import org.eclipse.jetty.rewrite.handler.Rule;
 import org.eclipse.jetty.server.*;
-import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.servlet.DefaultServlet;
@@ -34,6 +36,9 @@ public final class API {
   static boolean enableDebugAPI;
   private static final Logger logger = LoggerFactory.getLogger(API.class);
   private static Server apiServer;
+
+  private static final String apiPath = "/burst";
+  private static final String apiTestPath = "/test";
 
   public API(TransactionProcessor transactionProcessor,
       Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService,
@@ -125,11 +130,11 @@ public final class API {
               accountService, aliasService, assetExchange, escrowService, digitalGoodsStoreService,
               subscriptionService, atService, timeService, economicClustering, transactionService, blockService, generator, propertyService,
               apiTransactionManager, feeSuggestionCalculator, deepLinkQRCodeGenerator, indirectIncomingService);
-      ServletHolder peerServletHolder = new ServletHolder(apiServlet);
-      apiHandler.addServlet(peerServletHolder, "/burst");
+      ServletHolder apiServletHolder = new ServletHolder(apiServlet);
+      apiHandler.addServlet(apiServletHolder, apiPath);
       
       if (propertyService.getBoolean(Props.JETTY_API_DOS_FILTER)) {
-        FilterHolder dosFilterHolder = apiHandler.addFilter(DoSFilter.class, "/burst", null);
+        FilterHolder dosFilterHolder = apiHandler.addFilter(DoSFilter.class, apiPath, null);
         dosFilterHolder.setInitParameter("maxRequestsPerSec", propertyService.getString(Props.JETTY_API_DOS_FILTER_MAX_REQUEST_PER_SEC));
         dosFilterHolder.setInitParameter("throttledRequests", propertyService.getString(Props.JETTY_API_DOS_FILTER_THROTTLED_REQUESTS));
         dosFilterHolder.setInitParameter("delayMs",           propertyService.getString(Props.JETTY_API_DOS_FILTER_DELAY_MS));
@@ -145,11 +150,20 @@ public final class API {
         dosFilterHolder.setAsyncSupported(true);
       }
 
-      apiHandler.addServlet(new ServletHolder(new APITestServlet(apiServlet)), "/test");
+      apiHandler.addServlet(new ServletHolder(new APITestServlet(apiServlet)), apiTestPath);
+
+      RewriteHandler rewriteHandler = new RewriteHandler();
+      rewriteHandler.setRewriteRequestURI(true);
+      rewriteHandler.setRewritePathInfo(false);
+      rewriteHandler.setOriginalPathAttribute("requestedPath");
+      rewriteHandler.setHandler(apiHandler);
+      Rule rewriteToRoot = new RewriteRegexRule("^(?!"+regexpEscapeUrl(apiPath)+"|"+regexpEscapeUrl(apiTestPath)+").*$", "/index.html");
+      rewriteHandler.addRule(rewriteToRoot);
+      apiHandlers.addHandler(rewriteHandler);
 
       if (propertyService.getBoolean(Props.JETTY_API_GZIP_FILTER)) {
         GzipHandler gzipHandler = new GzipHandler();
-        gzipHandler.setIncludedPaths("/burst");
+        gzipHandler.setIncludedPaths(apiPath);
         gzipHandler.setIncludedMethodList(propertyService.getString(Props.JETTY_API_GZIP_FILTER_METHODS));
         gzipHandler.setInflateBufferSize(propertyService.getInt(Props.JETTY_API_GZIP_FILTER_BUFFER_SIZE));
         gzipHandler.setMinGzipSize(propertyService.getInt(Props.JETTY_API_GZIP_FILTER_MIN_GZIP_SIZE));
@@ -158,7 +172,6 @@ public final class API {
       } else {
         apiHandlers.addHandler(apiHandler);
       }
-      apiHandlers.addHandler(new DefaultHandler());
 
       apiServer.setHandler(apiHandlers);
       apiServer.setStopAtShutdown(true);
@@ -181,6 +194,10 @@ public final class API {
 
   }
 
+  private String regexpEscapeUrl(String url) {
+    return url.replace("/", "\\/");
+  }
+
   public void shutdown() {
     if (apiServer != null) {
       try {
@@ -190,5 +207,4 @@ public final class API {
       }
     }
   }
-
 }

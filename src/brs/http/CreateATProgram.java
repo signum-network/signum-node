@@ -7,6 +7,8 @@ import brs.util.Convert;
 import brs.util.TextUtils;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import java.nio.ByteBuffer;
@@ -18,6 +20,8 @@ import static brs.http.common.ResultFields.ERROR_CODE_RESPONSE;
 import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
 
 final class CreateATProgram extends CreateTransaction {
+
+  private final Logger logger = LoggerFactory.getLogger(CreateATProgram.class);
 
   private final ParameterService parameterService;
   private final Blockchain blockchain;
@@ -137,9 +141,7 @@ final class CreateATProgram extends CreateTransaction {
     Account account = parameterService.getSenderAccount(req);
     Attachment attachment = new Attachment.AutomatedTransactionsCreation(name, description, creationBytes, blockchain.getHeight());
 
-    System.out.println("AT " + name + " added succesfully ..");
-    System.out.println();
-    System.out.println();
+    logger.debug("AT " + name + " added successfully");
     return createTransaction(req, account, attachment);
   }
 

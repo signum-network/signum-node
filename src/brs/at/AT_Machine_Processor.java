@@ -7,7 +7,13 @@
 
 package brs.at;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.NOPLogger;
+
 class AT_Machine_Processor{
+  
+  private final Logger logger;
 
   private final AT_Machine_State machineData;
   private final Fun fun = new Fun();
@@ -57,7 +63,7 @@ class AT_Machine_Processor{
 
     fun.addr1 = (machineData.getAp_code()).getInt(machineData.getMachineState().pc + 1);
     fun.off   = (machineData.getAp_code()).get(   machineData.getMachineState().pc + 5);
-    //System.out.println(fun.addr1);
+    //logger.debug(fun.addr1);
     if (!validAddr(fun.addr1, false) ||
         !validAddr(machineData.getMachineState().pc+fun.off, true)) {
       return -1;
@@ -85,14 +91,14 @@ class AT_Machine_Processor{
   }
 
   private int getFunAddr() {
-    //System.out.println("pc counter: "+machineData.getMachineState().pc);
+    //logger.debug("pc counter: "+machineData.getMachineState().pc);
     if (machineData.getMachineState().pc + 4 + 4 >= machineData.getCsize()) {
       return -1;
     }
 
     fun.fun =  (machineData.getAp_code()).getShort( machineData.getMachineState().pc+1);
     fun.addr1 =  (machineData.getAp_code()).getInt((machineData.getMachineState().pc+1+2));
-    //System.out.println("fun: "+fun.fun+" fun.addr1 :"+fun.addr1);
+    //logger.debug("fun: "+fun.fun+" fun.addr1 :"+fun.addr1);
     if (!validAddr(fun.addr1, false)) {
       return -1;
     }
@@ -154,8 +160,9 @@ class AT_Machine_Processor{
     int addr3;
   }
 
-  public AT_Machine_Processor( AT_Machine_State machineData ) {
+  public AT_Machine_Processor( AT_Machine_State machineData, boolean enableLogger) {
     this.machineData = machineData;
+    this.logger = enableLogger ? LoggerFactory.getLogger(AT_Machine_Processor.class) : NOPLogger.NOP_LOGGER;
   }
 
   int processOp(boolean disassemble, boolean determine_jumps) {
@@ -169,19 +176,19 @@ class AT_Machine_Processor{
     }
 
     byte op = (machineData.getAp_code()).get(machineData.getMachineState().pc);
-    //System.out.println("OpCode : "+op);
+    //logger.debug("OpCode : "+op);
     if (op > 0 && disassemble && !determine_jumps) {
-      System.out.print(String.format("%8x", machineData.getMachineState().pc).replace(' ', '0'));
+      logger.debug(String.format("%8x", machineData.getMachineState().pc).replace(' ', '0'));
       if (machineData.getMachineState().pc == machineData.getMachineState().opc)
-        System.out.print("* ");
+        logger.debug("* ");
       else
-        System.out.print("  ");
+        logger.debug("  ");
     }
 
     if ( op == OpCode.e_op_code_NOP) {
       if ( disassemble ) {
         if (! determine_jumps )
-          System.out.println("NOP");
+          logger.debug("NOP");
         ++rc;
       }
       else {
@@ -196,7 +203,7 @@ class AT_Machine_Processor{
         rc = 13;
         if (disassemble) {
           if (!determine_jumps)
-            System.out.println("SET @"
+            logger.debug("SET @"
                                + String.format("%8s",fun.addr1).replace(' ','0')
                                + " "
                                + String.format("#%16s",Long.toHexString(fun.val)).replace(' ', '0'));
@@ -216,7 +223,7 @@ class AT_Machine_Processor{
         rc = 9;
         if (disassemble) {
           if (!determine_jumps)
-            System.out.println(	"SET @"
+            logger.debug(	"SET @"
                                 + String.format("%8s", fun.addr1).replace(' ', '0')
                                 + " $"
                                 + String.format("%8s", fun.addr2).replace(' ', '0'));
@@ -236,7 +243,7 @@ class AT_Machine_Processor{
         rc = 5;
         if ( disassemble ) {
           if ( !determine_jumps )
-            System.out.println("CLR @"+String.format("%8s",fun.addr1));
+            logger.debug("CLR @"+String.format("%8s",fun.addr1));
         }
         else {
           machineData.getMachineState().pc += rc;
@@ -254,15 +261,15 @@ class AT_Machine_Processor{
         if (disassemble ) {
           if (!determine_jumps) {
             if (op == OpCode.e_op_code_INC_DAT) {
-              System.out.print("INC @");
+              logger.debug("INC @");
             }
             else if (op == OpCode.e_op_code_DEC_DAT) {
-              System.out.print("DEC @");
+              logger.debug("DEC @");
             }
             else if (op == OpCode.e_op_code_NOT_DAT) {
-              System.out.print("NOT @");
+              logger.debug("NOT @");
             }
-            System.out.println(String.format("%d", fun.addr1).replace(' ', '0'));
+            logger.debug(String.format("%d", fun.addr1).replace(' ', '0'));
           }
         }
         else {
@@ -296,18 +303,18 @@ class AT_Machine_Processor{
         if (disassemble) {
           if (!determine_jumps) {
             if (op == OpCode.e_op_code_ADD_DAT) {
-              System.out.print("ADD @");
+              logger.debug("ADD @");
             }
             else if (op == OpCode.e_op_code_SUB_DAT) {
-              System.out.print("SUB @");
+              logger.debug("SUB @");
             }
             else if (op == OpCode.e_op_code_MUL_DAT) {
-              System.out.print("MUL @");
+              logger.debug("MUL @");
             }
             else if (op == OpCode.e_op_code_DIV_DAT) {
-              System.out.print("DIV @");
+              logger.debug("DIV @");
             }
-            System.out.println(String.format("%8x", fun.addr1).replace(' ', '0')+" $"+String.format("%8s", fun.addr2).replace(' ','0'));
+            logger.debug(String.format("%8x", fun.addr1).replace(' ', '0')+" $"+String.format("%8s", fun.addr2).replace(' ','0'));
           }
         }
         else {
@@ -355,15 +362,15 @@ class AT_Machine_Processor{
         if (disassemble) {
           if (!determine_jumps) {
             if (op == OpCode.e_op_code_BOR_DAT) {
-              System.out.print("BOR @");
+              logger.debug("BOR @");
             }
             else if (op == OpCode.e_op_code_AND_DAT) {
-              System.out.print("AND @");
+              logger.debug("AND @");
             }
             else if (op == OpCode.e_op_code_XOR_DAT) {
-              System.out.print("XOR @");
+              logger.debug("XOR @");
             }
-            System.out.println(String.format("%16s $%16s", fun.addr1,fun.addr2).replace(' ', '0'));
+            logger.debug(String.format("%16s $%16s", fun.addr1,fun.addr2).replace(' ', '0'));
           }
         }
         else {
@@ -395,7 +402,7 @@ class AT_Machine_Processor{
         rc = 9;
         if (disassemble) {
           if (!determine_jumps)
-            System.out.println("SET @"
+            logger.debug("SET @"
                                + String.format("%8s",fun.addr1).replace(' ', '0')
                                + " "
                                + String.format("$($%8s",fun.addr2).replace(' ', '0'));
@@ -433,7 +440,7 @@ class AT_Machine_Processor{
 
           long addr = base+offs;
 
-          System.out.println(fun.addr1);
+          logger.debug("addr1: " + fun.addr1);
           if (!validAddr((int)addr, false)) {
             rc = -1;
           }
@@ -452,11 +459,11 @@ class AT_Machine_Processor{
         if (disassemble) {
           if (!determine_jumps) {
             if (op == OpCode.e_op_code_PSH_DAT)
-              System.out.print("PSH $");
+              logger.debug("PSH $");
             else
-              System.out.print("POP @");
+              logger.debug("POP @");
 
-            System.out.println(String.format("%8s",fun.addr1).replace(' ', '0'));
+            logger.debug(String.format("%8s",fun.addr1).replace(' ', '0'));
           }
         }
 
@@ -494,7 +501,7 @@ class AT_Machine_Processor{
         rc = 5;
         if ( disassemble ) {
           if ( !determine_jumps )
-            System.out.println("JSR :"+String.format("%8s", fun.addr1).replace(' ', '0'));
+            logger.debug("JSR :"+String.format("%8s", fun.addr1).replace(' ', '0'));
         }
         else {
           if ( machineData.getMachineState().cs == ( machineData.getC_call_stack_bytes() / 8 ) )
@@ -518,7 +525,7 @@ class AT_Machine_Processor{
 
       if ( disassemble ) {
         if ( !determine_jumps )
-          System.out.println("RET\n");
+          logger.debug("RET\n");
       }
       else {
         if ( machineData.getMachineState().cs == 0 )
@@ -541,7 +548,7 @@ class AT_Machine_Processor{
         rc = 9;
         if (disassemble) {
           if (!determine_jumps)
-            System.out.println("SET @"
+            logger.debug("SET @"
                                + String.format("($%8s)", fun.addr1).replace(' ', '0')
                                + " "
                                + String.format("$%8s", fun.addr2).replace(' ', '0'));
@@ -575,7 +582,7 @@ class AT_Machine_Processor{
           rc = 13;
           if (disassemble) {
             if (!determine_jumps)
-              System.out.println("SET @"+
+              logger.debug("SET @"+
                                  String.format("($%8s+$%8s)", addr1, addr2).replace(' ', '0')+" "+
                                  String.format("$%8s", fun.addr1).replace(' ', '0'));
           }
@@ -601,7 +608,7 @@ class AT_Machine_Processor{
         rc = 9;
         if (disassemble) {
           if ( !determine_jumps )
-            System.out.println("MOD @"
+            logger.debug("MOD @"
                                + String.format("%8x", fun.addr1).replace(' ', '0')
                                + " $"
                                + String.format("%8s", fun.addr2).replace(' ', '0'));
@@ -627,13 +634,13 @@ class AT_Machine_Processor{
         if ( disassemble ) {
           if ( !determine_jumps ) {
             if ( op == OpCode.e_op_code_SHL_DAT )
-              System.out.println("SHL @"
+              logger.debug("SHL @"
                                  + String.format("%8x", fun.addr1).replace(' ', '0')
                                  + " $"
                                  + String.format("%8x", fun.addr2).replace(' ', '0'));
 
             else
-              System.out.println("SHR @"
+              logger.debug("SHR @"
                                  + String.format("%8x", fun.addr1).replace(' ', '0')
                                  + " $"
                                  + String.format("%8x", fun.addr2).replace(' ', '0'));
@@ -662,7 +669,7 @@ class AT_Machine_Processor{
         rc = 5;
         if ( disassemble ) {
           if ( !determine_jumps )
-            System.out.println("JMP :"+String.format("%8x",fun.addr1));
+            logger.debug("JMP :"+String.format("%8x",fun.addr1));
         }
         else if ( machineData.getMachineState().jumps.contains( fun.addr1 ) )
           machineData.getMachineState().pc = fun.addr1;
@@ -678,11 +685,11 @@ class AT_Machine_Processor{
         if ( disassemble ) {
           if ( !determine_jumps ) {
             if ( op == OpCode.e_op_code_BZR_DAT )
-              System.out.print("BZR $");
+              logger.debug("BZR $");
             else
-              System.out.print("BNZ $");
+              logger.debug("BNZ $");
 
-            System.out.println(String.format("%8x",fun.addr1).replace(' ', '0')
+            logger.debug(String.format("%8x",fun.addr1).replace(' ', '0')
                                + ", :"
                                + String.format("%8x", machineData.getMachineState().pc+fun.off).replace(' ','0'));
           }
@@ -711,19 +718,19 @@ class AT_Machine_Processor{
         if (disassemble) {
           if (!determine_jumps) {
             if ( op == OpCode. e_op_code_BGT_DAT )
-              System.out.print("BGT $");
+              logger.debug("BGT $");
             else if ( op == OpCode. e_op_code_BLT_DAT )
-              System.out.print("BLT $");
+              logger.debug("BLT $");
             else if ( op == OpCode. e_op_code_BGE_DAT )
-              System.out.print("BGE $");
+              logger.debug("BGE $");
             else if ( op == OpCode. e_op_code_BLE_DAT )
-              System.out.print("BLE $");
+              logger.debug("BLE $");
             else if ( op == OpCode. e_op_code_BEQ_DAT )
-              System.out.print("BEQ $");
+              logger.debug("BEQ $");
             else
-              System.out.print("BNE $");
+              logger.debug("BNE $");
 
-            System.out.println(String.format("%8x",fun.addr1).replace(' ','0')
+            logger.debug(String.format("%8x",fun.addr1).replace(' ','0')
                                + " $"
                                + String.format("%8x",fun.addr2).replace(' ','0')
                                + " :"
@@ -759,7 +766,7 @@ class AT_Machine_Processor{
 
         if ( disassemble ) {
           if ( !determine_jumps )
-            System.out.println("SLP @"+String.format("%8x",fun.addr1));
+            logger.debug("SLP @"+String.format("%8x",fun.addr1));
 
         }
         else {
@@ -795,7 +802,7 @@ class AT_Machine_Processor{
         if ( disassemble )
         {
         if ( !determine_jumps )
-        System.out.println("SLE @"+String.format("%8x", addr1).replace(' ','0')+
+        logger.debug("SLE @"+String.format("%8x", addr1).replace(' ','0')+
         " $"+String.format("%8x", addr2).replace(' ','0')+
         " :"+String.format("%8x", fun.addr1).replace(' ','0'));
         }
@@ -828,11 +835,11 @@ class AT_Machine_Processor{
         if ( disassemble ) {
           if ( !determine_jumps ) {
             if ( op == OpCode.e_op_code_FIZ_DAT )
-              System.out.print("FIZ @");
+              logger.debug("FIZ @");
             else
-              System.out.print("STZ @");
+              logger.debug("STZ @");
 
-            System.out.println(String.format("%8x",fun.addr1).replace(' ', '0'));
+            logger.debug(String.format("%8x",fun.addr1).replace(' ', '0'));
           }
         }
         else {
@@ -861,9 +868,9 @@ class AT_Machine_Processor{
       if ( disassemble ) {
         if ( !determine_jumps ) {
           if ( op == OpCode.e_op_code_FIN_IMD )
-            System.out.println("FIN\n");
+            logger.debug("FIN\n");
           else
-            System.out.println("STP");
+            logger.debug("STP");
         }
       }
       else if ( op == OpCode.e_op_code_STP_IMD ) {
@@ -882,7 +889,7 @@ class AT_Machine_Processor{
 
       if ( disassemble ) {
         if ( !determine_jumps ) {
-          System.out.println("SLP\n");
+          logger.debug("SLP\n");
         }
       }
       else {
@@ -897,7 +904,7 @@ class AT_Machine_Processor{
 
       if ( disassemble ) {
         if ( !determine_jumps )
-          System.out.println("PCS");
+          logger.debug("PCS");
       }
       else {
         machineData.getMachineState().pc += rc;
@@ -912,7 +919,7 @@ class AT_Machine_Processor{
 
         if ( disassemble ) {
           if ( !determine_jumps )
-            System.out.println("FUN "+fun.fun);
+            logger.debug("FUN "+fun.fun);
         }
         else {
           machineData.getMachineState().pc += rc;
@@ -927,7 +934,7 @@ class AT_Machine_Processor{
 
         if ( disassemble ) {
           if ( !determine_jumps )
-            System.out.println("FUN "
+            logger.debug("FUN "
                                + fun.fun
                                + " $"
                                + String.format( "%8x", fun.addr1 ).replace( ' ','0' ) );
@@ -947,7 +954,7 @@ class AT_Machine_Processor{
 
         if ( disassemble ) {
           if ( !determine_jumps )
-            System.out.println("FUN "
+            logger.debug("FUN "
                                + fun.fun
                                + " $"
                                + String.format("%8x",fun.addr3).replace(' ','0')
@@ -971,7 +978,7 @@ class AT_Machine_Processor{
 
         if ( disassemble ) {
           if ( !determine_jumps )
-            System.out.println("FUN @"
+            logger.debug("FUN @"
                                + String.format("%8x", fun.addr1).replace(' ', '0')
                                + " "
                                + fun.fun);
@@ -1000,14 +1007,14 @@ class AT_Machine_Processor{
 
         if ( disassemble ) {
           if ( !determine_jumps ) {
-            System.out.print("FUN @"+String.format("%8x",fun.addr3).replace(' ','0')
+            logger.debug("FUN @"+String.format("%8x",fun.addr3).replace(' ','0')
                              + " "
                              + fun.fun
                              + " $"
                              + String.format("%8x", fun.addr2).replace(' ','0'));
 
             if ( op == OpCode.e_op_code_EXT_FUN_RET_DAT_2 )
-              System.out.print(" $"+String.format("%8x", fun.addr1).replace(' ','0'));
+              logger.debug(" $"+String.format("%8x", fun.addr1).replace(' ','0'));
           }
         }
         else {
@@ -1032,7 +1039,7 @@ class AT_Machine_Processor{
 
       if ( disassemble ) {
         if ( !determine_jumps )
-          System.out.println("ERR :"+String.format("%8x",fun.addr1));
+          logger.debug("ERR :"+String.format("%8x",fun.addr1));
       }
       else {
         if ( fun.addr1 == -1 || machineData.getMachineState().jumps.contains( fun.addr1 )) {
@@ -1048,10 +1055,10 @@ class AT_Machine_Processor{
     }
 
     if ( rc == -1 && disassemble && !determine_jumps )
-      System.out.println("\n(overflow)");
+      logger.debug("\n(overflow)");
 
     if ( rc == -2 && disassemble && !determine_jumps )
-      System.out.println("\n(invalid op)");
+      logger.debug("\n(invalid op)");
 
     /*if ( rc >= 0 )
       ++machineData.getMachineState().steps;

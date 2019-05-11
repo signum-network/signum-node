@@ -4,9 +4,11 @@ import brs.AT;
 import brs.Account;
 import brs.Burst;
 import brs.fluxcapacitor.FluxValues;
+import brs.props.Props;
 import brs.util.Convert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.NOPLogger;
 
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
@@ -18,6 +20,8 @@ import java.util.*;
 public abstract class AT_Controller {
 
   private static final Logger logger = LoggerFactory.getLogger(AT_Controller.class);
+  
+  private static final Logger debugLogger = Burst.getPropertyService().getBoolean(Props.ENABLE_AT_DEBUG_LOG) ? logger : NOPLogger.NOP_LOGGER;
 
   private static int runSteps(AT_Machine_State state) {
     state.getMachineState().running = true;
@@ -26,7 +30,7 @@ public abstract class AT_Controller {
     state.getMachineState().dead = false;
     state.getMachineState().steps = 0;
 
-    AT_Machine_Processor processor = new AT_Machine_Processor( state );
+    AT_Machine_Processor processor = new AT_Machine_Processor(state, Burst.getPropertyService().getBoolean(Props.ENABLE_AT_DEBUG_LOG));
 
     //int height = Burst.getBlockchain().getHeight();
 
@@ -41,7 +45,7 @@ public abstract class AT_Controller {
             <= AT_Constants.getInstance().MAX_STEPS( state.getHeight() )) {
 
       if ( ( state.getG_balance() < stepFee * numSteps ) ) {
-        //System.out.println( "stopped - not enough balance" );
+        debugLogger.debug( "stopped - not enough balance" );
         state.setFreeze( true );
         return 3;
       }
@@ -52,23 +56,23 @@ public abstract class AT_Controller {
 
       if ( rc >= 0 ) {
         if ( state.getMachineState().stopped ) {
-          //System.out.println( "stopped" );
+          debugLogger.debug( "stopped" );
           state.getMachineState().running = false;
           return 2;
         }
         else if ( state.getMachineState().finished ) {
-          //System.out.println( "finished" );
+          debugLogger.debug( "finished" );
           state.getMachineState().running = false;
           return 1;
         }
       }
       else {
-        /*if ( rc == -1 )
-          System.out.println( "error: overflow" );
+        if ( rc == -1 )
+          debugLogger.debug( "error: overflow" );
           else if ( rc==-2 )
-          System.out.println( "error: invalid code" );
+          debugLogger.debug( "error: invalid code" );
           else
-          System.out.println( "unexpected error" );*/
+          debugLogger.debug( "unexpected error" );
 
         if (state.getMachineState().jumps.contains(state.getMachineState().err)) {
           state.getMachineState().pc = state.getMachineState().err;
@@ -98,7 +102,7 @@ public abstract class AT_Controller {
 
   private static void listCode(AT_Machine_State state, boolean disassembly, boolean determine_jumps) {
 
-    AT_Machine_Processor machineProcessor = new AT_Machine_Processor( state );
+    AT_Machine_Processor machineProcessor = new AT_Machine_Processor(state, Burst.getPropertyService().getBoolean(Props.ENABLE_AT_DEBUG_LOG));
 
     int opc = state.getMachineState().pc;
     int osteps = state.getMachineState().steps;
@@ -288,7 +292,7 @@ public abstract class AT_Controller {
           //at.saveState();
         }
         catch ( Exception e ) {
-          e.printStackTrace(System.out);
+          debugLogger.debug("Error handling AT", e);
         }
       }
     }
@@ -374,7 +378,7 @@ public abstract class AT_Controller {
         }
       }
       catch ( Exception e ) {
-        //e.printStackTrace(System.out);
+        debugLogger.debug("ATs error", e);
         throw new AT_Exception( "ATs error. Block rejected (" + e + ")");
       }
     }

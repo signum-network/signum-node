@@ -169,6 +169,8 @@ public class Props {
 
   public static final Prop<Boolean> AUTO_POP_OFF_ENABLED = new Prop<>("AutoPopOff.Enable", true);
 
+  public static final Prop<Boolean> ENABLE_AT_DEBUG_LOG = new Prop<>("ATDebugLog.Enable", false);
+
   private Props() { //no need to construct
   }
 }

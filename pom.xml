@@ -43,7 +43,7 @@
     <mockito.version>2.27.0</mockito.version>
     <powermock.version>2.0.2</powermock.version>
     <apachehttpclient.version>4.5.8</apachehttpclient.version>
-    <jacoco.version>0.8.3</jacoco.version>
+    <jacoco.version>0.8.4</jacoco.version>
 
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>

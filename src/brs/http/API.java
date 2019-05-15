@@ -24,11 +24,16 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
 
 public final class API {
 
@@ -157,7 +162,7 @@ public final class API {
       rewriteHandler.setRewritePathInfo(false);
       rewriteHandler.setOriginalPathAttribute("requestedPath");
       rewriteHandler.setHandler(apiHandler);
-      Rule rewriteToRoot = new RewriteRegexRule("^(?!"+regexpEscapeUrl(apiPath)+"|"+regexpEscapeUrl(apiTestPath)+").*$", "/index.html");
+      Rule rewriteToRoot = new RegexOrFileExistsRule(new File(propertyService.getString(Props.API_UI_DIR)), "^(?!"+regexpEscapeUrl(apiPath)+"|"+regexpEscapeUrl(apiTestPath)+").*$", "/index.html");
       rewriteHandler.addRule(rewriteToRoot);
       apiHandlers.addHandler(rewriteHandler);
 
@@ -205,6 +210,21 @@ public final class API {
       } catch (Exception e) {
         logger.info("Failed to stop API server", e);
       }
+    }
+  }
+
+  private static class RegexOrFileExistsRule extends RewriteRegexRule {
+
+    private final File baseDirectory;
+
+    public RegexOrFileExistsRule(File baseDirectory, String regex, String replacement) {
+      super(regex, replacement);
+      this.baseDirectory = baseDirectory;
+    }
+
+    @Override
+    public String apply(String target, HttpServletRequest request, HttpServletResponse response, Matcher matcher) throws IOException {
+      return new File(baseDirectory, target).exists() ? target : super.apply(target, request, response, matcher);
     }
   }
 }

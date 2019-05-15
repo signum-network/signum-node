@@ -162,7 +162,7 @@ public final class API {
       rewriteHandler.setRewritePathInfo(false);
       rewriteHandler.setOriginalPathAttribute("requestedPath");
       rewriteHandler.setHandler(apiHandler);
-      Rule rewriteToRoot = new RegexOrFileExistsRule(new File(propertyService.getString(Props.API_UI_DIR)), "^(?!"+regexpEscapeUrl(apiPath)+"|"+regexpEscapeUrl(apiTestPath)+").*$", "/index.html");
+      Rule rewriteToRoot = new RegexOrExistsRewriteRule(new File(propertyService.getString(Props.API_UI_DIR)), "^(?!"+regexpEscapeUrl(apiPath)+"|"+regexpEscapeUrl(apiTestPath)+").*$", "/index.html");
       rewriteHandler.addRule(rewriteToRoot);
       apiHandlers.addHandler(rewriteHandler);
 
@@ -213,11 +213,11 @@ public final class API {
     }
   }
 
-  private static class RegexOrFileExistsRule extends RewriteRegexRule {
+  private static class RegexOrExistsRewriteRule extends RewriteRegexRule {
 
     private final File baseDirectory;
 
-    public RegexOrFileExistsRule(File baseDirectory, String regex, String replacement) {
+    public RegexOrExistsRewriteRule(File baseDirectory, String regex, String replacement) {
       super(regex, replacement);
       this.baseDirectory = baseDirectory;
     }

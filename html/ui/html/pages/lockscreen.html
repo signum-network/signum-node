@@ -22,12 +22,6 @@
 		</div>
 		</i></center>
         <div id="login_panel">
-		  <div class="callout callout-danger" id="welcome_panel_warning" style="max-width:400px;min-width:400px;display:none;margin:auto;">
-			<strong>
-			  Warning!
-			</strong>
-			<br>This is a public BRS Node and could be unsafe to use.
-		  </div>
           <div class="callout callout-danger" id="testnet_login" style="max-width:400px;min-width:400px;display:none;" data-i18n="[html]testnet_login_warning">Log in with your <strong>TestNet</strong> account - not your real one!</div>
           <div id="login_error" style="max-width:400px;min-width:400px;display:none">
             <div class="callout callout-danger"></div>
@@ -53,6 +47,12 @@
           </div>
         </div>
         <div class="panel panel-default" id="welcome_panel" style="display:none;max-width:500px;">
+		<div class="callout callout-danger" id="welcome_panel_warning" style="max-width:400px;min-width:400px;display:none;">
+			<strong>
+				Warning!
+			</strong>
+			<br>This is a public BRS Node and could be unsafe to use.
+		</div>
           <div class="panel-heading"><span class="glyphicon glyphicon-lock"></span> <span data-i18n="welcome_to_burst">Welcome to Burst</span></div>
           <div class="panel-body">
             <button class="btn btn-primary" id="registration_cancel" onclick="BRS.showLoginScreen();return false;" data-i18n="returning_user_q">Returning User?</button>

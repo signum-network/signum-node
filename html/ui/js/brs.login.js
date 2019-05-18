@@ -36,6 +36,7 @@ var BRS = (function(BRS, $, undefined) {
     BRS.showWelcomeScreen = function() {
         $("#login_panel, account_phrase_custom_panel, #account_phrase_generator_panel, #account_phrase_custom_panel, #welcome_panel, #custom_passphrase_link").hide();
         $("#welcome_panel").show();
+		if (location.hostname !== "localhost" && location.hostname !== "127.0.0.1")	$("#welcome_panel_warning").show();
     };
 
     BRS.registerUserDefinedAccount = function() {

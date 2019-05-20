@@ -35,7 +35,7 @@
     <owasp.version>1.2.2</owasp.version>
     <slf4j.version>1.7.26</slf4j.version>
     <weupnp.version>0.1.4</weupnp.version>
-    <xzing.version>3.3.3</xzing.version>
+    <xzing.version>3.4.0</xzing.version>
 
     <junit-jupiter.version>5.4.2</junit-jupiter.version>
     <junit-platform.version>1.4.2</junit-platform.version>

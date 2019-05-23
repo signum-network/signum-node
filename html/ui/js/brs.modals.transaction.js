@@ -206,7 +206,7 @@ var BRS = (function(BRS, $, undefined) {
                         else {
 			    message = String(transaction.attachment.message);
 			}
-				$output.html("<div style='color:#999999;padding-bottom:10px'><i class='fas fa-unlock'></i> " + $.t("public_message") + "</div><div style='padding-bottom:10px'>" + String(message).escapeHTML().nl2br() + "</div>");
+			$output.html("<div style='color:#999999;padding-bottom:10px'><i class='fas fa-unlock'></i> " + $.t("public_message") + "</div><div style='padding-bottom:10px'>" + String(message).escapeHTML().nl2br() + "</div>");
 		    }
 
 		    if (transaction.attachment.encryptedMessage || (transaction.attachment.encryptToSelfMessage && BRS.account == transaction.sender)) {

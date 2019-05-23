@@ -903,11 +903,11 @@ var BRS = (function(BRS, $, undefined) {
                     else {
 			message = String(transaction.attachment.message);
 		    }
-			if (transaction.type == 22 && transaction.subtype === 1) {
+            if (transaction.type === 22 && transaction.subtype === 1) {
                 $("#transaction_info_output_bottom").append("<div style='padding-left:5px;'><label><i class='fas fa-unlock'></i> " + $.t("public_message") + "</label><div>String: " + String(converters.hexStringToString(message)).escapeHTML().nl2br() + "<br />Hex: " + String(message).escapeHTML().nl2br() + "</div></div>");
-			} else {
+            } else {
                 $("#transaction_info_output_bottom").append("<div style='padding-left:5px;'><label><i class='fas fa-unlock'></i> " + $.t("public_message") + "</label><div>" + String(message).escapeHTML().nl2br() + "</div></div>");
-			}
+            }
 		}
 
 		if (transaction.attachment.encryptedMessage || (transaction.attachment.encryptToSelfMessage && BRS.account == transaction.sender)) {

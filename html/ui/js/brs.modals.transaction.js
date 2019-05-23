@@ -206,7 +206,7 @@ var BRS = (function(BRS, $, undefined) {
                         else {
 			    message = String(transaction.attachment.message);
 			}
-			$output.html("<div style='color:#999999;padding-bottom:10px'><i class='fas fa-unlock'></i> " + $.t("public_message") + "</div><div style='padding-bottom:10px'>" + String(message).escapeHTML().nl2br() + "</div>");
+				$output.html("<div style='color:#999999;padding-bottom:10px'><i class='fas fa-unlock'></i> " + $.t("public_message") + "</div><div style='padding-bottom:10px'>" + String(message).escapeHTML().nl2br() + "</div>");
 		    }
 
 		    if (transaction.attachment.encryptedMessage || (transaction.attachment.encryptToSelfMessage && BRS.account == transaction.sender)) {
@@ -903,8 +903,11 @@ var BRS = (function(BRS, $, undefined) {
                     else {
 			message = String(transaction.attachment.message);
 		    }
-
-		    $("#transaction_info_output_bottom").append("<div style='padding-left:5px;'><label><i class='fas fa-unlock'></i> " + $.t("public_message") + "</label><div>" + String(message).escapeHTML().nl2br() + "</div></div>");
+			if (transaction.type == 22 && transaction.subtype === 1) {
+                $("#transaction_info_output_bottom").append("<div style='padding-left:5px;'><label><i class='fas fa-unlock'></i> " + $.t("public_message") + "</label><div>String: " + String(converters.hexStringToString(message)).escapeHTML().nl2br() + "<br />Hex: " + String(message).escapeHTML().nl2br() + "</div></div>");
+			} else {
+                $("#transaction_info_output_bottom").append("<div style='padding-left:5px;'><label><i class='fas fa-unlock'></i> " + $.t("public_message") + "</label><div>" + String(message).escapeHTML().nl2br() + "</div></div>");
+			}
 		}
 
 		if (transaction.attachment.encryptedMessage || (transaction.attachment.encryptToSelfMessage && BRS.account == transaction.sender)) {

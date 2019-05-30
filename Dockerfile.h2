@@ -15,5 +15,5 @@ VOLUME ["/conf", "/db"]
 COPY conf/brs.properties.h2 /conf/brs.properties
 COPY conf/brs-default.properties /conf/brs-default.properties
 COPY conf/logging-default.properties /conf/logging-default.properties
-EXPOSE 8125 8123
+EXPOSE 8125 8123 8121
 ENTRYPOINT ["java", "-classpath", "/app/burst.jar:/conf", "brs.Burst"]

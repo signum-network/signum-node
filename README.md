@@ -1,6 +1,6 @@
 <img align="right" width="120" height="120" title="Burst Logo" src="https://raw.githubusercontent.com/burst-apps-team/Marketing_Resources/master/BURST_LOGO/PNG/icon_blue.png" />
 
-# Burstcoin Wallet
+# Burstcoin Reference Software (Burstcoin Wallet)
 [![Build Status](https://travis-ci.com/burst-apps-team/burstcoin.svg?branch=develop)](https://travis-ci.com/burst-apps-team/burstcoin)
 [![GPLv3](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE.txt)
 [![Get Support at https://discord.gg/ms6eagX](https://img.shields.io/badge/join-discord-blue.svg)](https://discord.gg/ms6eagX)
@@ -8,114 +8,106 @@
 The world's first HDD-mined cryptocurrency using an energy efficient
 and fair Proof-of-Capacity (PoC) consensus algorithm.
 
-This wallet version is developed and maintained by the Burst Apps Team
-(BAT) and supports a multitude of database backends. The two builtin
-backends are:
+This wallet version is developed and maintained by the Burst Apps Team (BAT). The two supported database servers are:
+
 - MariaDB (recommended)
 - H2 (embedded, easier install)
 
-### Software Installation
+## Network Features
 
-#### Linux (Debian, Ubuntu)
+- Proof of Capacity - ASIC proof / Energy efficient mining
+- No ICO/Airdrops/Premine
+- Turing-complete smart contracts, via [Automated Transactions (ATs)](https://ciyam.org/at/at.html)
+- Asset Exchange, Digital Goods Store, Crowdfunds (via ATs), and Alias system
 
-- fetch the newest release ZIP file
+## Network Specification
 
-If running for the first time,
+- 4 minute block time
+- Total Supply: [2,158,812,800 BURST](https://burstwiki.org/en/block-reward/)
+- Block reward starts at 10,000/block
+- Block Reward Decreases at 5% each month
 
-- install Java
-- install MariaDB
-- run ```burst.sh help```
-- probably you want to do ```burst.sh import mariadb```
+## BRS Features
 
+- Decentralized Peer-to-Peer network with spam protection
+- Built in Java - runs anywhere, from a Raspberry Pi to a Phone
+- Fast sync with multithreaded CPU or, optionally, an OpenCL GPU
+- HTTP and gRPC API for clients to interact with network
 
-if upgrading your wallet config from 1.3.6cg
+# Installation
 
+## Prerequisites (All Platforms)
+
+### Java 8 (Required)
+
+You need Java 8 installed. To check if it is, run `java -version`. You should get an output similar to the following:
+
+```text
+java version "1.8.0_181"
+Java(TM) SE Runtime Environment (build 1.8.0_181-b13)
+Java HotSpot(TM) 64-Bit Server VM (build 25.181-b13, mixed mode)
 ```
-burst.sh upgrade
-```
-will take the old `nxt-default.properties`/`nxt.properties` files and
-create `brs-default.properties.converted`/`brs.properties.converted`
-files in the conf directory. This should give you a headstart with the
-new option naming system.
 
-#### Windows
+The important part is that the Java version starts with `1.8` (Java 8)
 
-###### MariaDb
+If you do not have Java 8 installed, download it from [Oracle's Website](https://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html)
 
-In the conf directory, copy `brs-default.properties` into a new file named `brs.properties`.
+### MariaDB (Optional)
 
-Download and install MariaDB <https://mariadb.com/downloads/mariadb-tx>
+[Download and install MariaDB](https://mariadb.com/downloads/mariadb-tx)
 
 The MariaDb installation will ask to setup a password for the root user. 
-Add this password to the `brs.properties` file created above in the following section:
-```
+Add this password to the `brs.properties` file you will create when installing BRS:
+
+```properties
 DB.Url=jdbc:mariadb://localhost:3306/brs_master
 DB.Username=root
 DB.Password=YOUR_PASSWORD
 ```
 
-The MariaDB installation will also install HeidiSQL, a gui tool to administer MariaDb.
-Use it to connect to the newly created mariaDb server and create a new DB called `burstwallet`. 
+## Installation
+
+You can manually install using the following steps, or by using the pre-packaged options below.
+
+### Manually installing - All Platforms
+
+Grab the latest release (Or, if you prefer, compile yourself using the instructions below)
+
+In the conf directory, copy `brs-default.properties` into a new file named `brs.properties` and modify this file to suit your needs (See "Configuration" section below)
+
+To run BRS, run `java -jar burst.jar`. On MacOS and Windows this will create a tray icon to show that BRS is running. To disable this, instead run `java -jar burst.jar --headless`.
+
+### Installation Packages
+
+#### Windows
+
+[QBundle](https://github.com/burst-apps-team/qbundle) is a tool which will automatically download any required files and tools and manage BRS for you. This is recommended for users who do not want to learn how to setup BRS.
 
 #### MacOS
 
-BRS can be installed using a [Homebrew](https://brew.sh/) [formula](https://github.com/nixops/homebrew-burstcoind). A short tutorial on how to install BRS using homebrew can be found at [ecomine.earth/macos](https://ecomine.earth/macos/).
+BRS can be installed using a [Homebrew formula](https://github.com/burst-apps-team/burstcoin-packages/tree/master/homebrew/burstcoind).
 
-A number of other Hombrew formulas (written by [Nixops](https://github.com/nixops)) are also available for plotters and miners.
+A number of other Homebrew formulas written by [Nixops](https://github.com/nixops) are also available for plotters and miners.
 
-#### Other Unix-like systems
+#### Linux
 
-Please install Java 8 (JRE 1.8) manually and run the wallet by using `burst.sh`
-You can get further information calling `burst.sh help`
+##### Debian
 
-A good HowTo for running the wallet on a mac can be found here
-<https://www.reddit.com/r/burstcoin/comments/7lrdc1/guide_to_getting_the_poc_wallet_running_on_a_mac/>
+A `.deb` package is available [here](https://github.com/burst-apps-team/burstcoin-packages/releases/tag/v2.3.0).
 
+##### Docker
 
-##### Configure and Initialize MariaDB
-
-The Debian and Ubuntu packages provide an automatic configuration of
-your local mariadb server. If you can't use the packages, you have to
-initialize your database with these statements:
-
-```
-echo "CREATE DATABASE brs_master; 
-      CREATE USER 'brs_user'@'localhost' IDENTIFIED BY 'yourpassword';
-      GRANT ALL PRIVILEGES ON brs_master.* TO 'brs_user'@'localhost';" | mysql -uroot
-mysql -uroot brs_master < init-mysql.sql
-```
-
-##### Configure your Wallet
-
-Now you need to add the following stuff to your `conf/brs.properties`:
-
-```
-DB.Url=jdbc:mariadb://localhost:3306/brs_master
-DB.Username=brs_user
-DB.Password=yourpassword
-```
-
-### Docker
+[Docker repository](https://hub.docker.com/r/burstappsteam/burstcoin)
 
 `latest` : Latest tag of the BRS with H2 database  
-`mariadb` : Latest tag of the BRS with MariaDB database  
-`2.2.6-h2`, `2.2-h2`, `2-h2` : Version 2.2.6 of the BRS with H2 database  
-`2.2.6-mariadb`, `2.2-mariadb`, `2-mariadb` : Version 2.2.6 of the BRS with MariaDB database  
+`mariadb` : Latest tag of the BRS with MariaDB database
+`2-h2` / `2-mariadb` - Version 2.X.X (latest) with corresponding database
+`2.3-h2` / `2.3-mariadb` - Version 2.3.X (latest) with corresponding database
+`2.3.0-h2` / `2.3.0-mariadb` - Version 2.3.0 with corresponding database
 
+Docker Compose for use with MariaDB database
 
-**Note (H2 only):**  
-H2 dump username and password has been changed through updates. The current dump has the user 'sa' and password 'sa' which is used in the BRS 2.2.1 image. If you get username errors, please mount your custom config for your H2 file.
-
-Old username and passwords:
-
-- both empty  
-  or
-- burst - burst
-
----
-##### MariaDB
-
-```
+```docker-compose
 version: '3'
 
 services:
@@ -127,6 +119,7 @@ services:
     ports:
      - 8123:8123
      - 8125:8125
+     - 8121:8121
   mariadb:
     image: mariadb:10
     environment:
@@ -137,59 +130,99 @@ services:
      - ./burst_db:/var/lib/mysql
 ```
 
----
-##### H2
+Docker command for use with H2 database
 
-```
-docker run -p 8123:8123 -p 8125:8125 -v "$(pwd)"/burst_db:/db -d burstappsteam/burstcoin:2-h2
-```
-
-## Upgrading
-
-Ensure the `burst-apps-team` github is in your list of remotes: 
-```
-git remote -v
+```bash
+docker run -p 8123:8123 -p 8125:8125 -p 8121:8121 -v "$(pwd)"/burst_db:/db -d burstappsteam/burstcoin:2-h2
 ```
 
-If it's not, add it: 
-```
-git remote add burst-apps-team https://github.com/burst-apps-team/burstcoin.git
+## Configuration
+
+### Running on mainnet (unless you are developing or running on testnet, you will probably want this)
+
+Now you need to add the following to your `conf/brs.properties` (as a minimum):
+
+```properties
+DB.Url=jdbc:mariadb://localhost:3306/brs_master
+DB.Username=brs_user
+DB.Password=yourpassword
 ```
 
-Replacing `X.X.X` with the latest tag, run these commands:
+Once you have done this, look through the existing properties if there is anything you want to change.
 
+### Testnet
+
+Please see the [Wiki article](https://burstwiki.org/en/testnet/) for details on how to setup a testnet node.
+
+### Private Chains
+
+In order to run a private chain, you need the following properties:
+
+```properties
+DEV.DB.Url=(Your Database URL)
+DEV.DB.Username=(Your Database Username)
+DEV.DB.Password=(Your Database Password2)
+API.Listen = 0.0.0.0
+API.allowed = *
+DEV.TestNet = yes
+DEV.Offline = yes
+DEV.digitalGoodsStore.startBlock = 0
+DEV.automatedTransactions.startBlock = 0
+DEV.atFixBlock2.startBlock = 0
+DEV.atFixBlock3.startBlock = 0
+DEV.atFixBlock4.startBlock = 0
+DEV.preDymaxion.startBlock = 0
+DEV.poc2.startBlock = 0
+DEV.rewardRecipient.startBlock = 0
 ```
+
+Optionally, if you want to be able to forge blocks faster, you can add the following properties:
+
+```properties
+DEV.mockMining = true
+DEV.mockMining.deadline = 10
+```
+
+This will cause a block to be forged every 10 seconds. Note that P2P is disabled when running a private chain and is incompatible with mock mining.
+
+# Building
+
+## Building the latest stable release
+
+Run these commands (`master` is always the latest stable release):
+
+```bash
 git fetch --all --tags --prune
-git checkout tags/X.X.X -b X.X.X 
-./burst.sh compile
-./burst.sh
+git checkout origin/master
+mvn package
 ```
 
-## Striking Features
+Your packaged release will now be available in `dist/burstcoin-2.4.0.zip`
 
-- Proof of Capacity - ASIC proof / Energy efficient mining
-- Fast sync. with multithread CPU or OpenCL/GPU (optional)
-- Turing-complete smart contracts, via Automated Transactions (AT) <https://ciyam.org/at/at.html>
-- Asset Exchange and Digital Goods Store
-- Encrypted Messaging
-- No ICO/Airdrops/Premine
+## Building the latest development version
 
-## Specification
+Run these commands (`develop` is always the latest stable release):
 
-- 4 minute block time
-- 2,158,812,800 coins total (see <https://burstwiki.org/wiki/Block_Reward>)
-- Block reward starts at 10,000/block
-- Block Reward Decreases at 5% each month
+```bash
+git fetch --all --tags --prune
+git checkout origin/develop
+mvn package
+```
 
-## [Version History](doc/History.md)
+Your packaged release will now be available in `dist/burstcoin-2.4.0.zip`.
 
-## Tools
+**Please note that development builds will refuse to run outside of testnet or a private chain**
 
-To improve scalability and performance, the core development team uses
-<a href="https://www.ej-technologies.com/products/jprofiler/overview.html">JProfiler</a>
-as its preferred Java Profiler.
+# Developers
 
-## [Known Issues](doc/KnownIssues.md)
-## [Development Info](doc/Refactoring.md)
-## [Credits](doc/Credits.md)
-## [References/Links](doc/References.md)
+Main Developer: [Harry1453](https://github.com/harry1453). Donation address: [BURST-W5YR-ZZQC-KUBJ-G78KB](https://explore.burstcoin.network/?action=account&account=16484518239061020631)
+
+For more information, see [Credits](doc/Credits.md)
+
+# Further Documentation
+
+* [Version History](doc/History.md)
+
+* [Credits](doc/Credits.md)
+
+* [References/Links](doc/References.md)

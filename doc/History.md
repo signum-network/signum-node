@@ -1,6 +1,21 @@
-For a general overview of Burst history see https://burstwiki.org/wiki/History_of_Burst
+[History of Burst](https://burstwiki.org/en/history-of-burst/)
 
 ```
+2018-04-04 v2.3.0
+           Fix of major security vulnerability where passphrase was sent to node upon login
+           gRPC-based V2 API. Currently only contains calls needed for mining, will be expanded in future if well received.
+           Migrate to GSON as JSON library
+           Significantly improve sync speed, as well as other minor performance improvements
+           New Semver-based versioning system
+           Fix bug where reward recipient assignments would not go into unconfirmed transactions
+           Lightweight Desktop GUI, with tray icon (For windows and mac, can be disabled with "--headless" command line argument)
+           Automatically add conf/ directory to classpath
+           Configurable TestNet UI/API port
+           New getAccountsWithName API call
+           UI: Fix 24h timestamp display option
+           Allow development versions of wallet to run on TestNet only
+           Fixed bug where string validation could fail in certain locales
+           Use FlywayDB for database migration management
 
 2018-05-30 2.2.0
            "Pre-Dymaxion" HF1 release (Burst hard fork/upgrade)
@@ -30,6 +45,7 @@ For a general overview of Burst history see https://burstwiki.org/wiki/History_o
 2017-08-11 1.3.2cg
            1st official PoCC release: MariaDB backend based on 1.2.9
 ```
-For a detailed version history of wallets up to 1.2.9 see https://github.com/burst-team/burstcoin/releases
 
-Code quality statistics can be found on SonarCloud: https://sonarcloud.io/dashboard?id=burstcoin%3Aburstcoin
+[Versions up to 2.2.7](https://github.com/poc-consortium/burstcoin/releases)
+
+[Versions up to 1.2.9](https://github.com/burst-team/burstcoin/releases)

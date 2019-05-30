@@ -82,7 +82,7 @@ public class APITestServlet extends HttpServlet {
       + "           <ul class=\"nav navbar-nav navbar-right\">"
       + "               <li><input type=\"text\" class=\"form-control\" id=\"search\" "
       + "                    placeholder=\"Search\" style=\"margin-top:8px;\"></li>\n"
-      + "               <li><a href=\"https://burstwiki.org/wiki/The_Burst_API\" target=\"_blank\" style=\"margin-left:20px;\">Wiki Docs</a></li>"
+      + "               <li><a href=\"https://burstwiki.org/en/the-burst-api/\" target=\"_blank\" style=\"margin-left:20px;\">Wiki Docs</a></li>"
       + "               <li><a href=\"/doc/index.html\" target=\"_blank\" style=\"margin-left:20px;\">Javadoc Index</a></li>"
       + "           </ul>"
       + "       </div>"

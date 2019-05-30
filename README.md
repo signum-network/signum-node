@@ -38,6 +38,8 @@ This wallet version is developed and maintained by the Burst Apps Team (BAT). Th
 
 ## Prerequisites (All Platforms)
 
+**NOTE: `burst.sh` is now deprecated and will not be included with the next release.**
+
 ### Java 8 (Required)
 
 You need Java 8 installed. To check if it is, run `java -version`. You should get an output similar to the following:

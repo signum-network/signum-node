@@ -40,7 +40,7 @@
     <junit-jupiter.version>5.4.2</junit-jupiter.version>
     <junit-platform.version>1.4.2</junit-platform.version>
     <junit-vintage.version>5.4.2</junit-vintage.version>
-    <mockito.version>2.27.0</mockito.version>
+    <mockito.version>2.28.2</mockito.version>
     <powermock.version>2.0.2</powermock.version>
     <apachehttpclient.version>4.5.8</apachehttpclient.version>
     <jacoco.version>0.8.4</jacoco.version>

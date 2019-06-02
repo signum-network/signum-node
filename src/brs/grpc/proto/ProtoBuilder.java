@@ -74,9 +74,8 @@ public final class ProtoBuilder {
                 .setGeneratorPublicKey(ByteString.copyFrom(block.getGeneratorPublicKey()))
                 .setNonce(block.getNonce())
                 .setScoop(blockService.getScoopNum(block))
-                .setPreviousBlock(block.getPreviousBlockId())
-                .setNextBlock(block.getNextBlockId())
-                .setPreviousBlockHash(ByteString.copyFrom(block.getPreviousBlockHash()));
+                .setPreviousBlockHash(ByteString.copyFrom(block.getPreviousBlockHash()))
+                .setNextBlockId(block.getNextBlockId());
 
         if (includeTransactions) {
             int currentHeight = blockchain.getHeight();

@@ -1479,6 +1479,10 @@ public final class BrsApi {
     brs.grpc.proto.BrsApi.IndexRangeOrBuilder getIndexRangeOrBuilder();
 
     /**
+     * <pre>
+     * Include the full transaction objects of the block as well as the IDs
+     * </pre>
+     *
      * <code>bool includeTransactions = 4;</code>
      */
     boolean getIncludeTransactions();
@@ -1626,6 +1630,10 @@ public final class BrsApi {
     public static final int INCLUDETRANSACTIONS_FIELD_NUMBER = 4;
     private boolean includeTransactions_;
     /**
+     * <pre>
+     * Include the full transaction objects of the block as well as the IDs
+     * </pre>
+     *
      * <code>bool includeTransactions = 4;</code>
      */
     public boolean getIncludeTransactions() {
@@ -2152,12 +2160,20 @@ public final class BrsApi {
 
       private boolean includeTransactions_ ;
       /**
+       * <pre>
+       * Include the full transaction objects of the block as well as the IDs
+       * </pre>
+       *
        * <code>bool includeTransactions = 4;</code>
        */
       public boolean getIncludeTransactions() {
         return includeTransactions_;
       }
       /**
+       * <pre>
+       * Include the full transaction objects of the block as well as the IDs
+       * </pre>
+       *
        * <code>bool includeTransactions = 4;</code>
        */
       public Builder setIncludeTransactions(boolean value) {
@@ -2167,6 +2183,10 @@ public final class BrsApi {
         return this;
       }
       /**
+       * <pre>
+       * Include the full transaction objects of the block as well as the IDs
+       * </pre>
+       *
        * <code>bool includeTransactions = 4;</code>
        */
       public Builder clearIncludeTransactions() {
@@ -37837,8 +37857,27 @@ public final class BrsApi {
      * <code>bytes referencedTransactionFullHash = 12;</code>
      */
     com.google.protobuf.ByteString getReferencedTransactionFullHash();
+
+    /**
+     * <code>uint64 ecBlockId = 13;</code>
+     */
+    long getEcBlockId();
+
+    /**
+     * <code>uint32 ecBlockHeight = 14;</code>
+     */
+    int getEcBlockHeight();
+
+    /**
+     * <code>bytes signature = 15;</code>
+     */
+    com.google.protobuf.ByteString getSignature();
   }
   /**
+   * <pre>
+   * A basic transaction represents all of the data that you would find in the transaction bytes.
+   * </pre>
+   *
    * Protobuf type {@code BasicTransaction}
    */
   public  static final class BasicTransaction extends
@@ -37862,6 +37901,9 @@ public final class BrsApi {
       deadline_ = 0;
       appendages_ = java.util.Collections.emptyList();
       referencedTransactionFullHash_ = com.google.protobuf.ByteString.EMPTY;
+      ecBlockId_ = 0L;
+      ecBlockHeight_ = 0;
+      signature_ = com.google.protobuf.ByteString.EMPTY;
     }
 
     @java.lang.Override
@@ -37965,6 +38007,21 @@ public final class BrsApi {
             case 98: {
 
               referencedTransactionFullHash_ = input.readBytes();
+              break;
+            }
+            case 104: {
+
+              ecBlockId_ = input.readUInt64();
+              break;
+            }
+            case 112: {
+
+              ecBlockHeight_ = input.readUInt32();
+              break;
+            }
+            case 122: {
+
+              signature_ = input.readBytes();
               break;
             }
           }
@@ -38157,6 +38214,33 @@ public final class BrsApi {
       return referencedTransactionFullHash_;
     }
 
+    public static final int ECBLOCKID_FIELD_NUMBER = 13;
+    private long ecBlockId_;
+    /**
+     * <code>uint64 ecBlockId = 13;</code>
+     */
+    public long getEcBlockId() {
+      return ecBlockId_;
+    }
+
+    public static final int ECBLOCKHEIGHT_FIELD_NUMBER = 14;
+    private int ecBlockHeight_;
+    /**
+     * <code>uint32 ecBlockHeight = 14;</code>
+     */
+    public int getEcBlockHeight() {
+      return ecBlockHeight_;
+    }
+
+    public static final int SIGNATURE_FIELD_NUMBER = 15;
+    private com.google.protobuf.ByteString signature_;
+    /**
+     * <code>bytes signature = 15;</code>
+     */
+    public com.google.protobuf.ByteString getSignature() {
+      return signature_;
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -38204,6 +38288,15 @@ public final class BrsApi {
       }
       if (!referencedTransactionFullHash_.isEmpty()) {
         output.writeBytes(12, referencedTransactionFullHash_);
+      }
+      if (ecBlockId_ != 0L) {
+        output.writeUInt64(13, ecBlockId_);
+      }
+      if (ecBlockHeight_ != 0) {
+        output.writeUInt32(14, ecBlockHeight_);
+      }
+      if (!signature_.isEmpty()) {
+        output.writeBytes(15, signature_);
       }
       unknownFields.writeTo(output);
     }
@@ -38261,6 +38354,18 @@ public final class BrsApi {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(12, referencedTransactionFullHash_);
       }
+      if (ecBlockId_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(13, ecBlockId_);
+      }
+      if (ecBlockHeight_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(14, ecBlockHeight_);
+      }
+      if (!signature_.isEmpty()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(15, signature_);
+      }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
       return size;
@@ -38304,6 +38409,12 @@ public final class BrsApi {
       }
       result = result && getReferencedTransactionFullHash()
           .equals(other.getReferencedTransactionFullHash());
+      result = result && (getEcBlockId()
+          == other.getEcBlockId());
+      result = result && (getEcBlockHeight()
+          == other.getEcBlockHeight());
+      result = result && getSignature()
+          .equals(other.getSignature());
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -38346,6 +38457,13 @@ public final class BrsApi {
       }
       hash = (37 * hash) + REFERENCEDTRANSACTIONFULLHASH_FIELD_NUMBER;
       hash = (53 * hash) + getReferencedTransactionFullHash().hashCode();
+      hash = (37 * hash) + ECBLOCKID_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getEcBlockId());
+      hash = (37 * hash) + ECBLOCKHEIGHT_FIELD_NUMBER;
+      hash = (53 * hash) + getEcBlockHeight();
+      hash = (37 * hash) + SIGNATURE_FIELD_NUMBER;
+      hash = (53 * hash) + getSignature().hashCode();
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -38440,6 +38558,10 @@ public final class BrsApi {
       return builder;
     }
     /**
+     * <pre>
+     * A basic transaction represents all of the data that you would find in the transaction bytes.
+     * </pre>
+     *
      * Protobuf type {@code BasicTransaction}
      */
     public static final class Builder extends
@@ -38508,6 +38630,12 @@ public final class BrsApi {
         }
         referencedTransactionFullHash_ = com.google.protobuf.ByteString.EMPTY;
 
+        ecBlockId_ = 0L;
+
+        ecBlockHeight_ = 0;
+
+        signature_ = com.google.protobuf.ByteString.EMPTY;
+
         return this;
       }
 
@@ -38556,6 +38684,9 @@ public final class BrsApi {
           result.attachment_ = attachmentBuilder_.build();
         }
         result.referencedTransactionFullHash_ = referencedTransactionFullHash_;
+        result.ecBlockId_ = ecBlockId_;
+        result.ecBlockHeight_ = ecBlockHeight_;
+        result.signature_ = signature_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -38656,6 +38787,15 @@ public final class BrsApi {
         }
         if (other.getReferencedTransactionFullHash() != com.google.protobuf.ByteString.EMPTY) {
           setReferencedTransactionFullHash(other.getReferencedTransactionFullHash());
+        }
+        if (other.getEcBlockId() != 0L) {
+          setEcBlockId(other.getEcBlockId());
+        }
+        if (other.getEcBlockHeight() != 0) {
+          setEcBlockHeight(other.getEcBlockHeight());
+        }
+        if (other.getSignature() != com.google.protobuf.ByteString.EMPTY) {
+          setSignature(other.getSignature());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -39352,6 +39492,87 @@ public final class BrsApi {
       public Builder clearReferencedTransactionFullHash() {
         
         referencedTransactionFullHash_ = getDefaultInstance().getReferencedTransactionFullHash();
+        onChanged();
+        return this;
+      }
+
+      private long ecBlockId_ ;
+      /**
+       * <code>uint64 ecBlockId = 13;</code>
+       */
+      public long getEcBlockId() {
+        return ecBlockId_;
+      }
+      /**
+       * <code>uint64 ecBlockId = 13;</code>
+       */
+      public Builder setEcBlockId(long value) {
+        
+        ecBlockId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 ecBlockId = 13;</code>
+       */
+      public Builder clearEcBlockId() {
+        
+        ecBlockId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private int ecBlockHeight_ ;
+      /**
+       * <code>uint32 ecBlockHeight = 14;</code>
+       */
+      public int getEcBlockHeight() {
+        return ecBlockHeight_;
+      }
+      /**
+       * <code>uint32 ecBlockHeight = 14;</code>
+       */
+      public Builder setEcBlockHeight(int value) {
+        
+        ecBlockHeight_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint32 ecBlockHeight = 14;</code>
+       */
+      public Builder clearEcBlockHeight() {
+        
+        ecBlockHeight_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.ByteString signature_ = com.google.protobuf.ByteString.EMPTY;
+      /**
+       * <code>bytes signature = 15;</code>
+       */
+      public com.google.protobuf.ByteString getSignature() {
+        return signature_;
+      }
+      /**
+       * <code>bytes signature = 15;</code>
+       */
+      public Builder setSignature(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  
+        signature_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>bytes signature = 15;</code>
+       */
+      public Builder clearSignature() {
+        
+        signature_ = getDefaultInstance().getSignature();
         onChanged();
         return this;
       }
@@ -44038,6 +44259,10 @@ public final class BrsApi {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * Number of seconds since the Burst epoch (2014-08-11 02:00:00 UTC)
+     * </pre>
+     *
      * <code>uint32 time = 1;</code>
      */
     int getTime();
@@ -44121,6 +44346,10 @@ public final class BrsApi {
     public static final int TIME_FIELD_NUMBER = 1;
     private int time_;
     /**
+     * <pre>
+     * Number of seconds since the Burst epoch (2014-08-11 02:00:00 UTC)
+     * </pre>
+     *
      * <code>uint32 time = 1;</code>
      */
     public int getTime() {
@@ -44412,12 +44641,20 @@ public final class BrsApi {
 
       private int time_ ;
       /**
+       * <pre>
+       * Number of seconds since the Burst epoch (2014-08-11 02:00:00 UTC)
+       * </pre>
+       *
        * <code>uint32 time = 1;</code>
        */
       public int getTime() {
         return time_;
       }
       /**
+       * <pre>
+       * Number of seconds since the Burst epoch (2014-08-11 02:00:00 UTC)
+       * </pre>
+       *
        * <code>uint32 time = 1;</code>
        */
       public Builder setTime(int value) {
@@ -44427,6 +44664,10 @@ public final class BrsApi {
         return this;
       }
       /**
+       * <pre>
+       * Number of seconds since the Burst epoch (2014-08-11 02:00:00 UTC)
+       * </pre>
+       *
        * <code>uint32 time = 1;</code>
        */
       public Builder clearTime() {
@@ -46962,7 +47203,7 @@ public final class BrsApi {
 
     /**
      * <pre>
-     * Does not include ourselves!
+     * The number of peers this transaction was broadcast to, not including the server.
      * </pre>
      *
      * <code>uint32 numberOfPeersSentTo = 1;</code>
@@ -47049,7 +47290,7 @@ public final class BrsApi {
     private int numberOfPeersSentTo_;
     /**
      * <pre>
-     * Does not include ourselves!
+     * The number of peers this transaction was broadcast to, not including the server.
      * </pre>
      *
      * <code>uint32 numberOfPeersSentTo = 1;</code>
@@ -47344,7 +47585,7 @@ public final class BrsApi {
       private int numberOfPeersSentTo_ ;
       /**
        * <pre>
-       * Does not include ourselves!
+       * The number of peers this transaction was broadcast to, not including the server.
        * </pre>
        *
        * <code>uint32 numberOfPeersSentTo = 1;</code>
@@ -47354,7 +47595,7 @@ public final class BrsApi {
       }
       /**
        * <pre>
-       * Does not include ourselves!
+       * The number of peers this transaction was broadcast to, not including the server.
        * </pre>
        *
        * <code>uint32 numberOfPeersSentTo = 1;</code>
@@ -47367,7 +47608,7 @@ public final class BrsApi {
       }
       /**
        * <pre>
-       * Does not include ourselves!
+       * The number of peers this transaction was broadcast to, not including the server.
        * </pre>
        *
        * <code>uint32 numberOfPeersSentTo = 1;</code>
@@ -48526,21 +48767,37 @@ public final class BrsApi {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * The reward recipient of the accounts
+     * </pre>
+     *
      * <code>uint64 rewardRecipient = 1;</code>
      */
     long getRewardRecipient();
 
     /**
+     * <pre>
+     * The name of the accounts
+     * </pre>
+     *
      * <code>string name = 2;</code>
      */
     java.lang.String getName();
     /**
+     * <pre>
+     * The name of the accounts
+     * </pre>
+     *
      * <code>string name = 2;</code>
      */
     com.google.protobuf.ByteString
         getNameBytes();
 
     /**
+     * <pre>
+     * Whether to include the full account object in the response. If this is set to false, Accounts.accounts will not be populated.
+     * </pre>
+     *
      * <code>bool includeAccounts = 3;</code>
      */
     boolean getIncludeAccounts();
@@ -48637,6 +48894,10 @@ public final class BrsApi {
     public static final int REWARDRECIPIENT_FIELD_NUMBER = 1;
     private long rewardRecipient_;
     /**
+     * <pre>
+     * The reward recipient of the accounts
+     * </pre>
+     *
      * <code>uint64 rewardRecipient = 1;</code>
      */
     public long getRewardRecipient() {
@@ -48646,6 +48907,10 @@ public final class BrsApi {
     public static final int NAME_FIELD_NUMBER = 2;
     private volatile java.lang.Object name_;
     /**
+     * <pre>
+     * The name of the accounts
+     * </pre>
+     *
      * <code>string name = 2;</code>
      */
     public java.lang.String getName() {
@@ -48661,6 +48926,10 @@ public final class BrsApi {
       }
     }
     /**
+     * <pre>
+     * The name of the accounts
+     * </pre>
+     *
      * <code>string name = 2;</code>
      */
     public com.google.protobuf.ByteString
@@ -48680,6 +48949,10 @@ public final class BrsApi {
     public static final int INCLUDEACCOUNTS_FIELD_NUMBER = 3;
     private boolean includeAccounts_;
     /**
+     * <pre>
+     * Whether to include the full account object in the response. If this is set to false, Accounts.accounts will not be populated.
+     * </pre>
+     *
      * <code>bool includeAccounts = 3;</code>
      */
     public boolean getIncludeAccounts() {
@@ -49007,12 +49280,20 @@ public final class BrsApi {
 
       private long rewardRecipient_ ;
       /**
+       * <pre>
+       * The reward recipient of the accounts
+       * </pre>
+       *
        * <code>uint64 rewardRecipient = 1;</code>
        */
       public long getRewardRecipient() {
         return rewardRecipient_;
       }
       /**
+       * <pre>
+       * The reward recipient of the accounts
+       * </pre>
+       *
        * <code>uint64 rewardRecipient = 1;</code>
        */
       public Builder setRewardRecipient(long value) {
@@ -49022,6 +49303,10 @@ public final class BrsApi {
         return this;
       }
       /**
+       * <pre>
+       * The reward recipient of the accounts
+       * </pre>
+       *
        * <code>uint64 rewardRecipient = 1;</code>
        */
       public Builder clearRewardRecipient() {
@@ -49033,6 +49318,10 @@ public final class BrsApi {
 
       private java.lang.Object name_ = "";
       /**
+       * <pre>
+       * The name of the accounts
+       * </pre>
+       *
        * <code>string name = 2;</code>
        */
       public java.lang.String getName() {
@@ -49048,6 +49337,10 @@ public final class BrsApi {
         }
       }
       /**
+       * <pre>
+       * The name of the accounts
+       * </pre>
+       *
        * <code>string name = 2;</code>
        */
       public com.google.protobuf.ByteString
@@ -49064,6 +49357,10 @@ public final class BrsApi {
         }
       }
       /**
+       * <pre>
+       * The name of the accounts
+       * </pre>
+       *
        * <code>string name = 2;</code>
        */
       public Builder setName(
@@ -49077,6 +49374,10 @@ public final class BrsApi {
         return this;
       }
       /**
+       * <pre>
+       * The name of the accounts
+       * </pre>
+       *
        * <code>string name = 2;</code>
        */
       public Builder clearName() {
@@ -49086,6 +49387,10 @@ public final class BrsApi {
         return this;
       }
       /**
+       * <pre>
+       * The name of the accounts
+       * </pre>
+       *
        * <code>string name = 2;</code>
        */
       public Builder setNameBytes(
@@ -49102,12 +49407,20 @@ public final class BrsApi {
 
       private boolean includeAccounts_ ;
       /**
+       * <pre>
+       * Whether to include the full account object in the response. If this is set to false, Accounts.accounts will not be populated.
+       * </pre>
+       *
        * <code>bool includeAccounts = 3;</code>
        */
       public boolean getIncludeAccounts() {
         return includeAccounts_;
       }
       /**
+       * <pre>
+       * Whether to include the full account object in the response. If this is set to false, Accounts.accounts will not be populated.
+       * </pre>
+       *
        * <code>bool includeAccounts = 3;</code>
        */
       public Builder setIncludeAccounts(boolean value) {
@@ -49117,6 +49430,10 @@ public final class BrsApi {
         return this;
       }
       /**
+       * <pre>
+       * Whether to include the full account object in the response. If this is set to false, Accounts.accounts will not be populated.
+       * </pre>
+       *
        * <code>bool includeAccounts = 3;</code>
        */
       public Builder clearIncludeAccounts() {
@@ -53069,16 +53386,6 @@ public final class BrsApi {
      * <code>sint32 confirmations = 9;</code>
      */
     int getConfirmations();
-
-    /**
-     * <code>uint64 ecBlockId = 10;</code>
-     */
-    long getEcBlockId();
-
-    /**
-     * <code>uint32 ecBlockHeight = 11;</code>
-     */
-    int getEcBlockHeight();
   }
   /**
    * Protobuf type {@code Transaction}
@@ -53101,8 +53408,6 @@ public final class BrsApi {
       signature_ = com.google.protobuf.ByteString.EMPTY;
       fullHash_ = com.google.protobuf.ByteString.EMPTY;
       confirmations_ = 0;
-      ecBlockId_ = 0L;
-      ecBlockHeight_ = 0;
     }
 
     @java.lang.Override
@@ -53187,16 +53492,6 @@ public final class BrsApi {
             case 72: {
 
               confirmations_ = input.readSInt32();
-              break;
-            }
-            case 80: {
-
-              ecBlockId_ = input.readUInt64();
-              break;
-            }
-            case 88: {
-
-              ecBlockHeight_ = input.readUInt32();
               break;
             }
           }
@@ -53316,24 +53611,6 @@ public final class BrsApi {
       return confirmations_;
     }
 
-    public static final int ECBLOCKID_FIELD_NUMBER = 10;
-    private long ecBlockId_;
-    /**
-     * <code>uint64 ecBlockId = 10;</code>
-     */
-    public long getEcBlockId() {
-      return ecBlockId_;
-    }
-
-    public static final int ECBLOCKHEIGHT_FIELD_NUMBER = 11;
-    private int ecBlockHeight_;
-    /**
-     * <code>uint32 ecBlockHeight = 11;</code>
-     */
-    public int getEcBlockHeight() {
-      return ecBlockHeight_;
-    }
-
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -53372,12 +53649,6 @@ public final class BrsApi {
       }
       if (confirmations_ != 0) {
         output.writeSInt32(9, confirmations_);
-      }
-      if (ecBlockId_ != 0L) {
-        output.writeUInt64(10, ecBlockId_);
-      }
-      if (ecBlockHeight_ != 0) {
-        output.writeUInt32(11, ecBlockHeight_);
       }
       unknownFields.writeTo(output);
     }
@@ -53423,14 +53694,6 @@ public final class BrsApi {
         size += com.google.protobuf.CodedOutputStream
           .computeSInt32Size(9, confirmations_);
       }
-      if (ecBlockId_ != 0L) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeUInt64Size(10, ecBlockId_);
-      }
-      if (ecBlockHeight_ != 0) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeUInt32Size(11, ecBlockHeight_);
-      }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
       return size;
@@ -53468,10 +53731,6 @@ public final class BrsApi {
           .equals(other.getFullHash());
       result = result && (getConfirmations()
           == other.getConfirmations());
-      result = result && (getEcBlockId()
-          == other.getEcBlockId());
-      result = result && (getEcBlockHeight()
-          == other.getEcBlockHeight());
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -53505,11 +53764,6 @@ public final class BrsApi {
       hash = (53 * hash) + getFullHash().hashCode();
       hash = (37 * hash) + CONFIRMATIONS_FIELD_NUMBER;
       hash = (53 * hash) + getConfirmations();
-      hash = (37 * hash) + ECBLOCKID_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getEcBlockId());
-      hash = (37 * hash) + ECBLOCKHEIGHT_FIELD_NUMBER;
-      hash = (53 * hash) + getEcBlockHeight();
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -53661,10 +53915,6 @@ public final class BrsApi {
 
         confirmations_ = 0;
 
-        ecBlockId_ = 0L;
-
-        ecBlockHeight_ = 0;
-
         return this;
       }
 
@@ -53700,8 +53950,6 @@ public final class BrsApi {
         result.signature_ = signature_;
         result.fullHash_ = fullHash_;
         result.confirmations_ = confirmations_;
-        result.ecBlockId_ = ecBlockId_;
-        result.ecBlockHeight_ = ecBlockHeight_;
         onBuilt();
         return result;
       }
@@ -53769,12 +54017,6 @@ public final class BrsApi {
         }
         if (other.getConfirmations() != 0) {
           setConfirmations(other.getConfirmations());
-        }
-        if (other.getEcBlockId() != 0L) {
-          setEcBlockId(other.getEcBlockId());
-        }
-        if (other.getEcBlockHeight() != 0) {
-          setEcBlockHeight(other.getEcBlockHeight());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -54133,58 +54375,6 @@ public final class BrsApi {
       public Builder clearConfirmations() {
         
         confirmations_ = 0;
-        onChanged();
-        return this;
-      }
-
-      private long ecBlockId_ ;
-      /**
-       * <code>uint64 ecBlockId = 10;</code>
-       */
-      public long getEcBlockId() {
-        return ecBlockId_;
-      }
-      /**
-       * <code>uint64 ecBlockId = 10;</code>
-       */
-      public Builder setEcBlockId(long value) {
-        
-        ecBlockId_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>uint64 ecBlockId = 10;</code>
-       */
-      public Builder clearEcBlockId() {
-        
-        ecBlockId_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      private int ecBlockHeight_ ;
-      /**
-       * <code>uint32 ecBlockHeight = 11;</code>
-       */
-      public int getEcBlockHeight() {
-        return ecBlockHeight_;
-      }
-      /**
-       * <code>uint32 ecBlockHeight = 11;</code>
-       */
-      public Builder setEcBlockHeight(int value) {
-        
-        ecBlockHeight_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>uint32 ecBlockHeight = 11;</code>
-       */
-      public Builder clearEcBlockHeight() {
-        
-        ecBlockHeight_ = 0;
         onChanged();
         return this;
       }
@@ -74536,37 +74726,69 @@ public final class BrsApi {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * The Account IDs.
+     * </pre>
+     *
      * <code>repeated uint64 ids = 1;</code>
      */
     java.util.List<java.lang.Long> getIdsList();
     /**
+     * <pre>
+     * The Account IDs.
+     * </pre>
+     *
      * <code>repeated uint64 ids = 1;</code>
      */
     int getIdsCount();
     /**
+     * <pre>
+     * The Account IDs.
+     * </pre>
+     *
      * <code>repeated uint64 ids = 1;</code>
      */
     long getIds(int index);
 
     /**
+     * <pre>
+     * The full account objects. Only populated if includeAccounts was set to true in the request.
+     * </pre>
+     *
      * <code>repeated .Account accounts = 2;</code>
      */
     java.util.List<brs.grpc.proto.BrsApi.Account> 
         getAccountsList();
     /**
+     * <pre>
+     * The full account objects. Only populated if includeAccounts was set to true in the request.
+     * </pre>
+     *
      * <code>repeated .Account accounts = 2;</code>
      */
     brs.grpc.proto.BrsApi.Account getAccounts(int index);
     /**
+     * <pre>
+     * The full account objects. Only populated if includeAccounts was set to true in the request.
+     * </pre>
+     *
      * <code>repeated .Account accounts = 2;</code>
      */
     int getAccountsCount();
     /**
+     * <pre>
+     * The full account objects. Only populated if includeAccounts was set to true in the request.
+     * </pre>
+     *
      * <code>repeated .Account accounts = 2;</code>
      */
     java.util.List<? extends brs.grpc.proto.BrsApi.AccountOrBuilder> 
         getAccountsOrBuilderList();
     /**
+     * <pre>
+     * The full account objects. Only populated if includeAccounts was set to true in the request.
+     * </pre>
+     *
      * <code>repeated .Account accounts = 2;</code>
      */
     brs.grpc.proto.BrsApi.AccountOrBuilder getAccountsOrBuilder(
@@ -74683,6 +74905,10 @@ public final class BrsApi {
     public static final int IDS_FIELD_NUMBER = 1;
     private java.util.List<java.lang.Long> ids_;
     /**
+     * <pre>
+     * The Account IDs.
+     * </pre>
+     *
      * <code>repeated uint64 ids = 1;</code>
      */
     public java.util.List<java.lang.Long>
@@ -74690,12 +74916,20 @@ public final class BrsApi {
       return ids_;
     }
     /**
+     * <pre>
+     * The Account IDs.
+     * </pre>
+     *
      * <code>repeated uint64 ids = 1;</code>
      */
     public int getIdsCount() {
       return ids_.size();
     }
     /**
+     * <pre>
+     * The Account IDs.
+     * </pre>
+     *
      * <code>repeated uint64 ids = 1;</code>
      */
     public long getIds(int index) {
@@ -74706,12 +74940,20 @@ public final class BrsApi {
     public static final int ACCOUNTS_FIELD_NUMBER = 2;
     private java.util.List<brs.grpc.proto.BrsApi.Account> accounts_;
     /**
+     * <pre>
+     * The full account objects. Only populated if includeAccounts was set to true in the request.
+     * </pre>
+     *
      * <code>repeated .Account accounts = 2;</code>
      */
     public java.util.List<brs.grpc.proto.BrsApi.Account> getAccountsList() {
       return accounts_;
     }
     /**
+     * <pre>
+     * The full account objects. Only populated if includeAccounts was set to true in the request.
+     * </pre>
+     *
      * <code>repeated .Account accounts = 2;</code>
      */
     public java.util.List<? extends brs.grpc.proto.BrsApi.AccountOrBuilder> 
@@ -74719,18 +74961,30 @@ public final class BrsApi {
       return accounts_;
     }
     /**
+     * <pre>
+     * The full account objects. Only populated if includeAccounts was set to true in the request.
+     * </pre>
+     *
      * <code>repeated .Account accounts = 2;</code>
      */
     public int getAccountsCount() {
       return accounts_.size();
     }
     /**
+     * <pre>
+     * The full account objects. Only populated if includeAccounts was set to true in the request.
+     * </pre>
+     *
      * <code>repeated .Account accounts = 2;</code>
      */
     public brs.grpc.proto.BrsApi.Account getAccounts(int index) {
       return accounts_.get(index);
     }
     /**
+     * <pre>
+     * The full account objects. Only populated if includeAccounts was set to true in the request.
+     * </pre>
+     *
      * <code>repeated .Account accounts = 2;</code>
      */
     public brs.grpc.proto.BrsApi.AccountOrBuilder getAccountsOrBuilder(
@@ -75114,6 +75368,10 @@ public final class BrsApi {
          }
       }
       /**
+       * <pre>
+       * The Account IDs.
+       * </pre>
+       *
        * <code>repeated uint64 ids = 1;</code>
        */
       public java.util.List<java.lang.Long>
@@ -75121,18 +75379,30 @@ public final class BrsApi {
         return java.util.Collections.unmodifiableList(ids_);
       }
       /**
+       * <pre>
+       * The Account IDs.
+       * </pre>
+       *
        * <code>repeated uint64 ids = 1;</code>
        */
       public int getIdsCount() {
         return ids_.size();
       }
       /**
+       * <pre>
+       * The Account IDs.
+       * </pre>
+       *
        * <code>repeated uint64 ids = 1;</code>
        */
       public long getIds(int index) {
         return ids_.get(index);
       }
       /**
+       * <pre>
+       * The Account IDs.
+       * </pre>
+       *
        * <code>repeated uint64 ids = 1;</code>
        */
       public Builder setIds(
@@ -75143,6 +75413,10 @@ public final class BrsApi {
         return this;
       }
       /**
+       * <pre>
+       * The Account IDs.
+       * </pre>
+       *
        * <code>repeated uint64 ids = 1;</code>
        */
       public Builder addIds(long value) {
@@ -75152,6 +75426,10 @@ public final class BrsApi {
         return this;
       }
       /**
+       * <pre>
+       * The Account IDs.
+       * </pre>
+       *
        * <code>repeated uint64 ids = 1;</code>
        */
       public Builder addAllIds(
@@ -75163,6 +75441,10 @@ public final class BrsApi {
         return this;
       }
       /**
+       * <pre>
+       * The Account IDs.
+       * </pre>
+       *
        * <code>repeated uint64 ids = 1;</code>
        */
       public Builder clearIds() {
@@ -75185,6 +75467,10 @@ public final class BrsApi {
           brs.grpc.proto.BrsApi.Account, brs.grpc.proto.BrsApi.Account.Builder, brs.grpc.proto.BrsApi.AccountOrBuilder> accountsBuilder_;
 
       /**
+       * <pre>
+       * The full account objects. Only populated if includeAccounts was set to true in the request.
+       * </pre>
+       *
        * <code>repeated .Account accounts = 2;</code>
        */
       public java.util.List<brs.grpc.proto.BrsApi.Account> getAccountsList() {
@@ -75195,6 +75481,10 @@ public final class BrsApi {
         }
       }
       /**
+       * <pre>
+       * The full account objects. Only populated if includeAccounts was set to true in the request.
+       * </pre>
+       *
        * <code>repeated .Account accounts = 2;</code>
        */
       public int getAccountsCount() {
@@ -75205,6 +75495,10 @@ public final class BrsApi {
         }
       }
       /**
+       * <pre>
+       * The full account objects. Only populated if includeAccounts was set to true in the request.
+       * </pre>
+       *
        * <code>repeated .Account accounts = 2;</code>
        */
       public brs.grpc.proto.BrsApi.Account getAccounts(int index) {
@@ -75215,6 +75509,10 @@ public final class BrsApi {
         }
       }
       /**
+       * <pre>
+       * The full account objects. Only populated if includeAccounts was set to true in the request.
+       * </pre>
+       *
        * <code>repeated .Account accounts = 2;</code>
        */
       public Builder setAccounts(
@@ -75232,6 +75530,10 @@ public final class BrsApi {
         return this;
       }
       /**
+       * <pre>
+       * The full account objects. Only populated if includeAccounts was set to true in the request.
+       * </pre>
+       *
        * <code>repeated .Account accounts = 2;</code>
        */
       public Builder setAccounts(
@@ -75246,6 +75548,10 @@ public final class BrsApi {
         return this;
       }
       /**
+       * <pre>
+       * The full account objects. Only populated if includeAccounts was set to true in the request.
+       * </pre>
+       *
        * <code>repeated .Account accounts = 2;</code>
        */
       public Builder addAccounts(brs.grpc.proto.BrsApi.Account value) {
@@ -75262,6 +75568,10 @@ public final class BrsApi {
         return this;
       }
       /**
+       * <pre>
+       * The full account objects. Only populated if includeAccounts was set to true in the request.
+       * </pre>
+       *
        * <code>repeated .Account accounts = 2;</code>
        */
       public Builder addAccounts(
@@ -75279,6 +75589,10 @@ public final class BrsApi {
         return this;
       }
       /**
+       * <pre>
+       * The full account objects. Only populated if includeAccounts was set to true in the request.
+       * </pre>
+       *
        * <code>repeated .Account accounts = 2;</code>
        */
       public Builder addAccounts(
@@ -75293,6 +75607,10 @@ public final class BrsApi {
         return this;
       }
       /**
+       * <pre>
+       * The full account objects. Only populated if includeAccounts was set to true in the request.
+       * </pre>
+       *
        * <code>repeated .Account accounts = 2;</code>
        */
       public Builder addAccounts(
@@ -75307,6 +75625,10 @@ public final class BrsApi {
         return this;
       }
       /**
+       * <pre>
+       * The full account objects. Only populated if includeAccounts was set to true in the request.
+       * </pre>
+       *
        * <code>repeated .Account accounts = 2;</code>
        */
       public Builder addAllAccounts(
@@ -75322,6 +75644,10 @@ public final class BrsApi {
         return this;
       }
       /**
+       * <pre>
+       * The full account objects. Only populated if includeAccounts was set to true in the request.
+       * </pre>
+       *
        * <code>repeated .Account accounts = 2;</code>
        */
       public Builder clearAccounts() {
@@ -75335,6 +75661,10 @@ public final class BrsApi {
         return this;
       }
       /**
+       * <pre>
+       * The full account objects. Only populated if includeAccounts was set to true in the request.
+       * </pre>
+       *
        * <code>repeated .Account accounts = 2;</code>
        */
       public Builder removeAccounts(int index) {
@@ -75348,6 +75678,10 @@ public final class BrsApi {
         return this;
       }
       /**
+       * <pre>
+       * The full account objects. Only populated if includeAccounts was set to true in the request.
+       * </pre>
+       *
        * <code>repeated .Account accounts = 2;</code>
        */
       public brs.grpc.proto.BrsApi.Account.Builder getAccountsBuilder(
@@ -75355,6 +75689,10 @@ public final class BrsApi {
         return getAccountsFieldBuilder().getBuilder(index);
       }
       /**
+       * <pre>
+       * The full account objects. Only populated if includeAccounts was set to true in the request.
+       * </pre>
+       *
        * <code>repeated .Account accounts = 2;</code>
        */
       public brs.grpc.proto.BrsApi.AccountOrBuilder getAccountsOrBuilder(
@@ -75365,6 +75703,10 @@ public final class BrsApi {
         }
       }
       /**
+       * <pre>
+       * The full account objects. Only populated if includeAccounts was set to true in the request.
+       * </pre>
+       *
        * <code>repeated .Account accounts = 2;</code>
        */
       public java.util.List<? extends brs.grpc.proto.BrsApi.AccountOrBuilder> 
@@ -75376,6 +75718,10 @@ public final class BrsApi {
         }
       }
       /**
+       * <pre>
+       * The full account objects. Only populated if includeAccounts was set to true in the request.
+       * </pre>
+       *
        * <code>repeated .Account accounts = 2;</code>
        */
       public brs.grpc.proto.BrsApi.Account.Builder addAccountsBuilder() {
@@ -75383,6 +75729,10 @@ public final class BrsApi {
             brs.grpc.proto.BrsApi.Account.getDefaultInstance());
       }
       /**
+       * <pre>
+       * The full account objects. Only populated if includeAccounts was set to true in the request.
+       * </pre>
+       *
        * <code>repeated .Account accounts = 2;</code>
        */
       public brs.grpc.proto.BrsApi.Account.Builder addAccountsBuilder(
@@ -75391,6 +75741,10 @@ public final class BrsApi {
             index, brs.grpc.proto.BrsApi.Account.getDefaultInstance());
       }
       /**
+       * <pre>
+       * The full account objects. Only populated if includeAccounts was set to true in the request.
+       * </pre>
+       *
        * <code>repeated .Account accounts = 2;</code>
        */
       public java.util.List<brs.grpc.proto.BrsApi.Account.Builder> 
@@ -81148,228 +81502,230 @@ public final class BrsApi {
       "(\010\022\017\n\007stopped\030\r \001(\010\022\020\n\010finished\030\016 \001(\010\022\014\n" +
       "\004dead\030\017 \001(\010\022\025\n\rminActivation\030\020 \001(\004\022\025\n\rcr" +
       "eationBlock\030\021 \001(\r\"\036\n\nAccountATs\022\020\n\003ats\030\001" +
-      " \003(\0132\003.AT\"\242\002\n\020BasicTransaction\022\016\n\006sender" +
+      " \003(\0132\003.AT\"\337\002\n\020BasicTransaction\022\016\n\006sender" +
       "\030\001 \001(\014\022\021\n\trecipient\030\002 \001(\004\022\017\n\007version\030\003 \001" +
       "(\r\022\014\n\004type\030\004 \001(\r\022\017\n\007subtype\030\005 \001(\r\022\016\n\006amo" +
       "unt\030\006 \001(\004\022\013\n\003fee\030\007 \001(\004\022\021\n\ttimestamp\030\010 \001(" +
       "\r\022\020\n\010deadline\030\t \001(\r\022(\n\nappendages\030\n \003(\0132" +
       "\024.google.protobuf.Any\022(\n\nattachment\030\013 \001(" +
       "\0132\024.google.protobuf.Any\022%\n\035referencedTra" +
-      "nsactionFullHash\030\014 \001(\014\"%\n\016GetPeerRequest" +
-      "\022\023\n\013peerAddress\030\001 \001(\t\"<\n\017GetPeersRequest" +
-      "\022\016\n\006active\030\001 \001(\010\022\031\n\005state\030\002 \001(\0162\n.PeerSt" +
-      "ate\"\345\001\n\004Peer\022\031\n\005state\030\001 \001(\0162\n.PeerState\022" +
-      "\030\n\020announcedAddress\030\002 \001(\t\022\024\n\014shareAddres" +
-      "s\030\003 \001(\010\022\030\n\020downloadedVolume\030\004 \001(\004\022\026\n\016upl" +
-      "oadedVolume\030\005 \001(\004\022\023\n\013application\030\006 \001(\t\022\017" +
-      "\n\007version\030\007 \001(\t\022\020\n\010platform\030\010 \001(\t\022\023\n\013bla" +
-      "cklisted\030\t \001(\010\022\023\n\013lastUpdated\030\n \001(\r\"\036\n\005P" +
-      "eers\022\025\n\rpeerAddresses\030\001 \003(\t\"+\n\017GetAliasR" +
-      "equest\022\n\n\002id\030\001 \001(\004\022\014\n\004name\030\002 \001(\t\"\177\n\005Alia" +
-      "s\022\n\n\002id\030\001 \001(\004\022\r\n\005owner\030\002 \001(\004\022\014\n\004name\030\003 \001" +
-      "(\t\022\013\n\003uri\030\004 \001(\t\022\021\n\ttimestamp\030\005 \001(\r\022\017\n\007of" +
-      "fered\030\006 \001(\010\022\r\n\005price\030\007 \001(\004\022\r\n\005buyer\030\010 \001(" +
-      "\004\"\024\n\004Time\022\014\n\004time\030\001 \001(\r\"\253\003\n\005State\022\023\n\013app" +
-      "lication\030\001 \001(\t\022\017\n\007version\030\002 \001(\t\022\023\n\004time\030" +
-      "\003 \001(\0132\005.Time\022\021\n\tlastBlock\030\004 \001(\004\022\022\n\nlastH" +
-      "eight\030\005 \001(\r\022\034\n\024cumulativeDifficulty\030\006 \001(" +
-      "\t\022\025\n\rnumberOfPeers\030\007 \001(\r\022\033\n\023numberOfActi" +
-      "vePeers\030\010 \001(\r\022\027\n\017numberOfForgers\030\t \001(\r\022\034" +
-      "\n\024lastBlockchainFeeder\030\n \001(\t\022\"\n\032lastBloc" +
-      "kchainFeederHeight\030\013 \001(\r\022\022\n\nisScanning\030\014" +
-      " \001(\010\022\033\n\023availableProcessors\030\r \001(\r\022\021\n\tmax" +
-      "Memory\030\016 \001(\004\022\023\n\013totalMemory\030\017 \001(\004\022\022\n\nfre" +
-      "eMemory\030\020 \001(\004\022&\n\036indirectIncomingService" +
-      "Enabled\030\021 \001(\010\"B\n\rFeeSuggestion\022\r\n\005cheap\030" +
-      "\001 \001(\004\022\020\n\010standard\030\002 \001(\004\022\020\n\010priority\030\003 \001(" +
-      "\004\"9\n\032TransactionBroadcastResult\022\033\n\023numbe" +
-      "rOfPeersSentTo\030\001 \001(\r\"b\n\017GetBlockRequest\022" +
-      "\017\n\007blockId\030\001 \001(\004\022\016\n\006height\030\002 \001(\r\022\021\n\ttime" +
-      "stamp\030\003 \001(\r\022\033\n\023includeTransactions\030\004 \001(\010" +
-      "\"&\n\021GetAccountRequest\022\021\n\taccountId\030\001 \001(\004" +
-      "\"T\n\022GetAccountsRequest\022\027\n\017rewardRecipien" +
-      "t\030\001 \001(\004\022\014\n\004name\030\002 \001(\t\022\027\n\017includeAccounts" +
-      "\030\003 \001(\010\"@\n\025GetTransactionRequest\022\025\n\rtrans" +
-      "actionId\030\001 \001(\004\022\020\n\010fullHash\030\002 \001(\014\"_\n\022Subm" +
-      "itNonceRequest\022\024\n\014secretPhrase\030\001 \001(\t\022\r\n\005" +
-      "nonce\030\002 \001(\004\022\017\n\007account\030\003 \001(\004\022\023\n\013blockHei" +
-      "ght\030\004 \001(\r\"\'\n\023SubmitNonceResponse\022\020\n\010dead" +
-      "line\030\001 \001(\004\"\321\003\n\005Block\022\n\n\002id\030\001 \001(\004\022\016\n\006heig" +
-      "ht\030\002 \001(\r\022\034\n\024numberOfTransactions\030\003 \001(\r\022\023" +
-      "\n\013totalAmount\030\004 \001(\004\022\020\n\010totalFee\030\005 \001(\004\022\023\n" +
-      "\013blockReward\030\006 \001(\004\022\025\n\rpayloadLength\030\007 \001(" +
-      "\004\022\017\n\007version\030\010 \001(\005\022\022\n\nbaseTarget\030\t \001(\004\022\021" +
-      "\n\ttimestamp\030\n \001(\r\022\033\n\023generationSignature" +
-      "\030\013 \001(\014\022\026\n\016blockSignature\030\014 \001(\014\022\023\n\013payloa" +
-      "dHash\030\r \001(\014\022\"\n\014transactions\030\016 \003(\0132\014.Tran" +
-      "saction\022\026\n\016transactionIds\030\017 \003(\004\022\032\n\022gener" +
-      "atorPublicKey\030\020 \001(\014\022\r\n\005nonce\030\021 \001(\004\022\r\n\005sc" +
-      "oop\030\022 \001(\r\022\025\n\rpreviousBlock\030\023 \001(\004\022\021\n\tnext" +
-      "Block\030\024 \001(\004\022\031\n\021previousBlockHash\030\025 \001(\014\"\375" +
-      "\001\n\013Transaction\022&\n\013transaction\030\001 \001(\0132\021.Ba" +
-      "sicTransaction\022\n\n\002id\030\002 \001(\004\022\030\n\020transactio" +
-      "nBytes\030\003 \001(\014\022\r\n\005block\030\004 \001(\004\022\023\n\013blockHeig" +
-      "ht\030\005 \001(\r\022\026\n\016blockTimestamp\030\006 \001(\r\022\021\n\tsign" +
-      "ature\030\007 \001(\014\022\020\n\010fullHash\030\010 \001(\014\022\025\n\rconfirm" +
-      "ations\030\t \001(\021\022\021\n\tecBlockId\030\n \001(\004\022\025\n\recBlo" +
-      "ckHeight\030\013 \001(\r\"C\n\017MessageAppendix\022\017\n\007ver" +
-      "sion\030\001 \001(\r\022\017\n\007message\030\002 \001(\014\022\016\n\006isText\030\003 " +
-      "\001(\010\"\307\001\n\030EncryptedMessageAppendix\022\017\n\007vers" +
-      "ion\030\001 \001(\r\022%\n\rencryptedData\030\002 \001(\0132\016.Encry" +
-      "ptedData\022\016\n\006isText\030\003 \001(\010\022,\n\004type\030\004 \001(\0162\036" +
-      ".EncryptedMessageAppendix.Type\"5\n\004Type\022\016" +
-      "\n\nType_UNSET\020\000\022\020\n\014TO_RECIPIENT\020\001\022\013\n\007TO_S" +
-      "ELF\020\002\"L\n\035PublicKeyAnnouncementAppendix\022\017" +
-      "\n\007version\030\001 \001(\r\022\032\n\022recipientPublicKey\030\002 " +
-      "\001(\014\"\230\001\n\022MultiOutAttachment\022\017\n\007version\030\001 " +
-      "\001(\r\0229\n\nrecipients\030\002 \003(\0132%.MultiOutAttach" +
-      "ment.MultiOutRecipient\0326\n\021MultiOutRecipi" +
-      "ent\022\021\n\trecipient\030\001 \001(\004\022\016\n\006amount\030\002 \001(\004\"=" +
-      "\n\026MultiOutSameAttachment\022\017\n\007version\030\001 \001(" +
-      "\r\022\022\n\nrecipients\030\002 \003(\004\"G\n\031AliasAssignment" +
-      "Attachment\022\017\n\007version\030\001 \001(\r\022\014\n\004name\030\002 \001(" +
-      "\t\022\013\n\003uri\030\003 \001(\t\"C\n\023AliasSellAttachment\022\017\n" +
-      "\007version\030\001 \001(\r\022\014\n\004name\030\002 \001(\t\022\r\n\005price\030\003 " +
-      "\001(\004\"3\n\022AliasBuyAttachment\022\017\n\007version\030\001 \001" +
-      "(\r\022\014\n\004name\030\002 \001(\t\"K\n\025AccountInfoAttachmen" +
-      "t\022\017\n\007version\030\001 \001(\r\022\014\n\004name\030\002 \001(\t\022\023\n\013desc" +
-      "ription\030\003 \001(\t\"q\n\027AssetIssuanceAttachment" +
-      "\022\017\n\007version\030\001 \001(\r\022\014\n\004name\030\002 \001(\t\022\023\n\013descr" +
-      "iption\030\003 \001(\t\022\020\n\010quantity\030\004 \001(\004\022\020\n\010decima" +
-      "ls\030\005 \001(\r\"\\\n\027AssetTransferAttachment\022\017\n\007v" +
-      "ersion\030\001 \001(\r\022\r\n\005asset\030\002 \001(\004\022\020\n\010quantity\030" +
-      "\003 \001(\004\022\017\n\007comment\030\004 \001(\t\"z\n\035AssetOrderPlac" +
-      "ementAttachment\022\017\n\007version\030\001 \001(\r\022\r\n\005asse" +
-      "t\030\002 \001(\004\022\020\n\010quantity\030\003 \001(\004\022\r\n\005price\030\004 \001(\004" +
-      "\022\030\n\004type\030\005 \001(\0162\n.OrderType\"\\\n AssetOrder" +
-      "CancellationAttachment\022\017\n\007version\030\001 \001(\r\022" +
-      "\r\n\005order\030\002 \001(\004\022\030\n\004type\030\003 \001(\0162\n.OrderType" +
-      "\"\202\001\n\035DigitalGoodsListingAttachment\022\017\n\007ve" +
-      "rsion\030\001 \001(\r\022\014\n\004name\030\002 \001(\t\022\023\n\013description" +
-      "\030\003 \001(\t\022\014\n\004tags\030\004 \001(\t\022\020\n\010quantity\030\005 \001(\r\022\r" +
-      "\n\005price\030\006 \001(\004\"A\n\037DigitalGoodsDelistingAt" +
-      "tachment\022\017\n\007version\030\001 \001(\r\022\r\n\005goods\030\002 \001(\004" +
-      "\"R\n!DigitalGoodsPriceChangeAttachment\022\017\n" +
-      "\007version\030\001 \001(\r\022\r\n\005goods\030\002 \001(\004\022\r\n\005price\030\003" +
-      " \001(\004\"]\n$DigitalGoodsQuantityChangeAttach" +
-      "ment\022\017\n\007version\030\001 \001(\r\022\r\n\005goods\030\002 \001(\004\022\025\n\r" +
-      "deltaQuantity\030\003 \001(\021\"\204\001\n\036DigitalGoodsPurc" +
-      "haseAttachment\022\017\n\007version\030\001 \001(\r\022\r\n\005goods" +
-      "\030\002 \001(\004\022\020\n\010quantity\030\003 \001(\r\022\r\n\005price\030\004 \001(\004\022" +
-      "!\n\031deliveryDeadlineTimestmap\030\005 \001(\r\"\204\001\n\036D" +
-      "igitalGoodsDeliveryAttachment\022\017\n\007version" +
-      "\030\001 \001(\r\022\020\n\010purchase\030\002 \001(\004\022\020\n\010discount\030\003 \001" +
-      "(\004\022\035\n\005goods\030\004 \001(\0132\016.EncryptedData\022\016\n\006isT" +
-      "ext\030\005 \001(\010\"C\n\036DigitalGoodsFeedbackAttachm" +
-      "ent\022\017\n\007version\030\001 \001(\r\022\020\n\010purchase\030\002 \001(\004\"Q" +
-      "\n\034DigitalGoodsRefundAttachment\022\017\n\007versio" +
-      "n\030\001 \001(\r\022\020\n\010purchase\030\002 \001(\004\022\016\n\006refund\030\003 \001(" +
-      "\004\"D\n!EffectiveBalanceLeasingAttachment\022\017" +
-      "\n\007version\030\001 \001(\r\022\016\n\006period\030\002 \001(\r\"6\n#Rewar" +
-      "dRecipientAssignmentAttachment\022\017\n\007versio" +
-      "n\030\001 \001(\r\"\244\001\n\030EscrowCreationAttachment\022\017\n\007" +
-      "version\030\001 \001(\r\022\016\n\006amount\030\002 \001(\004\022\027\n\017require" +
-      "dSigners\030\003 \001(\r\022\017\n\007signers\030\004 \003(\004\022\020\n\010deadl" +
-      "ine\030\005 \001(\r\022+\n\016deadlineAction\030\006 \001(\0162\023.Escr" +
-      "owDecisionType\"^\n\024EscrowSignAttachment\022\017" +
-      "\n\007version\030\001 \001(\r\022\016\n\006escrow\030\002 \001(\004\022%\n\010decis" +
-      "ion\030\003 \001(\0162\023.EscrowDecisionType\"`\n\026Escrow" +
-      "ResultAttachment\022\017\n\007version\030\001 \001(\r\022\016\n\006esc" +
-      "row\030\002 \001(\004\022%\n\010decision\030\003 \001(\0162\023.EscrowDeci" +
-      "sionType\"E\n\037SubscriptionSubscribeAttachm" +
-      "ent\022\017\n\007version\030\001 \001(\r\022\021\n\tfrequency\030\002 \001(\r\"" +
-      "E\n\034SubscriptionCancelAttachment\022\017\n\007versi" +
-      "on\030\001 \001(\r\022\024\n\014subscription\030\002 \001(\004\"F\n\035Subscr" +
-      "iptionPaymentAttachment\022\017\n\007version\030\001 \001(\r" +
-      "\022\024\n\014subscription\030\002 \001(\004\"a\n\024ATCreationAtta" +
-      "chment\022\017\n\007version\030\001 \001(\r\022\014\n\004name\030\002 \001(\t\022\023\n" +
-      "\013description\030\003 \001(\t\022\025\n\rcreationBytes\030\004 \001(" +
-      "\014\"3\n\010Accounts\022\013\n\003ids\030\001 \003(\004\022\032\n\010accounts\030\002" +
-      " \003(\0132\010.Account\"\316\001\n\007Account\022\n\n\002id\030\001 \001(\004\022\021" +
-      "\n\tpublicKey\030\002 \001(\014\022\017\n\007balance\030\003 \001(\004\022\032\n\022un" +
-      "confirmedBalance\030\004 \001(\004\022\025\n\rforgedBalance\030" +
-      "\005 \001(\004\022\014\n\004name\030\006 \001(\t\022\023\n\013description\030\007 \001(\t" +
-      "\022\027\n\017rewardRecipient\030\010 \001(\004\022$\n\rassetBalanc" +
-      "es\030\t \003(\0132\r.AssetBalance\"5\n\rAssetBalances" +
-      "\022$\n\rassetBalances\030\001 \003(\0132\r.AssetBalance\"[" +
-      "\n\014AssetBalance\022\r\n\005asset\030\001 \001(\004\022\017\n\007account" +
-      "\030\002 \001(\004\022\017\n\007balance\030\003 \001(\004\022\032\n\022unconfirmedBa" +
-      "lance\030\004 \001(\004\"M\n\nMiningInfo\022\016\n\006height\030\001 \001(" +
-      "\r\022\033\n\023generationSignature\030\002 \001(\014\022\022\n\nbaseTa" +
-      "rget\030\003 \001(\004\",\n\020TransactionBytes\022\030\n\020transa" +
-      "ctionBytes\030\001 \001(\014\"\033\n\031OrdinaryPaymentAttac" +
-      "hment\"\034\n\032ArbitraryMessageAttachment\"\025\n\023A" +
-      "TPaymentAttachment*=\n\016AssetTradeType\022\030\n\024" +
-      "AssetTradeType_UNSET\020\000\022\007\n\003BUY\020\001\022\010\n\004SELL\020" +
-      "\002*T\n\tPeerState\022\023\n\017PeerState_UNSET\020\000\022\021\n\rN" +
-      "ON_CONNECTED\020\001\022\r\n\tCONNECTED\020\002\022\020\n\014DISCONN" +
-      "ECTED\020\003*2\n\tOrderType\022\023\n\017OrderType_UNSET\020" +
-      "\000\022\007\n\003ASK\020\001\022\007\n\003BID\020\002*e\n\022EscrowDecisionTyp" +
-      "e\022\034\n\030EscrowDecisionType_UNSET\020\000\022\r\n\tUNDEC" +
-      "IDED\020\001\022\013\n\007RELEASE\020\002\022\n\n\006REFUND\020\003\022\t\n\005SPLIT" +
-      "\020\0042\244\023\n\rBrsApiService\022H\n\024BroadcastTransac" +
-      "tion\022\021.TransactionBytes\032\033.TransactionBro" +
-      "adcastResult\"\000\022B\n\030CompleteBasicTransacti" +
-      "on\022\021.BasicTransaction\032\021.BasicTransaction" +
-      "\"\000\022,\n\nGetAccount\022\022.GetAccountRequest\032\010.A" +
-      "ccount\"\000\0222\n\rGetAccountATs\022\022.GetAccountRe" +
-      "quest\032\013.AccountATs\"\000\0227\n\020GetAccountBlocks" +
-      "\022\030.GetAccountBlocksRequest\032\007.Blocks\"\000\022>\n" +
-      "\027GetAccountCurrentOrders\022\030.GetAccountOrd" +
-      "ersRequest\032\007.Orders\"\000\022I\n\034GetAccountEscro" +
-      "wTransactions\022\022.GetAccountRequest\032\023.Escr" +
-      "owTransactions\"\000\022/\n\013GetAccounts\022\023.GetAcc" +
-      "ountsRequest\032\t.Accounts\"\000\022?\n\027GetAccountS" +
-      "ubscriptions\022\022.GetAccountRequest\032\016.Subsc" +
-      "riptions\"\000\022I\n\026GetAccountTransactions\022\036.G" +
-      "etAccountTransactionsRequest\032\r.Transacti" +
-      "ons\"\000\022&\n\010GetAlias\022\020.GetAliasRequest\032\006.Al" +
-      "ias\"\000\022,\n\nGetAliases\022\022.GetAliasesRequest\032" +
-      "\010.Aliases\"\000\022%\n\010GetAsset\022\017.GetByIdRequest" +
-      "\032\006.Asset\"\000\022>\n\020GetAssetBalances\022\030.GetAsse" +
-      "tBalancesRequest\032\016.AssetBalances\"\000\022)\n\tGe" +
-      "tAssets\022\021.GetAssetsRequest\032\007.Assets\"\000\0222\n" +
-      "\021GetAssetsByIssuer\022\022.GetAccountRequest\032\007" +
-      ".Assets\"\000\022;\n\016GetAssetTrades\022\031.GetAssetTr" +
-      "ansfersRequest\032\014.AssetTrades\"\000\022A\n\021GetAss" +
-      "etTransfers\022\031.GetAssetTransfersRequest\032\017" +
-      ".AssetTransfers\"\000\022\037\n\005GetAT\022\017.GetByIdRequ" +
-      "est\032\003.AT\"\000\022,\n\010GetATIds\022\026.google.protobuf" +
-      ".Empty\032\006.ATIds\"\000\022&\n\010GetBlock\022\020.GetBlockR" +
-      "equest\032\006.Block\"\000\022)\n\tGetBlocks\022\021.GetBlock" +
-      "sRequest\032\007.Blocks\"\000\0224\n\014GetConstants\022\026.go" +
-      "ogle.protobuf.Empty\032\n.Constants\"\000\022.\n\tGet" +
-      "Counts\022\026.google.protobuf.Empty\032\007.Counts\"" +
-      "\000\0221\n\016GetCurrentTime\022\026.google.protobuf.Em" +
-      "pty\032\005.Time\"\000\022)\n\nGetDgsGood\022\017.GetByIdRequ" +
-      "est\032\010.DgsGood\"\000\022/\n\013GetDgsGoods\022\023.GetDgsG" +
-      "oodsRequest\032\t.DgsGoods\"\000\022I\n\026GetDgsPendin" +
-      "gPurchases\022\036.GetDgsPendingPurchasesReque" +
-      "st\032\r.DgsPurchases\"\000\0221\n\016GetDgsPurchase\022\017." +
-      "GetByIdRequest\032\014.DgsPurchase\"\000\022;\n\017GetDgs" +
-      "Purchases\022\027.GetDgsPurchasesRequest\032\r.Dgs" +
-      "Purchases\"\000\022=\n\024GetEscrowTransaction\022\017.Ge" +
-      "tByIdRequest\032\022.EscrowTransaction\"\000\0228\n\rGe" +
-      "tMiningInfo\022\026.google.protobuf.Empty\032\013.Mi" +
-      "ningInfo\"\0000\001\022&\n\010GetOrder\022\020.GetOrderReque" +
-      "st\032\006.Order\"\000\022)\n\tGetOrders\022\021.GetOrdersReq" +
-      "uest\032\007.Orders\"\000\022#\n\007GetPeer\022\017.GetPeerRequ" +
-      "est\032\005.Peer\"\000\022&\n\010GetPeers\022\020.GetPeersReque" +
-      "st\032\006.Peers\"\000\022,\n\010GetState\022\026.google.protob" +
-      "uf.Empty\032\006.State\"\000\0223\n\017GetSubscription\022\017." +
-      "GetByIdRequest\032\r.Subscription\"\000\022A\n\031GetSu" +
-      "bscriptionsToAccount\022\022.GetAccountRequest" +
-      "\032\016.Subscriptions\"\000\0228\n\016GetTransaction\022\026.G" +
-      "etTransactionRequest\032\014.Transaction\"\000\022=\n\023" +
-      "GetTransactionBytes\022\021.BasicTransaction\032\021" +
-      ".TransactionBytes\"\000\022L\n\032GetUnconfirmedTra" +
-      "nsactions\022\022.GetAccountRequest\032\030.Unconfir" +
-      "medTransactions\"\000\022:\n\020ParseTransaction\022\021." +
-      "TransactionBytes\032\021.BasicTransaction\"\000\022:\n" +
-      "\013SubmitNonce\022\023.SubmitNonceRequest\032\024.Subm" +
-      "itNonceResponse\"\000\0226\n\nSuggestFee\022\026.google" +
-      ".protobuf.Empty\032\016.FeeSuggestion\"\000B\020\n\016brs" +
-      ".grpc.protob\006proto3"
+      "nsactionFullHash\030\014 \001(\014\022\021\n\tecBlockId\030\r \001(" +
+      "\004\022\025\n\recBlockHeight\030\016 \001(\r\022\021\n\tsignature\030\017 " +
+      "\001(\014\"%\n\016GetPeerRequest\022\023\n\013peerAddress\030\001 \001" +
+      "(\t\"<\n\017GetPeersRequest\022\016\n\006active\030\001 \001(\010\022\031\n" +
+      "\005state\030\002 \001(\0162\n.PeerState\"\345\001\n\004Peer\022\031\n\005sta" +
+      "te\030\001 \001(\0162\n.PeerState\022\030\n\020announcedAddress" +
+      "\030\002 \001(\t\022\024\n\014shareAddress\030\003 \001(\010\022\030\n\020download" +
+      "edVolume\030\004 \001(\004\022\026\n\016uploadedVolume\030\005 \001(\004\022\023" +
+      "\n\013application\030\006 \001(\t\022\017\n\007version\030\007 \001(\t\022\020\n\010" +
+      "platform\030\010 \001(\t\022\023\n\013blacklisted\030\t \001(\010\022\023\n\013l" +
+      "astUpdated\030\n \001(\r\"\036\n\005Peers\022\025\n\rpeerAddress" +
+      "es\030\001 \003(\t\"+\n\017GetAliasRequest\022\n\n\002id\030\001 \001(\004\022" +
+      "\014\n\004name\030\002 \001(\t\"\177\n\005Alias\022\n\n\002id\030\001 \001(\004\022\r\n\005ow" +
+      "ner\030\002 \001(\004\022\014\n\004name\030\003 \001(\t\022\013\n\003uri\030\004 \001(\t\022\021\n\t" +
+      "timestamp\030\005 \001(\r\022\017\n\007offered\030\006 \001(\010\022\r\n\005pric" +
+      "e\030\007 \001(\004\022\r\n\005buyer\030\010 \001(\004\"\024\n\004Time\022\014\n\004time\030\001" +
+      " \001(\r\"\253\003\n\005State\022\023\n\013application\030\001 \001(\t\022\017\n\007v" +
+      "ersion\030\002 \001(\t\022\023\n\004time\030\003 \001(\0132\005.Time\022\021\n\tlas" +
+      "tBlock\030\004 \001(\004\022\022\n\nlastHeight\030\005 \001(\r\022\034\n\024cumu" +
+      "lativeDifficulty\030\006 \001(\t\022\025\n\rnumberOfPeers\030" +
+      "\007 \001(\r\022\033\n\023numberOfActivePeers\030\010 \001(\r\022\027\n\017nu" +
+      "mberOfForgers\030\t \001(\r\022\034\n\024lastBlockchainFee" +
+      "der\030\n \001(\t\022\"\n\032lastBlockchainFeederHeight\030" +
+      "\013 \001(\r\022\022\n\nisScanning\030\014 \001(\010\022\033\n\023availablePr" +
+      "ocessors\030\r \001(\r\022\021\n\tmaxMemory\030\016 \001(\004\022\023\n\013tot" +
+      "alMemory\030\017 \001(\004\022\022\n\nfreeMemory\030\020 \001(\004\022&\n\036in" +
+      "directIncomingServiceEnabled\030\021 \001(\010\"B\n\rFe" +
+      "eSuggestion\022\r\n\005cheap\030\001 \001(\004\022\020\n\010standard\030\002" +
+      " \001(\004\022\020\n\010priority\030\003 \001(\004\"9\n\032TransactionBro" +
+      "adcastResult\022\033\n\023numberOfPeersSentTo\030\001 \001(" +
+      "\r\"b\n\017GetBlockRequest\022\017\n\007blockId\030\001 \001(\004\022\016\n" +
+      "\006height\030\002 \001(\r\022\021\n\ttimestamp\030\003 \001(\r\022\033\n\023incl" +
+      "udeTransactions\030\004 \001(\010\"&\n\021GetAccountReque" +
+      "st\022\021\n\taccountId\030\001 \001(\004\"T\n\022GetAccountsRequ" +
+      "est\022\027\n\017rewardRecipient\030\001 \001(\004\022\014\n\004name\030\002 \001" +
+      "(\t\022\027\n\017includeAccounts\030\003 \001(\010\"@\n\025GetTransa" +
+      "ctionRequest\022\025\n\rtransactionId\030\001 \001(\004\022\020\n\010f" +
+      "ullHash\030\002 \001(\014\"_\n\022SubmitNonceRequest\022\024\n\014s" +
+      "ecretPhrase\030\001 \001(\t\022\r\n\005nonce\030\002 \001(\004\022\017\n\007acco" +
+      "unt\030\003 \001(\004\022\023\n\013blockHeight\030\004 \001(\r\"\'\n\023Submit" +
+      "NonceResponse\022\020\n\010deadline\030\001 \001(\004\"\321\003\n\005Bloc" +
+      "k\022\n\n\002id\030\001 \001(\004\022\016\n\006height\030\002 \001(\r\022\034\n\024numberO" +
+      "fTransactions\030\003 \001(\r\022\023\n\013totalAmount\030\004 \001(\004" +
+      "\022\020\n\010totalFee\030\005 \001(\004\022\023\n\013blockReward\030\006 \001(\004\022" +
+      "\025\n\rpayloadLength\030\007 \001(\004\022\017\n\007version\030\010 \001(\005\022" +
+      "\022\n\nbaseTarget\030\t \001(\004\022\021\n\ttimestamp\030\n \001(\r\022\033" +
+      "\n\023generationSignature\030\013 \001(\014\022\026\n\016blockSign" +
+      "ature\030\014 \001(\014\022\023\n\013payloadHash\030\r \001(\014\022\"\n\014tran" +
+      "sactions\030\016 \003(\0132\014.Transaction\022\026\n\016transact" +
+      "ionIds\030\017 \003(\004\022\032\n\022generatorPublicKey\030\020 \001(\014" +
+      "\022\r\n\005nonce\030\021 \001(\004\022\r\n\005scoop\030\022 \001(\r\022\025\n\rprevio" +
+      "usBlock\030\023 \001(\004\022\021\n\tnextBlock\030\024 \001(\004\022\031\n\021prev" +
+      "iousBlockHash\030\025 \001(\014\"\323\001\n\013Transaction\022&\n\013t" +
+      "ransaction\030\001 \001(\0132\021.BasicTransaction\022\n\n\002i" +
+      "d\030\002 \001(\004\022\030\n\020transactionBytes\030\003 \001(\014\022\r\n\005blo" +
+      "ck\030\004 \001(\004\022\023\n\013blockHeight\030\005 \001(\r\022\026\n\016blockTi" +
+      "mestamp\030\006 \001(\r\022\021\n\tsignature\030\007 \001(\014\022\020\n\010full" +
+      "Hash\030\010 \001(\014\022\025\n\rconfirmations\030\t \001(\021\"C\n\017Mes" +
+      "sageAppendix\022\017\n\007version\030\001 \001(\r\022\017\n\007message" +
+      "\030\002 \001(\014\022\016\n\006isText\030\003 \001(\010\"\307\001\n\030EncryptedMess" +
+      "ageAppendix\022\017\n\007version\030\001 \001(\r\022%\n\rencrypte" +
+      "dData\030\002 \001(\0132\016.EncryptedData\022\016\n\006isText\030\003 " +
+      "\001(\010\022,\n\004type\030\004 \001(\0162\036.EncryptedMessageAppe" +
+      "ndix.Type\"5\n\004Type\022\016\n\nType_UNSET\020\000\022\020\n\014TO_" +
+      "RECIPIENT\020\001\022\013\n\007TO_SELF\020\002\"L\n\035PublicKeyAnn" +
+      "ouncementAppendix\022\017\n\007version\030\001 \001(\r\022\032\n\022re" +
+      "cipientPublicKey\030\002 \001(\014\"\230\001\n\022MultiOutAttac" +
+      "hment\022\017\n\007version\030\001 \001(\r\0229\n\nrecipients\030\002 \003" +
+      "(\0132%.MultiOutAttachment.MultiOutRecipien" +
+      "t\0326\n\021MultiOutRecipient\022\021\n\trecipient\030\001 \001(" +
+      "\004\022\016\n\006amount\030\002 \001(\004\"=\n\026MultiOutSameAttachm" +
+      "ent\022\017\n\007version\030\001 \001(\r\022\022\n\nrecipients\030\002 \003(\004" +
+      "\"G\n\031AliasAssignmentAttachment\022\017\n\007version" +
+      "\030\001 \001(\r\022\014\n\004name\030\002 \001(\t\022\013\n\003uri\030\003 \001(\t\"C\n\023Ali" +
+      "asSellAttachment\022\017\n\007version\030\001 \001(\r\022\014\n\004nam" +
+      "e\030\002 \001(\t\022\r\n\005price\030\003 \001(\004\"3\n\022AliasBuyAttach" +
+      "ment\022\017\n\007version\030\001 \001(\r\022\014\n\004name\030\002 \001(\t\"K\n\025A" +
+      "ccountInfoAttachment\022\017\n\007version\030\001 \001(\r\022\014\n" +
+      "\004name\030\002 \001(\t\022\023\n\013description\030\003 \001(\t\"q\n\027Asse" +
+      "tIssuanceAttachment\022\017\n\007version\030\001 \001(\r\022\014\n\004" +
+      "name\030\002 \001(\t\022\023\n\013description\030\003 \001(\t\022\020\n\010quant" +
+      "ity\030\004 \001(\004\022\020\n\010decimals\030\005 \001(\r\"\\\n\027AssetTran" +
+      "sferAttachment\022\017\n\007version\030\001 \001(\r\022\r\n\005asset" +
+      "\030\002 \001(\004\022\020\n\010quantity\030\003 \001(\004\022\017\n\007comment\030\004 \001(" +
+      "\t\"z\n\035AssetOrderPlacementAttachment\022\017\n\007ve" +
+      "rsion\030\001 \001(\r\022\r\n\005asset\030\002 \001(\004\022\020\n\010quantity\030\003" +
+      " \001(\004\022\r\n\005price\030\004 \001(\004\022\030\n\004type\030\005 \001(\0162\n.Orde" +
+      "rType\"\\\n AssetOrderCancellationAttachmen" +
+      "t\022\017\n\007version\030\001 \001(\r\022\r\n\005order\030\002 \001(\004\022\030\n\004typ" +
+      "e\030\003 \001(\0162\n.OrderType\"\202\001\n\035DigitalGoodsList" +
+      "ingAttachment\022\017\n\007version\030\001 \001(\r\022\014\n\004name\030\002" +
+      " \001(\t\022\023\n\013description\030\003 \001(\t\022\014\n\004tags\030\004 \001(\t\022" +
+      "\020\n\010quantity\030\005 \001(\r\022\r\n\005price\030\006 \001(\004\"A\n\037Digi" +
+      "talGoodsDelistingAttachment\022\017\n\007version\030\001" +
+      " \001(\r\022\r\n\005goods\030\002 \001(\004\"R\n!DigitalGoodsPrice" +
+      "ChangeAttachment\022\017\n\007version\030\001 \001(\r\022\r\n\005goo" +
+      "ds\030\002 \001(\004\022\r\n\005price\030\003 \001(\004\"]\n$DigitalGoodsQ" +
+      "uantityChangeAttachment\022\017\n\007version\030\001 \001(\r" +
+      "\022\r\n\005goods\030\002 \001(\004\022\025\n\rdeltaQuantity\030\003 \001(\021\"\204" +
+      "\001\n\036DigitalGoodsPurchaseAttachment\022\017\n\007ver" +
+      "sion\030\001 \001(\r\022\r\n\005goods\030\002 \001(\004\022\020\n\010quantity\030\003 " +
+      "\001(\r\022\r\n\005price\030\004 \001(\004\022!\n\031deliveryDeadlineTi" +
+      "mestmap\030\005 \001(\r\"\204\001\n\036DigitalGoodsDeliveryAt" +
+      "tachment\022\017\n\007version\030\001 \001(\r\022\020\n\010purchase\030\002 " +
+      "\001(\004\022\020\n\010discount\030\003 \001(\004\022\035\n\005goods\030\004 \001(\0132\016.E" +
+      "ncryptedData\022\016\n\006isText\030\005 \001(\010\"C\n\036DigitalG" +
+      "oodsFeedbackAttachment\022\017\n\007version\030\001 \001(\r\022" +
+      "\020\n\010purchase\030\002 \001(\004\"Q\n\034DigitalGoodsRefundA" +
+      "ttachment\022\017\n\007version\030\001 \001(\r\022\020\n\010purchase\030\002" +
+      " \001(\004\022\016\n\006refund\030\003 \001(\004\"D\n!EffectiveBalance" +
+      "LeasingAttachment\022\017\n\007version\030\001 \001(\r\022\016\n\006pe" +
+      "riod\030\002 \001(\r\"6\n#RewardRecipientAssignmentA" +
+      "ttachment\022\017\n\007version\030\001 \001(\r\"\244\001\n\030EscrowCre" +
+      "ationAttachment\022\017\n\007version\030\001 \001(\r\022\016\n\006amou" +
+      "nt\030\002 \001(\004\022\027\n\017requiredSigners\030\003 \001(\r\022\017\n\007sig" +
+      "ners\030\004 \003(\004\022\020\n\010deadline\030\005 \001(\r\022+\n\016deadline" +
+      "Action\030\006 \001(\0162\023.EscrowDecisionType\"^\n\024Esc" +
+      "rowSignAttachment\022\017\n\007version\030\001 \001(\r\022\016\n\006es" +
+      "crow\030\002 \001(\004\022%\n\010decision\030\003 \001(\0162\023.EscrowDec" +
+      "isionType\"`\n\026EscrowResultAttachment\022\017\n\007v" +
+      "ersion\030\001 \001(\r\022\016\n\006escrow\030\002 \001(\004\022%\n\010decision" +
+      "\030\003 \001(\0162\023.EscrowDecisionType\"E\n\037Subscript" +
+      "ionSubscribeAttachment\022\017\n\007version\030\001 \001(\r\022" +
+      "\021\n\tfrequency\030\002 \001(\r\"E\n\034SubscriptionCancel" +
+      "Attachment\022\017\n\007version\030\001 \001(\r\022\024\n\014subscript" +
+      "ion\030\002 \001(\004\"F\n\035SubscriptionPaymentAttachme" +
+      "nt\022\017\n\007version\030\001 \001(\r\022\024\n\014subscription\030\002 \001(" +
+      "\004\"a\n\024ATCreationAttachment\022\017\n\007version\030\001 \001" +
+      "(\r\022\014\n\004name\030\002 \001(\t\022\023\n\013description\030\003 \001(\t\022\025\n" +
+      "\rcreationBytes\030\004 \001(\014\"3\n\010Accounts\022\013\n\003ids\030" +
+      "\001 \003(\004\022\032\n\010accounts\030\002 \003(\0132\010.Account\"\316\001\n\007Ac" +
+      "count\022\n\n\002id\030\001 \001(\004\022\021\n\tpublicKey\030\002 \001(\014\022\017\n\007" +
+      "balance\030\003 \001(\004\022\032\n\022unconfirmedBalance\030\004 \001(" +
+      "\004\022\025\n\rforgedBalance\030\005 \001(\004\022\014\n\004name\030\006 \001(\t\022\023" +
+      "\n\013description\030\007 \001(\t\022\027\n\017rewardRecipient\030\010" +
+      " \001(\004\022$\n\rassetBalances\030\t \003(\0132\r.AssetBalan" +
+      "ce\"5\n\rAssetBalances\022$\n\rassetBalances\030\001 \003" +
+      "(\0132\r.AssetBalance\"[\n\014AssetBalance\022\r\n\005ass" +
+      "et\030\001 \001(\004\022\017\n\007account\030\002 \001(\004\022\017\n\007balance\030\003 \001" +
+      "(\004\022\032\n\022unconfirmedBalance\030\004 \001(\004\"M\n\nMining" +
+      "Info\022\016\n\006height\030\001 \001(\r\022\033\n\023generationSignat" +
+      "ure\030\002 \001(\014\022\022\n\nbaseTarget\030\003 \001(\004\",\n\020Transac" +
+      "tionBytes\022\030\n\020transactionBytes\030\001 \001(\014\"\033\n\031O" +
+      "rdinaryPaymentAttachment\"\034\n\032ArbitraryMes" +
+      "sageAttachment\"\025\n\023ATPaymentAttachment*=\n" +
+      "\016AssetTradeType\022\030\n\024AssetTradeType_UNSET\020" +
+      "\000\022\007\n\003BUY\020\001\022\010\n\004SELL\020\002*T\n\tPeerState\022\023\n\017Pee" +
+      "rState_UNSET\020\000\022\021\n\rNON_CONNECTED\020\001\022\r\n\tCON" +
+      "NECTED\020\002\022\020\n\014DISCONNECTED\020\003*2\n\tOrderType\022" +
+      "\023\n\017OrderType_UNSET\020\000\022\007\n\003ASK\020\001\022\007\n\003BID\020\002*e" +
+      "\n\022EscrowDecisionType\022\034\n\030EscrowDecisionTy" +
+      "pe_UNSET\020\000\022\r\n\tUNDECIDED\020\001\022\013\n\007RELEASE\020\002\022\n" +
+      "\n\006REFUND\020\003\022\t\n\005SPLIT\020\0042\363\023\n\rBrsApiService\022" +
+      "H\n\024BroadcastTransaction\022\021.BasicTransacti" +
+      "on\032\033.TransactionBroadcastResult\"\000\022M\n\031Bro" +
+      "adcastTransactionBytes\022\021.TransactionByte" +
+      "s\032\033.TransactionBroadcastResult\"\000\022B\n\030Comp" +
+      "leteBasicTransaction\022\021.BasicTransaction\032" +
+      "\021.BasicTransaction\"\000\022,\n\nGetAccount\022\022.Get" +
+      "AccountRequest\032\010.Account\"\000\0222\n\rGetAccount" +
+      "ATs\022\022.GetAccountRequest\032\013.AccountATs\"\000\0227" +
+      "\n\020GetAccountBlocks\022\030.GetAccountBlocksReq" +
+      "uest\032\007.Blocks\"\000\022>\n\027GetAccountCurrentOrde" +
+      "rs\022\030.GetAccountOrdersRequest\032\007.Orders\"\000\022" +
+      "I\n\034GetAccountEscrowTransactions\022\022.GetAcc" +
+      "ountRequest\032\023.EscrowTransactions\"\000\022/\n\013Ge" +
+      "tAccounts\022\023.GetAccountsRequest\032\t.Account" +
+      "s\"\000\022?\n\027GetAccountSubscriptions\022\022.GetAcco" +
+      "untRequest\032\016.Subscriptions\"\000\022I\n\026GetAccou" +
+      "ntTransactions\022\036.GetAccountTransactionsR" +
+      "equest\032\r.Transactions\"\000\022&\n\010GetAlias\022\020.Ge" +
+      "tAliasRequest\032\006.Alias\"\000\022,\n\nGetAliases\022\022." +
+      "GetAliasesRequest\032\010.Aliases\"\000\022%\n\010GetAsse" +
+      "t\022\017.GetByIdRequest\032\006.Asset\"\000\022>\n\020GetAsset" +
+      "Balances\022\030.GetAssetBalancesRequest\032\016.Ass" +
+      "etBalances\"\000\022)\n\tGetAssets\022\021.GetAssetsReq" +
+      "uest\032\007.Assets\"\000\0222\n\021GetAssetsByIssuer\022\022.G" +
+      "etAccountRequest\032\007.Assets\"\000\022;\n\016GetAssetT" +
+      "rades\022\031.GetAssetTransfersRequest\032\014.Asset" +
+      "Trades\"\000\022A\n\021GetAssetTransfers\022\031.GetAsset" +
+      "TransfersRequest\032\017.AssetTransfers\"\000\022\037\n\005G" +
+      "etAT\022\017.GetByIdRequest\032\003.AT\"\000\022,\n\010GetATIds" +
+      "\022\026.google.protobuf.Empty\032\006.ATIds\"\000\022&\n\010Ge" +
+      "tBlock\022\020.GetBlockRequest\032\006.Block\"\000\022)\n\tGe" +
+      "tBlocks\022\021.GetBlocksRequest\032\007.Blocks\"\000\0224\n" +
+      "\014GetConstants\022\026.google.protobuf.Empty\032\n." +
+      "Constants\"\000\022.\n\tGetCounts\022\026.google.protob" +
+      "uf.Empty\032\007.Counts\"\000\0221\n\016GetCurrentTime\022\026." +
+      "google.protobuf.Empty\032\005.Time\"\000\022)\n\nGetDgs" +
+      "Good\022\017.GetByIdRequest\032\010.DgsGood\"\000\022/\n\013Get" +
+      "DgsGoods\022\023.GetDgsGoodsRequest\032\t.DgsGoods" +
+      "\"\000\022I\n\026GetDgsPendingPurchases\022\036.GetDgsPen" +
+      "dingPurchasesRequest\032\r.DgsPurchases\"\000\0221\n" +
+      "\016GetDgsPurchase\022\017.GetByIdRequest\032\014.DgsPu" +
+      "rchase\"\000\022;\n\017GetDgsPurchases\022\027.GetDgsPurc" +
+      "hasesRequest\032\r.DgsPurchases\"\000\022=\n\024GetEscr" +
+      "owTransaction\022\017.GetByIdRequest\032\022.EscrowT" +
+      "ransaction\"\000\0228\n\rGetMiningInfo\022\026.google.p" +
+      "rotobuf.Empty\032\013.MiningInfo\"\0000\001\022&\n\010GetOrd" +
+      "er\022\020.GetOrderRequest\032\006.Order\"\000\022)\n\tGetOrd" +
+      "ers\022\021.GetOrdersRequest\032\007.Orders\"\000\022#\n\007Get" +
+      "Peer\022\017.GetPeerRequest\032\005.Peer\"\000\022&\n\010GetPee" +
+      "rs\022\020.GetPeersRequest\032\006.Peers\"\000\022,\n\010GetSta" +
+      "te\022\026.google.protobuf.Empty\032\006.State\"\000\0223\n\017" +
+      "GetSubscription\022\017.GetByIdRequest\032\r.Subsc" +
+      "ription\"\000\022A\n\031GetSubscriptionsToAccount\022\022" +
+      ".GetAccountRequest\032\016.Subscriptions\"\000\0228\n\016" +
+      "GetTransaction\022\026.GetTransactionRequest\032\014" +
+      ".Transaction\"\000\022=\n\023GetTransactionBytes\022\021." +
+      "BasicTransaction\032\021.TransactionBytes\"\000\022L\n" +
+      "\032GetUnconfirmedTransactions\022\022.GetAccount" +
+      "Request\032\030.UnconfirmedTransactions\"\000\022:\n\020P" +
+      "arseTransaction\022\021.TransactionBytes\032\021.Bas" +
+      "icTransaction\"\000\022:\n\013SubmitNonce\022\023.SubmitN" +
+      "onceRequest\032\024.SubmitNonceResponse\"\000\0226\n\nS" +
+      "uggestFee\022\026.google.protobuf.Empty\032\016.FeeS" +
+      "uggestion\"\000B\020\n\016brs.grpc.protob\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -81654,7 +82010,7 @@ public final class BrsApi {
     internal_static_BasicTransaction_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_BasicTransaction_descriptor,
-        new java.lang.String[] { "Sender", "Recipient", "Version", "Type", "Subtype", "Amount", "Fee", "Timestamp", "Deadline", "Appendages", "Attachment", "ReferencedTransactionFullHash", });
+        new java.lang.String[] { "Sender", "Recipient", "Version", "Type", "Subtype", "Amount", "Fee", "Timestamp", "Deadline", "Appendages", "Attachment", "ReferencedTransactionFullHash", "EcBlockId", "EcBlockHeight", "Signature", });
     internal_static_GetPeerRequest_descriptor =
       getDescriptor().getMessageTypes().get(43);
     internal_static_GetPeerRequest_fieldAccessorTable = new
@@ -81762,7 +82118,7 @@ public final class BrsApi {
     internal_static_Transaction_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_Transaction_descriptor,
-        new java.lang.String[] { "Transaction", "Id", "TransactionBytes", "Block", "BlockHeight", "BlockTimestamp", "Signature", "FullHash", "Confirmations", "EcBlockId", "EcBlockHeight", });
+        new java.lang.String[] { "Transaction", "Id", "TransactionBytes", "Block", "BlockHeight", "BlockTimestamp", "Signature", "FullHash", "Confirmations", });
     internal_static_MessageAppendix_descriptor =
       getDescriptor().getMessageTypes().get(61);
     internal_static_MessageAppendix_fieldAccessorTable = new

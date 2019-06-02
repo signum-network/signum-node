@@ -5,30 +5,48 @@ import "google/protobuf/any.proto";
 option java_package = "brs.grpc.proto";
 
 service BrsApiService {
-    rpc BroadcastTransaction(TransactionBytes) returns (TransactionBroadcastResult) {}
+    // Broadcast a transaction to the network.
+    rpc BroadcastTransaction(BasicTransaction) returns (TransactionBroadcastResult) {}
+    // Broadcast a transaction to the network. Takes transaction bytes instead of a BasicTransaction
+    rpc BroadcastTransactionBytes(TransactionBytes) returns (TransactionBroadcastResult) {}
+    // Automatically fills in the following fields: Version (based on current transaction version), type and subtype (based on specified attachment), timestamp (current time). Additionally sets attachment to ordinary payment if it was not set
     rpc CompleteBasicTransaction(BasicTransaction) returns (BasicTransaction) {}
     rpc GetAccount(GetAccountRequest) returns (Account) {}
+    // Get the ATs that an account is the creator of, by the creator's account ID
     rpc GetAccountATs(GetAccountRequest) returns (AccountATs) {}
+    // Get the blocks that an account has forged, by the forger's ID
     rpc GetAccountBlocks(GetAccountBlocksRequest) returns (Blocks) {}
     rpc GetAccountCurrentOrders(GetAccountOrdersRequest) returns (Orders) {}
     rpc GetAccountEscrowTransactions(GetAccountRequest) returns (EscrowTransactions) {}
+    // Get multiple accounts based on the criteria described in GetAccountsRequest. The criteria is an OR selection - I.E. if you specified a reward recipient and a name it would include accounts that have that recipient and that name, including duplicates. Therefore it is recommended to only select one criteria
     rpc GetAccounts(GetAccountsRequest) returns (Accounts) {}
     rpc GetAccountSubscriptions(GetAccountRequest) returns (Subscriptions) {}
     rpc GetAccountTransactions(GetAccountTransactionsRequest) returns (Transactions) {}
     rpc GetAlias(GetAliasRequest) returns (Alias) {}
     rpc GetAliases(GetAliasesRequest) returns (Aliases) {}
     rpc GetAsset(GetByIdRequest) returns (Asset) {}
+    // Get an asset's holders and their balances
     rpc GetAssetBalances(GetAssetBalancesRequest) returns (AssetBalances) {}
+    // Get multiple assets in one go.
     rpc GetAssets(GetAssetsRequest) returns (Assets) {}
+    // Get all assets issued by an account
     rpc GetAssetsByIssuer(GetAccountRequest) returns (Assets) {}
+    // Get all asset trades made by an account
     rpc GetAssetTrades(GetAssetTransfersRequest) returns (AssetTrades) {}
+    // Get all asset transfers made by an account
     rpc GetAssetTransfers(GetAssetTransfersRequest) returns (AssetTransfers) {}
     rpc GetAT(GetByIdRequest) returns (AT) {}
+    // Get all active AT IDs
     rpc GetATIds(google.protobuf.Empty) returns (ATIds) {}
+    // Get a block by ID, height or timestamp
     rpc GetBlock(GetBlockRequest) returns (Block) {}
+    // Get the most recent blocks
     rpc GetBlocks(GetBlocksRequest) returns (Blocks) {}
+    // Get the current blockchain constants
     rpc GetConstants(google.protobuf.Empty) returns (Constants) {}
+    // Get the counts of different blockchain entities
     rpc GetCounts(google.protobuf.Empty) returns (Counts) {}
+    // Get the current Burst time (number of seconds since Burst epoch)
     rpc GetCurrentTime(google.protobuf.Empty) returns (Time) {}
     rpc GetDgsGood(GetByIdRequest) returns (DgsGood) {}
     rpc GetDgsGoods(GetDgsGoodsRequest) returns (DgsGoods) {}
@@ -36,19 +54,25 @@ service BrsApiService {
     rpc GetDgsPurchase(GetByIdRequest) returns (DgsPurchase) {}
     rpc GetDgsPurchases(GetDgsPurchasesRequest) returns (DgsPurchases) {}
     rpc GetEscrowTransaction(GetByIdRequest) returns (EscrowTransaction) {}
+    // Get the mining info for the next block. This is needed to mine.
     rpc GetMiningInfo(google.protobuf.Empty) returns (stream MiningInfo) {}
     rpc GetOrder(GetOrderRequest) returns (Order) {}
     rpc GetOrders(GetOrdersRequest) returns (Orders) {}
     rpc GetPeer(GetPeerRequest) returns (Peer) {}
     rpc GetPeers(GetPeersRequest) returns (Peers) {}
+    // Get the current server state
     rpc GetState(google.protobuf.Empty) returns (State) {}
     rpc GetSubscription(GetByIdRequest) returns (Subscription) {}
     rpc GetSubscriptionsToAccount(GetAccountRequest) returns (Subscriptions) {}
     rpc GetTransaction(GetTransactionRequest) returns (Transaction) {}
+    // Convert a BasicTranscation into its transaction bytes, to be signed. This theoretically can be done offline so will be removed in the future.
     rpc GetTransactionBytes(BasicTransaction) returns (TransactionBytes) {}
     rpc GetUnconfirmedTransactions(GetAccountRequest) returns (UnconfirmedTransactions) {}
+    // Convert TransactionBytes into a BasicTransaction. This theoretically can be done offline so will be removed in the future.
     rpc ParseTransaction(TransactionBytes) returns (BasicTransaction) {}
+    // Submit a nonce to try to forge a block. This requires the passphrase to be sent to the server so should only be performed on local nodes.
     rpc SubmitNonce(SubmitNonceRequest) returns (SubmitNonceResponse) {}
+    // Suggest a fee to use for a transaction
     rpc SuggestFee(google.protobuf.Empty) returns (FeeSuggestion) {}
 }
 
@@ -66,6 +90,7 @@ message GetAccountBlocksRequest {
     uint64 accountId = 1;
     uint32 timestamp = 2;
     IndexRange indexRange = 3;
+    // Include the full transaction objects of the block as well as the IDs
     bool includeTransactions = 4;
 }
 
@@ -373,6 +398,7 @@ message AccountATs {
     repeated AT ats = 1;
 }
 
+// A basic transaction represents all of the data that you would find in the transaction bytes.
 message BasicTransaction {
     bytes sender = 1;
     uint64 recipient = 2;
@@ -386,6 +412,9 @@ message BasicTransaction {
     repeated google.protobuf.Any appendages = 10;
     google.protobuf.Any attachment = 11;
     bytes referencedTransactionFullHash = 12;
+    uint64 ecBlockId = 13;
+    uint32 ecBlockHeight = 14;
+    bytes signature = 15;
 }
 
 message GetPeerRequest {
@@ -438,6 +467,7 @@ message Alias {
 }
 
 message Time {
+    // Number of seconds since the Burst epoch (2014-08-11 02:00:00 UTC)
     uint32 time = 1;
 }
 
@@ -468,7 +498,8 @@ message FeeSuggestion {
 }
 
 message TransactionBroadcastResult {
-    uint32 numberOfPeersSentTo = 1; // Does not include ourselves!
+    // The number of peers this transaction was broadcast to, not including the server.
+    uint32 numberOfPeersSentTo = 1;
 }
 
 message GetBlockRequest {
@@ -483,8 +514,11 @@ message GetAccountRequest {
 }
 
 message GetAccountsRequest {
+    // The reward recipient of the accounts
     uint64 rewardRecipient = 1;
+    // The name of the accounts
     string name = 2;
+    // Whether to include the full account object in the response. If this is set to false, Accounts.accounts will not be populated.
     bool includeAccounts = 3;
 }
 
@@ -538,8 +572,6 @@ message Transaction {
     bytes signature = 7;
     bytes fullHash = 8;
     sint32 confirmations = 9;
-    uint64 ecBlockId = 10;
-    uint32 ecBlockHeight = 11;
 }
 
 message MessageAppendix {
@@ -753,7 +785,9 @@ enum EscrowDecisionType {
 }
 
 message Accounts {
+    // The Account IDs.
     repeated uint64 ids = 1;
+    // The full account objects. Only populated if includeAccounts was set to true in the request.
     repeated Account accounts = 2;
 }
 

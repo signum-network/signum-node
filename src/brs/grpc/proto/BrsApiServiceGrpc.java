@@ -20,28 +20,28 @@ public final class BrsApiServiceGrpc {
   public static final String SERVICE_NAME = "BrsApiService";
 
   // Static method descriptors that strictly reflect the proto.
-  private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.TransactionBytes,
+  private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.BasicTransaction,
       brs.grpc.proto.BrsApi.TransactionBroadcastResult> getBroadcastTransactionMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "BroadcastTransaction",
-      requestType = brs.grpc.proto.BrsApi.TransactionBytes.class,
+      requestType = brs.grpc.proto.BrsApi.BasicTransaction.class,
       responseType = brs.grpc.proto.BrsApi.TransactionBroadcastResult.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.TransactionBytes,
+  public static io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.BasicTransaction,
       brs.grpc.proto.BrsApi.TransactionBroadcastResult> getBroadcastTransactionMethod() {
-    io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.TransactionBytes, brs.grpc.proto.BrsApi.TransactionBroadcastResult> getBroadcastTransactionMethod;
+    io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.BasicTransaction, brs.grpc.proto.BrsApi.TransactionBroadcastResult> getBroadcastTransactionMethod;
     if ((getBroadcastTransactionMethod = BrsApiServiceGrpc.getBroadcastTransactionMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getBroadcastTransactionMethod = BrsApiServiceGrpc.getBroadcastTransactionMethod) == null) {
           BrsApiServiceGrpc.getBroadcastTransactionMethod = getBroadcastTransactionMethod = 
-              io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.TransactionBytes, brs.grpc.proto.BrsApi.TransactionBroadcastResult>newBuilder()
+              io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.BasicTransaction, brs.grpc.proto.BrsApi.TransactionBroadcastResult>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
                   "BrsApiService", "BroadcastTransaction"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  brs.grpc.proto.BrsApi.TransactionBytes.getDefaultInstance()))
+                  brs.grpc.proto.BrsApi.BasicTransaction.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.TransactionBroadcastResult.getDefaultInstance()))
                   .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("BroadcastTransaction"))
@@ -50,6 +50,38 @@ public final class BrsApiServiceGrpc {
         }
      }
      return getBroadcastTransactionMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.TransactionBytes,
+      brs.grpc.proto.BrsApi.TransactionBroadcastResult> getBroadcastTransactionBytesMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "BroadcastTransactionBytes",
+      requestType = brs.grpc.proto.BrsApi.TransactionBytes.class,
+      responseType = brs.grpc.proto.BrsApi.TransactionBroadcastResult.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.TransactionBytes,
+      brs.grpc.proto.BrsApi.TransactionBroadcastResult> getBroadcastTransactionBytesMethod() {
+    io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.TransactionBytes, brs.grpc.proto.BrsApi.TransactionBroadcastResult> getBroadcastTransactionBytesMethod;
+    if ((getBroadcastTransactionBytesMethod = BrsApiServiceGrpc.getBroadcastTransactionBytesMethod) == null) {
+      synchronized (BrsApiServiceGrpc.class) {
+        if ((getBroadcastTransactionBytesMethod = BrsApiServiceGrpc.getBroadcastTransactionBytesMethod) == null) {
+          BrsApiServiceGrpc.getBroadcastTransactionBytesMethod = getBroadcastTransactionBytesMethod = 
+              io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.TransactionBytes, brs.grpc.proto.BrsApi.TransactionBroadcastResult>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "BrsApiService", "BroadcastTransactionBytes"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  brs.grpc.proto.BrsApi.TransactionBytes.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  brs.grpc.proto.BrsApi.TransactionBroadcastResult.getDefaultInstance()))
+                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("BroadcastTransactionBytes"))
+                  .build();
+          }
+        }
+     }
+     return getBroadcastTransactionBytesMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.BasicTransaction,
@@ -1488,13 +1520,29 @@ public final class BrsApiServiceGrpc {
   public static abstract class BrsApiServiceImplBase implements io.grpc.BindableService {
 
     /**
+     * <pre>
+     * Broadcast a transaction to the network.
+     * </pre>
      */
-    public void broadcastTransaction(brs.grpc.proto.BrsApi.TransactionBytes request,
+    public void broadcastTransaction(brs.grpc.proto.BrsApi.BasicTransaction request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.TransactionBroadcastResult> responseObserver) {
       asyncUnimplementedUnaryCall(getBroadcastTransactionMethod(), responseObserver);
     }
 
     /**
+     * <pre>
+     * Broadcast a transaction to the network. Takes transaction bytes instead of a BasicTransaction
+     * </pre>
+     */
+    public void broadcastTransactionBytes(brs.grpc.proto.BrsApi.TransactionBytes request,
+        io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.TransactionBroadcastResult> responseObserver) {
+      asyncUnimplementedUnaryCall(getBroadcastTransactionBytesMethod(), responseObserver);
+    }
+
+    /**
+     * <pre>
+     * Automatically fills in the following fields: Version (based on current transaction version), type and subtype (based on specified attachment), timestamp (current time). Additionally sets attachment to ordinary payment if it was not set
+     * </pre>
      */
     public void completeBasicTransaction(brs.grpc.proto.BrsApi.BasicTransaction request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.BasicTransaction> responseObserver) {
@@ -1509,6 +1557,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the ATs that an account is the creator of, by the creator's account ID
+     * </pre>
      */
     public void getAccountATs(brs.grpc.proto.BrsApi.GetAccountRequest request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.AccountATs> responseObserver) {
@@ -1516,6 +1567,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the blocks that an account has forged, by the forger's ID
+     * </pre>
      */
     public void getAccountBlocks(brs.grpc.proto.BrsApi.GetAccountBlocksRequest request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.Blocks> responseObserver) {
@@ -1537,6 +1591,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get multiple accounts based on the criteria described in GetAccountsRequest. The criteria is an OR selection - I.E. if you specified a reward recipient and a name it would include accounts that have that recipient and that name, including duplicates. Therefore it is recommended to only select one criteria
+     * </pre>
      */
     public void getAccounts(brs.grpc.proto.BrsApi.GetAccountsRequest request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.Accounts> responseObserver) {
@@ -1579,6 +1636,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get an asset's holders and their balances
+     * </pre>
      */
     public void getAssetBalances(brs.grpc.proto.BrsApi.GetAssetBalancesRequest request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.AssetBalances> responseObserver) {
@@ -1586,6 +1646,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get multiple assets in one go.
+     * </pre>
      */
     public void getAssets(brs.grpc.proto.BrsApi.GetAssetsRequest request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.Assets> responseObserver) {
@@ -1593,6 +1656,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get all assets issued by an account
+     * </pre>
      */
     public void getAssetsByIssuer(brs.grpc.proto.BrsApi.GetAccountRequest request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.Assets> responseObserver) {
@@ -1600,6 +1666,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get all asset trades made by an account
+     * </pre>
      */
     public void getAssetTrades(brs.grpc.proto.BrsApi.GetAssetTransfersRequest request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.AssetTrades> responseObserver) {
@@ -1607,6 +1676,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get all asset transfers made by an account
+     * </pre>
      */
     public void getAssetTransfers(brs.grpc.proto.BrsApi.GetAssetTransfersRequest request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.AssetTransfers> responseObserver) {
@@ -1621,6 +1693,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get all active AT IDs
+     * </pre>
      */
     public void getATIds(com.google.protobuf.Empty request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.ATIds> responseObserver) {
@@ -1628,6 +1703,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get a block by ID, height or timestamp
+     * </pre>
      */
     public void getBlock(brs.grpc.proto.BrsApi.GetBlockRequest request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.Block> responseObserver) {
@@ -1635,6 +1713,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the most recent blocks
+     * </pre>
      */
     public void getBlocks(brs.grpc.proto.BrsApi.GetBlocksRequest request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.Blocks> responseObserver) {
@@ -1642,6 +1723,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the current blockchain constants
+     * </pre>
      */
     public void getConstants(com.google.protobuf.Empty request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.Constants> responseObserver) {
@@ -1649,6 +1733,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the counts of different blockchain entities
+     * </pre>
      */
     public void getCounts(com.google.protobuf.Empty request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.Counts> responseObserver) {
@@ -1656,6 +1743,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the current Burst time (number of seconds since Burst epoch)
+     * </pre>
      */
     public void getCurrentTime(com.google.protobuf.Empty request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.Time> responseObserver) {
@@ -1705,6 +1795,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the mining info for the next block. This is needed to mine.
+     * </pre>
      */
     public void getMiningInfo(com.google.protobuf.Empty request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.MiningInfo> responseObserver) {
@@ -1740,6 +1833,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the current server state
+     * </pre>
      */
     public void getState(com.google.protobuf.Empty request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.State> responseObserver) {
@@ -1768,6 +1864,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Convert a BasicTranscation into its transaction bytes, to be signed. This theoretically can be done offline so will be removed in the future.
+     * </pre>
      */
     public void getTransactionBytes(brs.grpc.proto.BrsApi.BasicTransaction request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.TransactionBytes> responseObserver) {
@@ -1782,6 +1881,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Convert TransactionBytes into a BasicTransaction. This theoretically can be done offline so will be removed in the future.
+     * </pre>
      */
     public void parseTransaction(brs.grpc.proto.BrsApi.TransactionBytes request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.BasicTransaction> responseObserver) {
@@ -1789,6 +1891,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Submit a nonce to try to forge a block. This requires the passphrase to be sent to the server so should only be performed on local nodes.
+     * </pre>
      */
     public void submitNonce(brs.grpc.proto.BrsApi.SubmitNonceRequest request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.SubmitNonceResponse> responseObserver) {
@@ -1796,6 +1901,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Suggest a fee to use for a transaction
+     * </pre>
      */
     public void suggestFee(com.google.protobuf.Empty request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.FeeSuggestion> responseObserver) {
@@ -1808,9 +1916,16 @@ public final class BrsApiServiceGrpc {
             getBroadcastTransactionMethod(),
             asyncUnaryCall(
               new MethodHandlers<
-                brs.grpc.proto.BrsApi.TransactionBytes,
+                brs.grpc.proto.BrsApi.BasicTransaction,
                 brs.grpc.proto.BrsApi.TransactionBroadcastResult>(
                   this, METHODID_BROADCAST_TRANSACTION)))
+          .addMethod(
+            getBroadcastTransactionBytesMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                brs.grpc.proto.BrsApi.TransactionBytes,
+                brs.grpc.proto.BrsApi.TransactionBroadcastResult>(
+                  this, METHODID_BROADCAST_TRANSACTION_BYTES)))
           .addMethod(
             getCompleteBasicTransactionMethod(),
             asyncUnaryCall(
@@ -2142,14 +2257,31 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Broadcast a transaction to the network.
+     * </pre>
      */
-    public void broadcastTransaction(brs.grpc.proto.BrsApi.TransactionBytes request,
+    public void broadcastTransaction(brs.grpc.proto.BrsApi.BasicTransaction request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.TransactionBroadcastResult> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getBroadcastTransactionMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
+     * <pre>
+     * Broadcast a transaction to the network. Takes transaction bytes instead of a BasicTransaction
+     * </pre>
+     */
+    public void broadcastTransactionBytes(brs.grpc.proto.BrsApi.TransactionBytes request,
+        io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.TransactionBroadcastResult> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getBroadcastTransactionBytesMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     * <pre>
+     * Automatically fills in the following fields: Version (based on current transaction version), type and subtype (based on specified attachment), timestamp (current time). Additionally sets attachment to ordinary payment if it was not set
+     * </pre>
      */
     public void completeBasicTransaction(brs.grpc.proto.BrsApi.BasicTransaction request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.BasicTransaction> responseObserver) {
@@ -2166,6 +2298,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the ATs that an account is the creator of, by the creator's account ID
+     * </pre>
      */
     public void getAccountATs(brs.grpc.proto.BrsApi.GetAccountRequest request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.AccountATs> responseObserver) {
@@ -2174,6 +2309,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the blocks that an account has forged, by the forger's ID
+     * </pre>
      */
     public void getAccountBlocks(brs.grpc.proto.BrsApi.GetAccountBlocksRequest request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.Blocks> responseObserver) {
@@ -2198,6 +2336,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get multiple accounts based on the criteria described in GetAccountsRequest. The criteria is an OR selection - I.E. if you specified a reward recipient and a name it would include accounts that have that recipient and that name, including duplicates. Therefore it is recommended to only select one criteria
+     * </pre>
      */
     public void getAccounts(brs.grpc.proto.BrsApi.GetAccountsRequest request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.Accounts> responseObserver) {
@@ -2246,6 +2387,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get an asset's holders and their balances
+     * </pre>
      */
     public void getAssetBalances(brs.grpc.proto.BrsApi.GetAssetBalancesRequest request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.AssetBalances> responseObserver) {
@@ -2254,6 +2398,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get multiple assets in one go.
+     * </pre>
      */
     public void getAssets(brs.grpc.proto.BrsApi.GetAssetsRequest request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.Assets> responseObserver) {
@@ -2262,6 +2409,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get all assets issued by an account
+     * </pre>
      */
     public void getAssetsByIssuer(brs.grpc.proto.BrsApi.GetAccountRequest request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.Assets> responseObserver) {
@@ -2270,6 +2420,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get all asset trades made by an account
+     * </pre>
      */
     public void getAssetTrades(brs.grpc.proto.BrsApi.GetAssetTransfersRequest request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.AssetTrades> responseObserver) {
@@ -2278,6 +2431,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get all asset transfers made by an account
+     * </pre>
      */
     public void getAssetTransfers(brs.grpc.proto.BrsApi.GetAssetTransfersRequest request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.AssetTransfers> responseObserver) {
@@ -2294,6 +2450,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get all active AT IDs
+     * </pre>
      */
     public void getATIds(com.google.protobuf.Empty request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.ATIds> responseObserver) {
@@ -2302,6 +2461,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get a block by ID, height or timestamp
+     * </pre>
      */
     public void getBlock(brs.grpc.proto.BrsApi.GetBlockRequest request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.Block> responseObserver) {
@@ -2310,6 +2472,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the most recent blocks
+     * </pre>
      */
     public void getBlocks(brs.grpc.proto.BrsApi.GetBlocksRequest request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.Blocks> responseObserver) {
@@ -2318,6 +2483,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the current blockchain constants
+     * </pre>
      */
     public void getConstants(com.google.protobuf.Empty request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.Constants> responseObserver) {
@@ -2326,6 +2494,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the counts of different blockchain entities
+     * </pre>
      */
     public void getCounts(com.google.protobuf.Empty request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.Counts> responseObserver) {
@@ -2334,6 +2505,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the current Burst time (number of seconds since Burst epoch)
+     * </pre>
      */
     public void getCurrentTime(com.google.protobuf.Empty request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.Time> responseObserver) {
@@ -2390,6 +2564,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the mining info for the next block. This is needed to mine.
+     * </pre>
      */
     public void getMiningInfo(com.google.protobuf.Empty request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.MiningInfo> responseObserver) {
@@ -2430,6 +2607,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the current server state
+     * </pre>
      */
     public void getState(com.google.protobuf.Empty request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.State> responseObserver) {
@@ -2462,6 +2642,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Convert a BasicTranscation into its transaction bytes, to be signed. This theoretically can be done offline so will be removed in the future.
+     * </pre>
      */
     public void getTransactionBytes(brs.grpc.proto.BrsApi.BasicTransaction request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.TransactionBytes> responseObserver) {
@@ -2478,6 +2661,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Convert TransactionBytes into a BasicTransaction. This theoretically can be done offline so will be removed in the future.
+     * </pre>
      */
     public void parseTransaction(brs.grpc.proto.BrsApi.TransactionBytes request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.BasicTransaction> responseObserver) {
@@ -2486,6 +2672,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Submit a nonce to try to forge a block. This requires the passphrase to be sent to the server so should only be performed on local nodes.
+     * </pre>
      */
     public void submitNonce(brs.grpc.proto.BrsApi.SubmitNonceRequest request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.SubmitNonceResponse> responseObserver) {
@@ -2494,6 +2683,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Suggest a fee to use for a transaction
+     * </pre>
      */
     public void suggestFee(com.google.protobuf.Empty request,
         io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.FeeSuggestion> responseObserver) {
@@ -2521,13 +2713,29 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Broadcast a transaction to the network.
+     * </pre>
      */
-    public brs.grpc.proto.BrsApi.TransactionBroadcastResult broadcastTransaction(brs.grpc.proto.BrsApi.TransactionBytes request) {
+    public brs.grpc.proto.BrsApi.TransactionBroadcastResult broadcastTransaction(brs.grpc.proto.BrsApi.BasicTransaction request) {
       return blockingUnaryCall(
           getChannel(), getBroadcastTransactionMethod(), getCallOptions(), request);
     }
 
     /**
+     * <pre>
+     * Broadcast a transaction to the network. Takes transaction bytes instead of a BasicTransaction
+     * </pre>
+     */
+    public brs.grpc.proto.BrsApi.TransactionBroadcastResult broadcastTransactionBytes(brs.grpc.proto.BrsApi.TransactionBytes request) {
+      return blockingUnaryCall(
+          getChannel(), getBroadcastTransactionBytesMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     * Automatically fills in the following fields: Version (based on current transaction version), type and subtype (based on specified attachment), timestamp (current time). Additionally sets attachment to ordinary payment if it was not set
+     * </pre>
      */
     public brs.grpc.proto.BrsApi.BasicTransaction completeBasicTransaction(brs.grpc.proto.BrsApi.BasicTransaction request) {
       return blockingUnaryCall(
@@ -2542,6 +2750,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the ATs that an account is the creator of, by the creator's account ID
+     * </pre>
      */
     public brs.grpc.proto.BrsApi.AccountATs getAccountATs(brs.grpc.proto.BrsApi.GetAccountRequest request) {
       return blockingUnaryCall(
@@ -2549,6 +2760,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the blocks that an account has forged, by the forger's ID
+     * </pre>
      */
     public brs.grpc.proto.BrsApi.Blocks getAccountBlocks(brs.grpc.proto.BrsApi.GetAccountBlocksRequest request) {
       return blockingUnaryCall(
@@ -2570,6 +2784,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get multiple accounts based on the criteria described in GetAccountsRequest. The criteria is an OR selection - I.E. if you specified a reward recipient and a name it would include accounts that have that recipient and that name, including duplicates. Therefore it is recommended to only select one criteria
+     * </pre>
      */
     public brs.grpc.proto.BrsApi.Accounts getAccounts(brs.grpc.proto.BrsApi.GetAccountsRequest request) {
       return blockingUnaryCall(
@@ -2612,6 +2829,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get an asset's holders and their balances
+     * </pre>
      */
     public brs.grpc.proto.BrsApi.AssetBalances getAssetBalances(brs.grpc.proto.BrsApi.GetAssetBalancesRequest request) {
       return blockingUnaryCall(
@@ -2619,6 +2839,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get multiple assets in one go.
+     * </pre>
      */
     public brs.grpc.proto.BrsApi.Assets getAssets(brs.grpc.proto.BrsApi.GetAssetsRequest request) {
       return blockingUnaryCall(
@@ -2626,6 +2849,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get all assets issued by an account
+     * </pre>
      */
     public brs.grpc.proto.BrsApi.Assets getAssetsByIssuer(brs.grpc.proto.BrsApi.GetAccountRequest request) {
       return blockingUnaryCall(
@@ -2633,6 +2859,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get all asset trades made by an account
+     * </pre>
      */
     public brs.grpc.proto.BrsApi.AssetTrades getAssetTrades(brs.grpc.proto.BrsApi.GetAssetTransfersRequest request) {
       return blockingUnaryCall(
@@ -2640,6 +2869,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get all asset transfers made by an account
+     * </pre>
      */
     public brs.grpc.proto.BrsApi.AssetTransfers getAssetTransfers(brs.grpc.proto.BrsApi.GetAssetTransfersRequest request) {
       return blockingUnaryCall(
@@ -2654,6 +2886,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get all active AT IDs
+     * </pre>
      */
     public brs.grpc.proto.BrsApi.ATIds getATIds(com.google.protobuf.Empty request) {
       return blockingUnaryCall(
@@ -2661,6 +2896,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get a block by ID, height or timestamp
+     * </pre>
      */
     public brs.grpc.proto.BrsApi.Block getBlock(brs.grpc.proto.BrsApi.GetBlockRequest request) {
       return blockingUnaryCall(
@@ -2668,6 +2906,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the most recent blocks
+     * </pre>
      */
     public brs.grpc.proto.BrsApi.Blocks getBlocks(brs.grpc.proto.BrsApi.GetBlocksRequest request) {
       return blockingUnaryCall(
@@ -2675,6 +2916,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the current blockchain constants
+     * </pre>
      */
     public brs.grpc.proto.BrsApi.Constants getConstants(com.google.protobuf.Empty request) {
       return blockingUnaryCall(
@@ -2682,6 +2926,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the counts of different blockchain entities
+     * </pre>
      */
     public brs.grpc.proto.BrsApi.Counts getCounts(com.google.protobuf.Empty request) {
       return blockingUnaryCall(
@@ -2689,6 +2936,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the current Burst time (number of seconds since Burst epoch)
+     * </pre>
      */
     public brs.grpc.proto.BrsApi.Time getCurrentTime(com.google.protobuf.Empty request) {
       return blockingUnaryCall(
@@ -2738,6 +2988,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the mining info for the next block. This is needed to mine.
+     * </pre>
      */
     public java.util.Iterator<brs.grpc.proto.BrsApi.MiningInfo> getMiningInfo(
         com.google.protobuf.Empty request) {
@@ -2774,6 +3027,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the current server state
+     * </pre>
      */
     public brs.grpc.proto.BrsApi.State getState(com.google.protobuf.Empty request) {
       return blockingUnaryCall(
@@ -2802,6 +3058,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Convert a BasicTranscation into its transaction bytes, to be signed. This theoretically can be done offline so will be removed in the future.
+     * </pre>
      */
     public brs.grpc.proto.BrsApi.TransactionBytes getTransactionBytes(brs.grpc.proto.BrsApi.BasicTransaction request) {
       return blockingUnaryCall(
@@ -2816,6 +3075,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Convert TransactionBytes into a BasicTransaction. This theoretically can be done offline so will be removed in the future.
+     * </pre>
      */
     public brs.grpc.proto.BrsApi.BasicTransaction parseTransaction(brs.grpc.proto.BrsApi.TransactionBytes request) {
       return blockingUnaryCall(
@@ -2823,6 +3085,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Submit a nonce to try to forge a block. This requires the passphrase to be sent to the server so should only be performed on local nodes.
+     * </pre>
      */
     public brs.grpc.proto.BrsApi.SubmitNonceResponse submitNonce(brs.grpc.proto.BrsApi.SubmitNonceRequest request) {
       return blockingUnaryCall(
@@ -2830,6 +3095,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Suggest a fee to use for a transaction
+     * </pre>
      */
     public brs.grpc.proto.BrsApi.FeeSuggestion suggestFee(com.google.protobuf.Empty request) {
       return blockingUnaryCall(
@@ -2856,14 +3124,31 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Broadcast a transaction to the network.
+     * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<brs.grpc.proto.BrsApi.TransactionBroadcastResult> broadcastTransaction(
-        brs.grpc.proto.BrsApi.TransactionBytes request) {
+        brs.grpc.proto.BrsApi.BasicTransaction request) {
       return futureUnaryCall(
           getChannel().newCall(getBroadcastTransactionMethod(), getCallOptions()), request);
     }
 
     /**
+     * <pre>
+     * Broadcast a transaction to the network. Takes transaction bytes instead of a BasicTransaction
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<brs.grpc.proto.BrsApi.TransactionBroadcastResult> broadcastTransactionBytes(
+        brs.grpc.proto.BrsApi.TransactionBytes request) {
+      return futureUnaryCall(
+          getChannel().newCall(getBroadcastTransactionBytesMethod(), getCallOptions()), request);
+    }
+
+    /**
+     * <pre>
+     * Automatically fills in the following fields: Version (based on current transaction version), type and subtype (based on specified attachment), timestamp (current time). Additionally sets attachment to ordinary payment if it was not set
+     * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<brs.grpc.proto.BrsApi.BasicTransaction> completeBasicTransaction(
         brs.grpc.proto.BrsApi.BasicTransaction request) {
@@ -2880,6 +3165,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the ATs that an account is the creator of, by the creator's account ID
+     * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<brs.grpc.proto.BrsApi.AccountATs> getAccountATs(
         brs.grpc.proto.BrsApi.GetAccountRequest request) {
@@ -2888,6 +3176,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the blocks that an account has forged, by the forger's ID
+     * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<brs.grpc.proto.BrsApi.Blocks> getAccountBlocks(
         brs.grpc.proto.BrsApi.GetAccountBlocksRequest request) {
@@ -2912,6 +3203,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get multiple accounts based on the criteria described in GetAccountsRequest. The criteria is an OR selection - I.E. if you specified a reward recipient and a name it would include accounts that have that recipient and that name, including duplicates. Therefore it is recommended to only select one criteria
+     * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<brs.grpc.proto.BrsApi.Accounts> getAccounts(
         brs.grpc.proto.BrsApi.GetAccountsRequest request) {
@@ -2960,6 +3254,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get an asset's holders and their balances
+     * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<brs.grpc.proto.BrsApi.AssetBalances> getAssetBalances(
         brs.grpc.proto.BrsApi.GetAssetBalancesRequest request) {
@@ -2968,6 +3265,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get multiple assets in one go.
+     * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<brs.grpc.proto.BrsApi.Assets> getAssets(
         brs.grpc.proto.BrsApi.GetAssetsRequest request) {
@@ -2976,6 +3276,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get all assets issued by an account
+     * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<brs.grpc.proto.BrsApi.Assets> getAssetsByIssuer(
         brs.grpc.proto.BrsApi.GetAccountRequest request) {
@@ -2984,6 +3287,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get all asset trades made by an account
+     * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<brs.grpc.proto.BrsApi.AssetTrades> getAssetTrades(
         brs.grpc.proto.BrsApi.GetAssetTransfersRequest request) {
@@ -2992,6 +3298,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get all asset transfers made by an account
+     * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<brs.grpc.proto.BrsApi.AssetTransfers> getAssetTransfers(
         brs.grpc.proto.BrsApi.GetAssetTransfersRequest request) {
@@ -3008,6 +3317,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get all active AT IDs
+     * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<brs.grpc.proto.BrsApi.ATIds> getATIds(
         com.google.protobuf.Empty request) {
@@ -3016,6 +3328,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get a block by ID, height or timestamp
+     * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<brs.grpc.proto.BrsApi.Block> getBlock(
         brs.grpc.proto.BrsApi.GetBlockRequest request) {
@@ -3024,6 +3339,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the most recent blocks
+     * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<brs.grpc.proto.BrsApi.Blocks> getBlocks(
         brs.grpc.proto.BrsApi.GetBlocksRequest request) {
@@ -3032,6 +3350,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the current blockchain constants
+     * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<brs.grpc.proto.BrsApi.Constants> getConstants(
         com.google.protobuf.Empty request) {
@@ -3040,6 +3361,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the counts of different blockchain entities
+     * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<brs.grpc.proto.BrsApi.Counts> getCounts(
         com.google.protobuf.Empty request) {
@@ -3048,6 +3372,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the current Burst time (number of seconds since Burst epoch)
+     * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<brs.grpc.proto.BrsApi.Time> getCurrentTime(
         com.google.protobuf.Empty request) {
@@ -3136,6 +3463,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Get the current server state
+     * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<brs.grpc.proto.BrsApi.State> getState(
         com.google.protobuf.Empty request) {
@@ -3168,6 +3498,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Convert a BasicTranscation into its transaction bytes, to be signed. This theoretically can be done offline so will be removed in the future.
+     * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<brs.grpc.proto.BrsApi.TransactionBytes> getTransactionBytes(
         brs.grpc.proto.BrsApi.BasicTransaction request) {
@@ -3184,6 +3517,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Convert TransactionBytes into a BasicTransaction. This theoretically can be done offline so will be removed in the future.
+     * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<brs.grpc.proto.BrsApi.BasicTransaction> parseTransaction(
         brs.grpc.proto.BrsApi.TransactionBytes request) {
@@ -3192,6 +3528,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Submit a nonce to try to forge a block. This requires the passphrase to be sent to the server so should only be performed on local nodes.
+     * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<brs.grpc.proto.BrsApi.SubmitNonceResponse> submitNonce(
         brs.grpc.proto.BrsApi.SubmitNonceRequest request) {
@@ -3200,6 +3539,9 @@ public final class BrsApiServiceGrpc {
     }
 
     /**
+     * <pre>
+     * Suggest a fee to use for a transaction
+     * </pre>
      */
     public com.google.common.util.concurrent.ListenableFuture<brs.grpc.proto.BrsApi.FeeSuggestion> suggestFee(
         com.google.protobuf.Empty request) {
@@ -3209,50 +3551,51 @@ public final class BrsApiServiceGrpc {
   }
 
   private static final int METHODID_BROADCAST_TRANSACTION = 0;
-  private static final int METHODID_COMPLETE_BASIC_TRANSACTION = 1;
-  private static final int METHODID_GET_ACCOUNT = 2;
-  private static final int METHODID_GET_ACCOUNT_ATS = 3;
-  private static final int METHODID_GET_ACCOUNT_BLOCKS = 4;
-  private static final int METHODID_GET_ACCOUNT_CURRENT_ORDERS = 5;
-  private static final int METHODID_GET_ACCOUNT_ESCROW_TRANSACTIONS = 6;
-  private static final int METHODID_GET_ACCOUNTS = 7;
-  private static final int METHODID_GET_ACCOUNT_SUBSCRIPTIONS = 8;
-  private static final int METHODID_GET_ACCOUNT_TRANSACTIONS = 9;
-  private static final int METHODID_GET_ALIAS = 10;
-  private static final int METHODID_GET_ALIASES = 11;
-  private static final int METHODID_GET_ASSET = 12;
-  private static final int METHODID_GET_ASSET_BALANCES = 13;
-  private static final int METHODID_GET_ASSETS = 14;
-  private static final int METHODID_GET_ASSETS_BY_ISSUER = 15;
-  private static final int METHODID_GET_ASSET_TRADES = 16;
-  private static final int METHODID_GET_ASSET_TRANSFERS = 17;
-  private static final int METHODID_GET_AT = 18;
-  private static final int METHODID_GET_ATIDS = 19;
-  private static final int METHODID_GET_BLOCK = 20;
-  private static final int METHODID_GET_BLOCKS = 21;
-  private static final int METHODID_GET_CONSTANTS = 22;
-  private static final int METHODID_GET_COUNTS = 23;
-  private static final int METHODID_GET_CURRENT_TIME = 24;
-  private static final int METHODID_GET_DGS_GOOD = 25;
-  private static final int METHODID_GET_DGS_GOODS = 26;
-  private static final int METHODID_GET_DGS_PENDING_PURCHASES = 27;
-  private static final int METHODID_GET_DGS_PURCHASE = 28;
-  private static final int METHODID_GET_DGS_PURCHASES = 29;
-  private static final int METHODID_GET_ESCROW_TRANSACTION = 30;
-  private static final int METHODID_GET_MINING_INFO = 31;
-  private static final int METHODID_GET_ORDER = 32;
-  private static final int METHODID_GET_ORDERS = 33;
-  private static final int METHODID_GET_PEER = 34;
-  private static final int METHODID_GET_PEERS = 35;
-  private static final int METHODID_GET_STATE = 36;
-  private static final int METHODID_GET_SUBSCRIPTION = 37;
-  private static final int METHODID_GET_SUBSCRIPTIONS_TO_ACCOUNT = 38;
-  private static final int METHODID_GET_TRANSACTION = 39;
-  private static final int METHODID_GET_TRANSACTION_BYTES = 40;
-  private static final int METHODID_GET_UNCONFIRMED_TRANSACTIONS = 41;
-  private static final int METHODID_PARSE_TRANSACTION = 42;
-  private static final int METHODID_SUBMIT_NONCE = 43;
-  private static final int METHODID_SUGGEST_FEE = 44;
+  private static final int METHODID_BROADCAST_TRANSACTION_BYTES = 1;
+  private static final int METHODID_COMPLETE_BASIC_TRANSACTION = 2;
+  private static final int METHODID_GET_ACCOUNT = 3;
+  private static final int METHODID_GET_ACCOUNT_ATS = 4;
+  private static final int METHODID_GET_ACCOUNT_BLOCKS = 5;
+  private static final int METHODID_GET_ACCOUNT_CURRENT_ORDERS = 6;
+  private static final int METHODID_GET_ACCOUNT_ESCROW_TRANSACTIONS = 7;
+  private static final int METHODID_GET_ACCOUNTS = 8;
+  private static final int METHODID_GET_ACCOUNT_SUBSCRIPTIONS = 9;
+  private static final int METHODID_GET_ACCOUNT_TRANSACTIONS = 10;
+  private static final int METHODID_GET_ALIAS = 11;
+  private static final int METHODID_GET_ALIASES = 12;
+  private static final int METHODID_GET_ASSET = 13;
+  private static final int METHODID_GET_ASSET_BALANCES = 14;
+  private static final int METHODID_GET_ASSETS = 15;
+  private static final int METHODID_GET_ASSETS_BY_ISSUER = 16;
+  private static final int METHODID_GET_ASSET_TRADES = 17;
+  private static final int METHODID_GET_ASSET_TRANSFERS = 18;
+  private static final int METHODID_GET_AT = 19;
+  private static final int METHODID_GET_ATIDS = 20;
+  private static final int METHODID_GET_BLOCK = 21;
+  private static final int METHODID_GET_BLOCKS = 22;
+  private static final int METHODID_GET_CONSTANTS = 23;
+  private static final int METHODID_GET_COUNTS = 24;
+  private static final int METHODID_GET_CURRENT_TIME = 25;
+  private static final int METHODID_GET_DGS_GOOD = 26;
+  private static final int METHODID_GET_DGS_GOODS = 27;
+  private static final int METHODID_GET_DGS_PENDING_PURCHASES = 28;
+  private static final int METHODID_GET_DGS_PURCHASE = 29;
+  private static final int METHODID_GET_DGS_PURCHASES = 30;
+  private static final int METHODID_GET_ESCROW_TRANSACTION = 31;
+  private static final int METHODID_GET_MINING_INFO = 32;
+  private static final int METHODID_GET_ORDER = 33;
+  private static final int METHODID_GET_ORDERS = 34;
+  private static final int METHODID_GET_PEER = 35;
+  private static final int METHODID_GET_PEERS = 36;
+  private static final int METHODID_GET_STATE = 37;
+  private static final int METHODID_GET_SUBSCRIPTION = 38;
+  private static final int METHODID_GET_SUBSCRIPTIONS_TO_ACCOUNT = 39;
+  private static final int METHODID_GET_TRANSACTION = 40;
+  private static final int METHODID_GET_TRANSACTION_BYTES = 41;
+  private static final int METHODID_GET_UNCONFIRMED_TRANSACTIONS = 42;
+  private static final int METHODID_PARSE_TRANSACTION = 43;
+  private static final int METHODID_SUBMIT_NONCE = 44;
+  private static final int METHODID_SUGGEST_FEE = 45;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -3272,7 +3615,11 @@ public final class BrsApiServiceGrpc {
     public void invoke(Req request, io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
         case METHODID_BROADCAST_TRANSACTION:
-          serviceImpl.broadcastTransaction((brs.grpc.proto.BrsApi.TransactionBytes) request,
+          serviceImpl.broadcastTransaction((brs.grpc.proto.BrsApi.BasicTransaction) request,
+              (io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.TransactionBroadcastResult>) responseObserver);
+          break;
+        case METHODID_BROADCAST_TRANSACTION_BYTES:
+          serviceImpl.broadcastTransactionBytes((brs.grpc.proto.BrsApi.TransactionBytes) request,
               (io.grpc.stub.StreamObserver<brs.grpc.proto.BrsApi.TransactionBroadcastResult>) responseObserver);
           break;
         case METHODID_COMPLETE_BASIC_TRANSACTION:
@@ -3513,6 +3860,7 @@ public final class BrsApiServiceGrpc {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new BrsApiServiceFileDescriptorSupplier())
               .addMethod(getBroadcastTransactionMethod())
+              .addMethod(getBroadcastTransactionBytesMethod())
               .addMethod(getCompleteBasicTransactionMethod())
               .addMethod(getGetAccountMethod())
               .addMethod(getGetAccountATsMethod())

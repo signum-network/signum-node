@@ -127,7 +127,8 @@ public interface Attachment extends Appendix {
       } else if (attachment.is(BrsApi.ATCreationAttachment.class)) {
         return new AutomatedTransactionsCreation(attachment.unpack(BrsApi.ATCreationAttachment.class));
       }
-      return ORDINARY_PAYMENT; // TODO ??
+      // Default to ordinary payment
+      return ORDINARY_PAYMENT;
     }
   }
 

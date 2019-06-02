@@ -290,9 +290,9 @@
             <version>0.6.1</version>
             <configuration>
               <protoSourceRoot>${grpc.source.dir}</protoSourceRoot>
-              <protocArtifact>com.google.protobuf:protoc:3.5.1-1:exe:${os.detected.classifier}</protocArtifact>
+              <protocArtifact>com.google.protobuf:protoc:3.7.1:exe:${os.detected.classifier}</protocArtifact>
               <pluginId>grpc-java</pluginId>
-              <pluginArtifact>io.grpc:protoc-gen-grpc-java:1.18.0:exe:${os.detected.classifier}</pluginArtifact>
+              <pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}</pluginArtifact>
               <outputDirectory>src/</outputDirectory>
               <clearOutputDirectory>false</clearOutputDirectory>
             </configuration>

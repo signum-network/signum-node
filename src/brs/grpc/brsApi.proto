@@ -545,7 +545,7 @@ message Block {
     uint64 totalAmount = 4;
     uint64 totalFee = 5;
     uint64 blockReward = 6;
-    uint64 payloadLength = 7;
+    uint32 payloadLength = 7;
     int32 version = 8;
     uint64 baseTarget = 9;
     uint32 timestamp = 10;
@@ -831,6 +831,6 @@ message ArbitraryMessageAttachment {
     // Empty.
 }
 
-message ATPaymentAttachment {
+message ATPaymentAttachment { // TODO version
     // Empty.
 }

@@ -13,6 +13,8 @@ import com.google.rpc.Code;
 import com.google.rpc.Status;
 import io.grpc.StatusException;
 import io.grpc.protobuf.StatusProto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -20,17 +22,27 @@ import java.util.stream.Collectors;
 
 public final class ProtoBuilder {
 
+    private static final Logger logger = LoggerFactory.getLogger(ProtoBuilder.class);
+
     private ProtoBuilder() {
     }
 
     public static StatusException buildError(Throwable t) {
-        return StatusProto.toStatusException(Status.newBuilder().setCode(Code.ABORTED_VALUE).setMessage(t.getMessage()).build());
+        String message = t.getMessage() == null ? "Unknown Error: " + t.getClass().toString() : t.getMessage();
+        if (t.getMessage() == null) {
+            logger.debug("Unknown message for gRPC API exception. Exception:", t);
+        }
+        return StatusProto.toStatusException(Status.newBuilder().setCode(Code.ABORTED_VALUE).setMessage(message).build());
+    }
+    
+    private static ByteString buildByteString(byte[] data) {
+        return data == null ? ByteString.EMPTY : ByteString.copyFrom(data);
     }
 
     public static BrsApi.Account buildAccount(Account account, AccountService accountService) {
         return BrsApi.Account.newBuilder()
                 .setId(account.getId())
-                .setPublicKey(ByteString.copyFrom(account.getPublicKey()))
+                .setPublicKey(buildByteString(account.getPublicKey()))
                 .setBalance(account.getBalanceNQT())
                 .setUnconfirmedBalance(account.getUnconfirmedBalanceNQT())
                 .setForgedBalance(account.getForgedBalanceNQT())
@@ -68,13 +80,13 @@ public final class ProtoBuilder {
                 .addAllTransactionIds(block.getTransactions().stream()
                         .map(Transaction::getId)
                         .collect(Collectors.toList()))
-                .setGenerationSignature(ByteString.copyFrom(block.getGenerationSignature()))
-                .setBlockSignature(ByteString.copyFrom(block.getBlockSignature()))
-                .setPayloadHash(ByteString.copyFrom(block.getPayloadHash()))
-                .setGeneratorPublicKey(ByteString.copyFrom(block.getGeneratorPublicKey()))
+                .setGenerationSignature(buildByteString(block.getGenerationSignature()))
+                .setBlockSignature(buildByteString(block.getBlockSignature()))
+                .setPayloadHash(buildByteString(block.getPayloadHash()))
+                .setGeneratorPublicKey(buildByteString(block.getGeneratorPublicKey()))
                 .setNonce(block.getNonce())
                 .setScoop(blockService.getScoopNum(block))
-                .setPreviousBlockHash(ByteString.copyFrom(block.getPreviousBlockHash()))
+                .setPreviousBlockHash(buildByteString(block.getPreviousBlockHash()))
                 .setNextBlockId(block.getNextBlockId());
 
         if (includeTransactions) {
@@ -89,7 +101,7 @@ public final class ProtoBuilder {
 
     public static BrsApi.BasicTransaction buildBasicTransaction(Transaction transaction) {
         BrsApi.BasicTransaction.Builder builder = BrsApi.BasicTransaction.newBuilder()
-                .setSender(ByteString.copyFrom(transaction.getSenderPublicKey()))
+                .setSender(buildByteString(transaction.getSenderPublicKey()))
                 .setRecipient(transaction.getRecipientId())
                 .setVersion(transaction.getVersion())
                 .setType(transaction.getType().getType())
@@ -98,14 +110,14 @@ public final class ProtoBuilder {
                 .setFee(transaction.getFeeNQT())
                 .setTimestamp(transaction.getTimestamp())
                 .setDeadline(transaction.getDeadline())
-                .setReferencedTransactionFullHash(ByteString.copyFrom(Convert.parseHexString(transaction.getReferencedTransactionFullHash())))
+                .setReferencedTransactionFullHash(buildByteString(Convert.parseHexString(transaction.getReferencedTransactionFullHash())))
                 .addAllAppendages(transaction.getAppendages()
                         .stream()
                         .map(Appendix::getProtobufMessage)
                         .collect(Collectors.toList()))
                 .setEcBlockId(transaction.getECBlockId())
                 .setEcBlockHeight(transaction.getECBlockHeight())
-                .setSignature(ByteString.copyFrom(transaction.getBytes()));
+                .setSignature(buildByteString(transaction.getBytes()));
         if (transaction.getAttachment() != null) {
             builder.setAttachment(transaction.getAttachment().getProtobufMessage());
         }
@@ -116,12 +128,12 @@ public final class ProtoBuilder {
         return BrsApi.Transaction.newBuilder()
                 .setTransaction(buildBasicTransaction(transaction))
                 .setId(transaction.getId())
-                .setTransactionBytes(ByteString.copyFrom(transaction.getBytes()))
+                .setTransactionBytes(buildByteString(transaction.getBytes()))
                 .setBlock(transaction.getBlockId())
                 .setBlockHeight(transaction.getHeight())
                 .setBlockTimestamp(transaction.getBlockTimestamp())
-                .setSignature(ByteString.copyFrom(transaction.getSignature()))
-                .setFullHash(ByteString.copyFrom(Convert.parseHexString(transaction.getFullHash())))
+                .setSignature(buildByteString(transaction.getSignature()))
+                .setFullHash(buildByteString(Convert.parseHexString(transaction.getFullHash())))
                 .setConfirmations(currentHeight - transaction.getHeight())
                 .build();
     }
@@ -129,10 +141,10 @@ public final class ProtoBuilder {
     public static BrsApi.Transaction buildUnconfirmedTransaction(Transaction transaction) {return BrsApi.Transaction.newBuilder()
             .setTransaction(buildBasicTransaction(transaction))
             .setId(transaction.getId())
-            .setTransactionBytes(ByteString.copyFrom(transaction.getBytes()))
+            .setTransactionBytes(buildByteString(transaction.getBytes()))
             .setBlockHeight(transaction.getHeight())
-            .setSignature(ByteString.copyFrom(transaction.getSignature()))
-            .setFullHash(ByteString.copyFrom(Convert.parseHexString(transaction.getFullHash())))
+            .setSignature(buildByteString(transaction.getSignature()))
+            .setFullHash(buildByteString(Convert.parseHexString(transaction.getFullHash())))
             .build();
     }
 
@@ -151,8 +163,8 @@ public final class ProtoBuilder {
                 .setVersion(at.getVersion())
                 .setName(at.getName())
                 .setDescription(at.getDescription())
-                .setMachineCode(ByteString.copyFrom(at.getApCode()))
-                .setMachineData(ByteString.copyFrom(at.getApData()))
+                .setMachineCode(buildByteString(at.getApCode()))
+                .setMachineData(buildByteString(at.getApData()))
                 .setBalance(accountService.getAccount(atId).getBalanceNQT())
                 .setPreviousBalance(at.getP_balance())
                 .setNextBlock(at.nextHeight())
@@ -186,8 +198,8 @@ public final class ProtoBuilder {
     public static BrsApi.EncryptedData buildEncryptedData(EncryptedData encryptedData) {
         if (encryptedData == null) return BrsApi.EncryptedData.getDefaultInstance(); // TODO is this needed for all methods?
         return BrsApi.EncryptedData.newBuilder()
-                .setData(ByteString.copyFrom(encryptedData.getData()))
-                .setNonce(ByteString.copyFrom(encryptedData.getNonce()))
+                .setData(buildByteString(encryptedData.getData()))
+                .setNonce(buildByteString(encryptedData.getNonce()))
                 .build();
     }
 

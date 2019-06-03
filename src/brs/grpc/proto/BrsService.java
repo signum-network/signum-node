@@ -57,7 +57,7 @@ public class BrsService extends BrsApiServiceGrpc.BrsApiServiceImplBase {
         handlerMap.put(GetDgsPurchaseHandler.class, new GetDgsPurchaseHandler(digitalGoodsStoreService));
         handlerMap.put(GetDgsPurchasesHandler.class, new GetDgsPurchasesHandler(digitalGoodsStoreService));
         handlerMap.put(GetEscrowTransactionHandler.class, new GetEscrowTransactionHandler(escrowService));
-        handlerMap.put(GetMiningInfoHandler.class, new GetMiningInfoHandler(blockchainProcessor, generator));
+        handlerMap.put(GetMiningInfoHandler.class, new GetMiningInfoHandler(blockchainProcessor, blockchain, generator));
         handlerMap.put(GetOrderHandler.class, new GetOrderHandler(assetExchange));
         handlerMap.put(GetOrdersHandler.class, new GetOrdersHandler(assetExchange));
         handlerMap.put(GetPeersHandler.class, new GetPeersHandler());

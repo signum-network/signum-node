@@ -52521,9 +52521,9 @@ public final class BrsApi {
     long getBlockReward();
 
     /**
-     * <code>uint64 payloadLength = 7;</code>
+     * <code>uint32 payloadLength = 7;</code>
      */
-    long getPayloadLength();
+    int getPayloadLength();
 
     /**
      * <code>int32 version = 8;</code>
@@ -52695,7 +52695,7 @@ public final class BrsApi {
             }
             case 56: {
 
-              payloadLength_ = input.readUInt64();
+              payloadLength_ = input.readUInt32();
               break;
             }
             case 64: {
@@ -52877,11 +52877,11 @@ public final class BrsApi {
     }
 
     public static final int PAYLOADLENGTH_FIELD_NUMBER = 7;
-    private long payloadLength_;
+    private int payloadLength_;
     /**
-     * <code>uint64 payloadLength = 7;</code>
+     * <code>uint32 payloadLength = 7;</code>
      */
-    public long getPayloadLength() {
+    public int getPayloadLength() {
       return payloadLength_;
     }
 
@@ -53075,8 +53075,8 @@ public final class BrsApi {
       if (blockReward_ != 0L) {
         output.writeUInt64(6, blockReward_);
       }
-      if (payloadLength_ != 0L) {
-        output.writeUInt64(7, payloadLength_);
+      if (payloadLength_ != 0) {
+        output.writeUInt32(7, payloadLength_);
       }
       if (version_ != 0) {
         output.writeInt32(8, version_);
@@ -53154,9 +53154,9 @@ public final class BrsApi {
         size += com.google.protobuf.CodedOutputStream
           .computeUInt64Size(6, blockReward_);
       }
-      if (payloadLength_ != 0L) {
+      if (payloadLength_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeUInt64Size(7, payloadLength_);
+          .computeUInt32Size(7, payloadLength_);
       }
       if (version_ != 0) {
         size += com.google.protobuf.CodedOutputStream
@@ -53303,8 +53303,7 @@ public final class BrsApi {
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getBlockReward());
       hash = (37 * hash) + PAYLOADLENGTH_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getPayloadLength());
+      hash = (53 * hash) + getPayloadLength();
       hash = (37 * hash) + VERSION_FIELD_NUMBER;
       hash = (53 * hash) + getVersion();
       hash = (37 * hash) + BASETARGET_FIELD_NUMBER;
@@ -53484,7 +53483,7 @@ public final class BrsApi {
 
         blockReward_ = 0L;
 
-        payloadLength_ = 0L;
+        payloadLength_ = 0;
 
         version_ = 0;
 
@@ -53643,7 +53642,7 @@ public final class BrsApi {
         if (other.getBlockReward() != 0L) {
           setBlockReward(other.getBlockReward());
         }
-        if (other.getPayloadLength() != 0L) {
+        if (other.getPayloadLength() != 0) {
           setPayloadLength(other.getPayloadLength());
         }
         if (other.getVersion() != 0) {
@@ -53901,28 +53900,28 @@ public final class BrsApi {
         return this;
       }
 
-      private long payloadLength_ ;
+      private int payloadLength_ ;
       /**
-       * <code>uint64 payloadLength = 7;</code>
+       * <code>uint32 payloadLength = 7;</code>
        */
-      public long getPayloadLength() {
+      public int getPayloadLength() {
         return payloadLength_;
       }
       /**
-       * <code>uint64 payloadLength = 7;</code>
+       * <code>uint32 payloadLength = 7;</code>
        */
-      public Builder setPayloadLength(long value) {
+      public Builder setPayloadLength(int value) {
         
         payloadLength_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>uint64 payloadLength = 7;</code>
+       * <code>uint32 payloadLength = 7;</code>
        */
       public Builder clearPayloadLength() {
         
-        payloadLength_ = 0L;
+        payloadLength_ = 0;
         onChanged();
         return this;
       }
@@ -83724,7 +83723,7 @@ public final class BrsApi {
       "k\022\n\n\002id\030\001 \001(\004\022\016\n\006height\030\002 \001(\r\022\034\n\024numberO" +
       "fTransactions\030\003 \001(\r\022\023\n\013totalAmount\030\004 \001(\004" +
       "\022\020\n\010totalFee\030\005 \001(\004\022\023\n\013blockReward\030\006 \001(\004\022" +
-      "\025\n\rpayloadLength\030\007 \001(\004\022\017\n\007version\030\010 \001(\005\022" +
+      "\025\n\rpayloadLength\030\007 \001(\r\022\017\n\007version\030\010 \001(\005\022" +
       "\022\n\nbaseTarget\030\t \001(\004\022\021\n\ttimestamp\030\n \001(\r\022\033" +
       "\n\023generationSignature\030\013 \001(\014\022\026\n\016blockSign" +
       "ature\030\014 \001(\014\022\023\n\013payloadHash\030\r \001(\014\022\"\n\014tran" +

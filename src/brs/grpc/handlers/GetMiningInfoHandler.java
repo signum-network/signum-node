@@ -1,6 +1,7 @@
 package brs.grpc.handlers;
 
 import brs.Block;
+import brs.Blockchain;
 import brs.BlockchainProcessor;
 import brs.Generator;
 import brs.grpc.StreamResponseGrpcApiHandler;
@@ -24,9 +25,10 @@ public class GetMiningInfoHandler implements StreamResponseGrpcApiHandler<Empty,
     private final Generator generator;
     private final AtomicReference<BrsApi.MiningInfo> currentMiningInfo = new AtomicReference<>();
 
-    public GetMiningInfoHandler(BlockchainProcessor blockchainProcessor, Generator generator) {
+    public GetMiningInfoHandler(BlockchainProcessor blockchainProcessor, Blockchain blockchain, Generator generator) {
         this.generator = generator;
         blockchainProcessor.addListener(this::onBlock, BlockchainProcessor.Event.BLOCK_PUSHED);
+        onBlock(blockchain.getLastBlock());
     }
 
     private void onBlock(Block block) {

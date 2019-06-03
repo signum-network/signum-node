@@ -168,11 +168,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     // }, Event.RESCAN_END);
 
     threadPool.runBeforeStart(() -> {
-      addGenesisBlock();
       if (forceScan) {
         scan(0);
       }
     }, false);
+    addGenesisBlock();
 
     //unlocking cache for writing.
     //This must be done before we query where to add blocks.

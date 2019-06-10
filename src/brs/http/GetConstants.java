@@ -28,7 +28,7 @@ final class GetConstants extends APIServlet.APIRequestHandler {
         response.addProperty("maxArbitraryMessageLength", Constants.MAX_ARBITRARY_MESSAGE_LENGTH);
 
         JsonArray transactionTypes = new JsonArray();
-        TransactionType.TRANSACTION_TYPES
+        TransactionType.getTransactionTypes()
                 .forEach((key, value) -> {
                     JsonObject transactionType = new JsonObject();
                     transactionType.addProperty("value", key);

@@ -40,7 +40,8 @@ final class PeerImpl implements Peer {
   private final AtomicLong downloadedVolume = new AtomicLong();
   private final AtomicLong uploadedVolume = new AtomicLong();
   private final AtomicInteger lastUpdated = new AtomicInteger();
-  private volatile byte[] lastDownloadedTransactionsDigest;
+  private byte[] lastDownloadedTransactionsDigest;
+  private final Object lastDownloadedTransactionsLock = new Object();
 
   PeerImpl(String peerAddress, String announcedAddress) {
     this.peerAddress = peerAddress;
@@ -87,12 +88,14 @@ final class PeerImpl implements Peer {
   }
 
   public boolean diffLastDownloadedTransactions( byte[] data ) {
-    byte[] newDigest = Crypto.sha256().digest(data);
-    if ( lastDownloadedTransactionsDigest != null && Arrays.equals(newDigest, lastDownloadedTransactionsDigest) ) {
-      return false;
+    synchronized (lastDownloadedTransactionsLock) {
+      byte[] newDigest = Crypto.sha256().digest(data);
+      if (lastDownloadedTransactionsDigest != null && Arrays.equals(newDigest, lastDownloadedTransactionsDigest)) {
+        return false;
+      }
+      lastDownloadedTransactionsDigest = newDigest;
+      return true;
     }
-    lastDownloadedTransactionsDigest = newDigest;
-    return true;
   }
 
   void updateDownloadedVolume(long volume) {

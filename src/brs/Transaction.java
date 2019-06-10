@@ -183,7 +183,7 @@ public class Transaction implements Comparable<Transaction> {
   private final AtomicInteger height = new AtomicInteger();
   private final AtomicLong blockId = new AtomicLong();
   private final AtomicReference<Block> block = new AtomicReference<>();
-  private volatile byte[] signature;
+  private final AtomicReference<byte[]> signature = new AtomicReference<>();
   private final AtomicInteger blockTimestamp = new AtomicInteger();
   private final AtomicLong id = new AtomicLong();
   private final AtomicReference<String> stringId = new AtomicReference<>();
@@ -198,7 +198,7 @@ public class Transaction implements Comparable<Transaction> {
     this.recipientId = Optional.ofNullable(builder.recipientId).orElse(0L);
     this.amountNQT = builder.amountNQT;
     this.referencedTransactionFullHash = builder.referencedTransactionFullHash;
-    this.signature = builder.signature;
+    this.signature.set(builder.signature);
     this.type = builder.type;
     this.version = builder.version;
     this.blockId.set(builder.blockId);
@@ -312,7 +312,7 @@ public class Transaction implements Comparable<Transaction> {
   }
 
   public byte[] getSignature() {
-    return signature;
+    return signature.get();
   }
 
   public TransactionType getType() {
@@ -370,7 +370,7 @@ public class Transaction implements Comparable<Transaction> {
       byte[] hash;
       if (useNQT()) {
         byte[] data = zeroSignature(getBytes());
-        byte[] signatureHash = Crypto.sha256().digest(signature != null ? signature : new byte[64]);
+        byte[] signatureHash = Crypto.sha256().digest(signature != null ? signature.get() : new byte[64]);
         MessageDigest digest = Crypto.sha256();
         digest.update(data);
         hash = digest.digest(signatureHash);
@@ -458,7 +458,7 @@ public class Transaction implements Comparable<Transaction> {
           buffer.putLong(0L);
         }
       }
-      buffer.put(signature != null ? signature : new byte[64]);
+      buffer.put(signature.get() != null ? signature.get() : new byte[64]);
       if (version > 0) {
         buffer.putInt(getFlags());
         buffer.putInt(ecBlockHeight);
@@ -557,7 +557,7 @@ public class Transaction implements Comparable<Transaction> {
     }
     json.addProperty("ecBlockHeight", ecBlockHeight);
     json.addProperty("ecBlockId", Convert.toUnsignedLong(ecBlockId));
-    json.addProperty("signature", Convert.toHexString(signature));
+    json.addProperty("signature", Convert.toHexString(signature.get()));
     JsonObject attachmentJSON = new JsonObject();
     appendages.forEach(appendage -> JSON.addAll(attachmentJSON, appendage.getJsonObject()));
     //if (! attachmentJSON.isEmpty()) {
@@ -622,7 +622,7 @@ public class Transaction implements Comparable<Transaction> {
     if (signature != null) {
       throw new IllegalStateException("Transaction already signed");
     }
-    signature = Crypto.sign(getBytes(), secretPhrase);
+    signature.set(Crypto.sign(getBytes(), secretPhrase));
   }
 
   @Override
@@ -641,7 +641,7 @@ public class Transaction implements Comparable<Transaction> {
 
   public boolean verifySignature() {
     byte[] data = zeroSignature(getBytes());
-    return Crypto.verify(signature, data, senderPublicKey, useNQT());
+    return Crypto.verify(signature.get(), data, senderPublicKey, useNQT());
   }
 
   public int getSize() {

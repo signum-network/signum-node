@@ -19,7 +19,7 @@ public class GetConstantsHandler implements GrpcApiHandler<Empty, BrsApi.Constan
 
     public GetConstantsHandler(FluxCapacitor fluxCapacitor) {
         List<BrsApi.Constants.TransactionType> transactionTypes = new ArrayList<>();
-        TransactionType.TRANSACTION_TYPES
+        TransactionType.getTransactionTypes()
                 .forEach((key, value) -> transactionTypes
                         .add(BrsApi.Constants.TransactionType.newBuilder()
                                 .setType(key)

@@ -29,7 +29,7 @@ public abstract class TransactionType {
 
   private static final Logger logger = LoggerFactory.getLogger(TransactionType.class);
 
-  public static final Map<Byte, Map<Byte, TransactionType>> TRANSACTION_TYPES = new HashMap<>();
+  private static final Map<Byte, Map<Byte, TransactionType>> TRANSACTION_TYPES = new HashMap<>();
 
   private static final byte TYPE_PAYMENT = 0;
   private static final byte TYPE_MESSAGING = 1;
@@ -190,6 +190,10 @@ public abstract class TransactionType {
       default:
         return "Unknown";
     }
+  }
+
+  public static Map<Byte, Map<Byte, TransactionType>> getTransactionTypes() {
+    return Collections.unmodifiableMap(TRANSACTION_TYPES);
   }
 
   private TransactionType() {

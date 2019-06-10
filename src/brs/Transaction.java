@@ -364,13 +364,13 @@ public class Transaction implements Comparable<Transaction> {
 
   public long getId() {
     if (id.get() == 0) {
-      if (signature == null && type.isSigned()) {
+      if (signature.get() == null && type.isSigned()) {
         throw new IllegalStateException("Transaction is not signed yet");
       }
       byte[] hash;
       if (useNQT()) {
         byte[] data = zeroSignature(getBytes());
-        byte[] signatureHash = Crypto.sha256().digest(signature != null ? signature.get() : new byte[64]);
+        byte[] signatureHash = Crypto.sha256().digest(signature.get() != null ? signature.get() : new byte[64]);
         MessageDigest digest = Crypto.sha256();
         digest.update(data);
         hash = digest.digest(signatureHash);
@@ -619,7 +619,7 @@ public class Transaction implements Comparable<Transaction> {
   }
 
   public void sign(String secretPhrase) {
-    if (signature != null) {
+    if (signature.get() != null) {
       throw new IllegalStateException("Transaction already signed");
     }
     signature.set(Crypto.sign(getBytes(), secretPhrase));

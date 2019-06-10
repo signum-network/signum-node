@@ -18,7 +18,7 @@ public class GetPeerHandler implements GrpcApiHandler<BrsApi.GetPeerRequest, Brs
                 .setDownloadedVolume(peer.getDownloadedVolume())
                 .setUploadedVolume(peer.getUploadedVolume())
                 .setApplication(peer.getApplication())
-                .setVersion(peer.getVersion().toString())
+                .setVersion(peer.getVersion().toStringIfNotEmpty())
                 .setPlatform(peer.getPlatform())
                 .setBlacklisted(peer.isBlacklisted())
                 .setLastUpdated(peer.getLastUpdated())

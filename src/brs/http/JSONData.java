@@ -213,7 +213,7 @@ public final class JSONData {
     json.addProperty("downloadedVolume", peer.getDownloadedVolume());
     json.addProperty("uploadedVolume", peer.getUploadedVolume());
     json.addProperty("application", peer.getApplication());
-    json.addProperty("version", peer.getVersion().toString());
+    json.addProperty("version", peer.getVersion().toStringIfNotEmpty());
     json.addProperty("platform", peer.getPlatform());
     json.addProperty("blacklisted", peer.isBlacklisted());
     json.addProperty("lastUpdated", peer.getLastUpdated());

@@ -73,6 +73,14 @@ public final class Version {
         return Objects.equals(this, otherVersion);
     }
 
+    public String toStringIfNotEmpty() {
+        if (equals(EMPTY)) {
+            return "";
+        } else {
+            return toString();
+        }
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -98,19 +106,19 @@ public final class Version {
     }
 
     public enum PrereleaseTag {
-        DEVELOPMENT("dev", 0),
-        ALPHA("alpha", 1),
-        BETA("beta", 2),
-        RC("rc", 3),
-        NONE("", 4),
+        DEVELOPMENT("dev"),
+        ALPHA("alpha"),
+        BETA("beta"),
+        RC("rc"),
+        NONE(""),
         ;
 
         private final String tag;
         private final int priority;
 
-        PrereleaseTag(String tag, int priority) {
+        PrereleaseTag(String tag) {
             this.tag = tag;
-            this.priority = priority;
+            this.priority = ordinal();
         }
 
         public static PrereleaseTag withTag(String tag) throws IllegalArgumentException {

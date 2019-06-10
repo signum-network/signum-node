@@ -32,7 +32,7 @@ public class UnconfirmedTransactionStoreImpl implements UnconfirmedTransactionSt
 
   private final SortedMap<Long, List<Transaction>> internalStore;
 
-    private int totalSize;
+  private int totalSize;
   private final int maxSize;
 
   private final int maxRawUTBytesToSend;
@@ -124,7 +124,6 @@ public class UnconfirmedTransactionStoreImpl implements UnconfirmedTransactionSt
           }
         }
       }
-
       return null;
     }
   }
@@ -178,8 +177,10 @@ public class UnconfirmedTransactionStoreImpl implements UnconfirmedTransactionSt
   public void remove(Transaction transaction) {
     synchronized (internalStore) {
       logger.debug("Removing " + transaction.getId());
-      if (exists(transaction.getId())) {
-        removeTransaction(transaction);
+      // Make sure that we are acting on our own copy of the transaction, as this is the one we want to remove.
+      Transaction internalTransaction = get(transaction.getId());
+      if (internalTransaction != null) {
+        removeTransaction(internalTransaction);
       }
     }
   }
@@ -219,9 +220,7 @@ public class UnconfirmedTransactionStoreImpl implements UnconfirmedTransactionSt
   public void removeForgedTransactions(List<Transaction> transactions) {
     synchronized (internalStore) {
       for (Transaction t : transactions) {
-        if (exists(t.getId())) {
-          removeTransaction(t);
-        }
+        remove(t);
       }
     }
   }
@@ -326,6 +325,7 @@ public class UnconfirmedTransactionStoreImpl implements UnconfirmedTransactionSt
   }
 
   private void removeTransaction(Transaction transaction) {
+    if (transaction == null) return;
     final long amountSlotNumber = amountSlotForTransaction(transaction);
 
     final List<Transaction> amountSlot = internalStore.get(amountSlotNumber);

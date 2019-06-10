@@ -149,7 +149,7 @@ public final class APIServlet extends HttpServlet {
     map.put("getATIds", new GetATIds(atService));
     map.put("getATLong", GetATLong.instance);
     map.put("getAccountATs", new GetAccountATs(parameterService, atService, accountService));
-
+    map.put("getGuaranteedBalance", new GetGuaranteedBalance(parameterService));
     primitiveMap.put("generateSendTransactionQRCode", new GenerateDeeplinkQRCode(deeplinkQRCodeGenerator));
 
     if (API.enableDebugAPI) {

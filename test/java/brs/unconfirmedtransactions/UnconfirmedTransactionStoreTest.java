@@ -22,6 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.runner.RunWith;
+import org.mockito.Answers;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -66,6 +67,7 @@ public class UnconfirmedTransactionStoreTest {
     accountStoreMock = mock(AccountStore.class);
     accountTableMock = mock(VersionedBatchEntityTable.class);
     accountBurstKeyFactoryMock = mock(LongKeyFactory.class);
+    TransactionDb transactionDbMock = mock(TransactionDb.class, Answers.RETURNS_DEFAULTS);
     when(accountStoreMock.getAccountTable()).thenReturn(accountTableMock);
     when(accountStoreMock.getAccountKeyFactory()).thenReturn(accountBurstKeyFactoryMock);
 
@@ -81,7 +83,7 @@ public class UnconfirmedTransactionStoreTest {
 
     TransactionType.init(mockBlockChain, mockFluxCapacitor, null, null, null, null, null, null);
 
-    t = new UnconfirmedTransactionStoreImpl(timeService, mockPropertyService, accountStoreMock);
+    t = new UnconfirmedTransactionStoreImpl(timeService, mockPropertyService, accountStoreMock, transactionDbMock);
   }
 
   @DisplayName("When we add Unconfirmed Transactions to the store, they can be retrieved")

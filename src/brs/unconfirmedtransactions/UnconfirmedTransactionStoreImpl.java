@@ -3,6 +3,7 @@ package brs.unconfirmedtransactions;
 import brs.BurstException.ValidationException;
 import brs.Constants;
 import brs.Transaction;
+import brs.TransactionDb;
 import brs.db.store.AccountStore;
 import brs.peer.Peer;
 import brs.props.PropertyService;
@@ -40,7 +41,7 @@ public class UnconfirmedTransactionStoreImpl implements UnconfirmedTransactionSt
   private int numberUnconfirmedTransactionsFullHash;
   private final int maxPercentageUnconfirmedTransactionsFullHash;
 
-  public UnconfirmedTransactionStoreImpl(TimeService timeService, PropertyService propertyService, AccountStore accountStore) {
+  public UnconfirmedTransactionStoreImpl(TimeService timeService, PropertyService propertyService, AccountStore accountStore, TransactionDb transactionDb) {
     this.timeService = timeService;
 
     this.reservedBalanceCache = new ReservedBalanceCache(accountStore);
@@ -58,7 +59,10 @@ public class UnconfirmedTransactionStoreImpl implements UnconfirmedTransactionSt
       ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     Runnable cleanupExpiredTransactions = () -> {
       synchronized (internalStore) {
-        final List<Transaction> expiredTransactions = getAll().stream().filter(t -> timeService.getEpochTime() > t.getExpiration()).collect(Collectors.toList());
+        final List<Transaction> expiredTransactions = getAll()
+                .stream()
+                .filter(t -> timeService.getEpochTime() > t.getExpiration() || transactionDb.hasTransaction(t.getId()))
+                .collect(Collectors.toList());
         expiredTransactions.forEach(this::removeTransaction);
       }
     };

@@ -1,5 +1,6 @@
 package brs.db.store;
 
+import brs.TransactionDb;
 import brs.db.cache.DBCacheManagerImpl;
 import brs.db.sql.*;
 import brs.props.PropertyService;
@@ -22,7 +23,7 @@ public class Stores {
   private final UnconfirmedTransactionStore unconfirmedTransactionStore;
   private final IndirectIncomingStore indirectIncomingStore;
 
-  public Stores(DerivedTableManager derivedTableManager, DBCacheManagerImpl dbCacheManager, TimeService timeService, PropertyService propertyService) {
+  public Stores(DerivedTableManager derivedTableManager, DBCacheManagerImpl dbCacheManager, TimeService timeService, PropertyService propertyService, TransactionDb transactionDb) {
     this.accountStore                = new SqlAccountStore(derivedTableManager, dbCacheManager);
     this.aliasStore                  = new SqlAliasStore(derivedTableManager);
     this.assetStore                  = new SqlAssetStore(derivedTableManager);
@@ -33,7 +34,7 @@ public class Stores {
     this.orderStore                  = new SqlOrderStore(derivedTableManager);
     this.tradeStore                  = new SqlTradeStore(derivedTableManager);
     this.subscriptionStore           = new SqlSubscriptionStore(derivedTableManager);
-    this.unconfirmedTransactionStore = new UnconfirmedTransactionStoreImpl(timeService, propertyService, accountStore);
+    this.unconfirmedTransactionStore = new UnconfirmedTransactionStoreImpl(timeService, propertyService, accountStore, transactionDb);
     this.indirectIncomingStore       = new SqlIndirectIncomingStore(derivedTableManager);
     this.blockchainStore             = new SqlBlockchainStore(indirectIncomingStore);
   }

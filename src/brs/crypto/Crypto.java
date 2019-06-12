@@ -28,7 +28,7 @@ public final class Crypto {
   }
 
   public static byte[] getPrivateKey(String secretPhrase) {
-    return burstCrypto.getPublicKey(secretPhrase);
+    return burstCrypto.getPrivateKey(secretPhrase);
   }
 
   public static byte[] sign(byte[] message, String secretPhrase) {

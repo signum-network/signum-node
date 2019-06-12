@@ -3,7 +3,7 @@ RUN apk update && apk add protobuf
 RUN apk add grpc-java --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing
 WORKDIR /app
 COPY . .
-RUN mvn -DskipTests=true -P headlessBuild package
+RUN mvn -DskipTests=true -P headless package
 RUN mkdir -p html/ui/doc && mvn javadoc:javadoc-no-fork && cp -r target/site/apidocs/* html/ui/doc
 
 FROM openjdk:8-jre-alpine

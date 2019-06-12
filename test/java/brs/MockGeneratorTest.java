@@ -4,6 +4,8 @@ import brs.common.QuickMocker;
 import brs.common.TestConstants;
 import brs.fluxcapacitor.FluxCapacitor;
 import brs.fluxcapacitor.FluxValues;
+import brs.props.PropertyService;
+import brs.props.Props;
 import brs.services.TimeService;
 import brs.util.Convert;
 import org.junit.Before;
@@ -18,7 +20,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 @RunWith(JUnit4.class)
-public class GeneratorImplTest {
+public class MockGeneratorTest {
     private Generator generator;
 
     private static final byte[] exampleGenSig = Convert.parseHexString("6ec823b5fd86c4aee9f7c3453cacaf4a43296f48ede77e70060ca8225c2855d0");
@@ -36,9 +38,10 @@ public class GeneratorImplTest {
 
         TimeService timeService = mock(TimeService.class);
 
-        FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(FluxValues.POC2);
+        FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(FluxValues.POC2);PropertyService propertyService = mock(PropertyService.class);
+        doReturn(1).when(propertyService).getInt(Props.DEV_MOCK_MINING_DEADLINE);
 
-        generator = new GeneratorImpl(blockchain, timeService, fluxCapacitor);
+        generator = new GeneratorImpl.MockGenerator(propertyService, blockchain, timeService, fluxCapacitor);
     }
 
     @Test
@@ -50,14 +53,14 @@ public class GeneratorImplTest {
     @Test
     public void testGeneratorCalculateDeadline() {
         BigInteger deadline = generator.calculateDeadline(TestConstants.TEST_ACCOUNT_NUMERIC_ID_PARSED, 0, exampleGenSig, generator.calculateScoop(exampleGenSig, exampleHeight), exampleBaseTarget, exampleHeight);
-        assertEquals(BigInteger.valueOf(7157291745432L), deadline);
+        assertEquals(BigInteger.valueOf(1L), deadline);
     }
 
     @Test
     public void testGeneratorCalculateHit() {
-        assertEquals(new BigInteger("14592422770739690569"), generator.calculateHit(TestConstants.TEST_ACCOUNT_NUMERIC_ID_PARSED, 0, exampleGenSig, 0, exampleHeight));
+        assertEquals(new BigInteger("1"), generator.calculateHit(TestConstants.TEST_ACCOUNT_NUMERIC_ID_PARSED, 0, exampleGenSig, 0, exampleHeight));
         // Scoop data is the generation signature repeated - not intended to be acutal scoop data for the purpose of this test. It is twice as long as the gensig as this is the expected scoop size.
-        assertEquals(new BigInteger("16142911724569013009"), generator.calculateHit(TestConstants.TEST_ACCOUNT_NUMERIC_ID_PARSED, 0, exampleGenSig, Convert.parseHexString("6ec823b5fd86c4aee9f7c3453cacaf4a43296f48ede77e70060ca8225c2855d06ec823b5fd86c4aee9f7c3453cacaf4a43296f48ede77e70060ca8225c2855d0")));
+        assertEquals(new BigInteger("1"), generator.calculateHit(TestConstants.TEST_ACCOUNT_NUMERIC_ID_PARSED, 0, exampleGenSig, Convert.parseHexString("6ec823b5fd86c4aee9f7c3453cacaf4a43296f48ede77e70060ca8225c2855d06ec823b5fd86c4aee9f7c3453cacaf4a43296f48ede77e70060ca8225c2855d0")));
     }
 
     @Test
@@ -66,7 +69,7 @@ public class GeneratorImplTest {
         assertEquals(1, generator.getAllGenerators().size());
         Generator.GeneratorState generatorState = generator.getAllGenerators().iterator().next();
         assertNotNull(generatorState);
-        assertEquals(BigInteger.valueOf(212350960282639L), generatorState.getDeadline());
+        assertEquals(BigInteger.valueOf(1), generatorState.getDeadline());
         assertEquals(500001, generatorState.getBlock());
         assertEquals(TestConstants.TEST_ACCOUNT_NUMERIC_ID_PARSED, (long) generatorState.getAccountId());
         assertArrayEquals(TestConstants.TEST_PUBLIC_KEY_BYTES, generatorState.getPublicKey());

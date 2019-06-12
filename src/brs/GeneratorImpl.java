@@ -73,9 +73,6 @@ public class GeneratorImpl implements Generator {
     threadPool.scheduleThread("GenerateBlocks", generateBlockThread(blockchainProcessor), 500, TimeUnit.MILLISECONDS);
   }
 
-  void clear() {
-  }
-
   @Override
   public boolean addListener(Listener<GeneratorState> listener, Event eventType) {
     return listeners.addListener(listener, eventType);

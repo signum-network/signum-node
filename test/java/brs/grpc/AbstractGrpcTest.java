@@ -10,12 +10,11 @@ import brs.grpc.proto.BrsService;
 import brs.props.PropertyService;
 import brs.props.Props;
 import brs.services.*;
+import io.grpc.Context;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.testing.GrpcCleanupRule;
 import org.junit.Rule;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 import org.mockito.ArgumentMatchers;
 
 import java.io.IOException;
@@ -23,7 +22,6 @@ import java.io.IOException;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
-@RunWith(JUnit4.class)
 public abstract class AbstractGrpcTest {
 
     @Rule
@@ -71,5 +69,20 @@ public abstract class AbstractGrpcTest {
         grpcCleanup.register(InProcessServerBuilder.forName(serverName).directExecutor().addService(brsService).build().start());
 
         this.brsService = BrsApiServiceGrpc.newBlockingStub(grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build()));
+    }
+
+    /**
+     * Needed so that streaming calls can be gracefully shutdown afterwards.
+     * @param runnable The test to execute
+     */
+    protected void runAndCancel(Runnable runnable) {
+        Context.CancellableContext withCancellation = Context.current().withCancellation();
+        Context prevCtx = withCancellation.attach();
+        try {
+            runnable.run();
+        } finally {
+            withCancellation.detach(prevCtx);
+            withCancellation.close();
+        }
     }
 }

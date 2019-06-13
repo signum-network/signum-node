@@ -65,6 +65,7 @@ public class MockGeneratorTest {
 
     @Test
     public void testGeneratorAddNonce() {
+        assertEquals(0, generator.getAllGenerators().size());
         generator.addNonce(TestConstants.TEST_SECRET_PHRASE, 0L);
         assertEquals(1, generator.getAllGenerators().size());
         Generator.GeneratorState generatorState = generator.getAllGenerators().iterator().next();

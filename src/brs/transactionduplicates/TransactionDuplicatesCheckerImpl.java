@@ -22,7 +22,6 @@ public class TransactionDuplicatesCheckerImpl {
     final TransactionDuplicationKey transactionDuplicateKey = transaction.getDuplicationKey();
 
     if (transactionDuplicateKey.equals(TransactionDuplicationKey.IS_ALWAYS_DUPLICATE)) {
-      logger.debug("Transaction {}: Is always a duplicate (Type: {})", transaction.getId(), transaction.getType().toString());
       return new TransactionDuplicationResult(true, null);
     } else if (transactionDuplicateKey.equals(TransactionDuplicationKey.IS_NEVER_DUPLICATE)) {
       return new TransactionDuplicationResult(false, null);
@@ -67,12 +66,8 @@ public class TransactionDuplicatesCheckerImpl {
   public void removeTransaction(Transaction transaction) {
     final TransactionDuplicationKey transactionDuplicateKey = transaction.getDuplicationKey();
 
-    if (!transactionDuplicateKey.equals(TransactionDuplicationKey.IS_ALWAYS_DUPLICATE) && !transactionDuplicateKey.equals(TransactionDuplicationKey.IS_NEVER_DUPLICATE)) {
-      if (duplicates.containsKey(transactionDuplicateKey.transactionType)) {
-        if(Objects.equals(duplicates.get(transactionDuplicateKey.transactionType).get(transactionDuplicateKey.key), transaction)) {
-          duplicates.get(transactionDuplicateKey.transactionType).remove(transactionDuplicateKey.key);
-        }
-      }
+    if (!transactionDuplicateKey.equals(TransactionDuplicationKey.IS_ALWAYS_DUPLICATE) && !transactionDuplicateKey.equals(TransactionDuplicationKey.IS_NEVER_DUPLICATE) && duplicates.containsKey(transactionDuplicateKey.transactionType) && Objects.equals(duplicates.get(transactionDuplicateKey.transactionType).get(transactionDuplicateKey.key), transaction)) {
+      duplicates.get(transactionDuplicateKey.transactionType).remove(transactionDuplicateKey.key);
     }
   }
 }

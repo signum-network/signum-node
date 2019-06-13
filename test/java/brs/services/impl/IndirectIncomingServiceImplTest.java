@@ -74,4 +74,13 @@ public class IndirectIncomingServiceImplTest {
         when(multiOutSame.getAttachment()).thenReturn(attachment);
         indirectIncomingService.processTransaction(multiOutSame);
     }
+
+    @Test
+    public void testIndirectIncomingServiceImplTestOrdinaryTransaction() {
+        addIndirectIncomingsRunnable.set(indirectIncomings -> assertEquals(0, indirectIncomings.size()));
+        Transaction ordinaryTransaction = mock(Transaction.class);
+        when(ordinaryTransaction.getAttachment()).thenReturn(Attachment.ORDINARY_PAYMENT);
+        when(ordinaryTransaction.getType()).thenReturn(TransactionType.Payment.ORDINARY);
+        indirectIncomingService.processTransaction(ordinaryTransaction);
+    }
 }

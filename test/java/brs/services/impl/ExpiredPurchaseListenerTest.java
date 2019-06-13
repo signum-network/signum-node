@@ -1,4 +1,4 @@
-package brs.blockchainlistener;
+package brs.services.impl;
 
 import brs.Account;
 import brs.Block;
@@ -14,19 +14,19 @@ import java.util.Collection;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-public class DevNullListenerTest extends AbstractUnitTest {
+public class ExpiredPurchaseListenerTest extends AbstractUnitTest {
 
   private AccountService accountServiceMock;
   private DGSGoodsStoreService dgsGoodsStoreServiceMock;
 
-  private DevNullListener t;
+  private DGSGoodsStoreServiceImpl.ExpiredPurchaseListener t;
 
   @Before
   public void setUp() {
     accountServiceMock = mock(AccountService.class);
     dgsGoodsStoreServiceMock = mock(DGSGoodsStoreService.class);
 
-    t = new DevNullListener(accountServiceMock, dgsGoodsStoreServiceMock);
+    t = new DGSGoodsStoreServiceImpl.ExpiredPurchaseListener(accountServiceMock, dgsGoodsStoreServiceMock);
   }
 
   @Test

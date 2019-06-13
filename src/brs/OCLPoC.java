@@ -44,7 +44,6 @@ final class OCLPoC {
       + 4 // scoop num
       + MiningPlot.SCOOP_SIZE; // output scoop
 
-  static void init() {}
   static {
     PropertyService propertyService = Burst.getPropertyService();
     hashesPerEnqueue = propertyService.getInt(Props.GPU_HASHES_PER_BATCH);

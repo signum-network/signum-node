@@ -1,7 +1,6 @@
 package brs;
 
 import java.util.Collection;
-import java.util.List;
 
 public interface Blockchain {
 
@@ -25,9 +24,9 @@ public interface Blockchain {
 
   Collection<Block> getBlocks(Account account, int timestamp, int from, int to);
 
-  List<Long> getBlockIdsAfter(long blockImplId, int limit);
+  Collection<Long> getBlockIdsAfter(long blockImplId, int limit);
 
-  List<? extends Block> getBlocksAfter(long blockImplId, int limit);
+  Collection<Block> getBlocksAfter(long blockId, int limit);
 
   long getBlockIdAtHeight(int height);
 

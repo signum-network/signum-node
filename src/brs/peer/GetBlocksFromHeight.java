@@ -7,8 +7,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
 final class GetBlocksFromHeight extends PeerServlet.PeerRequestHandler {
 
@@ -38,11 +37,9 @@ final class GetBlocksFromHeight extends PeerServlet.PeerRequestHandler {
     }
     	    
     long blockId =  blockchain.getBlockIdAtHeight(blockHeight);
-    List<? extends Block> blocks = blockchain.getBlocksAfter(blockId, numBlocks);
-    List<Block> nextBlocks = new ArrayList<>(blocks);
-
+    Collection<? extends Block> blocks = blockchain.getBlocksAfter(blockId, numBlocks);
     JsonArray nextBlocksArray = new JsonArray();
-    for (Block nextBlock : nextBlocks) {
+    for (Block nextBlock : blocks) {
       nextBlocksArray.add(nextBlock.getJsonObject());
     }
     response.add("nextBlocks", nextBlocksArray);

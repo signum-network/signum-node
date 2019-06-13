@@ -263,4 +263,25 @@ public class DGSGoodsStoreServiceImpl implements DGSGoodsStoreService {
     purchaseTable.insert(purchase);
   }
 
+  public static class ExpiredPurchaseListener implements Listener<Block> {
+
+    private final AccountService accountService;
+    private final DGSGoodsStoreService goodsService;
+
+    public ExpiredPurchaseListener(AccountService accountService, DGSGoodsStoreService goodsService) {
+      this.accountService = accountService;
+      this.goodsService = goodsService;
+    }
+
+    @Override
+    public void notify(Block block) {
+      for (Purchase purchase : goodsService.getExpiredPendingPurchases(block.getTimestamp())) {
+        Account buyer = accountService.getAccount(purchase.getBuyerId());
+        accountService.addToUnconfirmedBalanceNQT(buyer, Convert.safeMultiply(purchase.getQuantity(), purchase.getPriceNQT()));
+        goodsService.changeQuantity(purchase.getGoodsId(), purchase.getQuantity(), true);
+        goodsService.setPending(purchase, false);
+      }
+    }
+  }
+
 }

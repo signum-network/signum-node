@@ -9,7 +9,6 @@ import org.jooq.DSLContext;
 import org.jooq.Result;
 
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Store for both BlockchainImpl and BlockchainProcessorImpl
@@ -24,9 +23,9 @@ public interface BlockchainStore {
 
   Collection<Block> getBlocks(Result<BlockRecord> blockRecords);
 
-  List<Long> getBlockIdsAfter(long blockId, int limit);
+  Collection<Long> getBlockIdsAfter(long blockId, int limit);
 
-  List<Block> getBlocksAfter(long blockId, int limit);
+  Collection<Block> getBlocksAfter(long blockId, int limit);
 
   int getTransactionCount();
 

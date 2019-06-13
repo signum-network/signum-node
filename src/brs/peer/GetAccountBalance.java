@@ -7,6 +7,7 @@ import brs.util.JSON;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+@Deprecated
 public class GetAccountBalance extends PeerServlet.PeerRequestHandler {
 
   private final AccountService accountService;
@@ -14,6 +15,7 @@ public class GetAccountBalance extends PeerServlet.PeerRequestHandler {
   static final String ACCOUNT_ID_PARAMETER_FIELD = "account";
   static final String BALANCE_NQT_RESPONSE_FIELD = "balanceNQT";
 
+  @Deprecated
   GetAccountBalance(AccountService accountService) {
     this.accountService = accountService;
   }

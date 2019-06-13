@@ -4,7 +4,6 @@ import brs.db.BlockDb;
 import brs.db.store.BlockchainStore;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.StampedLock;
 
@@ -129,12 +128,12 @@ public class BlockchainImpl implements Blockchain {
   }
 
   @Override
-  public List<Long> getBlockIdsAfter(long blockId, int limit) {
+  public Collection<Long> getBlockIdsAfter(long blockId, int limit) {
     return blockchainStore.getBlockIdsAfter(blockId, limit);
   }
 
   @Override
-  public List<Block> getBlocksAfter(long blockId, int limit) {
+  public Collection<Block> getBlocksAfter(long blockId, int limit) {
     return blockchainStore.getBlocksAfter(blockId, limit);
   }
 

@@ -62,6 +62,10 @@ public class GeneratorImplTest {
 
     @Test
     public void testGeneratorAddNonce() {
+        // To allow this test to be re-run OK
+        if (generator.getAllGenerators().size() != 0) {
+            setUpGeneratorTest();
+        }
         assertEquals(0, generator.getAllGenerators().size());
         generator.addNonce(TestConstants.TEST_SECRET_PHRASE, 0L);
         assertEquals(1, generator.getAllGenerators().size());

@@ -180,10 +180,10 @@ public class UnconfirmedTransactionStoreImpl implements UnconfirmedTransactionSt
   @Override
   public void remove(Transaction transaction) {
     synchronized (internalStore) {
-      logger.debug("Removing " + transaction.getId());
       // Make sure that we are acting on our own copy of the transaction, as this is the one we want to remove.
       Transaction internalTransaction = get(transaction.getId());
       if (internalTransaction != null) {
+        logger.debug("Removing {}", transaction.getId());
         removeTransaction(internalTransaction);
       }
     }

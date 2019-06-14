@@ -12,6 +12,7 @@ import brs.at.AT_Controller;
 import brs.at.AT_Machine_State;
 import brs.at.AT_Transaction;
 import brs.db.BurstKey;
+import brs.db.TransactionDb;
 import brs.db.VersionedEntityTable;
 import brs.services.AccountService;
 import brs.util.Listener;

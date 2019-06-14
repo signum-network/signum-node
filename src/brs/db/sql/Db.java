@@ -295,7 +295,7 @@ public final class Db {
       switch (ctx.dialect()) {
         case MYSQL:
         case MARIADB:
-          ctx.execute("OPTIMIZE NO_WRITE_TO_BINLOG " + tableName);
+          ctx.execute("OPTIMIZE NO_WRITE_TO_BINLOG TABLE " + tableName);
           break;
       }
     } catch (Exception e) {

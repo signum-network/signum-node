@@ -39,7 +39,7 @@ public class MockGeneratorTest {
         TimeService timeService = mock(TimeService.class);
 
         FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(FluxValues.POC2);PropertyService propertyService = mock(PropertyService.class);
-        doReturn(1).when(propertyService).getInt(Props.DEV_MOCK_MINING_DEADLINE);
+        doReturn(1000).when(propertyService).getInt(Props.DEV_MOCK_MINING_DEADLINE);
 
         generator = new GeneratorImpl.MockGenerator(propertyService, blockchain, timeService, fluxCapacitor);
     }
@@ -53,28 +53,24 @@ public class MockGeneratorTest {
     @Test
     public void testGeneratorCalculateDeadline() {
         BigInteger deadline = generator.calculateDeadline(TestConstants.TEST_ACCOUNT_NUMERIC_ID_PARSED, 0, exampleGenSig, generator.calculateScoop(exampleGenSig, exampleHeight), exampleBaseTarget, exampleHeight);
-        assertEquals(BigInteger.valueOf(1L), deadline);
+        assertEquals(BigInteger.valueOf(1000L), deadline);
     }
 
     @Test
     public void testGeneratorCalculateHit() {
-        assertEquals(new BigInteger("1"), generator.calculateHit(TestConstants.TEST_ACCOUNT_NUMERIC_ID_PARSED, 0, exampleGenSig, 0, exampleHeight));
+        assertEquals(BigInteger.valueOf(1000L), generator.calculateHit(TestConstants.TEST_ACCOUNT_NUMERIC_ID_PARSED, 0, exampleGenSig, 0, exampleHeight));
         // Scoop data is the generation signature repeated - not intended to be acutal scoop data for the purpose of this test. It is twice as long as the gensig as this is the expected scoop size.
-        assertEquals(new BigInteger("1"), generator.calculateHit(TestConstants.TEST_ACCOUNT_NUMERIC_ID_PARSED, 0, exampleGenSig, Convert.parseHexString("6ec823b5fd86c4aee9f7c3453cacaf4a43296f48ede77e70060ca8225c2855d06ec823b5fd86c4aee9f7c3453cacaf4a43296f48ede77e70060ca8225c2855d0")));
+        assertEquals(BigInteger.valueOf(1000L), generator.calculateHit(TestConstants.TEST_ACCOUNT_NUMERIC_ID_PARSED, 0, exampleGenSig, Convert.parseHexString("6ec823b5fd86c4aee9f7c3453cacaf4a43296f48ede77e70060ca8225c2855d06ec823b5fd86c4aee9f7c3453cacaf4a43296f48ede77e70060ca8225c2855d0")));
     }
 
     @Test
     public void testGeneratorAddNonce() {
-        // To allow this test to be re-run OK
-        if (generator.getAllGenerators().size() != 0) {
-            setUpGeneratorTest();
-        }
         assertEquals(0, generator.getAllGenerators().size());
         generator.addNonce(TestConstants.TEST_SECRET_PHRASE, 0L);
         assertEquals(1, generator.getAllGenerators().size());
         Generator.GeneratorState generatorState = generator.getAllGenerators().iterator().next();
         assertNotNull(generatorState);
-        assertEquals(BigInteger.valueOf(1), generatorState.getDeadline());
+        assertEquals(BigInteger.valueOf(1000), generatorState.getDeadline());
         assertEquals(500001, generatorState.getBlock());
         assertEquals(TestConstants.TEST_ACCOUNT_NUMERIC_ID_PARSED, (long) generatorState.getAccountId());
         assertArrayEquals(TestConstants.TEST_PUBLIC_KEY_BYTES, generatorState.getPublicKey());

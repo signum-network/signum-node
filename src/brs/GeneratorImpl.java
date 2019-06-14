@@ -21,19 +21,14 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
 public class GeneratorImpl implements Generator {
-
   private static final Logger logger = LoggerFactory.getLogger(GeneratorImpl.class);
 
-  private static final Listeners<GeneratorState, Event> listeners = new Listeners<>();
-
-  private static final ConcurrentMap<Long, GeneratorStateImpl> generators = new ConcurrentHashMap<>();
-  private static final Collection<? extends GeneratorState> allGenerators = Collections.unmodifiableCollection(generators.values());
-
+  private final Listeners<GeneratorState, Event> listeners = new Listeners<>();
+  private final ConcurrentMap<Long, GeneratorStateImpl> generators = new ConcurrentHashMap<>();
   private final Blockchain blockchain;
 
   private Runnable generateBlockThread(BlockchainProcessor blockchainProcessor) {
     return () -> {
-
       try {
         if (blockchainProcessor.isScanning()) {
           return;
@@ -99,9 +94,13 @@ public class GeneratorImpl implements Generator {
     if (curGen == null || generator.getBlock() > curGen.getBlock() || generator.getDeadline().compareTo(curGen.getDeadline()) < 0) {
       generators.put(id, generator);
       listeners.notify(generator, Event.NONCE_SUBMITTED);
-      logger.debug("Account " + Convert.toUnsignedLong(id) + " started mining, deadline " + generator.getDeadline() + " seconds");
+      if (logger.isDebugEnabled()) {
+        logger.debug("Account {} started mining, deadline {} seconds", Convert.toUnsignedLong(id), generator.getDeadline());
+      }
     } else {
-      logger.debug("Account " + Convert.toUnsignedLong(id) + " already has better nonce");
+      if (logger.isDebugEnabled()) {
+        logger.debug("Account {} already has a better nonce", Convert.toUnsignedLong(id));
+      }
     }
 
     return generator;
@@ -109,7 +108,7 @@ public class GeneratorImpl implements Generator {
 
   @Override
   public Collection<? extends GeneratorState> getAllGenerators() {
-    return allGenerators;
+    return Collections.unmodifiableCollection(generators.values());
   }
 
   @Override

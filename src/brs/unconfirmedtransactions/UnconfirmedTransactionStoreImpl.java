@@ -3,7 +3,7 @@ package brs.unconfirmedtransactions;
 import brs.BurstException.ValidationException;
 import brs.Constants;
 import brs.Transaction;
-import brs.TransactionDb;
+import brs.db.TransactionDb;
 import brs.db.store.AccountStore;
 import brs.peer.Peer;
 import brs.props.PropertyService;

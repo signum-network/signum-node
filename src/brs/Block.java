@@ -1,6 +1,7 @@
 package brs;
 
 import brs.crypto.Crypto;
+import brs.db.TransactionDb;
 import brs.fluxcapacitor.FluxValues;
 import brs.peer.Peer;
 import brs.util.Convert;

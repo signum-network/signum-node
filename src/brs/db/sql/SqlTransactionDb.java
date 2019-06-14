@@ -1,6 +1,10 @@
 package brs.db.sql;
 
-import brs.*;
+import brs.Appendix;
+import brs.BurstException;
+import brs.Transaction;
+import brs.TransactionType;
+import brs.db.TransactionDb;
 import brs.schema.tables.records.TransactionRecord;
 import brs.util.Convert;
 import org.jooq.BatchBindStep;

@@ -1,5 +1,7 @@
-package brs;
+package brs.db;
 
+import brs.BurstException;
+import brs.Transaction;
 import brs.schema.tables.records.TransactionRecord;
 
 import java.util.List;
@@ -18,5 +20,4 @@ public interface TransactionDb {
   List<Transaction> findBlockTransactions(long blockId);
 
   void saveTransactions(List<Transaction> transactions);
-
 }

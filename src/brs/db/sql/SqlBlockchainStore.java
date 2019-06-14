@@ -4,6 +4,7 @@ import brs.*;
 import brs.Block;
 import brs.Transaction;
 import brs.db.BlockDb;
+import brs.db.TransactionDb;
 import brs.db.store.BlockchainStore;
 import brs.db.store.IndirectIncomingStore;
 import brs.schema.tables.records.BlockRecord;

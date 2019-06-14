@@ -1,6 +1,7 @@
 package brs;
 
 import brs.db.BlockDb;
+import brs.db.TransactionDb;
 import brs.db.store.BlockchainStore;
 
 import java.util.Collection;

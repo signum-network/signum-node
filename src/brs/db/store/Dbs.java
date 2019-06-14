@@ -1,8 +1,8 @@
 package brs.db.store;
 
-import brs.TransactionDb;
 import brs.db.BlockDb;
 import brs.db.PeerDb;
+import brs.db.TransactionDb;
 
 public interface Dbs {
 

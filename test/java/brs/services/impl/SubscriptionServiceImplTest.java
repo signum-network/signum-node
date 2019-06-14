@@ -2,10 +2,10 @@ package brs.services.impl;
 
 import brs.Blockchain;
 import brs.Subscription;
-import brs.TransactionDb;
 import brs.common.AbstractUnitTest;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
+import brs.db.TransactionDb;
 import brs.db.VersionedEntityTable;
 import brs.db.store.SubscriptionStore;
 import brs.services.AccountService;

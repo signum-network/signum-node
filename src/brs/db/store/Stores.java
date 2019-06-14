@@ -1,6 +1,6 @@
 package brs.db.store;
 
-import brs.TransactionDb;
+import brs.db.TransactionDb;
 import brs.db.cache.DBCacheManagerImpl;
 import brs.db.sql.*;
 import brs.props.PropertyService;

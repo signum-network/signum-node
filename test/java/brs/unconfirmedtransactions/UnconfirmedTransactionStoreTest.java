@@ -9,6 +9,7 @@ import brs.common.QuickMocker;
 import brs.common.TestConstants;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
+import brs.db.TransactionDb;
 import brs.db.VersionedBatchEntityTable;
 import brs.db.store.AccountStore;
 import brs.fluxcapacitor.FluxCapacitor;

@@ -1,8 +1,8 @@
 package brs.db.sql;
 
-import brs.TransactionDb;
 import brs.db.BlockDb;
 import brs.db.PeerDb;
+import brs.db.TransactionDb;
 import brs.db.store.Dbs;
 
 public class SqlDbs implements Dbs {

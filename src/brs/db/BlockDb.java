@@ -5,7 +5,7 @@ import brs.BurstException;
 import brs.schema.tables.records.BlockRecord;
 import org.jooq.DSLContext;
 
-public interface BlockDb {
+public interface BlockDb extends Table {
   Block findBlock(long blockId);
 
   boolean hasBlock(long blockId);

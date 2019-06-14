@@ -59,7 +59,7 @@ public final class Db {
     }
     dialect = JDBCUtils.dialect(dbUrl);
 
-    logger.debug("Database jdbc url set to: " + dbUrl);
+    logger.debug("Database jdbc url set to: {}", dbUrl);
     try {
       HikariConfig config = new HikariConfig();
       config.setJdbcUrl(dbUrl);
@@ -287,5 +287,19 @@ public final class Db {
     transactionBatches.get().clear();
     transactionBatches.set(null);
     DbUtils.close(con);
+  }
+
+  public static void optimizeTable(String tableName) {
+    DSLContext ctx = getDSLContext();
+    try {
+      switch (ctx.dialect()) {
+        case MYSQL:
+        case MARIADB:
+          ctx.execute("OPTIMIZE NO_WRITE_TO_BINLOG " + tableName);
+          break;
+      }
+    } catch (Exception e) {
+      logger.debug("Failed to optimize table {}", tableName, e);
+    }
   }
 }

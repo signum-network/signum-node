@@ -19,7 +19,7 @@ public abstract class DerivedSqlTable implements DerivedTable {
   DerivedSqlTable(String table, TableImpl<?> tableClass, DerivedTableManager derivedTableManager) {
     this.table      = table;
     this.tableClass = tableClass;
-    logger.trace("Creating derived table for "+table);
+    logger.trace("Creating derived table for {}", table);
     derivedTableManager.registerDerivedTable(this);
     this.heightField = tableClass.field("height", Integer.class);
     this.latestField = tableClass.field("latest", Boolean.class);
@@ -51,5 +51,10 @@ public abstract class DerivedSqlTable implements DerivedTable {
   @Override
   public void finish() {
 
+  }
+
+  @Override
+  public void optimize() {
+    Db.optimizeTable(table);
   }
 }

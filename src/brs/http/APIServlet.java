@@ -165,20 +165,8 @@ public final class APIServlet extends HttpServlet {
 
   abstract static class JsonRequestHandler extends HttpRequestHandler {
 
-    private final List<String> parameters;
-    private final Set<APITag> apiTags;
-
     JsonRequestHandler(APITag[] apiTags, String... parameters) {
-      this.parameters = Collections.unmodifiableList(Arrays.asList(parameters));
-      this.apiTags = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(apiTags)));
-    }
-
-    final List<String> getParameters() {
-      return parameters;
-    }
-
-    final Set<APITag> getAPITags() {
-      return apiTags;
+      super(apiTags, parameters);
     }
 
     @Override
@@ -207,10 +195,25 @@ public final class APIServlet extends HttpServlet {
 
   abstract static class HttpRequestHandler {
 
+    private final List<String> parameters;
+    private final Set<APITag> apiTags;
+
+    HttpRequestHandler(APITag[] apiTags, String... parameters) {
+      this.parameters = Collections.unmodifiableList(Arrays.asList(parameters));
+      this.apiTags = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(apiTags)));
+    }
+
+    final List<String> getParameters() {
+      return parameters;
+    }
+
+    final Set<APITag> getAPITags() {
+      return apiTags;
+    }
+
     protected abstract void processRequest(HttpServletRequest req, HttpServletResponse resp) throws IOException;
 
     void addErrorMessage(HttpServletResponse resp, JsonElement msg) throws IOException {
-      resp.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
       writeJsonToResponse(resp, msg);
     }
 

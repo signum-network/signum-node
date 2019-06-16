@@ -19,12 +19,11 @@ import java.util.Collection;
 
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.TRADES_RESPONSE;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
-;
 
 public class GetTradesTest extends AbstractUnitTest {
 
@@ -148,10 +147,4 @@ public class GetTradesTest extends AbstractUnitTest {
     final JsonObject tradeResult = (JsonObject) trades.get(0);
     assertNotNull(tradeResult);
   }
-
-  @Test
-  public void startDbTransaction() {
-    assertTrue(t.startDbTransaction());
-  }
-
 }

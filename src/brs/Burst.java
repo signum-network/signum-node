@@ -244,12 +244,12 @@ public final class Burst {
       threadPool.start(timeMultiplier);
       if (timeMultiplier > 1) {
         timeService.setTime(new Time.FasterTime(Math.max(timeService.getEpochTime(), getBlockchain().getLastBlock().getTimestamp()), timeMultiplier));
-        logger.info("TIME WILL FLOW " + timeMultiplier + " TIMES FASTER!");
+        logger.info("TIME WILL FLOW {} TIMES FASTER!", timeMultiplier);
       }
 
       long currentTime = System.currentTimeMillis();
-      logger.info("Initialization took " + (currentTime - startTime) + " ms");
-      logger.info("BRS " + VERSION + " started successfully.");
+      logger.info("Initialization took {} ms", currentTime - startTime);
+      logger.info("BRS {} started successfully.", VERSION);
 
       if (propertyService.getBoolean(Props.DEV_TESTNET)) {
         logger.info("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
@@ -280,7 +280,7 @@ public final class Burst {
     try {
       String command;
       while ( ( command = reader.readLine() ) != null){
-        logger.debug("received command: >" + command + "<");
+        logger.debug("received command: >{}<", command);
         if ( command.equals(".shutdown") ) {
           shutdown(false);
           System.exit(0);
@@ -315,7 +315,7 @@ public final class Burst {
     if (blockchainProcessor != null && blockchainProcessor.getOclVerify()) {
       OCLPoC.destroy();
     }
-    logger.info("BRS " + VERSION + " stopped.");
+    logger.info("BRS {} stopped.", VERSION);
     LoggerConfigurator.shutdown();
   }
 

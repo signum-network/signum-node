@@ -282,9 +282,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                   // Make sure it maps back to chain
                   if (lastBlock.getId() != block.getPreviousBlockId()) {
                     logger.debug("Discarding downloaded data. Last downloaded blocks is rubbish");
-                    logger.debug("DB blockID: " + lastBlock.getId() + " DB blockheight:"
-                            + lastBlock.getHeight() + " Downloaded previd:"
-                            + block.getPreviousBlockId());
+                    logger.debug("DB blockID: {} DB blockheight: {} Downloaded previd: {}", lastBlock.getId(), lastBlock.getHeight(), block.getPreviousBlockId());
                     return;
                   }
                   // set height and cumulative difficulty to block
@@ -324,9 +322,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                   return;
               } // end block loop
 
-              logger.trace("Unverified blocks: {}", downloadCache.getUnverifiedSize());
-              logger.trace("Blocks in cache: {}", downloadCache.size());
-              logger.trace("Bytes in cache: {}", downloadCache.getBlockCacheSize());
+              if (logger.isTraceEnabled()) {
+                logger.trace("Unverified blocks: {}", downloadCache.getUnverifiedSize());
+                logger.trace("Blocks in cache: {}", downloadCache.size());
+                logger.trace("Bytes in cache: {}", downloadCache.getBlockCacheSize());
+              }
               if (!saveInCache) {
                 /*
                  * Since we cannot rely on peers reported cumulative difficulty we do
@@ -1031,7 +1031,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           downloadCache.resetCache();
         } catch (RuntimeException e) {
           stores.rollbackTransaction();
-          logger.debug("Error popping off to " + commonBlock.getHeight(), e);
+          logger.debug("Error popping off to {}", commonBlock.getHeight(), e);
           throw e;
         } finally {
           stores.endTransaction();

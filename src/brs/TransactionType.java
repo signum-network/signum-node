@@ -215,13 +215,17 @@ public abstract class TransactionType {
   // return false if double spending
   public final boolean applyUnconfirmed(Transaction transaction, Account senderAccount) {
     long totalAmountNQT = calculateTransactionAmountNQT(transaction);
-    logger.trace("applyUnconfirmed: " + senderAccount.getUnconfirmedBalanceNQT() + " < totalamount: " + totalAmountNQT + " = false");
+    if (logger.isTraceEnabled()) {
+      logger.trace("applyUnconfirmed: {} < totalamount: {} = false", senderAccount.getUnconfirmedBalanceNQT(), totalAmountNQT);
+    }
     if (senderAccount.getUnconfirmedBalanceNQT() < totalAmountNQT) {
       return false;
     }
     accountService.addToUnconfirmedBalanceNQT(senderAccount, -totalAmountNQT);
     if (!applyAttachmentUnconfirmed(transaction, senderAccount)) {
-      logger.trace("!applyAttachmentUnconfirmed(" + transaction + ", " + senderAccount.getId() );
+      if (logger.isTraceEnabled()) {
+        logger.trace("!applyAttachmentUnconfirmed({}, {})", transaction, senderAccount.getId());
+      }
       accountService.addToUnconfirmedBalanceNQT(senderAccount, totalAmountNQT);
       return false;
     }
@@ -256,7 +260,9 @@ public abstract class TransactionType {
     if (recipientAccount != null) {
       accountService.addToBalanceAndUnconfirmedBalanceNQT(recipientAccount, transaction.getAmountNQT());
     }
-    logger.trace("applying transaction - id:" + transaction.getId() + ", type: " + transaction.getType());
+    if (logger.isTraceEnabled()) {
+      logger.trace("applying transaction - id: {}, type: {}", transaction.getId(), transaction.getType());
+    }
     applyAttachment(transaction, senderAccount, recipientAccount);
   }
 

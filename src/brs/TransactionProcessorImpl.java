@@ -213,7 +213,9 @@ public class TransactionProcessorImpl implements TransactionProcessor {
     if(! processedTransactions.isEmpty()) {
       return broadcastToPeers(true);
     } else {
-      logger.debug("Could not accept new transaction " + transaction.getStringId());
+      if (logger.isDebugEnabled()) {
+        logger.debug("Could not accept new transaction {}", transaction.getStringId());
+      }
       throw new BurstException.NotValidException("Invalid transaction " + transaction.getStringId());
     }
   }
@@ -342,7 +344,9 @@ public class TransactionProcessorImpl implements TransactionProcessor {
 
             if (!(transaction.verifySignature() && transactionService.verifyPublicKey(transaction))) {
               if (accountService.getAccount(transaction.getSenderId()) != null) {
-                logger.debug("Transaction " + JSON.toJsonString(transaction.getJsonObject()) + " failed to verify");
+                if (logger.isDebugEnabled()) {
+                  logger.debug("Transaction {} failed to verify", JSON.toJsonString(transaction.getJsonObject()));
+                }
               }
               stores.commitTransaction();
               continue;

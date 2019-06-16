@@ -168,8 +168,9 @@ final class OCLPoC {
 
   public static void validatePoC(Collection<Block> blocks, int PoCVersion, BlockService blockService) {
     try {
-      // logger.debug("starting ocl verify for: " + blocks.size());
-
+      if (logger.isDebugEnabled()) {
+        logger.debug("starting ocl verify for: {}", blocks.size());
+      }
       byte[] scoopsOut = new byte[MiningPlot.SCOOP_SIZE * blocks.size()];
 
       long jobSize = blocks.size();
@@ -200,7 +201,9 @@ final class OCLPoC {
         scoopNums[i] = blockService.getScoopNum(block);
         i++;
       }
-      // logger.debug("finished preprocessing: " + blocks.size());
+      if (logger.isDebugEnabled()) {
+        logger.debug("finished preprocessing: {}", blocks.size());
+      }
 
       synchronized (oclLock) {
         if (ctx == null) {
@@ -287,7 +290,9 @@ final class OCLPoC {
         }
       }
 
-    //  logger.debug("finished ocl, doing rest: " + blocks.size());
+      if (logger.isDebugEnabled()) {
+        logger.debug("finished ocl, doing rest: {}", blocks.size());
+      }
 
       ByteBuffer scoopsBuffer = ByteBuffer.wrap(scoopsOut);
       byte[] scoop = new byte[MiningPlot.SCOOP_SIZE];
@@ -302,7 +307,9 @@ final class OCLPoC {
           throw new PreValidateFailException("Block failed to prevalidate", e, block);
         }
       });
-      // logger.debug("finished rest: " + blocks.size());
+      if (logger.isDebugEnabled()) {
+        logger.debug("finished rest: {}", blocks.size());
+      }
     } catch (CLException e) {
       // intentionally leave out of unverified cache. It won't slow it that much on one failure and
       // avoids infinite looping on repeat failed attempts.
@@ -366,10 +373,10 @@ final class OCLPoC {
     long maxItemsByGlobalMemSize = (globalMemSize[0] * MEM_PERCENT / 100) / memPerItem;
     long maxItemsByMaxAllocSize = (maxMemAllocSize[0] * MEM_PERCENT / 100) / bufferPerItem;
 
-    logger.debug("Global Memory:" + globalMemSize[0]);
-    logger.debug("Max alloc Memory:" + maxMemAllocSize[0]);
-    logger.debug("maxItemsByGlobalMemSize:" + maxItemsByGlobalMemSize);
-    logger.debug("maxItemsByMaxAllocSize:" + maxItemsByMaxAllocSize);
+    logger.debug("Global Memory: {}", globalMemSize[0]);
+    logger.debug("Max alloc Memory: {}", maxMemAllocSize[0]);
+    logger.debug("maxItemsByGlobalMemSize: {}", maxItemsByGlobalMemSize);
+    logger.debug("maxItemsByMaxAllocSize: {}", maxItemsByMaxAllocSize);
 
     return Math.min(maxItemsByGlobalMemSize, maxItemsByMaxAllocSize);
   }

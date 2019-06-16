@@ -22,27 +22,28 @@ import java.net.URI;
 import java.security.Permission;
 
 public class BurstGUI extends Application {
-    private static final String iconLocation = "/images/burst_overlay_logo.png";
-    private static final String failedToStartMessage = "BurstGUI caught exception starting BRS";
-    private static final String unexpectedExitMessage = "BRS Quit unexpectedly! Exit code ";
+    private static final String ICON_LOCATION = "/images/burst_overlay_logo.png";
+    private static final String FAILED_TO_START_MESSAGE = "BurstGUI caught exception starting BRS";
+    private static final String UNEXPECTED_EXIT_MESSAGE = "BRS Quit unexpectedly! Exit code ";
 
     private static final int OUTPUT_MAX_LINES = 500;
 
-    private static String[] args;
-    private static boolean userClosed = false;
     private static final Logger LOGGER = LoggerFactory.getLogger(BurstGUI.class);
-    private static Stage stage;
-    private static TrayIcon trayIcon = null;
+    private static String[] args;
+
+    private boolean userClosed = false;
+    private Stage stage;
+    private TrayIcon trayIcon = null;
 
     public static void main(String[] args) {
         BurstGUI.args = args;
-        System.setSecurityManager(new BurstGUISecurityManager());
         Platform.setImplicitExit(false);
         launch(args);
     }
 
     @Override
     public void start(Stage primaryStage) {
+        System.setSecurityManager(new BurstGUISecurityManager());
         primaryStage.setTitle("Burst Reference Software version " + Burst.VERSION);
         TextArea textArea = new TextArea() {
             @Override
@@ -58,13 +59,13 @@ public class BurstGUI extends Application {
         textArea.setEditable(false);
         sendJavaOutputToTextArea(textArea);
         primaryStage.setScene(new Scene(textArea, 800, 450));
-        primaryStage.getIcons().add(new javafx.scene.image.Image(getClass().getResourceAsStream(iconLocation)));
+        primaryStage.getIcons().add(new javafx.scene.image.Image(getClass().getResourceAsStream(ICON_LOCATION)));
         stage = primaryStage;
         showTrayIcon();
-        new Thread(BurstGUI::runBrs).start();
+        new Thread(this::runBrs).start();
     }
 
-    private static void shutdown() {
+    private void shutdown() {
         userClosed = true;
         if (trayIcon != null && SystemTray.isSupported()) {
             SystemTray.getSystemTray().remove(trayIcon);
@@ -72,7 +73,7 @@ public class BurstGUI extends Application {
         System.exit(0); // BRS shutdown handled by exit hook
     }
 
-    private static void showTrayIcon() {
+    private void showTrayIcon() {
         if (trayIcon == null) { // Don't start running in tray twice
             trayIcon = createTrayIcon();
             if (trayIcon != null) {
@@ -84,7 +85,7 @@ public class BurstGUI extends Application {
         }
     }
 
-    private static TrayIcon createTrayIcon() {
+    private TrayIcon createTrayIcon() {
         try {
             SystemTray systemTray = SystemTray.getSystemTray();
             PopupMenu popupMenu = new PopupMenu();
@@ -101,7 +102,7 @@ public class BurstGUI extends Application {
             popupMenu.add(showItem);
             popupMenu.add(shutdownItem);
 
-            TrayIcon newTrayIcon = new TrayIcon(Toolkit.getDefaultToolkit().createImage(BurstGUI.class.getResource(iconLocation)), "Burst Reference Software", popupMenu);
+            TrayIcon newTrayIcon = new TrayIcon(Toolkit.getDefaultToolkit().createImage(BurstGUI.class.getResource(ICON_LOCATION)), "Burst Reference Software", popupMenu);
             newTrayIcon.setImage(newTrayIcon.getImage().getScaledInstance(newTrayIcon.getSize().width, -1, Image.SCALE_SMOOTH));
             newTrayIcon.addActionListener(e -> openWebUi());
             systemTray.add(newTrayIcon);
@@ -112,20 +113,20 @@ public class BurstGUI extends Application {
         }
     }
 
-    private static void showWindow() {
+    private void showWindow() {
         Platform.runLater(stage::show);
     }
 
-    private static void hideWindow() {
+    private void hideWindow() {
         Platform.runLater(stage::hide);
     }
 
-    private static void openWebUi() {
+    private void openWebUi() {
         try {
             PropertyService propertyService = Burst.getPropertyService();
             int port = propertyService.getBoolean(Props.DEV_TESTNET) ? propertyService.getInt(Props.DEV_API_PORT) : propertyService.getInt(Props.API_PORT);
             String httpPrefix = propertyService.getBoolean(Props.API_SSL) ? "https://" : "http://";
-            String address = httpPrefix + "localhost:" + String.valueOf(port);
+            String address = httpPrefix + "localhost:" + port;
             try {
                 Desktop.getDesktop().browse(new URI(address));
             } catch (Exception e) { // Catches parse exception or exception when opening browser
@@ -138,41 +139,42 @@ public class BurstGUI extends Application {
         }
     }
 
-    private static void runBrs() {
+    private void runBrs() {
         try {
             Burst.main(args);
             try {
                 if (Burst.getPropertyService().getBoolean(Props.DEV_TESTNET)) {
                     onTestNetEnabled();
                 }
-            } catch (Throwable t) {
+            } catch (Exception t) {
                 LOGGER.error("Could not determine if running in testnet mode", t);
             }
-        } catch (Throwable t) {
-            if (!(t instanceof SecurityException)) {
-                LOGGER.error(failedToStartMessage, t);
-                showMessage(failedToStartMessage);
-                onBrsStopped();
-            }
+        } catch (SecurityException ignored) {
+        } catch (Exception t) {
+            LOGGER.error(FAILED_TO_START_MESSAGE, t);
+            showMessage(FAILED_TO_START_MESSAGE);
+            onBrsStopped();
         }
     }
 
-    private static void onTestNetEnabled() {
+    private void onTestNetEnabled() {
         Platform.runLater(() -> stage.setTitle(stage.getTitle() + " (TESTNET)"));
         trayIcon.setToolTip(trayIcon.getToolTip() + " (TESTNET)");
     }
 
-    private static void onBrsStopped() {
+    private void onBrsStopped() {
         Platform.runLater(() -> stage.setTitle(stage.getTitle() + " (STOPPED)"));
         trayIcon.setToolTip(trayIcon.getToolTip() + " (STOPPED)");
     }
 
-    private static void sendJavaOutputToTextArea(TextArea textArea) {
+    @SuppressWarnings("squid:S106")
+    private void sendJavaOutputToTextArea(TextArea textArea) {
         System.setOut(new PrintStream(new TextAreaOutputStream(textArea, System.out)));
         System.setErr(new PrintStream(new TextAreaOutputStream(textArea, System.err)));
     }
 
-    private static void showMessage(String message) {
+    @SuppressWarnings("squid:S106")
+    private void showMessage(String message) {
         Platform.runLater(() -> {
             System.err.println("Showing message: " + message);
             Dialog dialog = new Alert(Alert.AlertType.ERROR, message, ButtonType.OK);
@@ -204,6 +206,11 @@ public class BurstGUI extends Application {
             writeString(new String(b));
         }
 
+        @Override
+        public void write(byte[] b, int off, int len) {
+            writeString(new String(b, off, len));
+        }
+
         private void writeString(String string) {
             lineBuilder.append(string);
             String line = lineBuilder.toString();
@@ -217,14 +224,14 @@ public class BurstGUI extends Application {
         }
     }
 
-    private static class BurstGUISecurityManager extends SecurityManager {
+    private class BurstGUISecurityManager extends SecurityManager {
 
         @Override
         public void checkExit(int status) {
             if (!userClosed) {
-                LOGGER.error(unexpectedExitMessage + String.valueOf(status));
+                LOGGER.error("{} {}", UNEXPECTED_EXIT_MESSAGE, status);
                 Platform.runLater(() -> stage.show());
-                showMessage(unexpectedExitMessage + String.valueOf(status));
+                showMessage(UNEXPECTED_EXIT_MESSAGE + String.valueOf(status));
                 onBrsStopped();
                 throw new SecurityException();
             }
@@ -232,102 +239,127 @@ public class BurstGUI extends Application {
 
         @Override
         public void checkPermission(Permission perm) {
+            // No need to check.
         }
 
         @Override
         public void checkPermission(Permission perm, Object context) {
+            // No need to check.
         }
 
         @Override
         public void checkCreateClassLoader() {
+            // No need to check.
         }
 
         @Override
         public void checkAccess(Thread t) {
+            // No need to check.
         }
 
         @Override
         public void checkAccess(ThreadGroup g) {
+            // No need to check.
         }
 
         @Override
         public void checkExec(String cmd) {
+            // No need to check.
         }
 
         @Override
         public void checkLink(String lib) {
+            // No need to check.
         }
 
         @Override
         public void checkRead(FileDescriptor fd) {
+            // No need to check.
         }
 
         @Override
         public void checkRead(String file) {
+            // No need to check.
         }
 
         @Override
         public void checkRead(String file, Object context) {
+            // No need to check.
         }
 
         @Override
         public void checkWrite(FileDescriptor fd) {
+            // No need to check.
         }
 
         @Override
         public void checkWrite(String file) {
+            // No need to check.
         }
 
         @Override
         public void checkDelete(String file) {
+            // No need to check.
         }
 
         @Override
         public void checkConnect(String host, int port) {
+            // No need to check.
         }
 
         @Override
         public void checkConnect(String host, int port, Object context) {
+            // No need to check.
         }
 
         @Override
         public void checkListen(int port) {
+            // No need to check.
         }
 
         @Override
         public void checkAccept(String host, int port) {
+            // No need to check.
         }
 
         @Override
         public void checkMulticast(InetAddress maddr) {
+            // No need to check.
         }
 
         @Override
         public void checkPropertiesAccess() {
+            // No need to check.
         }
 
         @Override
         public void checkPropertyAccess(String key) {
+            // No need to check.
         }
 
         @Override
         public void checkPrintJobAccess() {
+            // No need to check.
         }
 
         @Override
         public void checkPackageAccess(String pkg) {
+            // No need to check.
         }
 
         @Override
         public void checkPackageDefinition(String pkg) {
+            // No need to check.
         }
 
         @Override
         public void checkSetFactory() {
+            // No need to check.
         }
 
         @Override
         public void checkSecurityAccess(String target) {
+            // No need to check.
         }
     }
 }

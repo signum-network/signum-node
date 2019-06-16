@@ -12,6 +12,9 @@ import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.NUMBER_OF_CONFIRMATIONS_PARAMETER;
 import static brs.http.common.ResultFields.GUARANTEED_BALANCE_NQT_RESPONSE;
 
+/**
+ * @deprecated This call is superseded by GetBalance which does what this does and more.
+ */
 @Deprecated
 public final class GetGuaranteedBalance extends APIServlet.JsonRequestHandler {
 
@@ -24,7 +27,6 @@ public final class GetGuaranteedBalance extends APIServlet.JsonRequestHandler {
     }
 
     @Override
-    @Deprecated
     JsonElement processRequest(HttpServletRequest req) throws BurstException {
         Account account = parameterService.getAccount(req);
         JsonObject response = new JsonObject();

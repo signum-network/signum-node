@@ -26,7 +26,8 @@ final class GetBlocksFromHeight extends PeerServlet.PeerRequestHandler {
 
     try {
       numBlocks = JSON.getAsInt(request.get("numBlocks"));
-    } catch (Exception e) {}
+    } catch (Exception ignored) {
+    }
 
     //small failsafe
     if(numBlocks < 1 || numBlocks > 1400) {

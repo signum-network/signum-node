@@ -22,7 +22,7 @@ public interface Generator {
 
   GeneratorState addNonce(String secretPhrase, Long nonce, byte[] publicKey);
 
-  Collection<? extends GeneratorState> getAllGenerators();
+  Collection<GeneratorState> getAllGenerators();
 
   byte[] calculateGenerationSignature(byte[] lastGenSig, long lastGenId);
 

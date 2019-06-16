@@ -154,7 +154,9 @@ public final class PeerServlet extends HttpServlet {
         }
       }
       else {
-        logger.debug("Unsupported protocol " + JSON.getAsString(request.get(PROTOCOL)));
+        if (logger.isDebugEnabled()) {
+          logger.debug("Unsupported protocol {}", JSON.getAsString(request.get(PROTOCOL)));
+        }
         response = UNSUPPORTED_PROTOCOL;
       }
 

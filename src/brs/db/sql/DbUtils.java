@@ -12,7 +12,7 @@ public final class DbUtils {
       if (closeable != null) {
         try {
           closeable.close();
-        } catch (Exception ignore) {
+        } catch (Exception ignored) {
         }
       }
     }

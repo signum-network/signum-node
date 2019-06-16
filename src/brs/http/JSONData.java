@@ -247,7 +247,7 @@ public final class JSONData {
       }
       json.add(FEEDBACK_NOTES_RESPONSE, feedbacks);
     }
-    if (purchase.getPublicFeedback().size() > 0) {
+    if (!purchase.getPublicFeedback().isEmpty()) {
       JsonArray publicFeedbacks = new JsonArray();
       for (String string : purchase.getPublicFeedback()) {
         publicFeedbacks.add(string);

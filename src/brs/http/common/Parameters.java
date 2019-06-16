@@ -1,6 +1,9 @@
 package brs.http.common;
 
 public final class Parameters {
+  private Parameters() {
+  }
+
   public static final String ALIAS_PARAMETER = "alias";
   public static final String AMOUNT_NQT_PARAMETER = "amountNQT";
   public static final String ALIAS_NAME_PARAMETER = "aliasName";

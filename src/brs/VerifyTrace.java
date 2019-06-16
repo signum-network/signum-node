@@ -1,7 +1,6 @@
 package brs;
 
 import brs.util.Convert;
-import brs.util.LoggerConfigurator;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -146,10 +145,6 @@ public final class VerifyTrace {
       System.out.println(e.toString());
       throw new RuntimeException(e);
     }
-  }
-
-  static {
-    LoggerConfigurator.init();
   }
 
   private static final String beginQuote = "^" + DebugTrace.QUOTE;

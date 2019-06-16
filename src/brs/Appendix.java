@@ -89,13 +89,13 @@ public interface Appendix {
   class Message extends AbstractAppendix {
 
     static Message parse(JsonObject attachmentData) {
-      if (attachmentData.get("message") == null) {
+      if (attachmentData.get("messageBytes") == null) {
         return null;
       }
       return new Message(attachmentData);
     }
 
-    private final byte[] message;
+    private final byte[] messageBytes;
     private final boolean isText;
 
     public Message(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
@@ -106,34 +106,34 @@ public interface Appendix {
         messageLength &= Integer.MAX_VALUE;
       }
       if (messageLength > Constants.MAX_ARBITRARY_MESSAGE_LENGTH) {
-        throw new BurstException.NotValidException("Invalid arbitrary message length: " + messageLength);
+        throw new BurstException.NotValidException("Invalid arbitrary messageBytes length: " + messageLength);
       }
-      this.message = new byte[messageLength];
-      buffer.get(this.message);
+      this.messageBytes = new byte[messageLength];
+      buffer.get(this.messageBytes);
     }
 
     Message(JsonObject attachmentData) {
       super(attachmentData);
-      String messageString = JSON.getAsString(attachmentData.get("message"));
+      String messageString = JSON.getAsString(attachmentData.get("messageBytes"));
       this.isText = Boolean.TRUE.equals(JSON.getAsBoolean(attachmentData.get("messageIsText")));
-      this.message = isText ? Convert.toBytes(messageString) : Convert.parseHexString(messageString);
+      this.messageBytes = isText ? Convert.toBytes(messageString) : Convert.parseHexString(messageString);
     }
 
     public Message(byte[] message, int blockchainHeight) {
       super(blockchainHeight);
-      this.message = message;
+      this.messageBytes = message;
       this.isText = false;
     }
 
     public Message(String string, int blockchainHeight) {
       super(blockchainHeight);
-      this.message = Convert.toBytes(string);
+      this.messageBytes = Convert.toBytes(string);
       this.isText = true;
     }
 
     public Message(BrsApi.MessageAppendix messageAppendix, int blockchainHeight) {
       super(blockchainHeight);
-      this.message = messageAppendix.getMessage().toByteArray();
+      this.messageBytes = messageAppendix.getMessage().toByteArray();
       this.isText = messageAppendix.getIsText();
     }
 
@@ -144,18 +144,18 @@ public interface Appendix {
 
     @Override
     int getMySize() {
-      return 4 + message.length;
+      return 4 + messageBytes.length;
     }
 
     @Override
     void putMyBytes(ByteBuffer buffer) {
-      buffer.putInt(isText ? (message.length | Integer.MIN_VALUE) : message.length);
-      buffer.put(message);
+      buffer.putInt(isText ? (messageBytes.length | Integer.MIN_VALUE) : messageBytes.length);
+      buffer.put(messageBytes);
     }
 
     @Override
     void putMyJSON(JsonObject json) {
-      json.addProperty("message", isText ? Convert.toString(message) : Convert.toHexString(message));
+      json.addProperty("messageBytes", isText ? Convert.toString(messageBytes) : Convert.toHexString(messageBytes));
       json.addProperty("messageIsText", isText);
     }
 
@@ -167,16 +167,18 @@ public interface Appendix {
       if (transaction.getVersion() == 0 && transaction.getAttachment() != Attachment.ARBITRARY_MESSAGE) {
         throw new BurstException.NotValidException("Message attachments not enabled for version 0 transactions");
       }
-      if (message.length > Constants.MAX_ARBITRARY_MESSAGE_LENGTH) {
-        throw new BurstException.NotValidException("Invalid arbitrary message length: " + message.length);
+      if (messageBytes.length > Constants.MAX_ARBITRARY_MESSAGE_LENGTH) {
+        throw new BurstException.NotValidException("Invalid arbitrary messageBytes length: " + messageBytes.length);
       }
     }
 
     @Override
-    public void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {}
+    public void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {
+      // Do nothing by default
+    }
 
-    public byte[] getMessage() {
-      return message;
+    public byte[] getMessageBytes() {
+      return messageBytes;
     }
 
     public boolean isText() {
@@ -187,7 +189,7 @@ public interface Appendix {
     public Any getProtobufMessage() {
       return Any.pack(BrsApi.MessageAppendix.newBuilder()
               .setVersion(super.getVersion())
-              .setMessage(ByteString.copyFrom(message))
+              .setMessage(ByteString.copyFrom(messageBytes))
               .setIsText(isText)
               .build());
     }
@@ -259,7 +261,7 @@ public interface Appendix {
     @Override
     public void validate(Transaction transaction) throws BurstException.ValidationException {
       if (encryptedData.getData().length > Constants.MAX_ENCRYPTED_MESSAGE_LENGTH) {
-        throw new BurstException.NotValidException("Max encrypted message length exceeded");
+        throw new BurstException.NotValidException("Max encrypted messageBytes length exceeded");
       }
       if ((encryptedData.getNonce().length != 32 && encryptedData.getData().length > 0)
           || (encryptedData.getNonce().length != 0 && encryptedData.getData().length == 0)) {
@@ -325,7 +327,7 @@ public interface Appendix {
         throw new BurstException.NotValidException("Encrypted messages cannot be attached to transactions with no recipient");
       }
       if (transaction.getVersion() == 0) {
-        throw new BurstException.NotValidException("Encrypted message attachments not enabled for version 0 transactions");
+        throw new BurstException.NotValidException("Encrypted messageBytes attachments not enabled for version 0 transactions");
       }
     }
 
@@ -378,7 +380,7 @@ public interface Appendix {
     public void validate(Transaction transaction) throws BurstException.ValidationException {
       super.validate(transaction);
       if (transaction.getVersion() == 0) {
-        throw new BurstException.NotValidException("Encrypt-to-self message attachments not enabled for version 0 transactions");
+        throw new BurstException.NotValidException("Encrypt-to-self messageBytes attachments not enabled for version 0 transactions");
       }
     }
 

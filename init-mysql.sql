@@ -326,7 +326,7 @@ CREATE TABLE `escrow_decision` (
   `db_id` bigint(20) NOT NULL AUTO_INCREMENT,
   `escrow_id` bigint(20) NOT NULL,
   `account_id` bigint(20) NOT NULL,
-  `decision` int(11) NOT NULL,
+  `decisionType` int(11) NOT NULL,
   `height` int(11) NOT NULL,
   `latest` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`db_id`),

@@ -1,6 +1,9 @@
 package brs.fluxcapacitor;
 
 public class FluxValues {
+    private FluxValues() {
+    }
+
     public static final FluxEnable REWARD_RECIPIENT_ENABLE = new FluxEnable(HistoricalMoments.REWARD_RECIPIENT_ENABLE);
     public static final FluxEnable DIGITAL_GOODS_STORE = new FluxEnable(HistoricalMoments.DIGITAL_GOODS_STORE_BLOCK);
     public static final FluxEnable AUTOMATED_TRANSACTION_BLOCK = new FluxEnable(HistoricalMoments.AUTOMATED_TRANSACTION_BLOCK);

@@ -290,19 +290,19 @@ public class Block {
     
       for (JsonElement transactionData : transactionsData) {
         Transaction transaction = Transaction.parseTransaction(JSON.getAsJsonObject(transactionData), height);
-          if (transaction.getSignature() != null) {
-            if (blockTransactions.put(transaction.getId(), transaction) != null) {
-              throw new BurstException.NotValidException("Block contains duplicate transactions: " + transaction.getStringId());
-            }
-          }
+        if (transaction.getSignature() != null && blockTransactions.put(transaction.getId(), transaction) != null) {
+          throw new BurstException.NotValidException("Block contains duplicate transactions: " + transaction.getStringId());
         }
+      }
     
       byte[] blockATs = Convert.parseHexString(JSON.getAsString(blockData.get("blockATs")));
       return new Block(version, timestamp, previousBlock, totalAmountNQT, totalFeeNQT,
           payloadLength, payloadHash, generatorPublicKey, generationSignature, blockSignature,
           previousBlockHash, new ArrayList<>(blockTransactions.values()), nonce, blockATs, height);
     } catch (BurstException.ValidationException | RuntimeException e) {
-      logger.debug("Failed to parse block: " + JSON.toJsonString(blockData));
+      if (logger.isDebugEnabled()) {
+        logger.debug("Failed to parse block: {}", JSON.toJsonString(blockData));
+      }
       throw e;
     }
   }

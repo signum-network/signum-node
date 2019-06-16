@@ -148,6 +148,8 @@ class AtApiController {
             case 1029:
                 atApi.sendAToAddressInB(state);
                 break;
+            default:
+                return 0;
         }
         return 0;
     }
@@ -184,6 +186,8 @@ class AtApiController {
             case 1026:
                 atApi.sendToAddressInB(val, state);
                 break;
+            default:
+                return 0;
         }
         return 0;
     }
@@ -204,6 +208,8 @@ class AtApiController {
                 break;
             case 1030:
                 return atApi.addMinutesToTimestamp(val1, val2, state);
+            default:
+                return 0;
         }
         return 0;
     }

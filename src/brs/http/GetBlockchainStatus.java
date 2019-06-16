@@ -20,7 +20,7 @@ final class GetBlockchainStatus extends APIServlet.JsonRequestHandler {
   private final TimeService timeService;
 
   GetBlockchainStatus(BlockchainProcessor blockchainProcessor, Blockchain blockchain, TimeService timeService) {
-    super(new APITag[] {APITag.BLOCKS, APITag.INFO});
+    super(new APITag[]{APITag.BLOCKS, APITag.INFO});
     this.blockchainProcessor = blockchainProcessor;
     this.blockchain = blockchain;
     this.timeService = timeService;

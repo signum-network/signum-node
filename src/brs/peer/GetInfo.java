@@ -17,12 +17,15 @@ final class GetInfo extends PeerServlet.PeerRequestHandler {
   JsonElement processRequest(JsonObject request, Peer peer) {
     PeerImpl peerImpl = (PeerImpl)peer;
     String announcedAddress = JSON.getAsString(request.get("announcedAddress"));
-    if (announcedAddress != null && ! (announcedAddress = announcedAddress.trim()).isEmpty()) {
-      if (peerImpl.getAnnouncedAddress() != null && ! announcedAddress.equals(peerImpl.getAnnouncedAddress())) {
-        // force verification of changed announced address
-        peerImpl.setState(Peer.State.NON_CONNECTED);
+    if (announcedAddress != null) {
+      announcedAddress = announcedAddress.trim();
+      if (!announcedAddress.isEmpty()) {
+        if (peerImpl.getAnnouncedAddress() != null && !announcedAddress.equals(peerImpl.getAnnouncedAddress())) {
+          // force verification of changed announced address
+          peerImpl.setState(Peer.State.NON_CONNECTED);
+        }
+        peerImpl.setAnnouncedAddress(announcedAddress);
       }
-      peerImpl.setAnnouncedAddress(announcedAddress);
     }
     String application = JSON.getAsString(request.get("application"));
     if (application == null) {
@@ -45,11 +48,8 @@ final class GetInfo extends PeerServlet.PeerRequestHandler {
     peerImpl.setShareAddress(Boolean.TRUE.equals(JSON.getAsBoolean(request.get("shareAddress"))));
     peerImpl.setLastUpdated(timeService.getEpochTime());
 
-    //peerImpl.setState(Peer.State.CONNECTED);
     Peers.notifyListeners(peerImpl, Peers.Event.ADDED_ACTIVE_PEER);
 
     return Peers.myPeerInfoResponse;
-
   }
-
 }

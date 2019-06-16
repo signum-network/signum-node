@@ -73,13 +73,13 @@ public class BrsService extends BrsApiServiceGrpc.BrsApiServiceImplBase {
         this.handlers = Collections.unmodifiableMap(handlerMap);
     }
 
-    private <Handler extends GrpcApiHandler<Request, Response>, Request extends Message, Response extends Message> void handleRequest(Class<Handler> handlerClass, Request request, StreamObserver<Response> response) {
+    private <H extends GrpcApiHandler<R, S>, R extends Message, S extends Message> void handleRequest(Class<H> handlerClass, R request, StreamObserver<S> response) {
         GrpcApiHandler<? extends Message, ? extends Message> handler = handlers.get(handlerClass);
         if (handlerClass != null && handlerClass.isInstance(handler)) {
-            Handler handlerInstance = handlerClass.cast(handler);
+            H handlerInstance = handlerClass.cast(handler);
             handlerInstance.handleRequest(request, response);
         } else {
-            response.onError(ProtoBuilder.buildError(new HandlerNotFoundException("Handler not registered: " + handlerClass)));
+            response.onError(ProtoBuilder.buildError(new HandlerNotFoundException("H not registered: " + handlerClass)));
         }
     }
 

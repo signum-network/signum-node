@@ -18,7 +18,6 @@ public class GetOrdersHandler implements GrpcApiHandler<BrsApi.GetOrdersRequest,
     public BrsApi.Orders handleRequest(BrsApi.GetOrdersRequest request) throws Exception {
         BrsApi.Orders.Builder builder = BrsApi.Orders.newBuilder();
         long assetId = request.getAsset();
-        BrsApi.OrderType orderType = request.getOrderType();
         BrsApi.IndexRange indexRange = ProtoBuilder.sanitizeIndexRange(request.getIndexRange());
         int firstIndex = indexRange.getFirstIndex();
         int lastIndex = indexRange.getLastIndex();
@@ -32,6 +31,7 @@ public class GetOrdersHandler implements GrpcApiHandler<BrsApi.GetOrdersRequest,
                 case BID:
                     assetExchange.getAllAskOrders(firstIndex, lastIndex)
                             .forEach(order -> builder.addOrders(ProtoBuilder.buildOrder(order)));
+                    break;
                 default:
                     throw new ApiException("Order type unset");
             }
@@ -45,6 +45,7 @@ public class GetOrdersHandler implements GrpcApiHandler<BrsApi.GetOrdersRequest,
                 case BID:
                     assetExchange.getSortedBidOrders(assetId, firstIndex, lastIndex)
                             .forEach(order -> builder.addOrders(ProtoBuilder.buildOrder(order)));
+                    break;
                 default:
                     throw new ApiException("Order type unset");
             }

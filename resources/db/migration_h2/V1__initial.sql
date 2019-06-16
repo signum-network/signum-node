@@ -163,7 +163,7 @@ CREATE INDEX IF NOT EXISTS escrow_sender_id_height_idx ON escrow (sender_id, hei
 CREATE INDEX IF NOT EXISTS escrow_recipient_id_height_idx ON escrow (recipient_id, height DESC);
 CREATE INDEX IF NOT EXISTS escrow_deadline_height_idx ON escrow (deadline, height DESC);
 CREATE TABLE IF NOT EXISTS escrow_decision (db_id IDENTITY, escrow_id BIGINT NOT NULL, account_id BIGINT NOT NULL,
-    decision INT NOT NULL, height INT NOT NULL, latest BOOLEAN NOT NULL DEFAULT TRUE);
+    decisionType INT NOT NULL, height INT NOT NULL, latest BOOLEAN NOT NULL DEFAULT TRUE);
 CREATE UNIQUE INDEX IF NOT EXISTS escrow_decision_escrow_id_account_id_height_idx ON escrow_decision (escrow_id, account_id, height DESC);
 CREATE INDEX IF NOT EXISTS escrow_decision_escrow_id_height_idx ON escrow_decision (escrow_id, height DESC);
 CREATE INDEX IF NOT EXISTS escrow_decision_account_id_height_idx ON escrow_decision (account_id, height DESC);

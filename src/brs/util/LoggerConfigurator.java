@@ -32,11 +32,11 @@ public final class LoggerConfigurator {
    * logging-default.properties.
    */
   static {
-  
-    String oldManager = System.getProperty("java.util.logging.manager");
-    System.setProperty("java.util.logging.manager", "brs.util.BurstLogManager");
+    final String managerPackage = "java.util.logging.manager";
+    String oldManager = System.getProperty(managerPackage);
+    System.setProperty(managerPackage, "brs.util.BurstLogManager");
     if (!(LogManager.getLogManager() instanceof BurstLogManager)) {
-      System.setProperty("java.util.logging.manager",
+      System.setProperty(managerPackage,
                          (oldManager != null ? oldManager : "java.util.logging.LogManager"));
     }
     if (!Boolean.getBoolean("brs.doNotConfigureLogging")) {
@@ -71,9 +71,6 @@ public final class LoggerConfigurator {
     }
 
     logger.info("logging enabled");
-  }
-
-  public static void init() {
   }
 
   /**

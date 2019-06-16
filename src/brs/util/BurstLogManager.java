@@ -35,7 +35,7 @@ class BurstLogManager extends LogManager {
    * @throws      SecurityException   Caller does not have LoggingPermission("control")
    */
   @Override
-  public void readConfiguration(InputStream inStream) throws IOException, SecurityException {
+  public void readConfiguration(InputStream inStream) throws IOException {
     loggingReconfiguration.set(true);
     super.readConfiguration(inStream);
     loggingReconfiguration.set(false);

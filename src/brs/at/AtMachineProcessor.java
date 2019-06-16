@@ -643,7 +643,9 @@ class AtMachineProcessor {
                         else
                             logger.debug("BNE $");
 
-                        logger.debug("{} ${} :{}", String.format("%8x", fun.addr1).replace(' ', '0'), String.format("%8x", fun.addr2).replace(' ', '0'), String.format("%8x", machineData.getMachineState().pc + fun.off).replace(' ', '0'));
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("{} ${} :{}", String.format("%8x", fun.addr1).replace(' ', '0'), String.format("%8x", fun.addr2).replace(' ', '0'), String.format("%8x", machineData.getMachineState().pc + fun.off).replace(' ', '0'));
+                        }
                     }
                 } else {
                     long val1 = machineData.getApData().getLong(fun.addr1 * 8);
@@ -856,7 +858,7 @@ class AtMachineProcessor {
                 }
             }
         } else if (op == OpCode.E_OP_CODE_ERR_ADR) {
-            rc = getAddr(true); // rico666: Why getAddr if rc is set hard anyway ??
+            getAddr(true); // rico666: Why getAddr if rc is set hard anyway ?? // TODO check if this updates the buffer or can be removed
 
             // don't check rc to allow for unsetting handler with -1
             rc = 5;

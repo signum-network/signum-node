@@ -182,7 +182,7 @@ public class DGSGoodsStoreServiceImpl implements DGSGoodsStoreService {
       feedbackTable.insert(purchase, purchase.getFeedbackNotes());
     }
     if (message != null) {
-      addPublicFeedback(purchase, Convert.toString(message.getMessage()));
+      addPublicFeedback(purchase, Convert.toString(message.getMessageBytes()));
     }
     purchaseListeners.notify(purchase, Event.FEEDBACK);
   }

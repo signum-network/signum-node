@@ -179,7 +179,7 @@ public class EscrowServiceImpl implements EscrowService {
 
     escrowTable.getManyBy(getUpdateOnBlockClause(block.getTimestamp()), 0, -1).forEach(escrow -> updatedEscrowIds.add(escrow.getId()));
 
-    if (updatedEscrowIds.size() > 0) {
+    if (!updatedEscrowIds.isEmpty()) {
       for (Long escrowId : updatedEscrowIds) {
         Escrow escrow = escrowTable.get(escrowDbKeyFactory.newKey(escrowId));
         Escrow.DecisionType result = checkComplete(escrow);
@@ -192,7 +192,7 @@ public class EscrowServiceImpl implements EscrowService {
           removeEscrowTransaction(escrowId);
         }
       }
-      if (resultTransactions.size() > 0) {
+      if (!resultTransactions.isEmpty()) {
         Burst.getDbs().getTransactionDb().saveTransactions( resultTransactions);
       }
       updatedEscrowIds.clear();

@@ -23,7 +23,7 @@ public class GetAccountATsHandler implements GrpcApiHandler<BrsApi.GetAccountReq
         return BrsApi.AccountATs.newBuilder()
                 .addAllAts(atService.getATsIssuedBy(getAccountRequest.getAccountId())
                         .stream()
-                        .map(atId -> atService.getAT(atId))
+                        .map(atService::getAT)
                         .map(at -> ProtoBuilder.buildAT(accountService, at))
                         .collect(Collectors.toList()))
                 .build();

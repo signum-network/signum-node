@@ -87,7 +87,7 @@ public final class Constants {
     EPOCH_BEGINNING = calendar.getTimeInMillis();
 
     if (MAX_ROLLBACK < 1440) {
-      throw new RuntimeException("brs.maxRollback must be at least 1440");
+      throw new IllegalArgumentException("brs.maxRollback must be at least 1440");
     }
   }
 

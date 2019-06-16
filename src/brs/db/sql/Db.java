@@ -119,6 +119,8 @@ public final class Db {
           config.addDataSourceProperty("DATABASE_TO_UPPER", "false");
           config.addDataSourceProperty("CASE_INSENSITIVE_IDENTIFIERS", "true");
           break;
+        default:
+          break;
       }
 
       cp = new HikariDataSource(config);
@@ -297,6 +299,8 @@ public final class Db {
         case MARIADB:
           ctx.execute("OPTIMIZE NO_WRITE_TO_BINLOG TABLE " + tableName);
           break;
+        default:
+            break;
       }
     } catch (Exception e) {
       logger.debug("Failed to optimize table {}", tableName, e);

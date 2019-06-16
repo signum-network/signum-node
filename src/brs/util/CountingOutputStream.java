@@ -18,8 +18,19 @@ public class CountingOutputStream extends FilterOutputStream {
     super.write(b);
   }
 
+  @Override
+  public void write(byte[] b) throws IOException {
+    count += b.length;
+    super.write(b);
+  }
+
+  @Override
+  public void write(byte[] b, int off, int len) throws IOException {
+    count += len;
+    super.write(b, off, len);
+  }
+
   public long getCount() {
     return count;
   }
-
 }

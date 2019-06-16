@@ -5,8 +5,6 @@ import brs.TransactionProcessor;
 import brs.peer.PeerServlet.ExtendedProcessRequest;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -15,8 +13,6 @@ import static brs.http.common.ResultFields.UNCONFIRMED_TRANSACTIONS_RESPONSE;
 final class GetUnconfirmedTransactions extends PeerServlet.ExtendedPeerRequestHandler {
 
   private final TransactionProcessor transactionProcessor;
-
-  private final Logger logger = LoggerFactory.getLogger(GetUnconfirmedTransactions.class);
 
   GetUnconfirmedTransactions(TransactionProcessor transactionProcessor) {
     this.transactionProcessor = transactionProcessor;

@@ -14,7 +14,7 @@ public final class ClearUnconfirmedTransactions extends APIServlet.JsonRequestHa
   private final TransactionProcessor transactionProcessor;
 
   ClearUnconfirmedTransactions(TransactionProcessor transactionProcessor) {
-    super(new APITag[] {APITag.DEBUG});
+    super(new APITag[]{APITag.DEBUG});
     this.transactionProcessor = transactionProcessor;
   }
 

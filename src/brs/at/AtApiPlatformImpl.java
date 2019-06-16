@@ -192,7 +192,7 @@ public class AtApiPlatformImpl extends AtApiImpl {
         if (tx != null) {
             Appendix.Message txMessage = tx.getMessage();
             if (txMessage != null) {
-                byte[] message = txMessage.getMessage();
+                byte[] message = txMessage.getMessageBytes();
                 if (message.length <= state.getA1().length * 4) {
                     b.put(message);
                 }

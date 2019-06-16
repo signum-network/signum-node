@@ -107,7 +107,7 @@ public class GeneratorImpl implements Generator {
   }
 
   @Override
-  public Collection<? extends GeneratorState> getAllGenerators() {
+  public Collection<GeneratorState> getAllGenerators() {
     return Collections.unmodifiableCollection(generators.values());
   }
 

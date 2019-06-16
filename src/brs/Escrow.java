@@ -39,9 +39,9 @@ public class Escrow {
         return DecisionType.REFUND;
       case "split":
         return DecisionType.SPLIT;
+      default:
+        return null;
     }
-
-    return null;
   }
 
   public static Byte decisionToByte(DecisionType decision) {
@@ -54,9 +54,9 @@ public class Escrow {
         return 2;
       case SPLIT:
         return 3;
+      default:
+        return null;
     }
-
-    return null;
   }
 
   public static DecisionType byteToDecision(Byte decision) {
@@ -69,9 +69,9 @@ public class Escrow {
         return DecisionType.REFUND;
       case 3:
         return DecisionType.SPLIT;
+      default:
+        return null;
     }
-
-    return null;
   }
 
   public static BrsApi.EscrowDecisionType decisionToProtobuf(DecisionType decision) {
@@ -109,13 +109,13 @@ public class Escrow {
     public final Long escrowId;
     public final Long accountId;
     public final BurstKey dbKey;
-    private DecisionType decision;
+    private DecisionType decisionType;
 
-    public Decision(BurstKey dbKey, Long escrowId, Long accountId, DecisionType decision) {
+    public Decision(BurstKey dbKey, Long escrowId, Long accountId, DecisionType decisionType) {
       this.dbKey = dbKey;
       this.escrowId = escrowId;
       this.accountId = accountId;
-      this.decision = decision;
+      this.decisionType = decisionType;
     }
 
 
@@ -128,11 +128,11 @@ public class Escrow {
     }
 
     public DecisionType getDecision() {
-      return this.decision;
+      return this.decisionType;
     }
 
     public void setDecision(DecisionType decision) {
-      this.decision = decision;
+      this.decisionType = decision;
     }
   }
 

@@ -209,10 +209,10 @@ public interface Attachment extends Appendix {
     PaymentMultiOutCreation(JsonObject attachmentData) throws BurstException.NotValidException {
       super(attachmentData);
 
-      JsonArray recipients = JSON.getAsJsonArray(attachmentData.get(RECIPIENTS_PARAMETER));
+      JsonArray receipientsJson = JSON.getAsJsonArray(attachmentData.get(RECIPIENTS_PARAMETER));
       HashMap<Long,Boolean> recipientOf = new HashMap<>();
 
-      for (JsonElement recipientObject : recipients) {
+      for (JsonElement recipientObject : receipientsJson) {
         JsonArray recipient = JSON.getAsJsonArray(recipientObject);
 
         long recipientId = new BigInteger(JSON.getAsString(recipient.get(0))).longValue();
@@ -226,7 +226,7 @@ public interface Attachment extends Appendix {
         recipientOf.put(recipientId, true);
         this.recipients.add(new ArrayList<>(Arrays.asList(recipientId, amountNQT)));
       }
-      if (recipients.size() > Constants.MAX_MULTI_OUT_RECIPIENTS || recipients.size() <= 1) {
+      if (receipientsJson.size() > Constants.MAX_MULTI_OUT_RECIPIENTS || receipientsJson.size() <= 1) {
         throw new BurstException.NotValidException("Invalid number of recipients listed on multi out transaction");
       }
     }
@@ -361,10 +361,10 @@ public interface Attachment extends Appendix {
     PaymentMultiSameOutCreation(JsonObject attachmentData) throws BurstException.NotValidException {
       super(attachmentData);
 
-      JsonArray recipients = JSON.getAsJsonArray(attachmentData.get(RECIPIENTS_PARAMETER));
+      JsonArray recipientsJson = JSON.getAsJsonArray(attachmentData.get(RECIPIENTS_PARAMETER));
       HashMap<Long,Boolean> recipientOf = new HashMap<>();
 
-      for (JsonElement recipient : recipients) {
+      for (JsonElement recipient : recipientsJson) {
         long recipientId = new BigInteger(JSON.getAsString(recipient)).longValue();
         if (recipientOf.containsKey(recipientId))
           throw new BurstException.NotValidException("Duplicate recipient on multi same out transaction");
@@ -372,7 +372,7 @@ public interface Attachment extends Appendix {
         recipientOf.put(recipientId, true);
         this.recipients.add(recipientId);
       }
-      if (recipients.size() > Constants.MAX_MULTI_SAME_OUT_RECIPIENTS || recipients.size() <= 1) {
+      if (recipientsJson.size() > Constants.MAX_MULTI_SAME_OUT_RECIPIENTS || recipientsJson.size() <= 1) {
         throw new BurstException.NotValidException(
             "Invalid number of recipients listed on multi same out transaction");
       }
@@ -1978,10 +1978,12 @@ public interface Attachment extends Appendix {
 
     @Override
     void putMyBytes(ByteBuffer buffer) {
+      // Reward recipient does not have additional data.
     }
 
     @Override
     void putMyJSON(JsonObject attachment) {
+      // Reward recipient does not have additional data.
     }
 
     @Override

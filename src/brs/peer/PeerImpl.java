@@ -48,7 +48,8 @@ final class PeerImpl implements Peer {
     this.announcedAddress.set(announcedAddress);
     try {
       this.port.set(new URL(Constants.HTTP + announcedAddress).getPort());
-    } catch (MalformedURLException ignore) {}
+    } catch (MalformedURLException ignored) {
+    }
     this.state.set(State.NON_CONNECTED);
     this.version.set(Version.EMPTY); //not null
     this.shareAddress.set(true);
@@ -64,8 +65,8 @@ final class PeerImpl implements Peer {
     return state.get();
   }
 
-  public boolean isState(State cmp_state) {
-    return state.get() == cmp_state;
+  public boolean isState(State cmpState) {
+    return state.get() == cmpState;
   }
 
   void setState(State state) {
@@ -197,7 +198,8 @@ final class PeerImpl implements Peer {
       this.announcedAddress.set(announcedPeerAddress);
       try {
         this.port.set(new URL(Constants.HTTP + announcedPeerAddress).getPort());
-      } catch (MalformedURLException ignore) {}
+      } catch (MalformedURLException ignored) {
+      }
     }
   }
 
@@ -217,7 +219,6 @@ final class PeerImpl implements Peer {
 
   @Override
   public boolean isBlacklisted() {
-    // logger.debug("isBlacklisted - BL time: " + blacklistingTime + " Oldvers: " + isOldVersion + " PeerAddr: " + peerAddress);
     return blacklistingTime.get() > 0 || isOldVersion.get() || Peers.knownBlacklistedPeers.contains(peerAddress);
   }
 
@@ -237,8 +238,8 @@ final class PeerImpl implements Peer {
       boolean alreadyBlacklisted = isBlacklisted();
       logger.error("Reason for following blacklist: " + cause.getMessage(), cause);
       blacklist(description); // refresh blacklist expiry
-      if ( ! alreadyBlacklisted ) {
-        logger.debug("... because of: " + cause.toString(), cause);
+      if (!alreadyBlacklisted) {
+        logger.debug("... because of: {}", cause, cause);
       }
     }
   }
@@ -246,7 +247,9 @@ final class PeerImpl implements Peer {
   @Override
   public void blacklist(String description) {
     if (! isBlacklisted() ) {
-      logger.info("Blacklisting " + peerAddress + " (" + getVersion() + ") because of: " + description);
+      if (logger.isInfoEnabled()) {
+        logger.info("Blacklisting {} ({}) because of: {}", peerAddress, getVersion(), description);
+      }
     }
     blacklist();
   }
@@ -281,18 +284,6 @@ final class PeerImpl implements Peer {
   public int getLastUpdated() {
     return lastUpdated.get();
   }
-/*
-  @Override
-  public Long getLastUnconfirmedTransactionTimestamp() {
-    return this.lastUnconfirmedTransactionTimestamp;
-  }
-
-  @Override
-  public void setLastUnconfirmedTransactionTimestamp(Long lastUnconfirmedTransactionTimestamp) {
-    this.lastUnconfirmedTransactionTimestamp = lastUnconfirmedTransactionTimestamp;
-  }
-*/
-
   void setLastUpdated(int lastUpdated) {
     this.lastUpdated.set(lastUpdated);
   }
@@ -436,7 +427,6 @@ final class PeerImpl implements Peer {
       }
       if (announcedAddress.get() == null) {
         setAnnouncedAddress(peerAddress);
-        //logger.debug("Connected to peer without announced address, setting to " + peerAddress);
       }
 
       setState(State.CONNECTED);

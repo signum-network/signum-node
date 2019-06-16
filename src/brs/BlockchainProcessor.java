@@ -43,7 +43,7 @@ public interface BlockchainProcessor extends Observable<Block, BlockchainProcess
 
   class TransactionNotAcceptedException extends BlockNotAcceptedException {
 
-    private final Transaction transaction;
+    private final transient Transaction transaction;
 
     public TransactionNotAcceptedException(String message, Transaction transaction) {
       super(message  + " transaction: " + JSON.toJsonString(transaction.getJsonObject()));

@@ -59,7 +59,7 @@ final class ReadMessage extends APIServlet.JsonRequestHandler {
       return NO_MESSAGE;
     }
     if (message != null) {
-      response.addProperty("message", message.isText() ? Convert.toString(message.getMessage()) : Convert.toHexString(message.getMessage()));
+      response.addProperty("message", message.isText() ? Convert.toString(message.getMessageBytes()) : Convert.toHexString(message.getMessageBytes()));
     }
     String secretPhrase = Convert.emptyToNull(req.getParameter(SECRET_PHRASE_PARAMETER));
     if (secretPhrase != null) {

@@ -17,7 +17,7 @@ final class GetConstants extends APIServlet.JsonRequestHandler {
 
     static final GetConstants instance = new GetConstants();
 
-    private final JsonElement CONSTANTS;
+    private final JsonElement constants;
 
     private GetConstants() {
         super(new APITag[] {APITag.INFO});
@@ -62,20 +62,15 @@ final class GetConstants extends APIServlet.JsonRequestHandler {
         peerStates.add(peerState);
         response.add("peerStates", peerStates);
 
-        JsonObject requestTypes = new JsonObject();
-        // for (Map.Entry<String, APIServlet.JsonRequestHandler> handlerEntry : APIServlet.apiRequestHandlers.entrySet()) {
-        //     JsonObject handlerJSON = JSONData.apiRequestHandler(handlerEntry.getValue());
-        //     handlerJSON.addProperty("enabled", true);
-        //     requestTypes.addProperty(handlerEntry.getKey(), handlerJSON);
-        // }
-        response.add("requestTypes", requestTypes);
+        // TODO remove this always empty field
+        response.add("requestTypes", new JsonObject());
 
-        CONSTANTS = response;
+        constants = response;
     }
 
     @Override
     JsonElement processRequest(HttpServletRequest req) {
-        return CONSTANTS;
+        return constants;
     }
 
 }

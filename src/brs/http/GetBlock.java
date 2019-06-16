@@ -68,7 +68,5 @@ public final class GetBlock extends APIServlet.JsonRequestHandler {
     boolean includeTransactions = Parameters.isTrue(req.getParameter(INCLUDE_TRANSACTIONS_PARAMETER));
 
     return JSONData.block(blockData, includeTransactions, blockchain.getHeight(), blockService.getBlockReward(blockData), blockService.getScoopNum(blockData));
-
   }
-
 }

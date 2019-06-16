@@ -5,6 +5,7 @@ import brs.util.StringUtils;
 import org.jooq.*;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 public interface DbKey extends BurstKey {
 
@@ -21,10 +22,6 @@ public interface DbKey extends BurstKey {
       this.selfJoinClause = selfJoinClause;
       this.pkVariables = StringUtils.countMatches(pkClause, "?");
     }
-
-    public abstract BurstKey newKey(T t);
-
-    public abstract BurstKey newKey(Record rs);
 
     public final String getPKClause() {
       return pkClause;
@@ -47,7 +44,7 @@ public interface DbKey extends BurstKey {
     public abstract void applySelfJoin(SelectQuery<Record> query, Table<?> queryTable, Table<?> otherTable);
   }
 
-  ArrayList<Condition> getPKConditions(Table<?> tableClass);
+  Collection<Condition> getPKConditions(Table<?> tableClass);
 
   long[] getPKValues();
 
@@ -145,7 +142,7 @@ public interface DbKey extends BurstKey {
     }
 
     @Override
-    public ArrayList<Condition> getPKConditions(Table<?> tableClass) {
+    public Collection<Condition> getPKConditions(Table<?> tableClass) {
       ArrayList<Condition> conditions = new ArrayList<>();
       conditions.add(tableClass.field(idColumn, Long.class).eq(id));
       return conditions;
@@ -183,7 +180,7 @@ public interface DbKey extends BurstKey {
     }
 
     @Override
-    public ArrayList<Condition> getPKConditions(Table<?> tableClass) {
+    public Collection<Condition> getPKConditions(Table<?> tableClass) {
       ArrayList<Condition> conditions = new ArrayList<>();
       conditions.add(tableClass.field(idColumnA, Long.class).eq(idA));
       conditions.add(tableClass.field(idColumnB, Long.class).eq(idB));

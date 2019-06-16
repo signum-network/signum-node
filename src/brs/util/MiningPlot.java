@@ -20,10 +20,10 @@ public class MiningPlot {
   private final byte[] data = new byte[PLOT_SIZE];
 
     public MiningPlot(long addr, long nonce, int blockHeight, FluxCapacitor fluxCapacitor) {
-      ByteBuffer base_buffer = ByteBuffer.allocate(16);
-    base_buffer.putLong(addr);
-    base_buffer.putLong(nonce);
-    byte[] base = base_buffer.array();
+      ByteBuffer baseBuffer = ByteBuffer.allocate(16);
+    baseBuffer.putLong(addr);
+    baseBuffer.putLong(nonce);
+    byte[] base = baseBuffer.array();
     MessageDigest shabal256 = Crypto.shabal256();
     byte[] gendata = new byte[PLOT_SIZE + base.length];
     System.arraycopy(base, 0, gendata, PLOT_SIZE, base.length);

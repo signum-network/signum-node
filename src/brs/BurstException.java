@@ -18,7 +18,7 @@ public abstract class BurstException extends Exception {
     super(cause);
   }
 
-  public static abstract class ValidationException extends BurstException {
+  public abstract static class ValidationException extends BurstException {
 
     private ValidationException(String message) {
       super(message);

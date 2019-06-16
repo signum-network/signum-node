@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.locks.StampedLock;
+import java.util.function.Supplier;
 
 public final class DownloadCacheImpl {
   private final int blockCacheMB;
@@ -140,7 +141,6 @@ public final class DownloadCacheImpl {
     long stamp = dcsl.tryOptimisticRead();
     int retVal = unverified.size();
     if (!dcsl.validate(stamp)) {
-     
       stamp = dcsl.readLock();
       try {
         retVal = unverified.size();
@@ -245,21 +245,21 @@ public final class DownloadCacheImpl {
     setLastVars();
   }
 
-  public Block getBlock(long BlockId) {
+  public Block getBlock(long blockId) {
 	//search the forkCache if we have a forkList
     if(!forkCache.isEmpty()) {
       for (Block block : forkCache) {
-        if(block.getId() == BlockId) {
+        if(block.getId() == blockId) {
         	return block;
         }
       }
     }
     long stamp = dcsl.tryOptimisticRead();
-    Block retVal = getBlockInt(BlockId);
+    Block retVal = getBlockInt(blockId);
     if (!dcsl.validate(stamp)) {
       stamp = dcsl.readLock();
       try {
-        retVal = getBlockInt(BlockId);
+        retVal = getBlockInt(blockId);
       } finally {
          dcsl.unlockRead(stamp);
       }
@@ -267,14 +267,14 @@ public final class DownloadCacheImpl {
     if(retVal != null) {
       return retVal;
     }
-    if (blockchain.hasBlock(BlockId)) {
-      return blockchain.getBlock(BlockId);
+    if (blockchain.hasBlock(blockId)) {
+      return blockchain.getBlock(blockId);
     }
     return null;
   }
-  private Block getBlockInt(long BlockId) {
-    if (blockCache.containsKey(BlockId)) {
-      return blockCache.get(BlockId);
+  private Block getBlockInt(long blockId) {
+    if (blockCache.containsKey(blockId)) {
+      return blockCache.get(blockId);
     }
     return null;
   }
@@ -301,14 +301,14 @@ public final class DownloadCacheImpl {
     return null;
   }
 
-  public boolean hasBlock(long BlockId) {
+  public boolean hasBlock(long blockId) {
     long stamp = dcsl.tryOptimisticRead();
-    boolean retVal =  blockCache.containsKey(BlockId);
+    boolean retVal =  blockCache.containsKey(blockId);
     if (!dcsl.validate(stamp)) {
      
       stamp = dcsl.readLock();
       try {
-        retVal =  blockCache.containsKey(BlockId);
+        retVal =  blockCache.containsKey(blockId);
       } finally {
         dcsl.unlockRead(stamp);
       }
@@ -316,22 +316,12 @@ public final class DownloadCacheImpl {
     if (retVal) {
       return true;
     }
-    return blockchain.hasBlock(BlockId);
+    return blockchain.hasBlock(blockId);
   }
 
   public boolean canBeFork(long oldBlockId) {
     int curHeight = getChainHeight();
-    long stamp = dcsl.tryOptimisticRead();
-    Block block = getBlockInt(oldBlockId);
-    if (!dcsl.validate(stamp)) {
-     
-      stamp = dcsl.readLock();
-      try {
-        block = getBlockInt(oldBlockId);
-      } finally {
-         dcsl.unlockRead(stamp);
-      }
-    }
+    Block block = dcslRead(() -> getBlockInt(oldBlockId));
     if (block == null && blockchain.hasBlock(oldBlockId)) {
       block = blockchain.getBlock(oldBlockId);
     }
@@ -427,60 +417,32 @@ public final class DownloadCacheImpl {
     }
     return lId;
   }
+
+  private <T> T dcslRead(Supplier<T> supplier) {
+    return StampedLockUtils.stampedLockRead(dcsl, supplier);
+  }
     
   public Block getLastBlock() {
     Long iLd = getLastCacheId();
     if (iLd != null && blockCache.containsKey(iLd)) {
-      long stamp = dcsl.tryOptimisticRead();
-      Block retBlock = blockCache.get(iLd);
-      if (!dcsl.validate(stamp)) {
-        stamp = dcsl.readLock();
-        try {
-          retBlock = blockCache.get(iLd);
-        } finally {
-          dcsl.unlockRead(stamp);
-        }
-      }
-      return retBlock;
+      return dcslRead(() -> blockCache.get(iLd));
     }
     return blockchain.getLastBlock();
   }
 
   public int size() {
-    long stamp = dcsl.tryOptimisticRead();
-    int size = blockCache.size();
-    if (!dcsl.validate(stamp)) {
-     
-      stamp = dcsl.readLock();
-      try {
-        size = blockCache.size();
-      } finally {
-        dcsl.unlockRead(stamp);
-      }
-    }
-    return size;
+    return dcslRead(blockCache::size);
   }
 
   public void printDebug() {
-/*    if (reverseCache.size() > 0) {
-      logger.debug("BlockCache First block key:" + blockCache.keySet().toArray()[0]);
-      logger.debug("revCache First block key:" + reverseCache.keySet().toArray()[0]);
-      logger.debug("revCache First block Val:" + reverseCache.get(reverseCache.keySet().toArray()[0]));
-      logger.debug("BlockCache size:" + blockCache.size());
-      logger.debug("revCache size:" + reverseCache.size());
-    } else {
-      logger.debug("BlockCache size:" + blockCache.size());
-      logger.debug("Unverified size:" + unverified.size());
-      logger.debug("Verified size:" + (blockCache.size() - unverified.size()));
-    }*/
-    logger.info("BlockCache size:" + blockCache.size());
-    logger.info("Unverified size:" + unverified.size());
-    logger.info("Verified size:" + (blockCache.size() - unverified.size()));
+    logger.info("BlockCache size: {}", blockCache.size());
+    logger.info("Unverified size: {}", unverified.size());
+    logger.info("Verified size: {}", (blockCache.size() - unverified.size()));
     
   }
-  private void PrintLastVars() {
-	logger.debug("Cache LastId:"+lastBlockId);
-	logger.debug("Cache lastHeight:"+lastHeight);
+  private void printLastVars() {
+	logger.debug("Cache LastId: {}", lastBlockId);
+	logger.debug("Cache lastHeight: {}", lastHeight);
   }
     
 
@@ -488,17 +450,17 @@ public final class DownloadCacheImpl {
     long stamp = dcsl.writeLock();
     try {
       if (! blockCache.isEmpty()) {
-        lastBlockId = blockCache.get(blockCache.keySet().toArray()[blockCache.keySet().size() - 1]).getId();
+        lastBlockId = blockCache.get(blockCache.keySet().toArray(new Long[0])[blockCache.keySet().size() - 1]).getId();
         lastHeight = blockCache.get(lastBlockId).getHeight();
         highestCumulativeDifficulty = blockCache.get(lastBlockId).getCumulativeDifficulty();
         logger.debug("Cache set to CacheData");
-        PrintLastVars();
+        printLastVars();
       } else {
         lastBlockId = blockchain.getLastBlock().getId();
         lastHeight = blockchain.getHeight();
         highestCumulativeDifficulty = blockchain.getLastBlock().getCumulativeDifficulty();
         logger.debug("Cache set to ChainData");
-        PrintLastVars();
+        printLastVars();
       }
     } finally {
       dcsl.unlockWrite(stamp);

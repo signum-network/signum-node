@@ -1,6 +1,7 @@
 package brs.http;
 
 import brs.util.Convert;
+import brs.util.Subnet;
 import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +17,7 @@ public class APITestServlet extends HttpServlet {
 
   private static final Logger logger = LoggerFactory.getLogger(APITestServlet.class);
 
-  private static final String header1 =
+  private static final String HEADER_1 =
       "<!DOCTYPE html>\n"
       + "<html>\n"
       + "<head>\n"
@@ -101,13 +102,13 @@ public class APITestServlet extends HttpServlet {
       + "<div class=\"row\" style=\"margin-bottom:15px;\">"
       + "  <div class=\"col-xs-4 col-sm-3 col-md-2\">"
       + "    <ul class=\"nav nav-pills nav-stacked\">";
-  private static final String header2 =
+  private static final String HEADER_2 =
       "    </ul>"
       + "  </div>"
       + "  <div  class=\"col-xs-8 col-sm-9 col-md-10\">"
       + "    <div class=\"panel-group\" id=\"accordion\">";
 
-  private static final String footer1 =
+  private static final String FOOTER_1 =
       "    </div> "
       + "  </div> "
       + "</div> "
@@ -118,7 +119,7 @@ public class APITestServlet extends HttpServlet {
       + "  $(document).ready(function() {"
       + "    apiCalls = [];\n";
 
-  private static final String footer2 =
+  private static final String FOOTER_2 =
       "    $(\".collapse-link\").click(function(event) {"
       + "       event.preventDefault();"
       + "    });"
@@ -150,11 +151,13 @@ public class APITestServlet extends HttpServlet {
       + "</body>\n"
       + "</html>\n";
 
+  private final Set<Subnet> allowedBotHosts;
   private final List<String> requestTypes;
   private final Map<String, APIServlet.APIRequestHandler> apiRequestHandlers;
   private final SortedMap<String, SortedSet<String>> requestTags;
 
-  public APITestServlet(APIServlet apiServlet) {
+  public APITestServlet(APIServlet apiServlet, Set<Subnet> allowedBotHosts) {
+    this.allowedBotHosts = allowedBotHosts;
     apiRequestHandlers = apiServlet.apiRequestHandlers;
     requestTags = buildRequestTags();
     requestTypes = new ArrayList<>(apiRequestHandlers.keySet());
@@ -196,13 +199,14 @@ public class APITestServlet extends HttpServlet {
     return buf.toString();
   }
 
+  @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
     resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, private");
     resp.setHeader("Pragma", "no-cache");
     resp.setDateHeader("Expires", 0);
     resp.setContentType("text/html; charset=UTF-8");
 
-    if (API.allowedBotHosts != null && ! API.allowedBotHosts.toString().contains(req.getRemoteHost())) {
+    if (allowedBotHosts != null && ! allowedBotHosts.toString().contains(req.getRemoteHost())) {
       try {
         resp.sendError(HttpServletResponse.SC_FORBIDDEN);
       }
@@ -214,9 +218,9 @@ public class APITestServlet extends HttpServlet {
 
     try {
       try (PrintWriter writer = resp.getWriter()) {
-        writer.print(header1);
+        writer.print(HEADER_1);
         writer.print(buildLinks(req));
-        writer.print(header2);
+        writer.print(HEADER_2);
         String requestType = Convert.nullToEmpty(Encode.forHtml(req.getParameter("requestType")));
         APIServlet.APIRequestHandler requestHandler = apiRequestHandlers.get(requestType);
         StringBuilder bufJSCalls = new StringBuilder();
@@ -234,9 +238,9 @@ public class APITestServlet extends HttpServlet {
             bufJSCalls.append("apiCalls.push(\"").append(type).append("\");\n");
           }
         }
-        writer.print(footer1);
+        writer.print(FOOTER_1);
         writer.print(bufJSCalls.toString());
-        writer.print(footer2);
+        writer.print(FOOTER_2);
       }
     }
     catch ( IOException e ) {

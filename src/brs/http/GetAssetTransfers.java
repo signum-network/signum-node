@@ -43,7 +43,7 @@ public final class GetAssetTransfers extends APIServlet.APIRequestHandler {
 
     JsonObject response = new JsonObject();
     JsonArray transfersData = new JsonArray();
-    Collection<AssetTransfer> transfers = null;
+    Collection<AssetTransfer> transfers;
     if (accountId == null) {
       Asset asset = parameterService.getAsset(req);
       transfers = assetExchange.getAssetTransfers(asset.getId(), firstIndex, lastIndex);
@@ -63,10 +63,5 @@ public final class GetAssetTransfers extends APIServlet.APIRequestHandler {
     response.add(TRANSFERS_RESPONSE, transfersData);
 
     return response;
-  }
-
-  @Override
-  boolean startDbTransaction() {
-    return true;
   }
 }

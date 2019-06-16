@@ -37,13 +37,14 @@ import java.util.regex.Matcher;
 
 public final class API {
 
-  static Set<Subnet> allowedBotHosts;
-  static boolean enableDebugAPI;
   private static final Logger logger = LoggerFactory.getLogger(API.class);
-  private static Server apiServer;
 
-  private static final String apiPath = "/burst";
-  private static final String apiTestPath = "/test";
+  @SuppressWarnings("squid:S1075")
+  private static final String API_PATH = "/burst";
+  @SuppressWarnings("squid:S1075")
+  private static final String API_TEST_PATH = "/test";
+
+  private final Server apiServer;
 
   public API(TransactionProcessor transactionProcessor,
       Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService,
@@ -54,8 +55,8 @@ public final class API {
       ThreadPool threadPool, TransactionService transactionService, BlockService blockService,
       Generator generator, APITransactionManager apiTransactionManager, FeeSuggestionCalculator feeSuggestionCalculator, DeeplinkQRCodeGenerator deepLinkQRCodeGenerator, IndirectIncomingService indirectIncomingService) {
 
-    enableDebugAPI = propertyService.getBoolean(Props.API_DEBUG);
     List<String> allowedBotHostsList = propertyService.getStringList(Props.API_ALLOWED);
+    Set<Subnet> allowedBotHosts;
     if (!allowedBotHostsList.contains("*")) {
       // Temp hashset to store allowed subnets
       Set<Subnet> allowedSubnets = new HashSet<>();
@@ -84,10 +85,10 @@ public final class API {
       boolean enableSSL = propertyService.getBoolean(Props.API_SSL);
       if (enableSSL) {
         logger.info("Using SSL (https) for the API server");
-        HttpConfiguration https_config = new HttpConfiguration();
-        https_config.setSecureScheme("https");
-        https_config.setSecurePort(port);
-        https_config.addCustomizer(new SecureRequestCustomizer());
+        HttpConfiguration httpsConfig = new HttpConfiguration();
+        httpsConfig.setSecureScheme("https");
+        httpsConfig.setSecurePort(port);
+        httpsConfig.addCustomizer(new SecureRequestCustomizer());
         SslContextFactory sslContextFactory = new SslContextFactory.Server();
         sslContextFactory.setKeyStorePath(propertyService.getString(Props.API_SSL_KEY_STORE_PATH));
         sslContextFactory.setKeyStorePassword(propertyService.getString(Props.API_SSL_KEY_STORE_PASSWORD));
@@ -100,7 +101,7 @@ public final class API {
                                                  "SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA");
         sslContextFactory.setExcludeProtocols("SSLv3");
         connector = new ServerConnector(apiServer, new SslConnectionFactory(sslContextFactory, "http/1.1"),
-                                        new HttpConnectionFactory(https_config));
+                                        new HttpConnectionFactory(httpsConfig));
       }
       else {
         connector = new ServerConnector(apiServer);
@@ -134,12 +135,12 @@ public final class API {
       APIServlet apiServlet = new APIServlet(transactionProcessor, blockchain, blockchainProcessor, parameterService,
               accountService, aliasService, assetExchange, escrowService, digitalGoodsStoreService,
               subscriptionService, atService, timeService, economicClustering, transactionService, blockService, generator, propertyService,
-              apiTransactionManager, feeSuggestionCalculator, deepLinkQRCodeGenerator, indirectIncomingService);
+              apiTransactionManager, feeSuggestionCalculator, deepLinkQRCodeGenerator, indirectIncomingService, allowedBotHosts);
       ServletHolder apiServletHolder = new ServletHolder(apiServlet);
-      apiHandler.addServlet(apiServletHolder, apiPath);
+      apiHandler.addServlet(apiServletHolder, API_PATH);
       
       if (propertyService.getBoolean(Props.JETTY_API_DOS_FILTER)) {
-        FilterHolder dosFilterHolder = apiHandler.addFilter(DoSFilter.class, apiPath, null);
+        FilterHolder dosFilterHolder = apiHandler.addFilter(DoSFilter.class, API_PATH, null);
         dosFilterHolder.setInitParameter("maxRequestsPerSec", propertyService.getString(Props.JETTY_API_DOS_FILTER_MAX_REQUEST_PER_SEC));
         dosFilterHolder.setInitParameter("throttledRequests", propertyService.getString(Props.JETTY_API_DOS_FILTER_THROTTLED_REQUESTS));
         dosFilterHolder.setInitParameter("delayMs",           propertyService.getString(Props.JETTY_API_DOS_FILTER_DELAY_MS));
@@ -155,20 +156,20 @@ public final class API {
         dosFilterHolder.setAsyncSupported(true);
       }
 
-      apiHandler.addServlet(new ServletHolder(new APITestServlet(apiServlet)), apiTestPath);
+      apiHandler.addServlet(new ServletHolder(new APITestServlet(apiServlet, allowedBotHosts)), API_TEST_PATH);
 
       RewriteHandler rewriteHandler = new RewriteHandler();
       rewriteHandler.setRewriteRequestURI(true);
       rewriteHandler.setRewritePathInfo(false);
       rewriteHandler.setOriginalPathAttribute("requestedPath");
       rewriteHandler.setHandler(apiHandler);
-      Rule rewriteToRoot = new RegexOrExistsRewriteRule(new File(propertyService.getString(Props.API_UI_DIR)), "^(?!"+regexpEscapeUrl(apiPath)+"|"+regexpEscapeUrl(apiTestPath)+").*$", "/index.html");
+      Rule rewriteToRoot = new RegexOrExistsRewriteRule(new File(propertyService.getString(Props.API_UI_DIR)), "^(?!"+regexpEscapeUrl(API_PATH)+"|"+regexpEscapeUrl(API_TEST_PATH)+").*$", "/index.html");
       rewriteHandler.addRule(rewriteToRoot);
       apiHandlers.addHandler(rewriteHandler);
 
       if (propertyService.getBoolean(Props.JETTY_API_GZIP_FILTER)) {
         GzipHandler gzipHandler = new GzipHandler();
-        gzipHandler.setIncludedPaths(apiPath);
+        gzipHandler.setIncludedPaths(API_PATH);
         gzipHandler.setIncludedMethodList(propertyService.getString(Props.JETTY_API_GZIP_FILTER_METHODS));
         gzipHandler.setInflateBufferSize(propertyService.getInt(Props.JETTY_API_GZIP_FILTER_BUFFER_SIZE));
         gzipHandler.setMinGzipSize(propertyService.getInt(Props.JETTY_API_GZIP_FILTER_MIN_GZIP_SIZE));
@@ -184,7 +185,7 @@ public final class API {
       threadPool.runBeforeStart(() -> {
         try {
           apiServer.start();
-          logger.info("Started API server at " + host + ":" + port);
+          logger.info("Started API server at {}:{}", host,    port);
         } catch (Exception e) {
           logger.error("Failed to start API server", e);
           throw new RuntimeException(e.toString(), e);
@@ -217,7 +218,7 @@ public final class API {
 
     private final File baseDirectory;
 
-    public RegexOrExistsRewriteRule(File baseDirectory, String regex, String replacement) {
+    RegexOrExistsRewriteRule(File baseDirectory, String regex, String replacement) {
       super(regex, replacement);
       this.baseDirectory = baseDirectory;
     }

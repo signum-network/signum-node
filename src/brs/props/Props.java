@@ -111,8 +111,6 @@ public class Props {
   public static final Prop<Boolean> API_V2_SERVER  = new Prop<>("API.V2.Server", true);
   public static final Prop<String> API_ALLOWED = new Prop<>("API.allowed", "127.0.0.1; localhost; [0:0:0:0:0:0:0:1];");
 
-  public static final Prop<Boolean> API_ACCEPT_SURPLUS_PARAMS = new Prop<>("API.AcceptSurplusParams", false);
-
   public static final Prop<String> API_LISTEN  = new Prop<>("API.Listen", "127.0.0.1");
   public static final Prop<Integer> API_PORT    = new Prop<>("API.Port", 8125);
   public static final Prop<Integer> API_V2_PORT    = new Prop<>("API.V2.Port", 8121);

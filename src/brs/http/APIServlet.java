@@ -28,17 +28,19 @@ public final class APIServlet extends HttpServlet {
 
   private static final Logger logger = LoggerFactory.getLogger(APIServlet.class);
 
+  private final Set<Subnet> allowedBotHosts;
+
   public APIServlet(TransactionProcessor transactionProcessor, Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService,
-      AccountService accountService, AliasService aliasService, AssetExchange assetExchange,
-      EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService,
-      SubscriptionService subscriptionService, ATService atService, TimeService timeService, EconomicClustering economicClustering, TransactionService transactionService,
-      BlockService blockService, Generator generator, PropertyService propertyService, APITransactionManager apiTransactionManager, FeeSuggestionCalculator feeSuggestionCalculator,
-      DeeplinkQRCodeGenerator deeplinkQRCodeGenerator, IndirectIncomingService indirectIncomingService) {
+                    AccountService accountService, AliasService aliasService, AssetExchange assetExchange,
+                    EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService,
+                    SubscriptionService subscriptionService, ATService atService, TimeService timeService, EconomicClustering economicClustering, TransactionService transactionService,
+                    BlockService blockService, Generator generator, PropertyService propertyService, APITransactionManager apiTransactionManager, FeeSuggestionCalculator feeSuggestionCalculator,
+                    DeeplinkQRCodeGenerator deeplinkQRCodeGenerator, IndirectIncomingService indirectIncomingService, Set<Subnet> allowedBotHosts) {
 
     enforcePost = propertyService.getBoolean(Props.API_SERVER_ENFORCE_POST);
-    acceptSurplusParams = propertyService.getBoolean(Props.API_ACCEPT_SURPLUS_PARAMS);
     allowedOrigins = propertyService.getString(Props.API_ALLOWED_ORIGINS);
-    
+    this.allowedBotHosts = allowedBotHosts;
+
     final Map<String, APIRequestHandler> map = new HashMap<>();
     final Map<String, PrimitiveRequestHandler> primitiveMap = new HashMap<>();
 
@@ -152,7 +154,7 @@ public final class APIServlet extends HttpServlet {
     map.put("getGuaranteedBalance", new GetGuaranteedBalance(parameterService));
     primitiveMap.put("generateSendTransactionQRCode", new GenerateDeeplinkQRCode(deeplinkQRCodeGenerator));
 
-    if (API.enableDebugAPI) {
+    if (propertyService.getBoolean(Props.API_DEBUG)) {
       map.put("clearUnconfirmedTransactions", new ClearUnconfirmedTransactions(transactionProcessor));
       map.put("fullReset", new FullReset(blockchainProcessor));
       map.put("popOff", new PopOff(blockchainProcessor, blockchain, blockService));
@@ -161,8 +163,6 @@ public final class APIServlet extends HttpServlet {
     apiRequestHandlers = Collections.unmodifiableMap(map);
     primitiveRequestHandlers = Collections.unmodifiableMap(primitiveMap);
   }
-
-  private static boolean acceptSurplusParams;
 
   abstract static class APIRequestHandler {
 
@@ -184,25 +184,9 @@ public final class APIServlet extends HttpServlet {
 
     abstract JsonElement processRequest(HttpServletRequest request) throws BurstException;
 
-    final void validateRequest(HttpServletRequest req) throws ParameterException {
-      if (acceptSurplusParams) {
-        return;  // do not validate params if we're told to accept all that's comming our way
-      }
-      for ( String parameter : req.getParameterMap().keySet() ) {
-        // _ is a parameter used in eg. jquery to avoid caching queries
-        if ( ! this.parameters.contains(parameter) && ! parameter.equals("_") && ! parameter.equals("requestType") )
-          throw new ParameterException(JSONResponses.incorrectUnkown(parameter));
-      }
-    }
-
     boolean requirePost() {
       return false;
     }
-
-    boolean startDbTransaction() {
-      return false;
-    }
-
   }
 
   abstract static class PrimitiveRequestHandler {
@@ -258,10 +242,10 @@ public final class APIServlet extends HttpServlet {
 
       long startTime = System.currentTimeMillis();
 
-      if (API.allowedBotHosts != null) {
+      if (allowedBotHosts != null) {
         InetAddress remoteAddress = InetAddress.getByName(req.getRemoteHost());
         boolean allowed = false;
-        for (Subnet allowedSubnet : API.allowedBotHosts) {
+        for (Subnet allowedSubnet : allowedBotHosts) {
           if (allowedSubnet.isInNet(remoteAddress)) {
             allowed = true;
             break;
@@ -297,20 +281,12 @@ public final class APIServlet extends HttpServlet {
       }
 
       try {
-        if (apiRequestHandler.startDbTransaction()) {
-          Burst.getStores().beginTransaction();
-        }
-        apiRequestHandler.validateRequest(req);
         response = apiRequestHandler.processRequest(req);
       } catch (ParameterException e) {
         response = e.getErrorResponse();
       } catch (BurstException | RuntimeException e) {
         logger.debug("Error processing API request", e);
         response = ERROR_INCORRECT_REQUEST;
-      } finally {
-        if (apiRequestHandler.startDbTransaction()) {
-          Burst.getStores().endTransaction();
-        }
       }
 
       if (response instanceof JsonObject) {
@@ -325,7 +301,5 @@ public final class APIServlet extends HttpServlet {
         }
       }
     }
-
   }
-
 }

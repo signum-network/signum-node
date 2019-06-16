@@ -61,10 +61,4 @@ public final class GetTrades extends APIServlet.APIRequestHandler {
 
     return response;
   }
-
-  @Override
-  boolean startDbTransaction() {
-    return true;
-  }
-
 }

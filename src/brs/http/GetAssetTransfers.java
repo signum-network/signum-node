@@ -19,7 +19,7 @@ import java.util.Collection;
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.TRANSFERS_RESPONSE;
 
-public final class GetAssetTransfers extends APIServlet.APIRequestHandler {
+public final class GetAssetTransfers extends APIServlet.JsonRequestHandler {
 
   private final ParameterService parameterService;
   private final AccountService accountService;

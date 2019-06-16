@@ -146,6 +146,14 @@ public final class JSONResponses {
     ERROR_INCORRECT_REQUEST = response;
   }
 
+  public static final JsonElement ERROR_MISSING_REQUEST;
+  static {
+    JsonObject response  = new JsonObject();
+    response.addProperty(ERROR_CODE_RESPONSE, 1);
+    response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Request type does not exist");
+    ERROR_MISSING_REQUEST = response;
+  }
+
   public static final JsonElement POST_REQUIRED;
   static {
     JsonObject response = new JsonObject();

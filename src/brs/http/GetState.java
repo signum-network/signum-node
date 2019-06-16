@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.common.Parameters.INCLUDE_COUNTS_PARAMETER;
 import static brs.http.common.ResultFields.TIME_RESPONSE;
 
-final class GetState extends APIServlet.APIRequestHandler {
+final class GetState extends APIServlet.JsonRequestHandler {
 
   private final Blockchain blockchain;
   private final AssetExchange assetExchange;

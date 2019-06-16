@@ -14,7 +14,7 @@ import java.util.Collection;
 import static brs.http.common.Parameters.ACCOUNTS_RESPONSE;
 import static brs.http.common.Parameters.NAME_PARAMETER;
 
-public class GetAccountsWithName extends APIServlet.APIRequestHandler {
+public class GetAccountsWithName extends APIServlet.JsonRequestHandler {
 
     private final AccountService accountService;
 

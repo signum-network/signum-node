@@ -12,7 +12,7 @@ import static brs.http.JSONResponses.MISSING_SIGNATURE_HASH;
 import static brs.http.JSONResponses.MISSING_UNSIGNED_BYTES;
 import static brs.http.common.Parameters.*;
 
-public final class CalculateFullHash extends APIServlet.APIRequestHandler {
+public final class CalculateFullHash extends APIServlet.JsonRequestHandler {
 
   public CalculateFullHash() {
     super(new APITag[]{APITag.TRANSACTIONS}, UNSIGNED_TRANSACTION_BYTES_PARAMETER, SIGNATURE_HASH_PARAMETER);

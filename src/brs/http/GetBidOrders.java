@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.BID_ORDERS_RESPONSE;
 
-public final class GetBidOrders extends APIServlet.APIRequestHandler {
+public final class GetBidOrders extends APIServlet.JsonRequestHandler {
 
   private final ParameterService parameterService;
   private final AssetExchange assetExchange;

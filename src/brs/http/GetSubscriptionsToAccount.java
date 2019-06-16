@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 
-final class GetSubscriptionsToAccount extends APIServlet.APIRequestHandler {
+final class GetSubscriptionsToAccount extends APIServlet.JsonRequestHandler {
 
   private final ParameterService parameterService;
   private final SubscriptionService subscriptionService;

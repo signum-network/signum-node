@@ -16,7 +16,7 @@ import static brs.http.common.Parameters.NUM_BLOCKS_PARAMETER;
 import static brs.http.common.ResultFields.BLOCKS_RESPONSE;
 import static brs.http.common.ResultFields.ERROR_RESPONSE;
 
-final class PopOff extends APIServlet.APIRequestHandler {
+final class PopOff extends APIServlet.JsonRequestHandler {
 
   private final BlockchainProcessor blockchainProcessor;
   private final Blockchain blockchain;

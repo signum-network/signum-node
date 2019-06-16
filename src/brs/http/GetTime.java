@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.ResultFields.TIME_RESPONSE;
 
-public final class GetTime extends APIServlet.APIRequestHandler {
+public final class GetTime extends APIServlet.JsonRequestHandler {
 
   private final TimeService timeService;
 

@@ -15,7 +15,7 @@ import java.util.Collection;
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.SUBSCRIPTIONS_RESPONSE;
 
-public final class GetAccountSubscriptions extends APIServlet.APIRequestHandler {
+public final class GetAccountSubscriptions extends APIServlet.JsonRequestHandler {
 
   private final ParameterService parameterService;
   private final SubscriptionService subscriptionService;

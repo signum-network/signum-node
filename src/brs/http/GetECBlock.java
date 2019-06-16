@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.common.Parameters.TIMESTAMP_PARAMETER;
 import static brs.http.common.ResultFields.*;
 
-final class GetECBlock extends APIServlet.APIRequestHandler {
+final class GetECBlock extends APIServlet.JsonRequestHandler {
 
   private final Blockchain blockchain;
   private final TimeService timeService;

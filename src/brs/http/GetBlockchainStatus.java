@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.ResultFields.TIME_RESPONSE;
 
-final class GetBlockchainStatus extends APIServlet.APIRequestHandler {
+final class GetBlockchainStatus extends APIServlet.JsonRequestHandler {
 
   private final BlockchainProcessor blockchainProcessor;
   private final Blockchain blockchain;

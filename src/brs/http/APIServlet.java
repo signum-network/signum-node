@@ -11,6 +11,7 @@ import brs.util.JSON;
 import brs.util.Subnet;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,8 +42,7 @@ public final class APIServlet extends HttpServlet {
     allowedOrigins = propertyService.getString(Props.API_ALLOWED_ORIGINS);
     this.allowedBotHosts = allowedBotHosts;
 
-    final Map<String, APIRequestHandler> map = new HashMap<>();
-    final Map<String, PrimitiveRequestHandler> primitiveMap = new HashMap<>();
+    final Map<String, HttpRequestHandler> map = new HashMap<>();
 
     map.put("broadcastTransaction", new BroadcastTransaction(transactionProcessor, parameterService, transactionService));
     map.put("calculateFullHash", new CalculateFullHash());
@@ -152,7 +152,7 @@ public final class APIServlet extends HttpServlet {
     map.put("getATLong", GetATLong.instance);
     map.put("getAccountATs", new GetAccountATs(parameterService, atService, accountService));
     map.put("getGuaranteedBalance", new GetGuaranteedBalance(parameterService));
-    primitiveMap.put("generateSendTransactionQRCode", new GenerateDeeplinkQRCode(deeplinkQRCodeGenerator));
+    map.put("generateSendTransactionQRCode", new GenerateDeeplinkQRCode(deeplinkQRCodeGenerator));
 
     if (propertyService.getBoolean(Props.API_DEBUG)) {
       map.put("clearUnconfirmedTransactions", new ClearUnconfirmedTransactions(transactionProcessor));
@@ -161,15 +161,14 @@ public final class APIServlet extends HttpServlet {
     }
 
     apiRequestHandlers = Collections.unmodifiableMap(map);
-    primitiveRequestHandlers = Collections.unmodifiableMap(primitiveMap);
   }
 
-  abstract static class APIRequestHandler {
+  abstract static class JsonRequestHandler extends HttpRequestHandler {
 
     private final List<String> parameters;
     private final Set<APITag> apiTags;
 
-    APIRequestHandler(APITag[] apiTags, String... parameters) {
+    JsonRequestHandler(APITag[] apiTags, String... parameters) {
       this.parameters = Collections.unmodifiableList(Arrays.asList(parameters));
       this.apiTags = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(apiTags)));
     }
@@ -182,106 +181,13 @@ public final class APIServlet extends HttpServlet {
       return apiTags;
     }
 
-    abstract JsonElement processRequest(HttpServletRequest request) throws BurstException;
-
-    boolean requirePost() {
-      return false;
-    }
-  }
-
-  abstract static class PrimitiveRequestHandler {
-
-    protected abstract void processRequest(HttpServletRequest req, HttpServletResponse resp);
-
-    void addErrorMessage(HttpServletResponse resp, JsonElement msg) throws IOException {
-      try (Writer writer = resp.getWriter()) {
-        resp.setContentType("text/plain; charset=UTF-8");
-        resp.setStatus(500);
-        JSON.writeTo(msg, writer);
-      }
-    }
-
-  }
-
-  private final boolean enforcePost;
-  private final String allowedOrigins;
-
-  public final Map<String, APIRequestHandler> apiRequestHandlers;
-  private final Map<String, PrimitiveRequestHandler> primitiveRequestHandlers;
-
-  @Override
-  protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
-    try {
-      process(req, resp);
-    } catch (Exception e) { // We don't want to send exception information to client...
-      resp.setStatus(500);
-      logger.warn("Error handling GET request", e);
-    }
-  }
-
-  @Override
-  protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
-    try {
-      process(req, resp);
-    } catch (Exception e) { // We don't want to send exception information to client...
-      resp.setStatus(500);
-      logger.warn("Error handling GET request", e);
-    }
-  }
-
-  private void process(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    resp.setHeader("Access-Control-Allow-Methods", "GET, POST");
-    resp.setHeader("Access-Control-Allow-Origin", allowedOrigins);
-    resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, private");
-    resp.setHeader("Pragma", "no-cache");
-    resp.setDateHeader("Expires", 0);
-
-    JsonElement response = JSON.emptyJSON;
-
-    try {
-
+    @Override
+    protected void processRequest(HttpServletRequest req, HttpServletResponse resp) throws IOException {
       long startTime = System.currentTimeMillis();
 
-      if (allowedBotHosts != null) {
-        InetAddress remoteAddress = InetAddress.getByName(req.getRemoteHost());
-        boolean allowed = false;
-        for (Subnet allowedSubnet : allowedBotHosts) {
-          if (allowedSubnet.isInNet(remoteAddress)) {
-            allowed = true;
-            break;
-          }
-        }
-        if (!allowed) {
-          response = ERROR_NOT_ALLOWED;
-          return;
-        }
-      }
-
-      String requestType = req.getParameter("requestType");
-      if (requestType == null) {
-        response = ERROR_INCORRECT_REQUEST;
-        return;
-      }
-
-      APIRequestHandler apiRequestHandler = apiRequestHandlers.get(requestType);
-      if (apiRequestHandler == null) {
-        final PrimitiveRequestHandler primitiveRequestHandler = primitiveRequestHandlers.get(req.getParameter("requestType"));
-
-        if(primitiveRequestHandler != null) {
-          primitiveRequestHandler.processRequest(req, resp);
-        } else {
-          response = ERROR_INCORRECT_REQUEST;
-        }
-        return;
-      }
-
-      if (enforcePost && apiRequestHandler.requirePost() && !"POST".equals(req.getMethod())) {
-        response = POST_REQUIRED;
-        return;
-      }
-
+      JsonElement response;
       try {
-        response = apiRequestHandler.processRequest(req);
+        response = processRequest(req);
       } catch (ParameterException e) {
         response = e.getErrorResponse();
       } catch (BurstException | RuntimeException e) {
@@ -293,13 +199,107 @@ public final class APIServlet extends HttpServlet {
         JSON.getAsJsonObject(response).addProperty("requestProcessingTime", System.currentTimeMillis() - startTime);
       }
 
-    } finally {
-      if(resp.getContentType() == null || resp.getContentType().isEmpty()) {
-        resp.setContentType("text/plain; charset=UTF-8");
-        try (Writer writer = resp.getWriter()) {
-          JSON.writeTo(response, writer);
+      writeJsonToResponse(resp, response);
+    }
+
+    abstract JsonElement processRequest(HttpServletRequest request) throws BurstException;
+  }
+
+  abstract static class HttpRequestHandler {
+
+    protected abstract void processRequest(HttpServletRequest req, HttpServletResponse resp) throws IOException;
+
+    void addErrorMessage(HttpServletResponse resp, JsonElement msg) throws IOException {
+      resp.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
+      writeJsonToResponse(resp, msg);
+    }
+
+    boolean requirePost() {
+      return false;
+    }
+  }
+
+  private static void writeJsonToResponse(HttpServletResponse resp, JsonElement msg) throws IOException {
+    try (Writer writer = resp.getWriter()) {
+      resp.setContentType("text/plain; charset=UTF-8");
+      JSON.writeTo(msg, writer);
+    }
+  }
+
+  private final boolean enforcePost;
+  private final String allowedOrigins;
+
+  public final Map<String, HttpRequestHandler> apiRequestHandlers;
+
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
+    try {
+      process(req, resp);
+    } catch (Exception e) { // We don't want to send exception information to client...
+      resp.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
+      logger.warn("Error handling GET request", e);
+    }
+  }
+
+  @Override
+  protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
+    try {
+      process(req, resp);
+    } catch (Exception e) { // We don't want to send exception information to client...
+      resp.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
+      logger.warn("Error handling GET request", e);
+    }
+  }
+
+  private void process(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    resp.setHeader("Access-Control-Allow-Methods", "GET, POST");
+    resp.setHeader("Access-Control-Allow-Origin", allowedOrigins);
+    resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, private");
+    resp.setHeader("Pragma", "no-cache");
+    resp.setDateHeader("Expires", 0);
+
+    if (allowedBotHosts != null) {
+      InetAddress remoteAddress = InetAddress.getByName(req.getRemoteHost());
+      boolean allowed = false;
+      for (Subnet allowedSubnet : allowedBotHosts) {
+        if (allowedSubnet.isInNet(remoteAddress)) {
+          allowed = true;
+          break;
         }
       }
+      if (!allowed) {
+        resp.setStatus(HttpStatus.FORBIDDEN_403);
+        writeJsonToResponse(resp, ERROR_NOT_ALLOWED);
+        return;
+      }
+    }
+
+    String requestType = req.getParameter("requestType");
+    if (requestType == null) {
+      resp.setStatus(HttpStatus.NOT_FOUND_404);
+      writeJsonToResponse(resp, ERROR_MISSING_REQUEST);
+      return;
+    }
+
+    HttpRequestHandler apiRequestHandler = apiRequestHandlers.get(requestType);
+    if (apiRequestHandler == null) {
+      resp.setStatus(HttpStatus.NOT_FOUND_404);
+      writeJsonToResponse(resp, ERROR_MISSING_REQUEST);
+      return;
+    }
+
+    if (enforcePost && apiRequestHandler.requirePost() && !"POST".equals(req.getMethod())) {
+      resp.setStatus(HttpStatus.METHOD_NOT_ALLOWED_405);
+      writeJsonToResponse(resp, ERROR_NOT_ALLOWED);
+      return;
+    }
+
+    try {
+      apiRequestHandler.processRequest(req, resp);
+    } catch (RuntimeException e) {
+      logger.debug("Error processing API request", e);
+      resp.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
+      writeJsonToResponse(resp, ERROR_INCORRECT_REQUEST);
     }
   }
 }

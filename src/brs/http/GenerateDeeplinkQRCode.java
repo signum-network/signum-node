@@ -3,7 +3,7 @@ package brs.http;
 import brs.Constants;
 import brs.deeplink.DeeplinkQRCodeGenerator;
 import brs.feesuggestions.FeeSuggestionType;
-import brs.http.APIServlet.PrimitiveRequestHandler;
+import brs.http.APIServlet.HttpRequestHandler;
 import brs.http.common.Parameters;
 import brs.util.Convert;
 import brs.util.StringUtils;
@@ -20,7 +20,7 @@ import java.io.IOException;
 import static brs.http.JSONResponses.*;
 import static brs.http.common.Parameters.*;
 
-public class GenerateDeeplinkQRCode extends PrimitiveRequestHandler {
+public class GenerateDeeplinkQRCode extends HttpRequestHandler {
 
   private final Logger logger = LoggerFactory.getLogger(GenerateDeeplinkQRCode.class);
 

@@ -14,7 +14,7 @@ import static brs.Constants.FEE_QUANT;
 import static brs.Constants.ONE_BURST;
 import static brs.http.common.Parameters.*;
 
-abstract class CreateTransaction extends APIServlet.APIRequestHandler {
+abstract class CreateTransaction extends APIServlet.JsonRequestHandler {
 
   private static final String[] commonParameters = new String[] {
     SECRET_PHRASE_PARAMETER, PUBLIC_KEY_PARAMETER, FEE_NQT_PARAMETER,

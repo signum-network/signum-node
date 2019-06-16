@@ -16,7 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.BLOCKS_RESPONSE;
 
-public final class GetAccountBlocks extends APIServlet.APIRequestHandler {
+public final class GetAccountBlocks extends APIServlet.JsonRequestHandler {
 
   private final Blockchain blockchain;
   private final ParameterService parameterService;

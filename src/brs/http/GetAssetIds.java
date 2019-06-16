@@ -13,7 +13,7 @@ import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
 import static brs.http.common.ResultFields.ASSET_IDS_RESPONSE;
 
-public final class GetAssetIds extends APIServlet.APIRequestHandler {
+public final class GetAssetIds extends APIServlet.JsonRequestHandler {
 
   private final AssetExchange assetExchange;
 

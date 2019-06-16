@@ -12,7 +12,7 @@ import static brs.http.common.Parameters.ESCROW_PARAMETER;
 import static brs.http.common.ResultFields.ERROR_CODE_RESPONSE;
 import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
 
-final class GetEscrowTransaction extends APIServlet.APIRequestHandler {
+final class GetEscrowTransaction extends APIServlet.JsonRequestHandler {
 	
   private final EscrowService escrowService;
 	

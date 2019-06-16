@@ -10,7 +10,7 @@ import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
-final class GetMiningInfo extends APIServlet.APIRequestHandler {
+final class GetMiningInfo extends APIServlet.JsonRequestHandler {
 
   private final Blockchain blockchain;
   private final Generator generator;

@@ -12,7 +12,7 @@ import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
 import static brs.http.common.ResultFields.OPEN_ORDERS_RESPONSE;
 
-public final class GetAllOpenAskOrders extends APIServlet.APIRequestHandler {
+public final class GetAllOpenAskOrders extends APIServlet.JsonRequestHandler {
 
   private final AssetExchange assetExchange;
 

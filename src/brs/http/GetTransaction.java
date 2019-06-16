@@ -12,7 +12,7 @@ import static brs.http.JSONResponses.*;
 import static brs.http.common.Parameters.FULL_HASH_PARAMETER;
 import static brs.http.common.Parameters.TRANSACTION_PARAMETER;
 
-final class GetTransaction extends APIServlet.APIRequestHandler {
+final class GetTransaction extends APIServlet.JsonRequestHandler {
 
   private final TransactionProcessor transactionProcessor;
   private final Blockchain blockchain;

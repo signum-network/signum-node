@@ -12,7 +12,7 @@ import static brs.http.common.Parameters.SUBSCRIPTION_PARAMETER;
 import static brs.http.common.ResultFields.ERROR_CODE_RESPONSE;
 import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
 
-final class GetSubscription extends APIServlet.APIRequestHandler {
+final class GetSubscription extends APIServlet.JsonRequestHandler {
 	
   private final SubscriptionService subscriptionService;
 

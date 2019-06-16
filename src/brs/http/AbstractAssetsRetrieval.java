@@ -6,7 +6,7 @@ import com.google.gson.JsonArray;
 
 import java.util.Iterator;
 
-abstract class AbstractAssetsRetrieval extends APIServlet.APIRequestHandler  {
+abstract class AbstractAssetsRetrieval extends APIServlet.JsonRequestHandler {
 
   private final AssetExchange assetExchange;
 

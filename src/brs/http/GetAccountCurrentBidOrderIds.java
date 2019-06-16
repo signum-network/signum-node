@@ -15,7 +15,7 @@ import java.util.Collection;
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.BID_ORDER_IDS_RESPONSE;
 
-public final class GetAccountCurrentBidOrderIds extends APIServlet.APIRequestHandler {
+public final class GetAccountCurrentBidOrderIds extends APIServlet.JsonRequestHandler {
 
   private final ParameterService parameterService;
   private final AssetExchange assetExchange;

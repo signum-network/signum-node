@@ -14,7 +14,7 @@ import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
 import static brs.http.common.ResultFields.ACCOUNT_RESPONSE;
 import static brs.http.common.ResultFields.PUBLIC_KEY_RESPONSE;
 
-public final class GetAccountId extends APIServlet.APIRequestHandler {
+public final class GetAccountId extends APIServlet.JsonRequestHandler {
 
   static final GetAccountId instance = new GetAccountId();
 

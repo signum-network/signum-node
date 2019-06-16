@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.ResultFields.REWARD_RECIPIENT_RESPONSE;
 
-final class GetRewardRecipient extends APIServlet.APIRequestHandler {
+final class GetRewardRecipient extends APIServlet.JsonRequestHandler {
 
   private final ParameterService parameterService;
   private final Blockchain blockchain;

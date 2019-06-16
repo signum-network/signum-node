@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.ResultFields.AT_IDS_RESPONSE;
 
-final class GetATIds extends APIServlet.APIRequestHandler {
+final class GetATIds extends APIServlet.JsonRequestHandler {
 
   private final ATService atService;
 

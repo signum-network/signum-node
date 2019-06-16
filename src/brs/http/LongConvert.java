@@ -10,7 +10,7 @@ import java.math.BigInteger;
 
 import static brs.http.common.Parameters.ID_PARAMETER;
 
-final class LongConvert extends APIServlet.APIRequestHandler {
+final class LongConvert extends APIServlet.JsonRequestHandler {
 
   static final LongConvert instance = new LongConvert();
 

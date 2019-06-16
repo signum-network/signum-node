@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.*;
 
-final class GetAccountTransactionIds extends APIServlet.APIRequestHandler {
+final class GetAccountTransactionIds extends APIServlet.JsonRequestHandler {
 
   private final ParameterService parameterService;
   private final Blockchain blockchain;

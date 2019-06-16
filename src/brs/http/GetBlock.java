@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.JSONResponses.*;
 import static brs.http.common.Parameters.*;
 
-public final class GetBlock extends APIServlet.APIRequestHandler {
+public final class GetBlock extends APIServlet.JsonRequestHandler {
 
   private final Blockchain blockchain;
 

@@ -13,7 +13,7 @@ import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
-final class GetConstants extends APIServlet.APIRequestHandler {
+final class GetConstants extends APIServlet.JsonRequestHandler {
 
     static final GetConstants instance = new GetConstants();
 
@@ -63,7 +63,7 @@ final class GetConstants extends APIServlet.APIRequestHandler {
         response.add("peerStates", peerStates);
 
         JsonObject requestTypes = new JsonObject();
-        // for (Map.Entry<String, APIServlet.APIRequestHandler> handlerEntry : APIServlet.apiRequestHandlers.entrySet()) {
+        // for (Map.Entry<String, APIServlet.JsonRequestHandler> handlerEntry : APIServlet.apiRequestHandlers.entrySet()) {
         //     JsonObject handlerJSON = JSONData.apiRequestHandler(handlerEntry.getValue());
         //     handlerJSON.addProperty("enabled", true);
         //     requestTypes.addProperty(handlerEntry.getKey(), handlerJSON);

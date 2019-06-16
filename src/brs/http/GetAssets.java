@@ -14,7 +14,7 @@ import static brs.http.JSONResponses.UNKNOWN_ASSET;
 import static brs.http.common.Parameters.ASSETS_PARAMETER;
 import static brs.http.common.ResultFields.ASSETS_RESPONSE;
 
-public final class GetAssets extends APIServlet.APIRequestHandler {
+public final class GetAssets extends APIServlet.JsonRequestHandler {
 
   private final AssetExchange assetExchange;
 

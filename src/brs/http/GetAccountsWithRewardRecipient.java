@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.common.Parameters.ACCOUNTS_RESPONSE;
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 
-public final class GetAccountsWithRewardRecipient extends APIServlet.APIRequestHandler {
+public final class GetAccountsWithRewardRecipient extends APIServlet.JsonRequestHandler {
 
   private final ParameterService parameterService;
   private final AccountService accountService;

@@ -13,7 +13,7 @@ import static brs.http.JSONResponses.MISSING_SELLER;
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.PURCHASES_RESPONSE;
 
-public final class GetDGSPendingPurchases extends APIServlet.APIRequestHandler {
+public final class GetDGSPendingPurchases extends APIServlet.JsonRequestHandler {
 
   private final DGSGoodsStoreService dgsGoodStoreService;
 

@@ -6,7 +6,7 @@ import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
-final class GetMyPeerInfo extends APIServlet.APIRequestHandler {
+final class GetMyPeerInfo extends APIServlet.JsonRequestHandler {
 
   private final TransactionProcessor transactionProcessor;
 

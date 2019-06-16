@@ -17,7 +17,7 @@ import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.INCLUDE_INDIRECT_PARAMETER;
 import static brs.http.common.ResultFields.UNCONFIRMED_TRANSACTIONS_IDS_RESPONSE;
 
-final class GetUnconfirmedTransactionIds extends APIServlet.APIRequestHandler {
+final class GetUnconfirmedTransactionIds extends APIServlet.JsonRequestHandler {
 
   private final TransactionProcessor transactionProcessor;
   private final IndirectIncomingService indirectIncomingService;

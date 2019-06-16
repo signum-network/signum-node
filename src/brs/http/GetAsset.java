@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.ASSET_PARAMETER;
 
-public final class GetAsset extends APIServlet.APIRequestHandler {
+public final class GetAsset extends APIServlet.JsonRequestHandler {
 
   private final ParameterService parameterService;
   private final AssetExchange assetExchange;

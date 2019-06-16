@@ -14,7 +14,7 @@ import java.util.Collection;
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.GOODS_RESPONSE;
 
-public final class GetDGSGoods extends APIServlet.APIRequestHandler {
+public final class GetDGSGoods extends APIServlet.JsonRequestHandler {
 
   private final DGSGoodsStoreService digitalGoodsStoreService;
 

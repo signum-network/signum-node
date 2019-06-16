@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 
-final class GetMyInfo extends APIServlet.APIRequestHandler {
+final class GetMyInfo extends APIServlet.JsonRequestHandler {
 
   static final GetMyInfo instance = new GetMyInfo();
 

@@ -153,7 +153,7 @@ public class APITestServlet extends HttpServlet {
 
   private final Set<Subnet> allowedBotHosts;
   private final List<String> requestTypes;
-  private final Map<String, APIServlet.APIRequestHandler> apiRequestHandlers;
+  private final Map<String, APIServlet.JsonRequestHandler> apiRequestHandlers;
   private final SortedMap<String, SortedSet<String>> requestTags;
 
   public APITestServlet(APIServlet apiServlet, Set<Subnet> allowedBotHosts) {
@@ -167,7 +167,7 @@ public class APITestServlet extends HttpServlet {
 
   private SortedMap<String, SortedSet<String>> buildRequestTags() {
     SortedMap<String, SortedSet<String>> r = new TreeMap<>();
-    for (Map.Entry<String, APIServlet.APIRequestHandler> entry : apiRequestHandlers.entrySet()) {
+    for (Map.Entry<String, APIServlet.JsonRequestHandler> entry : apiRequestHandlers.entrySet()) {
       final String requestType = entry.getKey();
       final Set<APITag> apiTags = entry.getValue().getAPITags();
       for (APITag apiTag : apiTags) {
@@ -222,7 +222,7 @@ public class APITestServlet extends HttpServlet {
         writer.print(buildLinks(req));
         writer.print(HEADER_2);
         String requestType = Convert.nullToEmpty(Encode.forHtml(req.getParameter("requestType")));
-        APIServlet.APIRequestHandler requestHandler = apiRequestHandlers.get(requestType);
+        APIServlet.JsonRequestHandler requestHandler = apiRequestHandlers.get(requestType);
         StringBuilder bufJSCalls = new StringBuilder();
         if (requestHandler != null) {
           writer.print(form(requestType, true, requestHandler.getClass().getName(), requestHandler.getParameters(), requestHandler.requirePost()));

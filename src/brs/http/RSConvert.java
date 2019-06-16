@@ -10,7 +10,7 @@ import static brs.http.JSONResponses.INCORRECT_ACCOUNT;
 import static brs.http.JSONResponses.MISSING_ACCOUNT;
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 
-final class RSConvert extends APIServlet.APIRequestHandler {
+final class RSConvert extends APIServlet.JsonRequestHandler {
 
   static final RSConvert instance = new RSConvert();
 

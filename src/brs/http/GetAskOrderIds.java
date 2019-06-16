@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.ASK_ORDER_IDS_RESPONSE;
 
-public final class GetAskOrderIds extends APIServlet.APIRequestHandler {
+public final class GetAskOrderIds extends APIServlet.JsonRequestHandler {
 
   private final ParameterService parameterService;
   private final AssetExchange assetExchange;

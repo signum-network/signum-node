@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.ALIASES_RESPONSE;
 
-public final class GetAliases extends APIServlet.APIRequestHandler {
+public final class GetAliases extends APIServlet.JsonRequestHandler {
 
   private final ParameterService parameterService;
   private final AliasService aliasService;

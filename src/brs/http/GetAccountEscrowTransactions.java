@@ -15,7 +15,7 @@ import java.util.Collection;
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.ESCROWS_RESPONSE;
 
-public final class GetAccountEscrowTransactions extends APIServlet.APIRequestHandler {
+public final class GetAccountEscrowTransactions extends APIServlet.JsonRequestHandler {
 
   private final ParameterService parameterService;
 

@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.JSONResponses.INCORRECT_RECIPIENT;
 import static brs.http.common.Parameters.*;
 
-final class EncryptTo extends APIServlet.APIRequestHandler {
+final class EncryptTo extends APIServlet.JsonRequestHandler {
 
   private final ParameterService parameterService;
   private final AccountService accountService;

@@ -16,7 +16,7 @@ import static brs.http.common.Parameters.TRANSACTION_BYTES_PARAMETER;
 import static brs.http.common.Parameters.TRANSACTION_JSON_PARAMETER;
 import static brs.http.common.ResultFields.*;
 
-final class ParseTransaction extends APIServlet.APIRequestHandler {
+final class ParseTransaction extends APIServlet.JsonRequestHandler {
 
   private static final Logger logger = LoggerFactory.getLogger(ParseTransaction.class);
 

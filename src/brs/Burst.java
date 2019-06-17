@@ -162,6 +162,8 @@ public final class Burst {
 
       threadPool = new ThreadPool(propertyService);
 
+      LoggerConfigurator.init();
+
       Db.init(propertyService, dbCacheManager);
       dbs = Db.getDbsByDatabaseType();
 

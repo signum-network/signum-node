@@ -89,7 +89,7 @@ public interface Appendix {
   class Message extends AbstractAppendix {
 
     static Message parse(JsonObject attachmentData) {
-      if (attachmentData.get("messageBytes") == null) {
+      if (attachmentData.get("message") == null) {
         return null;
       }
       return new Message(attachmentData);
@@ -106,7 +106,7 @@ public interface Appendix {
         messageLength &= Integer.MAX_VALUE;
       }
       if (messageLength > Constants.MAX_ARBITRARY_MESSAGE_LENGTH) {
-        throw new BurstException.NotValidException("Invalid arbitrary messageBytes length: " + messageLength);
+        throw new BurstException.NotValidException("Invalid arbitrary message length: " + messageLength);
       }
       this.messageBytes = new byte[messageLength];
       buffer.get(this.messageBytes);
@@ -114,7 +114,7 @@ public interface Appendix {
 
     Message(JsonObject attachmentData) {
       super(attachmentData);
-      String messageString = JSON.getAsString(attachmentData.get("messageBytes"));
+      String messageString = JSON.getAsString(attachmentData.get("message"));
       this.isText = Boolean.TRUE.equals(JSON.getAsBoolean(attachmentData.get("messageIsText")));
       this.messageBytes = isText ? Convert.toBytes(messageString) : Convert.parseHexString(messageString);
     }
@@ -155,7 +155,7 @@ public interface Appendix {
 
     @Override
     void putMyJSON(JsonObject json) {
-      json.addProperty("messageBytes", isText ? Convert.toString(messageBytes) : Convert.toHexString(messageBytes));
+      json.addProperty("message", isText ? Convert.toString(messageBytes) : Convert.toHexString(messageBytes));
       json.addProperty("messageIsText", isText);
     }
 
@@ -168,7 +168,7 @@ public interface Appendix {
         throw new BurstException.NotValidException("Message attachments not enabled for version 0 transactions");
       }
       if (messageBytes.length > Constants.MAX_ARBITRARY_MESSAGE_LENGTH) {
-        throw new BurstException.NotValidException("Invalid arbitrary messageBytes length: " + messageBytes.length);
+        throw new BurstException.NotValidException("Invalid arbitrary message length: " + messageBytes.length);
       }
     }
 
@@ -261,7 +261,7 @@ public interface Appendix {
     @Override
     public void validate(Transaction transaction) throws BurstException.ValidationException {
       if (encryptedData.getData().length > Constants.MAX_ENCRYPTED_MESSAGE_LENGTH) {
-        throw new BurstException.NotValidException("Max encrypted messageBytes length exceeded");
+        throw new BurstException.NotValidException("Max encrypted message length exceeded");
       }
       if ((encryptedData.getNonce().length != 32 && encryptedData.getData().length > 0)
           || (encryptedData.getNonce().length != 0 && encryptedData.getData().length == 0)) {
@@ -327,7 +327,7 @@ public interface Appendix {
         throw new BurstException.NotValidException("Encrypted messages cannot be attached to transactions with no recipient");
       }
       if (transaction.getVersion() == 0) {
-        throw new BurstException.NotValidException("Encrypted messageBytes attachments not enabled for version 0 transactions");
+        throw new BurstException.NotValidException("Encrypted message attachments not enabled for version 0 transactions");
       }
     }
 
@@ -380,7 +380,7 @@ public interface Appendix {
     public void validate(Transaction transaction) throws BurstException.ValidationException {
       super.validate(transaction);
       if (transaction.getVersion() == 0) {
-        throw new BurstException.NotValidException("Encrypt-to-self messageBytes attachments not enabled for version 0 transactions");
+        throw new BurstException.NotValidException("Encrypt-to-self message attachments not enabled for version 0 transactions");
       }
     }
 

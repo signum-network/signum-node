@@ -19,7 +19,6 @@ public final class LoggerConfigurator {
    * No constructor
    */
   private LoggerConfigurator() {
-  
   }
 
   /**
@@ -31,7 +30,7 @@ public final class LoggerConfigurator {
    * files will be used.  Entries in logging.properties will override entries in
    * logging-default.properties.
    */
-  static {
+  public static void init() {
     final String managerPackage = "java.util.logging.manager";
     String oldManager = System.getProperty(managerPackage);
     System.setProperty(managerPackage, "brs.util.BurstLogManager");
@@ -81,6 +80,4 @@ public final class LoggerConfigurator {
       ((BurstLogManager) LogManager.getLogManager()).burstShutdown();
     }
   }
-
-
 }

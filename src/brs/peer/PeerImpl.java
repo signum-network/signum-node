@@ -65,11 +65,13 @@ final class PeerImpl implements Peer {
     return state.get();
   }
 
+  @Override
   public boolean isState(State cmpState) {
     return state.get() == cmpState;
   }
 
-  void setState(State state) {
+  @Override
+  public void setState(State state) {
     if (this.state.get() == state) {
       return;
     }
@@ -99,7 +101,8 @@ final class PeerImpl implements Peer {
     }
   }
 
-  void updateDownloadedVolume(long volume) {
+  @Override
+  public void updateDownloadedVolume(long volume) {
     synchronized (this) {
       downloadedVolume.addAndGet(volume);
     }
@@ -111,7 +114,8 @@ final class PeerImpl implements Peer {
     return uploadedVolume.get();
   }
 
-  void updateUploadedVolume(long volume) {
+  @Override
+  public void updateUploadedVolume(long volume) {
     synchronized (this) {
       uploadedVolume.addAndGet(volume);
     }
@@ -123,17 +127,9 @@ final class PeerImpl implements Peer {
     return version.get();
   }
 
-  // semantic versioning for peer versions. here: ">=" negate it for "<"
+  @Override
   public boolean isHigherOrEqualVersionThan(Version ourVersion) {
-    return isHigherOrEqualVersion(ourVersion, version.get());
-  }
-
-  public static boolean isHigherOrEqualVersion(Version ourVersion, Version possiblyLowerVersion) {
-    if (ourVersion == null || possiblyLowerVersion == null) {
-      return false;
-    }
-
-    return possiblyLowerVersion.isGreaterThanOrEqualTo(ourVersion);
+    return Peer.isHigherOrEqualVersion(ourVersion, version.get());
   }
 
   public boolean isAtLeastMyVersion() {
@@ -203,7 +199,8 @@ final class PeerImpl implements Peer {
     }
   }
 
-  int getPort() {
+  @Override
+  public int getPort() {
     return port.get();
   }
 
@@ -268,7 +265,8 @@ final class PeerImpl implements Peer {
     Peers.notifyListeners(this, Peers.Event.UNBLACKLIST);
   }
 
-  void updateBlacklistedStatus(long curTime) {
+  @Override
+  public void updateBlacklistedStatus(long curTime) {
     if (blacklistingTime.get() > 0 && blacklistingTime.get() + Peers.blacklistingPeriod <= curTime) {
       unBlacklist();
     }
@@ -411,7 +409,8 @@ final class PeerImpl implements Peer {
     return 0;
   }
 
-  void connect(int currentTime) {
+  @Override
+  public void connect(int currentTime) {
     JsonObject response = send(Peers.myPeerInfoRequest);
     if (response != null) {
       application.set(JSON.getAsString(response.get("application")));

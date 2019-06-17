@@ -5,7 +5,7 @@ import brs.util.JSON;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-final class GetInfo extends PeerServlet.PeerRequestHandler {
+final class GetInfo implements PeerServlet.PeerRequestHandler {
 
   private final TimeService timeService;
 
@@ -14,7 +14,7 @@ final class GetInfo extends PeerServlet.PeerRequestHandler {
   }
 
   @Override
-  JsonElement processRequest(JsonObject request, Peer peer) {
+  public JsonElement processRequest(JsonObject request, Peer peer) {
     PeerImpl peerImpl = (PeerImpl)peer;
     String announcedAddress = JSON.getAsString(request.get("announcedAddress"));
     if (announcedAddress != null) {

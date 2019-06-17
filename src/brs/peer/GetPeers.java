@@ -4,7 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-final class GetPeers extends PeerServlet.PeerRequestHandler {
+final class GetPeers implements PeerServlet.PeerRequestHandler {
 
   static final GetPeers instance = new GetPeers();
 
@@ -12,7 +12,7 @@ final class GetPeers extends PeerServlet.PeerRequestHandler {
 
 
   @Override
-  JsonElement processRequest(JsonObject request, Peer peer) {
+  public JsonElement processRequest(JsonObject request, Peer peer) {
 
     JsonObject response = new JsonObject();
 

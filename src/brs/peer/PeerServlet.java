@@ -30,12 +30,13 @@ public final class PeerServlet extends HttpServlet {
 
   private static final Logger logger = LoggerFactory.getLogger(PeerServlet.class);
 
-  abstract static class PeerRequestHandler {
-    abstract JsonElement processRequest(JsonObject request, Peer peer);
+  interface PeerRequestHandler {
+    JsonElement processRequest(JsonObject request, Peer peer);
   }
 
-  abstract static class ExtendedPeerRequestHandler extends PeerRequestHandler {
-    JsonElement processRequest(JsonObject request, Peer peer) { return null; }
+  abstract static class ExtendedPeerRequestHandler implements PeerRequestHandler {
+    @Override
+    public JsonElement processRequest(JsonObject request, Peer peer) { return null; }
     abstract ExtendedProcessRequest extendedProcessRequest(JsonObject request, Peer peer);
   }
 
@@ -109,7 +110,7 @@ public final class PeerServlet extends HttpServlet {
   }
 
   private void process(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    PeerImpl peer = null;
+    Peer peer = null;
     JsonElement response;
 
     ExtendedProcessRequest extendedProcessRequest = null;

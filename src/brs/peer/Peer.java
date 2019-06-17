@@ -7,6 +7,8 @@ import com.google.gson.JsonObject;
 
 public interface Peer extends Comparable<Peer> {
 
+  void connect(int currentTime);
+
   enum State {
     NON_CONNECTED, CONNECTED, DISCONNECTED;
 
@@ -43,6 +45,8 @@ public interface Peer extends Comparable<Peer> {
 
   State getState();
 
+  void updateUploadedVolume(long volume);
+
   Version getVersion();
 
   String getApplication();
@@ -52,6 +56,8 @@ public interface Peer extends Comparable<Peer> {
   String getSoftware();
 
   boolean shareAddress();
+
+  int getPort();
 
   boolean isWellKnown();
 
@@ -71,13 +77,29 @@ public interface Peer extends Comparable<Peer> {
 
   void unBlacklist();
 
+  void updateBlacklistedStatus(long curTime);
+
   void remove();
 
+  boolean isState(State cmpState);
+
+  void setState(State state);
+
   long getDownloadedVolume();
+
+  void updateDownloadedVolume(long volume);
 
   long getUploadedVolume();
 
   int getLastUpdated();
 
   JsonObject send(JsonElement request);
+
+  static boolean isHigherOrEqualVersion(Version ourVersion, Version possiblyLowerVersion) {
+    if (ourVersion == null || possiblyLowerVersion == null) {
+      return false;
+    }
+
+    return possiblyLowerVersion.isGreaterThanOrEqualTo(ourVersion);
+  }
 }

@@ -9,7 +9,7 @@ import com.google.gson.JsonObject;
 
 import java.util.Collection;
 
-final class GetBlocksFromHeight extends PeerServlet.PeerRequestHandler {
+final class GetBlocksFromHeight implements PeerServlet.PeerRequestHandler {
 
   private final Blockchain blockchain;
 
@@ -19,7 +19,7 @@ final class GetBlocksFromHeight extends PeerServlet.PeerRequestHandler {
 
 
   @Override
-  JsonElement processRequest(JsonObject request, Peer peer) {
+  public JsonElement processRequest(JsonObject request, Peer peer) {
     JsonObject response = new JsonObject();
     int blockHeight = JSON.getAsInt(request.get("height"));
     int numBlocks = 100;

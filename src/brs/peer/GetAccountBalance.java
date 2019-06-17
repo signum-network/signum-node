@@ -11,7 +11,7 @@ import com.google.gson.JsonObject;
  * @deprecated This call is no longer made by the other peers so will soon be removed.
  */
 @Deprecated
-public class GetAccountBalance extends PeerServlet.PeerRequestHandler {
+public class GetAccountBalance implements PeerServlet.PeerRequestHandler {
 
   private final AccountService accountService;
 
@@ -24,7 +24,7 @@ public class GetAccountBalance extends PeerServlet.PeerRequestHandler {
   }
 
   @Override
-  JsonElement processRequest(JsonObject request, Peer peer) {
+  public JsonElement processRequest(JsonObject request, Peer peer) {
 
     JsonObject response = new JsonObject();
 

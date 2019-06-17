@@ -10,7 +10,7 @@ import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class GetMilestoneBlockIds extends PeerServlet.PeerRequestHandler {
+final class GetMilestoneBlockIds implements PeerServlet.PeerRequestHandler {
 
   private static final Logger logger = LoggerFactory.getLogger(GetMilestoneBlockIds.class);
 
@@ -21,7 +21,7 @@ final class GetMilestoneBlockIds extends PeerServlet.PeerRequestHandler {
   }
 
   @Override
-  JsonElement processRequest(JsonObject request, Peer peer) {
+  public JsonElement processRequest(JsonObject request, Peer peer) {
 
     JsonObject response = new JsonObject();
     try {

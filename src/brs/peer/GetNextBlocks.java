@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-final class GetNextBlocks extends PeerServlet.PeerRequestHandler {
+final class GetNextBlocks implements PeerServlet.PeerRequestHandler {
 
   private final Blockchain blockchain;
 
@@ -23,7 +23,7 @@ final class GetNextBlocks extends PeerServlet.PeerRequestHandler {
 
 
   @Override
-  JsonElement processRequest(JsonObject request, Peer peer) {
+  public JsonElement processRequest(JsonObject request, Peer peer) {
 
     JsonObject response = new JsonObject();
 

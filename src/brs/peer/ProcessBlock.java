@@ -7,7 +7,7 @@ import brs.util.JSON;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-public final class ProcessBlock extends PeerServlet.PeerRequestHandler {
+public final class ProcessBlock implements PeerServlet.PeerRequestHandler {
 
   private final Blockchain blockchain;
   private final BlockchainProcessor blockchainProcessor;

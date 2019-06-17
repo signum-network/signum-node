@@ -14,7 +14,7 @@ import com.google.gson.JsonObject;
  * @deprecated This call is no longer made by the other peers so will soon be removed.
  */
 @Deprecated
-public class GetAccountRecentTransactions extends PeerServlet.PeerRequestHandler {
+public class GetAccountRecentTransactions implements PeerServlet.PeerRequestHandler {
 
   private final AccountService accountService;
   private final Blockchain blockchain;
@@ -25,7 +25,7 @@ public class GetAccountRecentTransactions extends PeerServlet.PeerRequestHandler
   }
 	
   @Override
-  JsonElement processRequest(JsonObject request, Peer peer) {
+  public JsonElement processRequest(JsonObject request, Peer peer) {
     JsonObject response = new JsonObject();
     Long accountId = Convert.parseAccountId(JSON.getAsString(request.get("account")));
     Account account = accountService.getAccount(accountId);

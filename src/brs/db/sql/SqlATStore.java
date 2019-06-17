@@ -12,8 +12,6 @@ import brs.schema.tables.records.AtRecord;
 import brs.schema.tables.records.AtStateRecord;
 import org.jooq.*;
 import org.jooq.exception.DataAccessException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,8 +21,6 @@ import java.util.List;
 import static brs.schema.Tables.*;
 
 public class SqlATStore implements ATStore {
-
-  private static final Logger logger = LoggerFactory.getLogger(DbUtils.class);
 
   private final BurstKey.LongKeyFactory<brs.at.AT> atDbKeyFactory = new DbKey.LongKeyFactory<brs.at.AT>(AT.ID) {
       @Override
@@ -47,7 +43,6 @@ public class SqlATStore implements ATStore {
     atTable = new VersionedEntitySqlTable<brs.at.AT>("at", brs.schema.Tables.AT, atDbKeyFactory, derivedTableManager) {
       @Override
       protected brs.at.AT load(DSLContext ctx, Record rs) {
-        //return new AT(rs);
         throw new RuntimeException("AT attempted to be created with atTable.load");
       }
 

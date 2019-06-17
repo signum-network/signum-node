@@ -45,7 +45,7 @@ final class SendMoneyMultiSame extends CreateTransaction {
       return response;
     }
 		
-    String recipientsArray[] = recipientString.split(";", Constants.MAX_MULTI_SAME_OUT_RECIPIENTS);
+    String[] recipientsArray = recipientString.split(";", Constants.MAX_MULTI_SAME_OUT_RECIPIENTS);
 
     if(recipientsArray.length > Constants.MAX_MULTI_SAME_OUT_RECIPIENTS || recipientsArray.length < 2) {
       JsonObject response = new JsonObject();

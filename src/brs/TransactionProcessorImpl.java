@@ -199,12 +199,16 @@ public class TransactionProcessorImpl implements TransactionProcessor {
     }
     List<Transaction> processedTransactions;
     if (dbs.getTransactionDb().hasTransaction(transaction.getId())) {
-      logger.info("Transaction " + transaction.getStringId() + " already in blockchain, will not broadcast again");
+      if (logger.isInfoEnabled()) {
+        logger.info("Transaction {} already in blockchain, will not broadcast again", transaction.getStringId());
+      }
       return null;
     }
 
     if (unconfirmedTransactionStore.exists(transaction.getId())) {
-      logger.info("Transaction " + transaction.getStringId() + " already in unconfirmed pool, will not broadcast again");
+      if (logger.isInfoEnabled()) {
+        logger.info("Transaction {} already in unconfirmed pool, will not broadcast again", transaction.getStringId());
+      }
       return null;
     }
 
@@ -298,15 +302,14 @@ public class TransactionProcessorImpl implements TransactionProcessor {
         Transaction transaction = parseTransaction(JSON.getAsJsonObject(transactionData));
         transactionService.validate(transaction);
         if(!this.economicClustering.verifyFork(transaction)) {
-          /*if(Burst.getBlockchain().getHeight() >= Constants.EC_CHANGE_BLOCK_1) {
-            throw new BurstException.NotValidException("Transaction from wrong fork");
-            }*/
           continue;
         }
         transactions.add(transaction);
       } catch (BurstException.NotCurrentlyValidException ignore) {
       } catch (BurstException.NotValidException e) {
-        logger.debug("Invalid transaction from peer: " + JSON.toJsonString(transactionData));
+        if (logger.isDebugEnabled()) {
+          logger.debug("Invalid transaction from peer: {}", JSON.toJsonString(transactionData));
+        }
         throw e;
       }
     }
@@ -343,10 +346,8 @@ public class TransactionProcessorImpl implements TransactionProcessor {
             }
 
             if (!(transaction.verifySignature() && transactionService.verifyPublicKey(transaction))) {
-              if (accountService.getAccount(transaction.getSenderId()) != null) {
-                if (logger.isDebugEnabled()) {
-                  logger.debug("Transaction {} failed to verify", JSON.toJsonString(transaction.getJsonObject()));
-                }
+              if (accountService.getAccount(transaction.getSenderId()) != null && logger.isDebugEnabled()) {
+                logger.debug("Transaction {} failed to verify", JSON.toJsonString(transaction.getJsonObject()));
               }
               stores.commitTransaction();
               continue;

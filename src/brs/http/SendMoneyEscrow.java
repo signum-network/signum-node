@@ -55,7 +55,7 @@ final class SendMoneyEscrow extends CreateTransaction {
       return response;
     }
 		
-    String signersArray[] = signerString.split(";", 10);
+    String[] signersArray = signerString.split(";", 10);
 		
     if(signersArray.length < 1 || signersArray.length > 10 || signersArray.length < requiredSigners) {
       JsonObject response = new JsonObject();

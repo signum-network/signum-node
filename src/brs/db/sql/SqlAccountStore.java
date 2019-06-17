@@ -199,24 +199,27 @@ public class SqlAccountStore implements AccountStore {
     } else if (Arrays.equals(acc.getPublicKey(), key)) {
       return true;
     } else if (acc.getKeyHeight() == -1) {
-      logger.info("DUPLICATE KEY!!!");
-      logger.info("Account key for " + Convert.toUnsignedLong(acc.id) + " was already set to a different one at the same height "
-                  + ", current height is " + height + ", rejecting new key");
+      if (logger.isInfoEnabled()) {
+        logger.info("DUPLICATE KEY!!!");
+        logger.info("Account key for {} was already set to a different one at the same height, current height is {}, rejecting new key", Convert.toUnsignedLong(acc.id), height);
+      }
       return false;
     } else if (acc.getKeyHeight() >= height) {
       logger.info("DUPLICATE KEY!!!");
       if (Db.isInTransaction()) {
-        logger.info("Changing key for account " + Convert.toUnsignedLong(acc.id) + " at height " + height
-                    + ", was previously set to a different one at height " + acc.getKeyHeight());
+        if (logger.isInfoEnabled()) {
+          logger.info("Changing key for account {} at height {}, was previously set to a different one at height {}", Convert.toUnsignedLong(acc.id), height, acc.getKeyHeight());
+        }
         acc.setPublicKey(key);
         acc.setKeyHeight(height);
         getAccountTable().insert(acc);
       }
       return true;
     }
-    logger.info("DUPLICATE KEY!!!");
-    logger.info("Invalid key for account " + Convert.toUnsignedLong(acc.id) + " at height " + height
-                + ", was already set to a different one at height " + acc.getKeyHeight());
+    if (logger.isInfoEnabled()) {
+      logger.info("DUPLICATE KEY!!!");
+      logger.info("Invalid key for account {} at height {}, was already set to a different one at height {}", Convert.toUnsignedLong(acc.id), height, acc.getKeyHeight());
+    }
     return false;
   }
 

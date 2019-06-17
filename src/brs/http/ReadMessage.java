@@ -34,7 +34,6 @@ final class ReadMessage extends APIServlet.JsonRequestHandler {
 
   @Override
   JsonElement processRequest(HttpServletRequest req) {
-
     String transactionIdString = Convert.emptyToNull(req.getParameter(TRANSACTION_PARAMETER));
     if (transactionIdString == null) {
       return MISSING_TRANSACTION;
@@ -71,7 +70,7 @@ final class ReadMessage extends APIServlet.JsonRequestHandler {
             byte[] decrypted = account.decryptFrom(encryptedMessage.getEncryptedData(), secretPhrase);
             response.addProperty("decryptedMessage", encryptedMessage.isText() ? Convert.toString(decrypted) : Convert.toHexString(decrypted));
           } catch (RuntimeException e) {
-            logger.debug("Decryption of message to recipient failed: " + e.toString());
+            logger.debug("Decryption of message to recipient failed: {}", e);
           }
         }
       }
@@ -82,7 +81,7 @@ final class ReadMessage extends APIServlet.JsonRequestHandler {
             byte[] decrypted = account.decryptFrom(encryptToSelfMessage.getEncryptedData(), secretPhrase);
             response.addProperty("decryptedMessageToSelf", encryptToSelfMessage.isText() ? Convert.toString(decrypted) : Convert.toHexString(decrypted));
           } catch (RuntimeException e) {
-            logger.debug("Decryption of message to self failed: " + e.toString());
+            logger.debug("Decryption of message to self failed: {}", e);
           }
         }
       }

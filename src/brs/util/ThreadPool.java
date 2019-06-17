@@ -60,15 +60,15 @@ public final class ThreadPool {
     if (!propertyService.getBoolean("brs.disable" + name + "Thread", false)) {
       backgroundJobs.put(runnable, timeUnit.toMillis(delay));
     } else {
-      logger.info("Will not run " + name + " thread");
+      logger.info("Will not run {} thread", name);
     }
   }
 
-  public void scheduleThreadCores(String name, Runnable runnable, int delay) {
-    scheduleThreadCores(name, runnable, delay, TimeUnit.SECONDS);
+  public void scheduleThreadCores(Runnable runnable, int delay) {
+    scheduleThreadCores(runnable, delay, TimeUnit.SECONDS);
   }
 
-  public synchronized void scheduleThreadCores(String name, Runnable runnable, int delay, TimeUnit timeUnit) {
+  public synchronized void scheduleThreadCores(Runnable runnable, int delay, TimeUnit timeUnit) {
     if (scheduledThreadPool != null) {
       throw new IllegalStateException("Executor service already started, no new jobs accepted");
     }

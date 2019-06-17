@@ -48,7 +48,9 @@ public class StatisticsManagerImpl {
       final String handleText = "handling {} blocks/s"
           + cacheStatistics.values().stream().map(cacheInfo -> " " + cacheInfo.getCacheInfoAndReset()).collect(Collectors.joining());
 
-      logger.info(handleText, String.format("%.2f", blocksPerSecond));
+      if (logger.isInfoEnabled()) {
+        logger.info(handleText, String.format("%.2f", blocksPerSecond));
+      }
 
       addedBlockCount = 0;
     }

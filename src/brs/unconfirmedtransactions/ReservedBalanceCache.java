@@ -40,13 +40,15 @@ class ReservedBalanceCache {
     );
 
     if (senderAccount == null) {
-      LOGGER.info(String.format("Transaction %d: Account %d does not exist and has no balance. Required funds: %d", transaction.getId(), transaction.getSenderId(), amountNQT));
+      if (LOGGER.isInfoEnabled()) {
+        LOGGER.info(String.format("Transaction %d: Account %d does not exist and has no balance. Required funds: %d", transaction.getId(), transaction.getSenderId(), amountNQT));
+      }
 
       throw new BurstException.NotCurrentlyValidException("Account unknown");
     } else if ( amountNQT > senderAccount.getUnconfirmedBalanceNQT() ) {
-      LOGGER.info(String.format("Transaction %d: Account %d balance too low. You have  %d > %d Balance",
-          transaction.getId(), transaction.getSenderId(), amountNQT, senderAccount.getUnconfirmedBalanceNQT()
-      ));
+      if (LOGGER.isInfoEnabled()) {
+        LOGGER.info(String.format("Transaction %d: Account %d balance too low. You have  %d > %d Balance", transaction.getId(), transaction.getSenderId(), amountNQT, senderAccount.getUnconfirmedBalanceNQT()));
+      }
 
       throw new BurstException.NotCurrentlyValidException("Insufficient funds");
     }

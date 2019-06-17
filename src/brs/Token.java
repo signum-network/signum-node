@@ -54,7 +54,8 @@ public final class Token {
 
     byte[] websiteBytes = Convert.toBytes(website);
     byte[] tokenBytes = new byte[100];
-    int i = 0, j = 0;
+    int i = 0;
+    int j = 0;
 
     for (; i < tokenString.length(); i += 8, j += 5) {
 

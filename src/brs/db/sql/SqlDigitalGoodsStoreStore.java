@@ -231,7 +231,7 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
     }
     ctx.mergeInto(PURCHASE, PURCHASE.ID, PURCHASE.BUYER_ID, PURCHASE.GOODS_ID, PURCHASE.SELLER_ID, PURCHASE.QUANTITY, PURCHASE.PRICE, PURCHASE.DEADLINE, PURCHASE.NOTE, PURCHASE.NONCE, PURCHASE.TIMESTAMP, PURCHASE.PENDING, PURCHASE.GOODS, PURCHASE.GOODS_NONCE, PURCHASE.REFUND_NOTE, PURCHASE.REFUND_NONCE, PURCHASE.HAS_FEEDBACK_NOTES, PURCHASE.HAS_PUBLIC_FEEDBACKS, PURCHASE.DISCOUNT, PURCHASE.REFUND, PURCHASE.HEIGHT, PURCHASE.LATEST)
             .key(PURCHASE.ID, PURCHASE.HEIGHT)
-            .values(purchase.getId(), purchase.getBuyerId(), purchase.getGoodsId(), purchase.getSellerId(), purchase.getQuantity(), purchase.getPriceNQT(), purchase.getDeliveryDeadlineTimestamp(), note, nonce, purchase.getTimestamp(), purchase.isPending(), goods, goodsNonce, refundNote, refundNonce, purchase.getFeedbackNotes() != null && purchase.getFeedbackNotes().size() > 0, purchase.getPublicFeedback().size() > 0, purchase.getDiscountNQT(), purchase.getRefundNQT(), Burst.getBlockchain().getHeight(), true)
+            .values(purchase.getId(), purchase.getBuyerId(), purchase.getGoodsId(), purchase.getSellerId(), purchase.getQuantity(), purchase.getPriceNQT(), purchase.getDeliveryDeadlineTimestamp(), note, nonce, purchase.getTimestamp(), purchase.isPending(), goods, goodsNonce, refundNote, refundNonce, purchase.getFeedbackNotes() != null && !purchase.getFeedbackNotes().isEmpty(), !purchase.getPublicFeedback().isEmpty(), purchase.getDiscountNQT(), purchase.getRefundNQT(), Burst.getBlockchain().getHeight(), true)
             .execute();
   }
 

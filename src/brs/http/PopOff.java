@@ -36,11 +36,11 @@ final class PopOff extends APIServlet.JsonRequestHandler {
     int numBlocks = 0;
     try {
       numBlocks = Integer.parseInt(req.getParameter(NUM_BLOCKS_PARAMETER));
-    } catch (NumberFormatException e) {}
+    } catch (NumberFormatException ignored) {}
     int height = 0;
     try {
       height = Integer.parseInt(req.getParameter(HEIGHT_PARAMETER));
-    } catch (NumberFormatException e) {}
+    } catch (NumberFormatException ignored) {}
 
     List<? extends Block> blocks;
     JsonArray blocksJSON = new JsonArray();

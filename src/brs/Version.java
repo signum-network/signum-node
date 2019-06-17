@@ -21,7 +21,7 @@ public final class Version {
         this.prereleaseIteration = prereleaseIteration;
     }
 
-    public static Version parse(String version) throws IllegalArgumentException {
+    public static Version parse(String version) {
         if (version == null || Objects.equals(version, "")) {
             return EMPTY;
         }
@@ -121,7 +121,7 @@ public final class Version {
             this.priority = ordinal();
         }
 
-        public static PrereleaseTag withTag(String tag) throws IllegalArgumentException {
+        public static PrereleaseTag withTag(String tag) {
             for(PrereleaseTag prereleaseTag : values()) {
                 if (Objects.equals(prereleaseTag.tag, tag)) {
                     return prereleaseTag;

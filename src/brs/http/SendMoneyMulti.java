@@ -19,9 +19,9 @@ import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
 final class SendMoneyMulti extends CreateTransaction {
 
   private static final String[] commonParameters = new String[] {
-      SECRET_PHRASE_PARAMETER, PUBLIC_KEY_PARAMETER, FEE_NQT_PARAMETER,
-      DEADLINE_PARAMETER, REFERENCED_TRANSACTION_FULL_HASH_PARAMETER, BROADCAST_PARAMETER,
-      RECIPIENTS_PARAMETER};
+          SECRET_PHRASE_PARAMETER, PUBLIC_KEY_PARAMETER, FEE_NQT_PARAMETER,
+          DEADLINE_PARAMETER, REFERENCED_TRANSACTION_FULL_HASH_PARAMETER, BROADCAST_PARAMETER,
+          RECIPIENTS_PARAMETER};
 
   private final ParameterService parameterService;
   private final Blockchain blockchain;
@@ -32,7 +32,7 @@ final class SendMoneyMulti extends CreateTransaction {
     this.parameterService = parameterService;
     this.blockchain = blockchain;
   }
-	
+
   @Override
   JsonElement processRequest(HttpServletRequest req) throws BurstException {
     Account sender = parameterService.getSenderAccount(req);
@@ -44,8 +44,8 @@ final class SendMoneyMulti extends CreateTransaction {
       response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Recipients not specified");
       return response;
     }
-		
-    String transactionArray[] = recipientString.split(";", Constants.MAX_MULTI_OUT_RECIPIENTS);
+
+    String[] transactionArray = recipientString.split(";", Constants.MAX_MULTI_OUT_RECIPIENTS);
 
     if(transactionArray.length > Constants.MAX_MULTI_OUT_RECIPIENTS || transactionArray.length < 2) {
       JsonObject response = new JsonObject();
@@ -53,13 +53,13 @@ final class SendMoneyMulti extends CreateTransaction {
       response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Invalid number of recipients");
       return response;
     }
-		
+
     Collection<Entry<String, Long>> recipients = new ArrayList<>();
 
     long totalAmountNQT = 0;
     try {
       for(String transactionString : transactionArray) {
-        String recipientArray[] = transactionString.split(":", 2);
+        String[] recipientArray = transactionString.split(":", 2);
         long recipientId = Convert.parseUnsignedLong(recipientArray[0]);
         Long amountNQT   = Convert.parseUnsignedLong(recipientArray[1]);
         recipients.add(new SimpleEntry<>("" + recipientId, amountNQT) );
@@ -72,7 +72,7 @@ final class SendMoneyMulti extends CreateTransaction {
       response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Invalid recipients parameter");
       return response;
     }
-		
+
     if(sender.getBalanceNQT() < totalAmountNQT) {
       JsonObject response = new JsonObject();
       response.addProperty(ERROR_CODE_RESPONSE, 6);

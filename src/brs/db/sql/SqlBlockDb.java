@@ -169,7 +169,7 @@ public class SqlBlockDb implements BlockDb {
       } catch (Exception e) {
         Db.rollbackTransaction();
         throw e;
-      } // FIXME: nally {
+      }
       Db.endTransaction();
       return;
     }

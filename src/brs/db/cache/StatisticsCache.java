@@ -3,10 +3,6 @@ package brs.db.cache;
 import brs.statistics.StatisticsManagerImpl;
 import org.ehcache.Cache;
 import org.ehcache.config.CacheRuntimeConfiguration;
-import org.ehcache.spi.loaderwriter.BulkCacheLoadingException;
-import org.ehcache.spi.loaderwriter.BulkCacheWritingException;
-import org.ehcache.spi.loaderwriter.CacheLoadingException;
-import org.ehcache.spi.loaderwriter.CacheWritingException;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -25,12 +21,12 @@ class StatisticsCache<K, V> implements Cache<K, V> {
   }
 
   @Override
-  public V get(K k) throws CacheLoadingException {
+  public V get(K k) {
     return wrappedCache.get(k);
   }
 
   @Override
-  public void put(K k, V v) throws CacheWritingException {
+  public void put(K k, V v) {
     wrappedCache.put(k, v);
   }
 
@@ -48,22 +44,22 @@ class StatisticsCache<K, V> implements Cache<K, V> {
   }
 
   @Override
-  public void remove(K k) throws CacheWritingException {
+  public void remove(K k) {
     wrappedCache.remove(k);
   }
 
   @Override
-  public Map<K, V> getAll(Set<? extends K> set) throws BulkCacheLoadingException {
+  public Map<K, V> getAll(Set<? extends K> set) {
     return wrappedCache.getAll(set);
   }
 
   @Override
-  public void putAll(Map<? extends K, ? extends V> map) throws BulkCacheWritingException {
+  public void putAll(Map<? extends K, ? extends V> map) {
     wrappedCache.putAll(map);
   }
 
   @Override
-  public void removeAll(Set<? extends K> set) throws BulkCacheWritingException {
+  public void removeAll(Set<? extends K> set) {
     wrappedCache.removeAll(set);
   }
 
@@ -73,22 +69,22 @@ class StatisticsCache<K, V> implements Cache<K, V> {
   }
 
   @Override
-  public V putIfAbsent(K k, V v) throws CacheLoadingException, CacheWritingException {
+  public V putIfAbsent(K k, V v) {
     return wrappedCache.putIfAbsent(k, v);
   }
 
   @Override
-  public boolean remove(K k, V v) throws CacheWritingException {
+  public boolean remove(K k, V v) {
     return wrappedCache.remove(k, v);
   }
 
   @Override
-  public V replace(K k, V v) throws CacheLoadingException, CacheWritingException {
+  public V replace(K k, V v) {
     return wrappedCache.replace(k, v);
   }
 
   @Override
-  public boolean replace(K k, V v, V v1) throws CacheLoadingException, CacheWritingException {
+  public boolean replace(K k, V v, V v1) {
     return wrappedCache.replace(k, v, v1);
   }
 

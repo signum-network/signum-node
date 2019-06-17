@@ -177,7 +177,7 @@ public class Transaction implements Comparable<Transaction> {
   private final Appendix.EncryptToSelfMessage encryptToSelfMessage;
   private final Appendix.PublicKeyAnnouncement publicKeyAnnouncement;
 
-  private final List<? extends Appendix.AbstractAppendix> appendages;
+  private final List<Appendix.AbstractAppendix> appendages;
   private final int appendagesSize;
 
   private final AtomicInteger height = new AtomicInteger();
@@ -249,25 +249,21 @@ public class Transaction implements Comparable<Transaction> {
       feeNQT = builder.feeNQT;
     }
 
-    if(type == null || type.isSigned()) {
-      if (deadline < 1
-          || feeNQT > Constants.MAX_BALANCE_NQT
-          || amountNQT < 0
-          || amountNQT > Constants.MAX_BALANCE_NQT
-          || type == null) {
-        throw new BurstException.NotValidException("Invalid transaction parameters:\n type: " + type + ", timestamp: " + timestamp
-                                                 + ", deadline: " + deadline + ", fee: " + feeNQT + ", amount: " + amountNQT);
-      }
+    if ((type == null || type.isSigned()) && (deadline < 1
+            || feeNQT > Constants.MAX_BALANCE_NQT
+            || amountNQT < 0
+            || amountNQT > Constants.MAX_BALANCE_NQT
+            || type == null)) {
+      throw new BurstException.NotValidException("Invalid transaction parameters:\n type: " + type + ", timestamp: " + timestamp
+              + ", deadline: " + deadline + ", fee: " + feeNQT + ", amount: " + amountNQT);
     }
 
     if (attachment == null || type != attachment.getTransactionType()) {
       throw new BurstException.NotValidException("Invalid attachment " + attachment + " for transaction of type " + type);
     }
 
-    if (! type.hasRecipient() && attachment.getTransactionType() != Payment.MULTI_OUT && attachment.getTransactionType() != Payment.MULTI_SAME_OUT) {
-      if (recipientId != 0 || getAmountNQT() != 0) {
-        throw new BurstException.NotValidException("Transactions of this type must have recipient == Genesis, amount == 0");
-      }
+    if (!type.hasRecipient() && attachment.getTransactionType() != Payment.MULTI_OUT && attachment.getTransactionType() != Payment.MULTI_SAME_OUT && (recipientId != 0 || getAmountNQT() != 0)) {
+      throw new BurstException.NotValidException("Transactions of this type must have recipient == Genesis, amount == 0");
     }
 
     for (Appendix.AbstractAppendix appendage : appendages) {
@@ -358,7 +354,7 @@ public class Transaction implements Comparable<Transaction> {
     return attachment;
   }
 
-  public List<? extends AbstractAppendix> getAppendages() {
+  public List<AbstractAppendix> getAppendages() {
     return appendages;
   }
 
@@ -466,7 +462,9 @@ public class Transaction implements Comparable<Transaction> {
       appendages.forEach(appendage -> appendage.putBytes(buffer));
       return buffer.array();
     } catch (RuntimeException e) {
-      logger.debug("Failed to get transaction bytes for transaction: " + JSON.toJsonString(getJsonObject()));
+      if (logger.isDebugEnabled()) {
+        logger.debug("Failed to get transaction bytes for transaction: {}", JSON.toJsonString(getJsonObject()));
+      }
       throw e;
     }
   }
@@ -518,7 +516,9 @@ public class Transaction implements Comparable<Transaction> {
 
       return builder.build();
     } catch (BurstException.NotValidException|RuntimeException e) {
-      logger.debug("Failed to parse transaction bytes: " + Convert.toHexString(bytes));
+      if (logger.isDebugEnabled()) {
+        logger.debug("Failed to parse transaction bytes: {}", Convert.toHexString(bytes));
+      }
       throw e;
     }
   }
@@ -526,18 +526,6 @@ public class Transaction implements Comparable<Transaction> {
   public byte[] getUnsignedBytes() {
     return zeroSignature(getBytes());
   }
-
-  /*
-    @Override
-    public Collection<TransactionType> getPhasingTransactionTypes() {
-    return getType().getPhasingTransactionTypes();
-    }
-
-    @Override
-    public Collection<TransactionType> getPhasedTransactionTypes() {
-    return getType().getPhasedTransactionTypes();
-    }
-  */
 
   public JsonObject getJsonObject() {
     JsonObject json = new JsonObject();
@@ -559,9 +547,7 @@ public class Transaction implements Comparable<Transaction> {
     json.addProperty("signature", Convert.toHexString(signature.get()));
     JsonObject attachmentJSON = new JsonObject();
     appendages.forEach(appendage -> JSON.addAll(attachmentJSON, appendage.getJsonObject()));
-    //if (! attachmentJSON.isEmpty()) {
     json.add("attachment", attachmentJSON);
-    //}
     json.addProperty("version", version);
     return json;
   }
@@ -603,7 +589,9 @@ public class Transaction implements Comparable<Transaction> {
       }
       return builder.build();
     } catch (BurstException.NotValidException|RuntimeException e) {
-      logger.debug("Failed to parse transaction: " + JSON.toJsonString(transactionData));
+      if (logger.isDebugEnabled()) {
+        logger.debug("Failed to parse transaction: {}", JSON.toJsonString(transactionData));
+      }
       throw e;
     }
   }
@@ -693,5 +681,4 @@ public class Transaction implements Comparable<Transaction> {
   public TransactionDuplicationKey getDuplicationKey() {
     return type.getDuplicationKey(this);
   }
-
 }

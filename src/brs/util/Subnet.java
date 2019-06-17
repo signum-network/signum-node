@@ -10,9 +10,9 @@ import java.net.UnknownHostException;
  */
 public class Subnet
 {
-  final private int bytesSubnetCount;
-  final private BigInteger bigMask;
-  final private BigInteger bigSubnetMasked;
+  private final int bytesSubnetCount;
+  private final BigInteger bigMask;
+  private final BigInteger bigSubnetMasked;
 
   /**
    * For use via format "192.168.0.0/24" or "2001:db8:85a3:880:0:0:0:0/57"

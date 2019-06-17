@@ -16,7 +16,7 @@ public interface Time {
     }
 
     public long getTimeInMillis() {
-      return ((System.currentTimeMillis() - Constants.EPOCH_BEGINNING + 500));
+      return System.currentTimeMillis() - Constants.EPOCH_BEGINNING + 500;
     }
   }
 

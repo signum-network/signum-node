@@ -1,6 +1,8 @@
 package brs.http.common;
 
 public class ResultFields {
+  private ResultFields() {
+  }
 
   public static final String ERROR_CODE_RESPONSE = "errorCode";
   public static final String ERROR_DESCRIPTION_RESPONSE = "errorDescription";

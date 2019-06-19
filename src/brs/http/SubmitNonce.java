@@ -11,6 +11,7 @@ import brs.props.Props;
 import brs.services.AccountService;
 import brs.util.Convert;
 import burst.kit.crypto.BurstCrypto;
+import burst.kit.entity.BurstAddress;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -68,7 +69,7 @@ final class SubmitNonce extends APIServlet.JsonRequestHandler {
     if(secret == null) {
       long accountIdLong;
       try {
-        accountIdLong = Convert.parseUnsignedLong(accountId);
+        accountIdLong = BurstAddress.fromEither(accountId).getBurstID().getSignedLongId();
       } catch (Exception e) {
         response.addProperty("result", "Missing Passphrase and Account ID is malformed");
         return response;

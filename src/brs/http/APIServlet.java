@@ -132,7 +132,7 @@ public final class APIServlet extends HttpServlet {
     map.put("signTransaction", new SignTransaction(parameterService, transactionService));
     map.put("transferAsset", new TransferAsset(parameterService, blockchain, apiTransactionManager, accountService));
     map.put("getMiningInfo", new GetMiningInfo(blockchain, generator));
-    map.put("submitNonce", new SubmitNonce(accountService, blockchain, generator));
+    map.put("submitNonce", new SubmitNonce(propertyService, accountService, blockchain, generator));
     map.put("getRewardRecipient", new GetRewardRecipient(parameterService, blockchain, accountService));
     map.put("setRewardRecipient", new SetRewardRecipient(parameterService, blockchain, accountService, apiTransactionManager));
     map.put("getAccountsWithRewardRecipient", new GetAccountsWithRewardRecipient(parameterService, accountService));

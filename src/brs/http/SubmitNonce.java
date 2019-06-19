@@ -6,24 +6,35 @@ import brs.Generator;
 import brs.crypto.Crypto;
 import brs.grpc.handlers.SubmitNonceHandler;
 import brs.grpc.proto.ApiException;
+import brs.props.PropertyService;
+import brs.props.Props;
 import brs.services.AccountService;
 import brs.util.Convert;
+import burst.kit.crypto.BurstCrypto;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static brs.http.common.Parameters.*;
 
 
 final class SubmitNonce extends APIServlet.JsonRequestHandler {
 
+  private final Map<Long, String> passphrases;
   private final AccountService accountService;
   private final Blockchain blockchain;
   private final Generator generator;
 
-  SubmitNonce(AccountService accountService, Blockchain blockchain, Generator generator) {
+  SubmitNonce(PropertyService propertyService, AccountService accountService, Blockchain blockchain, Generator generator) {
     super(new APITag[] {APITag.MINING}, SECRET_PHRASE_PARAMETER, NONCE_PARAMETER, ACCOUNT_ID_PARAMETER, BLOCK_HEIGHT_PARAMETER);
+    BurstCrypto burstCrypto = BurstCrypto.getInstance();
+    this.passphrases = propertyService.getStringList(Props.SOLO_MINING_PASSPHRASES)
+            .stream()
+            .collect(Collectors.toMap(passphrase -> burstCrypto.getBurstAddressFromPassphrase(passphrase).getBurstID().getSignedLongId(), Function.identity()));
 
     this.accountService = accountService;
     this.blockchain = blockchain;
@@ -55,8 +66,19 @@ final class SubmitNonce extends APIServlet.JsonRequestHandler {
     }
 
     if(secret == null) {
-      response.addProperty("result", "Missing Passphrase");
-      return response;
+      long accountIdLong;
+      try {
+        accountIdLong = Convert.parseUnsignedLong(accountId);
+      } catch (Exception e) {
+        response.addProperty("result", "Missing Passphrase and Account ID is malformed");
+        return response;
+      }
+      if (passphrases.containsKey(accountIdLong)) {
+        secret = passphrases.get(accountIdLong);
+      } else {
+        response.addProperty("result", "Missing Passphrase and account passphrase not in solo mining config");
+        return response;
+      }
     }
 
     byte[] secretPublicKey = Crypto.getPublicKey(secret);

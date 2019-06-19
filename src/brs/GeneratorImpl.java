@@ -26,34 +26,6 @@ public class GeneratorImpl implements Generator {
   private final Listeners<GeneratorState, Event> listeners = new Listeners<>();
   private final ConcurrentMap<Long, GeneratorStateImpl> generators = new ConcurrentHashMap<>();
   private final Blockchain blockchain;
-
-  private Runnable generateBlockThread(BlockchainProcessor blockchainProcessor) {
-    return () -> {
-      try {
-        if (blockchainProcessor.isScanning()) {
-          return;
-        }
-        try {
-          long currentBlock = blockchain.getLastBlock().getHeight();
-          Iterator<Entry<Long, GeneratorStateImpl>> it = generators.entrySet().iterator();
-          while (it.hasNext() && !Thread.currentThread().isInterrupted() && ThreadPool.running.get()) {
-            Entry<Long, GeneratorStateImpl> generator = it.next();
-            if (currentBlock < generator.getValue().getBlock()) {
-              generator.getValue().forge(blockchainProcessor);
-            } else {
-              it.remove();
-            }
-          }
-        } catch (BlockchainProcessor.BlockNotAcceptedException e) {
-          logger.debug("Error in block generation thread", e);
-        }
-      } catch (Exception t) {
-        logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
-        System.exit(1);
-      }
-
-    };
-  }
   private final TimeService timeService;
   private final FluxCapacitor fluxCapacitor;
 
@@ -61,6 +33,28 @@ public class GeneratorImpl implements Generator {
     this.blockchain = blockchain;
     this.timeService = timeService;
     this.fluxCapacitor = fluxCapacitor;
+  }
+
+  private Runnable generateBlockThread(BlockchainProcessor blockchainProcessor) {
+    return () -> {
+      if (blockchainProcessor.isScanning()) {
+        return;
+      }
+      try {
+        long currentBlock = blockchain.getLastBlock().getHeight();
+        Iterator<Entry<Long, GeneratorStateImpl>> it = generators.entrySet().iterator();
+        while (it.hasNext() && !Thread.currentThread().isInterrupted() && ThreadPool.running.get()) {
+          Entry<Long, GeneratorStateImpl> generator = it.next();
+          if (currentBlock < generator.getValue().getBlock()) {
+            generator.getValue().forge(blockchainProcessor);
+          } else {
+            it.remove();
+          }
+        }
+      } catch (BlockchainProcessor.BlockNotAcceptedException e) {
+        logger.debug("Error in block generation thread", e);
+      }
+    };
   }
 
   @Override

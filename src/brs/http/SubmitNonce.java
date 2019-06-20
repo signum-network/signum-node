@@ -82,6 +82,11 @@ final class SubmitNonce extends APIServlet.JsonRequestHandler {
       }
     }
 
+    if (!passphrases.containsValue(secret)) {
+      response.addProperty("result", "This account is not allowed to mine on this node as the whitelist is enabled and it is not whitelisted.");
+      return response;
+    }
+
     byte[] secretPublicKey = Crypto.getPublicKey(secret);
     Account secretAccount = accountService.getAccount(secretPublicKey);
     if(secretAccount != null) {

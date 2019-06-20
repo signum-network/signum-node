@@ -4,10 +4,7 @@ import brs.Burst;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 public class PropertyServiceImpl implements PropertyService {
 
@@ -100,6 +97,7 @@ public class PropertyServiceImpl implements PropertyService {
   }
 
   private void logOnce(String propertyName, boolean debugLevel, String logText, Object... arguments) {
+    if (Objects.equals(propertyName, Props.SOLO_MINING_PASSPHRASES.getName())) return;
     if (!this.alreadyLoggedProperties.contains(propertyName)) {
       if (debugLevel) {
         this.logger.debug(logText, arguments);

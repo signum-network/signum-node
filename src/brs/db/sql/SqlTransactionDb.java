@@ -8,7 +8,6 @@ import brs.db.TransactionDb;
 import brs.schema.tables.records.TransactionRecord;
 import brs.util.Convert;
 import org.jooq.BatchBindStep;
-import org.jooq.DSLContext;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -21,34 +20,40 @@ public class SqlTransactionDb implements TransactionDb {
 
   @Override
   public Transaction findTransaction(long transactionId) {
-    try (DSLContext ctx = Db.getDSLContext()) {
-      TransactionRecord transactionRecord = ctx.selectFrom(TRANSACTION).where(TRANSACTION.ID.eq(transactionId)).fetchOne();
-      return loadTransaction(transactionRecord);
-    } catch (BurstException.ValidationException e) {
-      throw new RuntimeException("Transaction already in database, id = " + transactionId + ", does not pass validation!", e);
-    }
+    return Db.useDSLContext(ctx -> {
+      try {
+        TransactionRecord transactionRecord = ctx.selectFrom(TRANSACTION).where(TRANSACTION.ID.eq(transactionId)).fetchOne();
+        return loadTransaction(transactionRecord);
+      } catch (BurstException.ValidationException e) {
+        throw new RuntimeException("Transaction already in database, id = " + transactionId + ", does not pass validation!", e);
+      }
+    });
   }
 
   @Override
   public Transaction findTransactionByFullHash(String fullHash) {
-    try (DSLContext ctx = Db.getDSLContext()) {
-      TransactionRecord transactionRecord = ctx.selectFrom(TRANSACTION).where(TRANSACTION.FULL_HASH.eq(Convert.parseHexString(fullHash))).fetchOne();
-      return loadTransaction(transactionRecord);
-    } catch (BurstException.ValidationException e) {
-      throw new RuntimeException("Transaction already in database, full_hash = " + fullHash + ", does not pass validation!", e);
-    }
+    return Db.useDSLContext(ctx -> {
+      try {
+        TransactionRecord transactionRecord = ctx.selectFrom(TRANSACTION).where(TRANSACTION.FULL_HASH.eq(Convert.parseHexString(fullHash))).fetchOne();
+        return loadTransaction(transactionRecord);
+      } catch (BurstException.ValidationException e) {
+        throw new RuntimeException("Transaction already in database, full_hash = " + fullHash + ", does not pass validation!", e);
+      }
+    });
   }
 
   @Override
   public boolean hasTransaction(long transactionId) {
-    DSLContext ctx = Db.getDSLContext();
-    return ctx.fetchExists(ctx.selectFrom(TRANSACTION).where(TRANSACTION.ID.eq(transactionId)));
+    return Db.useDSLContext(ctx -> {
+      return ctx.fetchExists(ctx.selectFrom(TRANSACTION).where(TRANSACTION.ID.eq(transactionId)));
+    });
   }
 
   @Override
   public boolean hasTransactionByFullHash(String fullHash) {
-    DSLContext ctx = Db.getDSLContext();
-    return ctx.fetchExists(ctx.selectFrom(TRANSACTION).where(TRANSACTION.FULL_HASH.eq(Convert.parseHexString(fullHash))));
+    return Db.useDSLContext(ctx -> {
+      return ctx.fetchExists(ctx.selectFrom(TRANSACTION).where(TRANSACTION.FULL_HASH.eq(Convert.parseHexString(fullHash))));
+    });
   }
 
   @Override
@@ -100,7 +105,7 @@ public class SqlTransactionDb implements TransactionDb {
 
   @Override
   public List<Transaction> findBlockTransactions(long blockId) {
-    try (DSLContext ctx = Db.getDSLContext()) {
+    return Db.useDSLContext(ctx -> {
       return ctx.selectFrom(TRANSACTION)
               .where(TRANSACTION.BLOCK_ID.eq(blockId))
               .and(TRANSACTION.SIGNATURE.isNotNull())
@@ -111,7 +116,7 @@ public class SqlTransactionDb implements TransactionDb {
                   throw new RuntimeException("Transaction already in database for block_id = " + Convert.toUnsignedLong(blockId) + " does not pass validation!", e);
                 }
               });
-    }
+    });
   }
 
   private byte[] getAttachmentBytes(Transaction transaction) {
@@ -133,7 +138,7 @@ public class SqlTransactionDb implements TransactionDb {
 
   public void saveTransactions(List<Transaction> transactions) {
     if (!transactions.isEmpty()) {
-      try (DSLContext ctx = Db.getDSLContext()) {
+      Db.useDSLContext(ctx -> {
         BatchBindStep insertBatch = ctx.batch(
             ctx.insertInto(TRANSACTION, TRANSACTION.ID, TRANSACTION.DEADLINE,
                 TRANSACTION.SENDER_PUBLIC_KEY, TRANSACTION.RECIPIENT_ID, TRANSACTION.AMOUNT,
@@ -177,7 +182,7 @@ public class SqlTransactionDb implements TransactionDb {
           );
         }
         insertBatch.execute();
-      }
+      });
     }
   }
 

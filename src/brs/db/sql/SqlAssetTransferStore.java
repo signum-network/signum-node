@@ -40,7 +40,7 @@ public class SqlAssetTransferStore implements AssetTransferStore {
   }
 
   private void saveAssetTransfer(AssetTransfer assetTransfer) {
-    try ( DSLContext ctx = Db.getDSLContext() ) {
+    Db.useDSLContext(ctx -> {
       ctx.insertInto(
         ASSET_TRANSFER,
         ASSET_TRANSFER.ID, ASSET_TRANSFER.ASSET_ID, ASSET_TRANSFER.SENDER_ID, ASSET_TRANSFER.RECIPIENT_ID,
@@ -49,7 +49,7 @@ public class SqlAssetTransferStore implements AssetTransferStore {
         assetTransfer.getId(), assetTransfer.getAssetId(), assetTransfer.getSenderId(), assetTransfer.getRecipientId(),
         assetTransfer.getQuantityQNT(), assetTransfer.getTimestamp(), assetTransfer.getHeight()
       ).execute();
-    }
+    });
   }
 
 
@@ -69,49 +69,50 @@ public class SqlAssetTransferStore implements AssetTransferStore {
 
   @Override
   public Collection<AssetTransfer> getAccountAssetTransfers(long accountId, int from, int to) {
-    DSLContext ctx = Db.getDSLContext();
+    return Db.useDSLContext(ctx -> {
+      SelectQuery selectQuery = ctx
+              .selectFrom(ASSET_TRANSFER).where(
+                      ASSET_TRANSFER.SENDER_ID.eq(accountId)
+              )
+              .unionAll(
+                      ctx.selectFrom(ASSET_TRANSFER).where(
+                              ASSET_TRANSFER.RECIPIENT_ID.eq(accountId).and(ASSET_TRANSFER.SENDER_ID.ne(accountId))
+                      )
+              )
+              .orderBy(ASSET_TRANSFER.HEIGHT.desc())
+              .getQuery();
+      DbUtils.applyLimits(selectQuery, from, to);
 
-    SelectQuery selectQuery = ctx
-      .selectFrom(ASSET_TRANSFER).where(
-        ASSET_TRANSFER.SENDER_ID.eq(accountId)
-      )
-      .unionAll(
-        ctx.selectFrom(ASSET_TRANSFER).where(
-          ASSET_TRANSFER.RECIPIENT_ID.eq(accountId).and(ASSET_TRANSFER.SENDER_ID.ne(accountId))
-        )
-      )
-      .orderBy(ASSET_TRANSFER.HEIGHT.desc())
-      .getQuery();
-    DbUtils.applyLimits(selectQuery, from, to);
-
-    return getAssetTransferTable().getManyBy(ctx, selectQuery, false);
+      return getAssetTransferTable().getManyBy(ctx, selectQuery, false);
+    });
   }
 
   @Override
   public Collection<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to) {
-    DSLContext ctx = Db.getDSLContext();
+    return Db.useDSLContext(ctx -> {
+      SelectQuery<AssetTransferRecord> selectQuery = ctx
+              .selectFrom(ASSET_TRANSFER).where(
+                      ASSET_TRANSFER.SENDER_ID.eq(accountId).and(ASSET_TRANSFER.ASSET_ID.eq(assetId))
+              )
+              .unionAll(
+                      ctx.selectFrom(ASSET_TRANSFER).where(
+                              ASSET_TRANSFER.RECIPIENT_ID.eq(accountId)).and(
+                              ASSET_TRANSFER.SENDER_ID.ne(accountId)
+                      ).and(ASSET_TRANSFER.ASSET_ID.eq(assetId))
+              )
+              .orderBy(ASSET_TRANSFER.HEIGHT.desc())
+              .getQuery();
+      DbUtils.applyLimits(selectQuery, from, to);
 
-    SelectQuery<AssetTransferRecord> selectQuery = ctx
-      .selectFrom(ASSET_TRANSFER).where(
-        ASSET_TRANSFER.SENDER_ID.eq(accountId).and(ASSET_TRANSFER.ASSET_ID.eq(assetId))
-      )
-      .unionAll(
-        ctx.selectFrom(ASSET_TRANSFER).where(
-          ASSET_TRANSFER.RECIPIENT_ID.eq(accountId)).and(
-          ASSET_TRANSFER.SENDER_ID.ne(accountId)
-        ).and(ASSET_TRANSFER.ASSET_ID.eq(assetId))
-      )
-      .orderBy(ASSET_TRANSFER.HEIGHT.desc())
-      .getQuery();
-    DbUtils.applyLimits(selectQuery, from, to);
-
-    return getAssetTransferTable().getManyBy(ctx, selectQuery, false);
+      return getAssetTransferTable().getManyBy(ctx, selectQuery, false);
+    });
   }
 
   @Override
   public int getTransferCount(long assetId) {
-    DSLContext ctx = Db.getDSLContext();
-    return ctx.fetchCount(ctx.selectFrom(ASSET_TRANSFER).where(ASSET_TRANSFER.ASSET_ID.eq(assetId)));
+    return Db.useDSLContext(ctx -> {
+      return ctx.fetchCount(ctx.selectFrom(ASSET_TRANSFER).where(ASSET_TRANSFER.ASSET_ID.eq(assetId)));
+    });
   }
 
   class SqlAssetTransfer extends AssetTransfer {

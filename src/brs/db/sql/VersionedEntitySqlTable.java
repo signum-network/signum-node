@@ -22,57 +22,12 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
     rollback(table, tableClass, heightField, latestField, height, dbKeyFactory);
   }
 
-  @Override
-  public boolean delete(T t) {
-    if (t == null) {
-      return false;
-    }
-    if (!Db.isInTransaction()) {
-      throw new IllegalStateException("Not in transaction");
-    }
-    DbKey dbKey = (DbKey) dbKeyFactory.newKey(t);
-    try ( DSLContext ctx = Db.getDSLContext() ) {
-      SelectQuery<Record> countQuery = ctx.selectQuery();
-      countQuery.addFrom(tableClass);
-      countQuery.addConditions(dbKey.getPKConditions(tableClass));
-      countQuery.addConditions(heightField.lt(Burst.getBlockchain().getHeight()));
-      if ( ctx.fetchCount(countQuery) > 0 ) {
-        UpdateQuery updateQuery = ctx.updateQuery(tableClass);
-        updateQuery.addValue(
-          latestField,
-          false
-        );
-        updateQuery.addConditions(dbKey.getPKConditions(tableClass));
-        updateQuery.addConditions(latestField.isTrue());
-
-        updateQuery.execute();
-        save(ctx, t);
-        // delete after the save
-        updateQuery.execute();
-        
-        return true;
-      }
-      else {
-        DeleteQuery deleteQuery = ctx.deleteQuery(tableClass);
-        deleteQuery.addConditions(dbKey.getPKConditions(tableClass));
-        return deleteQuery.execute() > 0;
-      }
-    } finally {
-      Db.getCache(table).remove(dbKey);
-    }
-  }
-
-  @Override
-  public final void trim(int height) {
-    trim(tableClass, heightField, height, dbKeyFactory);
-  }
-
   static void rollback(final String table, final TableImpl<?> tableClass, Field<Integer> heightField, Field<Boolean> latestField, final int height, final DbKey.Factory<?> dbKeyFactory) {
     if (!Db.isInTransaction()) {
       throw new IllegalStateException("Not in transaction");
     }
 
-    try (DSLContext ctx = Db.getDSLContext()) {
+    Db.useDSLContext(ctx -> {
       // get dbKey's for entries whose stuff newer than height would be deleted, to allow fixing
       // their latest flag of the "potential" remaining newest entry
       SelectQuery<Record> selectForDeleteQuery = ctx.selectQuery();
@@ -105,8 +60,13 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
           setLatestQuery.execute();
         }
       }
-    }
+    });
     Db.getCache(table).clear();
+  }
+
+  @Override
+  public final void trim(int height) {
+    trim(tableClass, heightField, height, dbKeyFactory);
   }
 
   static void trim(final TableImpl<?> tableClass, Field<Integer> heightField, final int height, final DbKey.Factory dbKeyFactory) {
@@ -116,39 +76,81 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
 
     // "accounts" is just an example to make it easier to understand what the code does
     // select all accounts with multiple entries where height < trimToHeight[current height - 1440]
-    DSLContext ctx = Db.getDSLContext();
-    SelectQuery<Record> selectMaxHeightQuery = ctx.selectQuery();
-    selectMaxHeightQuery.addFrom(tableClass);
-    selectMaxHeightQuery.addSelect(DSL.max(heightField).as("max_height"));
-    for ( String column : dbKeyFactory.getPKColumns() ) {
-      Field pkField = tableClass.field(column, Long.class);
-      selectMaxHeightQuery.addSelect(pkField);
-      selectMaxHeightQuery.addGroupBy(pkField);
-    }
-    selectMaxHeightQuery.addConditions(heightField.lt(height));
-    selectMaxHeightQuery.addHaving(DSL.countDistinct(heightField).gt(1));
-
-    // delete all fetched accounts, except if it's height is the max height we figured out
-    DeleteQuery deleteLowerHeightQuery = ctx.deleteQuery(tableClass);
-    deleteLowerHeightQuery.addConditions(heightField.lt((Integer) null));
-    for ( String column : dbKeyFactory.getPKColumns() ) {
-      Field<Long> pkField = tableClass.field(column, Long.class);
-      deleteLowerHeightQuery.addConditions(pkField.eq((Long) null));
-    }
-    BatchBindStep deleteBatch = ctx.batch(deleteLowerHeightQuery);
-
-    for (Record record : selectMaxHeightQuery.fetch()) {
-      DbKey dbKey = (DbKey) dbKeyFactory.newKey(record);
-      int maxHeight = record.get("max_height", Integer.class);
-      List<Long> bindValues = new ArrayList<>();
-      bindValues.add((long) maxHeight);
-      for ( Long pkValue : dbKey.getPKValues() ) {
-        bindValues.add(pkValue);
+    Db.useDSLContext(ctx -> {
+      SelectQuery<Record> selectMaxHeightQuery = ctx.selectQuery();
+      selectMaxHeightQuery.addFrom(tableClass);
+      selectMaxHeightQuery.addSelect(DSL.max(heightField).as("max_height"));
+      for (String column : dbKeyFactory.getPKColumns()) {
+        Field pkField = tableClass.field(column, Long.class);
+        selectMaxHeightQuery.addSelect(pkField);
+        selectMaxHeightQuery.addGroupBy(pkField);
       }
-      deleteBatch.bind(bindValues.toArray());
+      selectMaxHeightQuery.addConditions(heightField.lt(height));
+      selectMaxHeightQuery.addHaving(DSL.countDistinct(heightField).gt(1));
+
+      // delete all fetched accounts, except if it's height is the max height we figured out
+      DeleteQuery deleteLowerHeightQuery = ctx.deleteQuery(tableClass);
+      deleteLowerHeightQuery.addConditions(heightField.lt((Integer) null));
+      for (String column : dbKeyFactory.getPKColumns()) {
+        Field<Long> pkField = tableClass.field(column, Long.class);
+        deleteLowerHeightQuery.addConditions(pkField.eq((Long) null));
+      }
+      BatchBindStep deleteBatch = ctx.batch(deleteLowerHeightQuery);
+
+      for (Record record : selectMaxHeightQuery.fetch()) {
+        DbKey dbKey = (DbKey) dbKeyFactory.newKey(record);
+        int maxHeight = record.get("max_height", Integer.class);
+        List<Long> bindValues = new ArrayList<>();
+        bindValues.add((long) maxHeight);
+        for (Long pkValue : dbKey.getPKValues()) {
+          bindValues.add(pkValue);
+        }
+        deleteBatch.bind(bindValues.toArray());
+      }
+      if (deleteBatch.size() > 0) {
+        deleteBatch.execute();
+      }
+    });
+  }
+
+  @Override
+  public boolean delete(T t) {
+    if (t == null) {
+      return false;
     }
-    if (deleteBatch.size() > 0) {
-      deleteBatch.execute();
+    if (!Db.isInTransaction()) {
+      throw new IllegalStateException("Not in transaction");
     }
+    DbKey dbKey = (DbKey) dbKeyFactory.newKey(t);
+    return Db.useDSLContext(ctx -> {
+      try {
+        SelectQuery<Record> countQuery = ctx.selectQuery();
+        countQuery.addFrom(tableClass);
+        countQuery.addConditions(dbKey.getPKConditions(tableClass));
+        countQuery.addConditions(heightField.lt(Burst.getBlockchain().getHeight()));
+        if (ctx.fetchCount(countQuery) > 0) {
+          UpdateQuery updateQuery = ctx.updateQuery(tableClass);
+          updateQuery.addValue(
+                  latestField,
+                  false
+          );
+          updateQuery.addConditions(dbKey.getPKConditions(tableClass));
+          updateQuery.addConditions(latestField.isTrue());
+
+          updateQuery.execute();
+          save(ctx, t);
+          // delete after the save
+          updateQuery.execute();
+
+          return true;
+        } else {
+          DeleteQuery deleteQuery = ctx.deleteQuery(tableClass);
+          deleteQuery.addConditions(dbKey.getPKConditions(tableClass));
+          return deleteQuery.execute() > 0;
+        }
+      } finally {
+        Db.getCache(table).remove(dbKey);
+      }
+    });
   }
 }

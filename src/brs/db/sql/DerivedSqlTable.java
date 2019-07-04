@@ -2,7 +2,6 @@ package brs.db.sql;
 
 import brs.db.DerivedTable;
 import brs.db.store.DerivedTableManager;
-import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.impl.TableImpl;
 import org.slf4j.Logger;
@@ -30,8 +29,9 @@ public abstract class DerivedSqlTable implements DerivedTable {
     if (!Db.isInTransaction()) {
       throw new IllegalStateException("Not in transaction");
     }
-    DSLContext ctx = Db.getDSLContext();
-    ctx.delete(tableClass).where(heightField.gt(height)).execute();
+    Db.useDSLContext(ctx -> {
+      ctx.delete(tableClass).where(heightField.gt(height)).execute();
+    });
   }
 
   @Override
@@ -39,8 +39,9 @@ public abstract class DerivedSqlTable implements DerivedTable {
     if (!Db.isInTransaction()) {
       throw new IllegalStateException("Not in transaction");
     }
-    DSLContext ctx = Db.getDSLContext();
-    ctx.delete(tableClass).execute();
+    Db.useDSLContext(ctx -> {
+      ctx.delete(tableClass).execute();
+    });
   }
 
   @Override

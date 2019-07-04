@@ -75,27 +75,28 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
       return;
     }
 
-    DSLContext ctx = Db.getDSLContext();
-    UpdateQuery updateQuery = ctx.updateQuery(tableClass);
-    updateQuery.addValue(latestField, false);
-    for (String idColumn : dbKeyFactory.getPKColumns()) {
-      updateQuery.addConditions(tableClass.field(idColumn, Long.class).eq(0L));
-    }
-    updateQuery.addConditions(latestField.isTrue());
-
-    BatchBindStep updateBatch = ctx.batch(updateQuery);
-    for (BurstKey dbKey : keySet) {
-      List<Object> bindArgs = new ArrayList<>();
-      bindArgs.add(false);
-      for (long pkValue : dbKey.getPKValues()) {
-        bindArgs.add(pkValue);
+    Db.useDSLContext(ctx -> {
+      UpdateQuery updateQuery = ctx.updateQuery(tableClass);
+      updateQuery.addValue(latestField, false);
+      for (String idColumn : dbKeyFactory.getPKColumns()) {
+        updateQuery.addConditions(tableClass.field(idColumn, Long.class).eq(0L));
       }
-      updateBatch.bind(bindArgs.toArray());
-    }
-    updateBatch.execute();
+      updateQuery.addConditions(latestField.isTrue());
 
-    bulkInsert(ctx, getBatch().values());
-    getBatch().clear();
+      BatchBindStep updateBatch = ctx.batch(updateQuery);
+      for (BurstKey dbKey : keySet) {
+        List<Object> bindArgs = new ArrayList<>();
+        bindArgs.add(false);
+        for (long pkValue : dbKey.getPKValues()) {
+          bindArgs.add(pkValue);
+        }
+        updateBatch.bind(bindArgs.toArray());
+      }
+      updateBatch.execute();
+
+      bulkInsert(ctx, getBatch().values());
+      getBatch().clear();
+    });
   }
 
   @Override

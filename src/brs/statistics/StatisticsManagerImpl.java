@@ -45,10 +45,8 @@ public class StatisticsManagerImpl {
     } else if ( addedBlockCount % 500 == 0 ) {
       float blocksPerSecond = 500 / (float) (timeService.getEpochTime() - firstBlockAdded);
 
-      final String handleText = "handling {} blocks/s"
-          + cacheStatistics.values().stream().map(cacheInfo -> " " + cacheInfo.getCacheInfoAndReset()).collect(Collectors.joining());
-
       if (logger.isInfoEnabled()) {
+        final String handleText = "handling {} blocks/s" + cacheStatistics.values().stream().map(cacheInfo -> " " + cacheInfo.getCacheInfoAndReset()).collect(Collectors.joining());
         logger.info(handleText, String.format("%.2f", blocksPerSecond));
       }
 

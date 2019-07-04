@@ -56,9 +56,9 @@ public class SqlIndirectIncomingStore implements IndirectIncomingStore {
 
     @Override
     public void addIndirectIncomings(Collection<IndirectIncoming> indirectIncomings) {
-        try (DSLContext ctx = Db.getDSLContext()) {
+        Db.useDSLContext(ctx -> {
             indirectIncomingTable.save(ctx, indirectIncomings.toArray(new IndirectIncoming[0]));
-        }
+        });
     }
 
     @Override

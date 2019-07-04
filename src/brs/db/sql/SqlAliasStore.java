@@ -91,14 +91,11 @@ public class SqlAliasStore implements AliasStore {
   }
 
   private void saveOffer(Alias.Offer offer) {
-    try (DSLContext ctx = Db.getDSLContext()) {
-      ctx.insertInto(
-        ALIAS_OFFER,
-        ALIAS_OFFER.ID, ALIAS_OFFER.PRICE, ALIAS_OFFER.BUYER_ID, ALIAS_OFFER.HEIGHT
-      ).values(
-        offer.getId(), offer.getPriceNQT(), ( offer.getBuyerId() == 0 ? null : offer.getBuyerId() ), Burst.getBlockchain().getHeight()
-      ).execute();
-    }
+    Db.useDSLContext(ctx -> {
+      ctx.insertInto(ALIAS_OFFER, ALIAS_OFFER.ID, ALIAS_OFFER.PRICE, ALIAS_OFFER.BUYER_ID, ALIAS_OFFER.HEIGHT)
+              .values(offer.getId(), offer.getPriceNQT(), (offer.getBuyerId() == 0 ? null : offer.getBuyerId()), Burst.getBlockchain().getHeight())
+              .execute();
+    });
   }
 
   private final VersionedEntityTable<Alias.Offer> offerTable;

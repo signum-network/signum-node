@@ -18,22 +18,30 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import static brs.schema.tables.AskOrder.ASK_ORDER;
-import static brs.schema.tables.BidOrder.BID_ORDER;
+import static brs.schema.Tables.ASK_ORDER;
+import static brs.schema.Tables.BID_ORDER;
 
 public class SqlOrderStore implements OrderStore {
   private final DbKey.LongKeyFactory<Order.Ask> askOrderDbKeyFactory = new DbKey.LongKeyFactory<Order.Ask>(ASK_ORDER.ID) {
 
-      @Override
-      public BurstKey newKey(Order.Ask ask) {
-        return ask.dbKey;
-      }
+    @Override
+    public BurstKey newKey(Order.Ask ask) {
+      return ask.dbKey;
+    }
 
-    };
+  };
   private final VersionedEntityTable<Order.Ask> askOrderTable;
+  private final DbKey.LongKeyFactory<Order.Bid> bidOrderDbKeyFactory = new DbKey.LongKeyFactory<Order.Bid>(BID_ORDER.ID) {
+
+    @Override
+    public BurstKey newKey(Order.Bid bid) {
+      return bid.dbKey;
+    }
+
+  };
 
   public SqlOrderStore(DerivedTableManager derivedTableManager) {
-    askOrderTable = new VersionedEntitySqlTable<Order.Ask>("ask_order", brs.schema.Tables.ASK_ORDER, askOrderDbKeyFactory, derivedTableManager) {
+    askOrderTable = new VersionedEntitySqlTable<Order.Ask>("ask_order", ASK_ORDER, askOrderDbKeyFactory, derivedTableManager) {
       @Override
       protected Order.Ask load(DSLContext ctx, Record record) {
         return new SqlAsk(record);
@@ -52,7 +60,7 @@ public class SqlOrderStore implements OrderStore {
       }
     };
 
-    bidOrderTable = new VersionedEntitySqlTable<Order.Bid>("bid_order", brs.schema.Tables.BID_ORDER, bidOrderDbKeyFactory, derivedTableManager) {
+    bidOrderTable = new VersionedEntitySqlTable<Order.Bid>("bid_order", BID_ORDER, bidOrderDbKeyFactory, derivedTableManager) {
 
       @Override
       protected Order.Bid load(DSLContext ctx, Record rs) {
@@ -74,15 +82,6 @@ public class SqlOrderStore implements OrderStore {
     };
 
   }
-
-  private final DbKey.LongKeyFactory<Order.Bid> bidOrderDbKeyFactory = new DbKey.LongKeyFactory<Order.Bid>(BID_ORDER.ID) {
-
-      @Override
-      public BurstKey newKey(Order.Bid bid) {
-        return bid.dbKey;
-      }
-
-    };
   private final VersionedEntityTable<Order.Bid> bidOrderTable;
 
   @Override
@@ -93,35 +92,36 @@ public class SqlOrderStore implements OrderStore {
   @Override
   public Collection<Order.Ask> getAskOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
     return askOrderTable.getManyBy(
-      brs.schema.Tables.ASK_ORDER.ACCOUNT_ID.eq(accountId).and(
-        brs.schema.Tables.ASK_ORDER.ASSET_ID.eq(assetId)
-      ),
-      from,
-      to
+            ASK_ORDER.ACCOUNT_ID.eq(accountId).and(
+                    ASK_ORDER.ASSET_ID.eq(assetId)
+            ),
+            from,
+            to
     );
   }
 
   @Override
   public Collection<Order.Ask> getSortedAsks(long assetId, int from, int to) {
     List<SortField<?>> sort = new ArrayList<>();
-    sort.add(brs.schema.Tables.ASK_ORDER.field("price", Long.class).asc());
-    sort.add(brs.schema.Tables.ASK_ORDER.field("creation_height", Integer.class).asc());
-    sort.add(brs.schema.Tables.ASK_ORDER.field("id", Long.class).asc());
-    return askOrderTable.getManyBy(brs.schema.Tables.ASK_ORDER.ASSET_ID.eq(assetId), from, to, sort);
+    sort.add(ASK_ORDER.field("price", Long.class).asc());
+    sort.add(ASK_ORDER.field("creation_height", Integer.class).asc());
+    sort.add(ASK_ORDER.field("id", Long.class).asc());
+    return askOrderTable.getManyBy(ASK_ORDER.ASSET_ID.eq(assetId), from, to, sort);
   }
 
   @Override
   public Order.Ask getNextOrder(long assetId) {
-    DSLContext ctx = Db.getDSLContext();
-    SelectQuery<AskOrderRecord> query = ctx.selectFrom(brs.schema.Tables.ASK_ORDER).where(
-      brs.schema.Tables.ASK_ORDER.ASSET_ID.eq(assetId).and(brs.schema.Tables.ASK_ORDER.LATEST.isTrue())
-    ).orderBy(
-      brs.schema.Tables.ASK_ORDER.PRICE.asc(),
-      brs.schema.Tables.ASK_ORDER.CREATION_HEIGHT.asc(),
-      brs.schema.Tables.ASK_ORDER.ID.asc()
-    ).limit(1).getQuery();
-    Iterator<Order.Ask> result = askOrderTable.getManyBy(ctx, query, true).iterator();
-    return result.hasNext() ? result.next() : null;
+    return Db.useDSLContext(ctx -> {
+      SelectQuery<AskOrderRecord> query = ctx.selectFrom(ASK_ORDER)
+              .where(ASK_ORDER.ASSET_ID.eq(assetId).and(ASK_ORDER.LATEST.isTrue()))
+              .orderBy(ASK_ORDER.PRICE.asc(),
+                      ASK_ORDER.CREATION_HEIGHT.asc(),
+                      ASK_ORDER.ID.asc())
+              .limit(1)
+              .getQuery();
+      Iterator<Order.Ask> result = askOrderTable.getManyBy(ctx, query, true).iterator();
+      return result.hasNext() ? result.next() : null;
+    });
   }
 
   @Override
@@ -131,12 +131,12 @@ public class SqlOrderStore implements OrderStore {
 
   @Override
   public Collection<Order.Ask> getAskOrdersByAccount(long accountId, int from, int to) {
-    return askOrderTable.getManyBy(brs.schema.Tables.ASK_ORDER.ACCOUNT_ID.eq(accountId), from, to);
+    return askOrderTable.getManyBy(ASK_ORDER.ACCOUNT_ID.eq(accountId), from, to);
   }
 
   @Override
   public Collection<Order.Ask> getAskOrdersByAsset(long assetId, int from, int to) {
-    return askOrderTable.getManyBy(brs.schema.Tables.ASK_ORDER.ASSET_ID.eq(assetId), from, to);
+    return askOrderTable.getManyBy(ASK_ORDER.ASSET_ID.eq(assetId), from, to);
   }
 
   private void saveAsk(DSLContext ctx, Order.Ask ask) {
@@ -163,46 +163,48 @@ public class SqlOrderStore implements OrderStore {
 
   @Override
   public Collection<Order.Bid> getBidOrdersByAccount(long accountId, int from, int to) {
-    return bidOrderTable.getManyBy(brs.schema.Tables.BID_ORDER.ACCOUNT_ID.eq(accountId), from, to);
+    return bidOrderTable.getManyBy(BID_ORDER.ACCOUNT_ID.eq(accountId), from, to);
   }
 
   @Override
   public Collection<Order.Bid> getBidOrdersByAsset(long assetId, int from, int to) {
-    return bidOrderTable.getManyBy(brs.schema.Tables.BID_ORDER.ASSET_ID.eq(assetId), from, to);
+    return bidOrderTable.getManyBy(BID_ORDER.ASSET_ID.eq(assetId), from, to);
   }
 
   @Override
   public Collection<Order.Bid> getBidOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
     return bidOrderTable.getManyBy(
-      brs.schema.Tables.BID_ORDER.ACCOUNT_ID.eq(accountId).and(
-        brs.schema.Tables.BID_ORDER.ASSET_ID.eq(assetId)
-      ),
-      from,
-      to
+            BID_ORDER.ACCOUNT_ID.eq(accountId).and(
+                    BID_ORDER.ASSET_ID.eq(assetId)
+            ),
+            from,
+            to
     );
   }
 
   @Override
   public Collection<Order.Bid> getSortedBids(long assetId, int from, int to) {
     List<SortField<?>> sort = new ArrayList<>();
-    sort.add(brs.schema.Tables.BID_ORDER.field("price", Long.class).desc());
-    sort.add(brs.schema.Tables.BID_ORDER.field("creation_height", Integer.class).asc());
-    sort.add(brs.schema.Tables.BID_ORDER.field("id", Long.class).asc());
-    return bidOrderTable.getManyBy(brs.schema.Tables.BID_ORDER.ASSET_ID.eq(assetId), from, to, sort);
+    sort.add(BID_ORDER.field("price", Long.class).desc());
+    sort.add(BID_ORDER.field("creation_height", Integer.class).asc());
+    sort.add(BID_ORDER.field("id", Long.class).asc());
+    return bidOrderTable.getManyBy(BID_ORDER.ASSET_ID.eq(assetId), from, to, sort);
   }
 
   @Override
   public Order.Bid getNextBid(long assetId) {
-    DSLContext ctx = Db.getDSLContext();
-    SelectQuery<BidOrderRecord> query = ctx.selectFrom(brs.schema.Tables.BID_ORDER).where(
-      brs.schema.Tables.BID_ORDER.ASSET_ID.eq(assetId).and(brs.schema.Tables.BID_ORDER.LATEST.isTrue())
-    ).orderBy(
-      brs.schema.Tables.BID_ORDER.PRICE.desc(),
-      brs.schema.Tables.BID_ORDER.CREATION_HEIGHT.asc(),
-      brs.schema.Tables.BID_ORDER.ID.asc()
-    ).limit(1).getQuery();
-    Iterator<Order.Bid> result = bidOrderTable.getManyBy(ctx, query, true).iterator();
-    return result.hasNext() ? result.next() : null;
+    return Db.useDSLContext(ctx -> {
+      SelectQuery<BidOrderRecord> query = ctx.selectFrom(BID_ORDER)
+              .where(BID_ORDER.ASSET_ID.eq(assetId)
+                      .and(BID_ORDER.LATEST.isTrue()))
+              .orderBy(BID_ORDER.PRICE.desc(),
+                      BID_ORDER.CREATION_HEIGHT.asc(),
+                      BID_ORDER.ID.asc())
+              .limit(1)
+              .getQuery();
+      Iterator<Order.Bid> result = bidOrderTable.getManyBy(ctx, query, true).iterator();
+      return result.hasNext() ? result.next() : null;
+    });
   }
 
   private void saveBid(DSLContext ctx, Order.Bid bid) {
@@ -215,31 +217,28 @@ public class SqlOrderStore implements OrderStore {
   class SqlAsk extends Order.Ask {
     private SqlAsk(Record record) {
       super(
-            record.get(ASK_ORDER.ID),
-            record.get(ASK_ORDER.ACCOUNT_ID),
-            record.get(ASK_ORDER.ASSET_ID),
-            record.get(ASK_ORDER.PRICE),
-            record.get(ASK_ORDER.CREATION_HEIGHT),
-            record.get(ASK_ORDER.QUANTITY),
-            askOrderDbKeyFactory.newKey(record.get(ASK_ORDER.ID))
-            );
+              record.get(ASK_ORDER.ID),
+              record.get(ASK_ORDER.ACCOUNT_ID),
+              record.get(ASK_ORDER.ASSET_ID),
+              record.get(ASK_ORDER.PRICE),
+              record.get(ASK_ORDER.CREATION_HEIGHT),
+              record.get(ASK_ORDER.QUANTITY),
+              askOrderDbKeyFactory.newKey(record.get(ASK_ORDER.ID))
+      );
     }
   }
 
   class SqlBid extends Order.Bid {
     private SqlBid(Record record) {
       super(
-            record.get(BID_ORDER.ID),
-            record.get(BID_ORDER.ACCOUNT_ID),
-            record.get(BID_ORDER.ASSET_ID),
-            record.get(BID_ORDER.PRICE),
-            record.get(BID_ORDER.CREATION_HEIGHT),
-            record.get(BID_ORDER.QUANTITY),
-            bidOrderDbKeyFactory.newKey(record.get(BID_ORDER.ID))
-            );
+              record.get(BID_ORDER.ID),
+              record.get(BID_ORDER.ACCOUNT_ID),
+              record.get(BID_ORDER.ASSET_ID),
+              record.get(BID_ORDER.PRICE),
+              record.get(BID_ORDER.CREATION_HEIGHT),
+              record.get(BID_ORDER.QUANTITY),
+              bidOrderDbKeyFactory.newKey(record.get(BID_ORDER.ID))
+      );
     }
-
-
   }
-
 }

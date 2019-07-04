@@ -53,51 +53,52 @@ public class SqlTradeStore implements TradeStore {
 
   @Override
   public Collection<Trade> getAccountTrades(long accountId, int from, int to) {
-    DSLContext ctx = Db.getDSLContext();
+    return Db.useDSLContext(ctx -> {
+      SelectQuery<TradeRecord> selectQuery = ctx
+              .selectFrom(TRADE).where(
+                      TRADE.SELLER_ID.eq(accountId)
+              )
+              .unionAll(
+                      ctx.selectFrom(TRADE).where(
+                              TRADE.BUYER_ID.eq(accountId).and(
+                                      TRADE.SELLER_ID.ne(accountId)
+                              )
+                      )
+              )
+              .orderBy(TRADE.HEIGHT.desc())
+              .getQuery();
+      DbUtils.applyLimits(selectQuery, from, to);
 
-    SelectQuery<TradeRecord> selectQuery = ctx
-      .selectFrom(TRADE).where(
-        TRADE.SELLER_ID.eq(accountId)
-      )
-      .unionAll(
-        ctx.selectFrom(TRADE).where(
-          TRADE.BUYER_ID.eq(accountId).and(
-            TRADE.SELLER_ID.ne(accountId)
-          )
-        )
-      )
-      .orderBy(TRADE.HEIGHT.desc())
-      .getQuery();
-    DbUtils.applyLimits(selectQuery, from, to);
-
-    return tradeTable.getManyBy(ctx, selectQuery, false);
+      return tradeTable.getManyBy(ctx, selectQuery, false);
+    });
   }
 
   @Override
   public Collection<Trade> getAccountAssetTrades(long accountId, long assetId, int from, int to) {
-    DSLContext ctx = Db.getDSLContext();
+    return Db.useDSLContext(ctx -> {
+      SelectQuery<TradeRecord> selectQuery = ctx
+              .selectFrom(TRADE).where(
+                      TRADE.SELLER_ID.eq(accountId).and(TRADE.ASSET_ID.eq(assetId))
+              )
+              .unionAll(
+                      ctx.selectFrom(TRADE).where(
+                              TRADE.BUYER_ID.eq(accountId)).and(
+                              TRADE.SELLER_ID.ne(accountId)
+                      ).and(TRADE.ASSET_ID.eq(assetId))
+              )
+              .orderBy(TRADE.HEIGHT.desc())
+              .getQuery();
+      DbUtils.applyLimits(selectQuery, from, to);
 
-    SelectQuery<TradeRecord> selectQuery = ctx
-      .selectFrom(TRADE).where(
-        TRADE.SELLER_ID.eq(accountId).and(TRADE.ASSET_ID.eq(assetId))
-      )
-      .unionAll(
-        ctx.selectFrom(TRADE).where(
-          TRADE.BUYER_ID.eq(accountId)).and(
-          TRADE.SELLER_ID.ne(accountId)
-        ).and(TRADE.ASSET_ID.eq(assetId))
-      )
-      .orderBy(TRADE.HEIGHT.desc())
-      .getQuery();
-    DbUtils.applyLimits(selectQuery, from, to);
-
-    return tradeTable.getManyBy(ctx, selectQuery, false);
+      return tradeTable.getManyBy(ctx, selectQuery, false);
+    });
   }
 
   @Override
   public int getTradeCount(long assetId) {
-    DSLContext ctx = Db.getDSLContext();
-    return ctx.fetchCount(ctx.selectFrom(TRADE).where(TRADE.ASSET_ID.eq(assetId)));
+    return Db.useDSLContext(ctx -> {
+      return ctx.fetchCount(ctx.selectFrom(TRADE).where(TRADE.ASSET_ID.eq(assetId)));
+    });
   }
 
   private void saveTrade(DSLContext ctx, Trade trade) {

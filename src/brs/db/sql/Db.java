@@ -27,6 +27,8 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public final class Db {
 
@@ -193,7 +195,15 @@ public final class Db {
     return con;
   }
 
-  public static DSLContext getDSLContext() {
+  public static <T> T useDSLContext(Function<DSLContext, T> function) {
+    return null; // TODO must always be sync
+  }
+
+  public static void useDSLContext(Consumer<DSLContext> consumer) {
+    // TODO sync if not in transaction, async if in transaction
+  }
+
+  public static DSLContext getDSLContext2() {
     Connection con    = localConnection.get();
     Settings settings = new Settings();
     settings.setRenderSchema(Boolean.FALSE);
@@ -292,18 +302,19 @@ public final class Db {
   }
 
   public static void optimizeTable(String tableName) {
-    DSLContext ctx = getDSLContext();
-    try {
-      switch (ctx.dialect()) {
-        case MYSQL:
-        case MARIADB:
-          ctx.execute("OPTIMIZE NO_WRITE_TO_BINLOG TABLE " + tableName);
-          break;
-        default:
+    useDSLContext(ctx -> {
+      try {
+        switch (ctx.dialect()) {
+          case MYSQL:
+          case MARIADB:
+            ctx.execute("OPTIMIZE NO_WRITE_TO_BINLOG TABLE " + tableName);
             break;
+          default:
+            break;
+        }
+      } catch (Exception e) {
+        logger.debug("Failed to optimize table {}", tableName, e);
       }
-    } catch (Exception e) {
-      logger.debug("Failed to optimize table {}", tableName, e);
-    }
+    });
   }
 }

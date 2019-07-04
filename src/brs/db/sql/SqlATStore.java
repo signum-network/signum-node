@@ -105,52 +105,55 @@ public class SqlATStore implements ATStore {
 
   @Override
   public boolean isATAccountId(Long id) {
-    DSLContext ctx = Db.getDSLContext();
-    return ctx.fetchExists(ctx.selectOne().from(AT).where(AT.ID.eq(id)).and(AT.LATEST.isTrue()));
+    return Db.useDSLContext(ctx -> {
+      return ctx.fetchExists(ctx.selectOne().from(AT).where(AT.ID.eq(id)).and(AT.LATEST.isTrue()));
+    });
   }
 
   @Override
   public List<Long> getOrderedATs() {
-    DSLContext ctx = Db.getDSLContext();
-    return ctx.selectFrom(
-      AT.join(AT_STATE).on(AT.ID.eq(AT_STATE.AT_ID)).join(ACCOUNT).on(AT.ID.eq(ACCOUNT.ID))
-    ).where(
-      AT.LATEST.isTrue()
-    ).and(
-      AT_STATE.LATEST.isTrue()
-    ).and(
-      ACCOUNT.LATEST.isTrue()
-    ).and(
-      AT_STATE.NEXT_HEIGHT.lessOrEqual( Burst.getBlockchain().getHeight() + 1)
-    ).and(
-      ACCOUNT.BALANCE.greaterOrEqual(
-        AtConstants.getInstance().stepFee(Burst.getBlockchain().getHeight())
-        * AtConstants.getInstance().apiStepMultiplier(Burst.getBlockchain().getHeight())
-      )
-    ).and(
-      AT_STATE.FREEZE_WHEN_SAME_BALANCE.isFalse().or(
-        "account.balance - at_state.prev_balance >= at_state.min_activate_amount"
-      )
-    ).orderBy(
-      AT_STATE.PREV_HEIGHT.asc(), AT_STATE.NEXT_HEIGHT.asc(), AT.ID.asc()
-    ).fetch().getValues(AT.ID);
+    return Db.useDSLContext(ctx -> {
+      return ctx.selectFrom(
+              AT.join(AT_STATE).on(AT.ID.eq(AT_STATE.AT_ID)).join(ACCOUNT).on(AT.ID.eq(ACCOUNT.ID))
+      ).where(
+              AT.LATEST.isTrue()
+      ).and(
+              AT_STATE.LATEST.isTrue()
+      ).and(
+              ACCOUNT.LATEST.isTrue()
+      ).and(
+              AT_STATE.NEXT_HEIGHT.lessOrEqual(Burst.getBlockchain().getHeight() + 1)
+      ).and(
+              ACCOUNT.BALANCE.greaterOrEqual(
+                      AtConstants.getInstance().stepFee(Burst.getBlockchain().getHeight())
+                              * AtConstants.getInstance().apiStepMultiplier(Burst.getBlockchain().getHeight())
+              )
+      ).and(
+              AT_STATE.FREEZE_WHEN_SAME_BALANCE.isFalse().or(
+                      "account.balance - at_state.prev_balance >= at_state.min_activate_amount"
+              )
+      ).orderBy(
+              AT_STATE.PREV_HEIGHT.asc(), AT_STATE.NEXT_HEIGHT.asc(), AT.ID.asc()
+      ).fetch().getValues(AT.ID);
+    });
   }
 
   @Override
   public brs.at.AT getAT(Long id) {
-    DSLContext ctx = Db.getDSLContext();
-    Record record = ctx.select(AT.fields()).select(AT_STATE.fields()).from(AT.join(AT_STATE).on(AT.ID.eq(AT_STATE.AT_ID))).
-            where(AT.LATEST.isTrue().
-                    and(AT_STATE.LATEST.isTrue()).
-                    and(AT.ID.eq(id))).fetchOne();
-    if (record == null) {
-      return null;
-    }
+    return Db.useDSLContext(ctx -> {
+      Record record = ctx.select(AT.fields()).select(AT_STATE.fields()).from(AT.join(AT_STATE).on(AT.ID.eq(AT_STATE.AT_ID))).
+              where(AT.LATEST.isTrue().
+                      and(AT_STATE.LATEST.isTrue()).
+                      and(AT.ID.eq(id))).fetchOne();
+      if (record == null) {
+        return null;
+      }
 
-    AtRecord at = record.into(AT);
-    AtStateRecord atState = record.into(AT_STATE);
+      AtRecord at = record.into(AT);
+      AtStateRecord atState = record.into(AT_STATE);
 
-    return createAT(at, atState);
+      return createAT(at, atState);
+    });
   }
 
   private brs.at.AT createAT(AtRecord at, AtStateRecord atState) {
@@ -161,14 +164,16 @@ public class SqlATStore implements ATStore {
 
   @Override
   public List<Long> getATsIssuedBy(Long accountId) {
-    DSLContext ctx = Db.getDSLContext();
-    return ctx.selectFrom(AT).where(AT.LATEST.isTrue()).and(AT.CREATOR_ID.eq(accountId)).orderBy(AT.CREATION_HEIGHT.desc(), AT.ID.asc()).fetch().getValues(AT.ID);
+    return Db.useDSLContext(ctx -> {
+      return ctx.selectFrom(AT).where(AT.LATEST.isTrue()).and(AT.CREATOR_ID.eq(accountId)).orderBy(AT.CREATION_HEIGHT.desc(), AT.ID.asc()).fetch().getValues(AT.ID);
+    });
   }
 
   @Override
   public Collection<Long> getAllATIds() {
-    DSLContext ctx = Db.getDSLContext();
-    return ctx.selectFrom(AT).where(AT.LATEST.isTrue()).fetch().getValues(AT.ID);
+    return Db.useDSLContext(ctx -> {
+      return ctx.selectFrom(AT).where(AT.LATEST.isTrue()).fetch().getValues(AT.ID);
+    });
   }
 
   @Override
@@ -193,7 +198,7 @@ public class SqlATStore implements ATStore {
 
   @Override
   public Long findTransaction(int startHeight, int endHeight, Long atID, int numOfTx, long minAmount) {
-    try (DSLContext ctx = Db.getDSLContext()) {
+    return Db.useDSLContext(ctx -> {
       SelectQuery<Record1<Long>> query = ctx.select(TRANSACTION.ID).from(TRANSACTION).where(
         TRANSACTION.HEIGHT.between(startHeight, endHeight - 1)
       ).and(
@@ -206,30 +211,32 @@ public class SqlATStore implements ATStore {
       DbUtils.applyLimits(query, numOfTx, numOfTx + 1);
       Result<Record1<Long>> result = query.fetch();
       return result.isEmpty() ? 0L : result.get(0).value1();
-    }
+    });
   }
 
   @Override
   public int findTransactionHeight(Long transactionId, int height, Long atID, long minAmount) {
-    try (DSLContext ctx = Db.getDSLContext()) {
-      Iterator<Record1<Long>> fetch = ctx.select(TRANSACTION.ID)
-              .from(TRANSACTION)
-              .where(TRANSACTION.HEIGHT.eq(height))
-              .and(TRANSACTION.RECIPIENT_ID.eq(atID))
-              .and(TRANSACTION.AMOUNT.greaterOrEqual(minAmount))
-              .orderBy(TRANSACTION.HEIGHT, TRANSACTION.ID)
-              .fetch()
-              .iterator();
-      int counter = 0;
-      while (fetch.hasNext()) {
-        counter++;
-        long currentTransactionId = fetch.next().value1();
-        if (currentTransactionId == transactionId) break;
+    return Db.useDSLContext(ctx -> {
+      try {
+        Iterator<Record1<Long>> fetch = ctx.select(TRANSACTION.ID)
+                .from(TRANSACTION)
+                .where(TRANSACTION.HEIGHT.eq(height))
+                .and(TRANSACTION.RECIPIENT_ID.eq(atID))
+                .and(TRANSACTION.AMOUNT.greaterOrEqual(minAmount))
+                .orderBy(TRANSACTION.HEIGHT, TRANSACTION.ID)
+                .fetch()
+                .iterator();
+        int counter = 0;
+        while (fetch.hasNext()) {
+          counter++;
+          long currentTransactionId = fetch.next().value1();
+          if (currentTransactionId == transactionId) break;
+        }
+        return counter;
+      } catch (DataAccessException e) {
+        throw new RuntimeException(e.toString(), e);
       }
-      return counter;
-    } catch (DataAccessException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
+    });
   }
 
   class SqlATState extends brs.at.AT.ATState {

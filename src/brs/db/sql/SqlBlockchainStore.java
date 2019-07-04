@@ -29,31 +29,25 @@ public class SqlBlockchainStore implements BlockchainStore {
 
   @Override
   public Collection<Block> getBlocks(int from, int to) {
-    try ( DSLContext ctx = Db.getDSLContext() ) {
+    return Db.useDSLContext(ctx -> {
       int blockchainHeight = Burst.getBlockchain().getHeight();
       return
         getBlocks(ctx.selectFrom(BLOCK)
                 .where(BLOCK.HEIGHT.between(to > 0 ? blockchainHeight - to : 0).and(blockchainHeight - Math.max(from, 0)))
                 .orderBy(BLOCK.HEIGHT.desc())
                 .fetch());
-    }
-    catch ( Exception e ) {
-      throw new RuntimeException(e.toString(), e);
-    }
+    });
   }
 
   @Override
   public Collection<Block> getBlocks(Account account, int timestamp, int from, int to) {
-    try ( DSLContext ctx = Db.getDSLContext() ) {
+    return Db.useDSLContext(ctx -> {
       SelectConditionStep<BlockRecord> query = ctx.selectFrom(BLOCK).where(BLOCK.GENERATOR_ID.eq(account.getId()));
       if (timestamp > 0) {
         query.and(BLOCK.TIMESTAMP.ge(timestamp));
       }
       return getBlocks(query.orderBy(BLOCK.HEIGHT.desc()).fetch());
-    }
-    catch ( Exception e ) {
-      throw new RuntimeException(e.toString(), e);
-    }
+    });
   }
 
   @Override
@@ -73,15 +67,12 @@ public class SqlBlockchainStore implements BlockchainStore {
       throw new IllegalArgumentException("Can't get more than 1440 blocks at a time");
     }
 
-    try ( DSLContext ctx = Db.getDSLContext() ) {
+    return Db.useDSLContext(ctx -> {
       return
         ctx.selectFrom(BLOCK).where(
           BLOCK.HEIGHT.gt( ctx.select(BLOCK.HEIGHT).from(BLOCK).where(BLOCK.ID.eq(blockId) ) )
         ).orderBy(BLOCK.HEIGHT.asc()).limit(limit).fetch(BLOCK.ID, Long.class);
-    }
-    catch ( Exception e ) {
-      throw new RuntimeException(e.toString(), e);
-    }
+    });
   }
 
   @Override
@@ -89,7 +80,7 @@ public class SqlBlockchainStore implements BlockchainStore {
     if (limit > 1440) {
       throw new IllegalArgumentException("Can't get more than 1440 blocks at a time");
     }
-    try (DSLContext ctx = Db.getDSLContext()) {
+    return Db.useDSLContext(ctx -> {
       return ctx.selectFrom(BLOCK)
               .where(BLOCK.HEIGHT.gt(ctx.select(BLOCK.HEIGHT)
                       .from(BLOCK)
@@ -103,19 +94,21 @@ public class SqlBlockchainStore implements BlockchainStore {
                   throw new RuntimeException(e.toString(), e);
                 }
               });
-    }
+    });
   }
 
   @Override
   public int getTransactionCount() {
-    DSLContext ctx = Db.getDSLContext();
-    return ctx.selectCount().from(TRANSACTION).fetchOne(0, int.class);
+    return Db.useDSLContext(ctx -> {
+      return ctx.selectCount().from(TRANSACTION).fetchOne(0, int.class);
+    });
   }
 
   @Override
   public Collection<Transaction> getAllTransactions() {
-    DSLContext ctx = Db.getDSLContext();
-    return getTransactions(ctx, ctx.selectFrom(TRANSACTION).orderBy(TRANSACTION.DB_ID.asc()).fetch());
+    return Db.useDSLContext(ctx -> {
+      return getTransactions(ctx, ctx.selectFrom(TRANSACTION).orderBy(TRANSACTION.DB_ID.asc()).fetch());
+    });
   }
 
 
@@ -125,44 +118,45 @@ public class SqlBlockchainStore implements BlockchainStore {
     if (height < 0) {
       throw new IllegalArgumentException("Number of confirmations required " + numberOfConfirmations + " exceeds current blockchain height " + Burst.getBlockchain().getHeight());
     }
-    DSLContext ctx = Db.getDSLContext();
-    ArrayList<Condition> conditions = new ArrayList<>();
-    if (blockTimestamp > 0) {
-      conditions.add(TRANSACTION.BLOCK_TIMESTAMP.ge(blockTimestamp));
-    }
-    if (type >= 0) {
-      conditions.add(TRANSACTION.TYPE.eq(type));
-      if (subtype >= 0) {
-        conditions.add(TRANSACTION.SUBTYPE.eq(subtype));
+    return Db.useDSLContext(ctx -> {
+      ArrayList<Condition> conditions = new ArrayList<>();
+      if (blockTimestamp > 0) {
+        conditions.add(TRANSACTION.BLOCK_TIMESTAMP.ge(blockTimestamp));
       }
-    }
-    if (height < Integer.MAX_VALUE) {
-      conditions.add(TRANSACTION.HEIGHT.le(height));
-    }
+      if (type >= 0) {
+        conditions.add(TRANSACTION.TYPE.eq(type));
+        if (subtype >= 0) {
+          conditions.add(TRANSACTION.SUBTYPE.eq(subtype));
+        }
+      }
+      if (height < Integer.MAX_VALUE) {
+        conditions.add(TRANSACTION.HEIGHT.le(height));
+      }
 
-    SelectOrderByStep<TransactionRecord> select = ctx.selectFrom(TRANSACTION).where(conditions).and(
-            TRANSACTION.RECIPIENT_ID.eq(account.getId()).and(
-                    TRANSACTION.SENDER_ID.ne(account.getId())
-            )
-    ).unionAll(
-            ctx.selectFrom(TRANSACTION).where(conditions).and(
-                    TRANSACTION.SENDER_ID.eq(account.getId())
-            )
-    );
+      SelectOrderByStep<TransactionRecord> select = ctx.selectFrom(TRANSACTION).where(conditions).and(
+              TRANSACTION.RECIPIENT_ID.eq(account.getId()).and(
+                      TRANSACTION.SENDER_ID.ne(account.getId())
+              )
+      ).unionAll(
+              ctx.selectFrom(TRANSACTION).where(conditions).and(
+                      TRANSACTION.SENDER_ID.eq(account.getId())
+              )
+      );
 
-    if (includeIndirectIncoming) {
-      select = select.unionAll(ctx.selectFrom(TRANSACTION)
-              .where(conditions)
-              .and(TRANSACTION.ID.in(indirectIncomingStore.getIndirectIncomings(account.getId(), from, to))));
-    }
+      if (includeIndirectIncoming) {
+        select = select.unionAll(ctx.selectFrom(TRANSACTION)
+                .where(conditions)
+                .and(TRANSACTION.ID.in(indirectIncomingStore.getIndirectIncomings(account.getId(), from, to))));
+      }
 
-    SelectQuery<TransactionRecord> selectQuery = select
-            .orderBy(TRANSACTION.BLOCK_TIMESTAMP.desc(), TRANSACTION.ID.desc())
-            .getQuery();
+      SelectQuery<TransactionRecord> selectQuery = select
+              .orderBy(TRANSACTION.BLOCK_TIMESTAMP.desc(), TRANSACTION.ID.desc())
+              .getQuery();
 
-    DbUtils.applyLimits(selectQuery, from, to);
+      DbUtils.applyLimits(selectQuery, from, to);
 
-    return getTransactions(ctx, selectQuery.fetch());
+      return getTransactions(ctx, selectQuery.fetch());
+    });
   }
 
   @Override
@@ -178,7 +172,9 @@ public class SqlBlockchainStore implements BlockchainStore {
 
   @Override
   public void addBlock(Block block) {
-    blockDb.saveBlock(Db.getDSLContext(), block);
+    Db.useDSLContext(ctx -> {
+      blockDb.saveBlock(ctx, block);
+    });
   }
 
   @Override
@@ -187,14 +183,11 @@ public class SqlBlockchainStore implements BlockchainStore {
 
     final int firstLatestBlockHeight = Math.max(0, latestBlockHeight - amountBlocks);
 
-    try ( DSLContext ctx = Db.getDSLContext() ) {
+    return Db.useDSLContext(ctx -> {
       return getBlocks(ctx.selectFrom(BLOCK)
                       .where(BLOCK.HEIGHT.between(firstLatestBlockHeight).and(latestBlockHeight))
                       .orderBy(BLOCK.HEIGHT.asc())
                       .fetch());
-    }
-    catch ( Exception e ) {
-      throw new RuntimeException(e.toString(), e);
-    }
+    });
   }
 }

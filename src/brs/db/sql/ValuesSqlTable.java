@@ -32,24 +32,25 @@ public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements Val
   @SuppressWarnings("unchecked")
   @Override
   public final List<V> get(BurstKey nxtKey) {
-    DbKey dbKey = (DbKey) nxtKey;
-    List<V> values;
-    if (Db.isInTransaction()) {
-      values = (List<V>) Db.getCache(table).get(dbKey);
-      if (values != null) {
-        return values;
+    return Db.useDSLContext(ctx -> {
+      DbKey dbKey = (DbKey) nxtKey;
+      List<V> values;
+      if (Db.isInTransaction()) {
+        values = (List<V>) Db.getCache(table).get(dbKey);
+        if (values != null) {
+          return values;
+        }
       }
-    }
-    DSLContext ctx = Db.getDSLContext();
-    values = ctx.selectFrom(tableClass)
-            .where(dbKey.getPKConditions(tableClass))
-            .and(multiversion ? latestField.isTrue() : DSL.noCondition())
-            .orderBy(tableClass.field("db_id").desc())
-            .fetch(record -> load(ctx, record));
-    if (Db.isInTransaction()) {
-      Db.getCache(table).put(dbKey, values);
-    }
-    return values;
+      values = ctx.selectFrom(tableClass)
+              .where(dbKey.getPKConditions(tableClass))
+              .and(multiversion ? latestField.isTrue() : DSL.noCondition())
+              .orderBy(tableClass.field("db_id").desc())
+              .fetch(record -> load(ctx, record));
+      if (Db.isInTransaction()) {
+        Db.getCache(table).put(dbKey, values);
+      }
+      return values;
+    });
   }
 
   @Override
@@ -57,9 +58,9 @@ public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements Val
     if (!Db.isInTransaction()) {
       throw new IllegalStateException("Not in transaction");
     }
-    DbKey dbKey = (DbKey)dbKeyFactory.newKey(t);
-    Db.getCache(table).put(dbKey, values);
-    try ( DSLContext ctx = Db.getDSLContext() ) {
+    Db.useDSLContext(ctx -> {
+      DbKey dbKey = (DbKey) dbKeyFactory.newKey(t);
+      Db.getCache(table).put(dbKey, values);
       if (multiversion) {
         ctx.update(tableClass)
                 .set(latestField, false)
@@ -70,7 +71,7 @@ public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements Val
       for (V v : values) {
         save(ctx, t, v);
       }
-    }
+    });
   }
 
   @Override

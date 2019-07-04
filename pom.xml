@@ -21,6 +21,7 @@
   <properties>
     <bcprov-jdk15on.version>1.62</bcprov-jdk15on.version>
     <burstkit4j.version>v0.12.2</burstkit4j.version>
+    <rxjava.version>2.2.10</rxjava.version>
     <ehcache.version>3.7.1</ehcache.version>
     <flywaydb.version>5.2.4</flywaydb.version>
     <grpc.version>1.22.0</grpc.version>
@@ -68,6 +69,12 @@
       <groupId>com.github.burst-apps-team</groupId>
       <artifactId>burstkit4j</artifactId>
       <version>${burstkit4j.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.reactivex.rxjava2</groupId>
+      <artifactId>rxjava</artifactId>
+      <version>${rxjava.version}</version>
     </dependency>
 
     <dependency>

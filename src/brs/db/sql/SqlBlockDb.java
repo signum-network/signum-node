@@ -26,58 +26,64 @@ public class SqlBlockDb implements BlockDb {
   private static final Logger logger = LoggerFactory.getLogger(BlockDb.class);
 
   public Block findBlock(long blockId) {
-    try (DSLContext ctx = Db.getDSLContext()) {
-      BlockRecord r = ctx.selectFrom(BLOCK).where(BLOCK.ID.eq(blockId)).fetchAny();
-      return r == null ? null : loadBlock(r);
-    }
-    catch (BurstException.ValidationException e) {
-      throw new RuntimeException("Block already in database, id = " + blockId + ", does not pass validation!", e);
-    }
+    return Db.useDSLContext(ctx -> {
+      try {
+        BlockRecord r = ctx.selectFrom(BLOCK).where(BLOCK.ID.eq(blockId)).fetchAny();
+        return r == null ? null : loadBlock(r);
+      } catch (BurstException.ValidationException e) {
+        throw new RuntimeException("Block already in database, id = " + blockId + ", does not pass validation!", e);
+      }
+    });
   }
 
   public boolean hasBlock(long blockId) {
-    DSLContext ctx = Db.getDSLContext();
-    return ctx.fetchExists(ctx.selectOne().from(BLOCK).where(BLOCK.ID.eq(blockId)));
+    return Db.useDSLContext(ctx -> {
+      return ctx.fetchExists(ctx.selectOne().from(BLOCK).where(BLOCK.ID.eq(blockId)));
+    });
   }
 
   public long findBlockIdAtHeight(int height) {
-    DSLContext ctx = Db.getDSLContext();
-    Long id = ctx.select(BLOCK.ID).from(BLOCK).where(BLOCK.HEIGHT.eq(height)).fetchOne(BLOCK.ID);
-    if (id == null) {
-      throw new RuntimeException("Block at height " + height + " not found in database!");
-    }
-    return id;
+    return Db.useDSLContext(ctx -> {
+      Long id = ctx.select(BLOCK.ID).from(BLOCK).where(BLOCK.HEIGHT.eq(height)).fetchOne(BLOCK.ID);
+      if (id == null) {
+        throw new RuntimeException("Block at height " + height + " not found in database!");
+      }
+      return id;
+    });
   }
 
   public Block findBlockAtHeight(int height) {
-    try (DSLContext ctx = Db.getDSLContext()) {
-      Block block = loadBlock(ctx.selectFrom(BLOCK).where(BLOCK.HEIGHT.eq(height)).fetchAny());
-      if (block == null) {
+    return Db.useDSLContext(ctx -> {
+      try {
+        Block block = loadBlock(ctx.selectFrom(BLOCK).where(BLOCK.HEIGHT.eq(height)).fetchAny());
+        if (block == null) {
           throw new RuntimeException("Block at height " + height + " not found in database!");
+        }
+        return block;
+      } catch (BurstException.ValidationException e) {
+        throw new RuntimeException(e.toString(), e);
       }
-      return block;
-    }
-    catch (BurstException.ValidationException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
+    });
   }
 
   public Block findLastBlock() {
-    try (DSLContext ctx = Db.getDSLContext()) {
-      return loadBlock(ctx.selectFrom(BLOCK).orderBy(BLOCK.DB_ID.desc()).limit(1).fetchAny());
-    }
-    catch (BurstException.ValidationException e) {
-      throw new RuntimeException("Last block already in database does not pass validation!", e);
-    }
+    return Db.useDSLContext(ctx -> {
+      try {
+        return loadBlock(ctx.selectFrom(BLOCK).orderBy(BLOCK.DB_ID.desc()).limit(1).fetchAny());
+      } catch (BurstException.ValidationException e) {
+        throw new RuntimeException("Last block already in database does not pass validation!", e);
+      }
+    });
   }
 
   public Block findLastBlock(int timestamp) {
-    try (DSLContext ctx = Db.getDSLContext()) {
-      return loadBlock(ctx.selectFrom(BLOCK).where(BLOCK.TIMESTAMP.lessOrEqual(timestamp)).orderBy(BLOCK.DB_ID.desc()).limit(1).fetchAny());
-    }
-    catch (BurstException.ValidationException e) {
-      throw new RuntimeException("Block already in database at timestamp " + timestamp + " does not pass validation!", e);
-    }
+    return Db.useDSLContext(ctx -> {
+      try {
+        return loadBlock(ctx.selectFrom(BLOCK).where(BLOCK.TIMESTAMP.lessOrEqual(timestamp)).orderBy(BLOCK.DB_ID.desc()).limit(1).fetchAny());
+      } catch (BurstException.ValidationException e) {
+        throw new RuntimeException("Block already in database at timestamp " + timestamp + " does not pass validation!", e);
+      }
+    });
   }
 
   public Block loadBlock(BlockRecord r) throws BurstException.ValidationException {
@@ -146,18 +152,19 @@ public class SqlBlockDb implements BlockDb {
       }
       return;
     }
-    DSLContext ctx = Db.getDSLContext();
-    SelectQuery<Record> blockHeightQuery = ctx.selectQuery();
-    blockHeightQuery.addFrom(BLOCK);
-    blockHeightQuery.addSelect(BLOCK.HEIGHT);
-    blockHeightQuery.addConditions(BLOCK.ID.eq(blockId));
-    Integer blockHeight = blockHeightQuery.fetchOne().get(BLOCK.HEIGHT);
+    Db.useDSLContext(ctx -> {
+      SelectQuery<Record> blockHeightQuery = ctx.selectQuery();
+      blockHeightQuery.addFrom(BLOCK);
+      blockHeightQuery.addSelect(BLOCK.HEIGHT);
+      blockHeightQuery.addConditions(BLOCK.ID.eq(blockId));
+      Integer blockHeight = blockHeightQuery.fetchOne().get(BLOCK.HEIGHT);
 
-    if (blockHeight != null) {
-      DeleteQuery deleteQuery = ctx.deleteQuery(BLOCK);
-      deleteQuery.addConditions(BLOCK.HEIGHT.ge(blockHeight));
-      deleteQuery.execute();
-    }
+      if (blockHeight != null) {
+        DeleteQuery deleteQuery = ctx.deleteQuery(BLOCK);
+        deleteQuery.addConditions(BLOCK.HEIGHT.ge(blockHeight));
+        deleteQuery.execute();
+      }
+    });
   }
 
   public void deleteAll(boolean force) {
@@ -174,28 +181,29 @@ public class SqlBlockDb implements BlockDb {
       return;
     }
     logger.info("Deleting blockchain...");
-    DSLContext ctx = Db.getDSLContext();
-    List<TableImpl> tables = new ArrayList<>(Arrays.asList(brs.schema.Tables.ACCOUNT,
-            brs.schema.Tables.ACCOUNT_ASSET, brs.schema.Tables.ALIAS, brs.schema.Tables.ALIAS_OFFER,
-            brs.schema.Tables.ASK_ORDER, brs.schema.Tables.ASSET, brs.schema.Tables.ASSET_TRANSFER,
-            brs.schema.Tables.AT, brs.schema.Tables.AT_STATE, brs.schema.Tables.BID_ORDER,
-            brs.schema.Tables.BLOCK, brs.schema.Tables.ESCROW, brs.schema.Tables.ESCROW_DECISION,
-            brs.schema.Tables.GOODS, brs.schema.Tables.PEER, brs.schema.Tables.PURCHASE,
-            brs.schema.Tables.PURCHASE_FEEDBACK, brs.schema.Tables.PURCHASE_PUBLIC_FEEDBACK,
-            brs.schema.Tables.REWARD_RECIP_ASSIGN, brs.schema.Tables.SUBSCRIPTION,
-            brs.schema.Tables.TRADE, brs.schema.Tables.TRANSACTION,
-            brs.schema.Tables.UNCONFIRMED_TRANSACTION));
-    for (TableImpl<?> table : tables) {
-      try {
-        ctx.truncate(table).execute();
-      } catch (org.jooq.exception.DataAccessException e) {
-        if (force) {
-          logger.trace("exception during truncate {0}", table, e);
-        } else {
-          throw e;
+    Db.useDSLContext(ctx -> {
+      List<TableImpl> tables = new ArrayList<>(Arrays.asList(brs.schema.Tables.ACCOUNT,
+              brs.schema.Tables.ACCOUNT_ASSET, brs.schema.Tables.ALIAS, brs.schema.Tables.ALIAS_OFFER,
+              brs.schema.Tables.ASK_ORDER, brs.schema.Tables.ASSET, brs.schema.Tables.ASSET_TRANSFER,
+              brs.schema.Tables.AT, brs.schema.Tables.AT_STATE, brs.schema.Tables.BID_ORDER,
+              brs.schema.Tables.BLOCK, brs.schema.Tables.ESCROW, brs.schema.Tables.ESCROW_DECISION,
+              brs.schema.Tables.GOODS, brs.schema.Tables.PEER, brs.schema.Tables.PURCHASE,
+              brs.schema.Tables.PURCHASE_FEEDBACK, brs.schema.Tables.PURCHASE_PUBLIC_FEEDBACK,
+              brs.schema.Tables.REWARD_RECIP_ASSIGN, brs.schema.Tables.SUBSCRIPTION,
+              brs.schema.Tables.TRADE, brs.schema.Tables.TRANSACTION,
+              brs.schema.Tables.UNCONFIRMED_TRANSACTION));
+      for (TableImpl<?> table : tables) {
+        try {
+          ctx.truncate(table).execute();
+        } catch (org.jooq.exception.DataAccessException e) {
+          if (force) {
+            logger.trace("exception during truncate {0}", table, e);
+          } else {
+            throw e;
+          }
         }
       }
-    }
+    });
   }
 
   @Override

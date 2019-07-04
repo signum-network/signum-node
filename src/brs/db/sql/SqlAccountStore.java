@@ -148,8 +148,9 @@ public class SqlAccountStore implements AccountStore {
 
   @Override
   public int getAssetAccountsCount(long assetId) {
-    DSLContext ctx = Db.getDSLContext();
-    return ctx.selectCount().from(ACCOUNT_ASSET).where(ACCOUNT_ASSET.ASSET_ID.eq(assetId)).and(ACCOUNT_ASSET.LATEST.isTrue()).fetchOne(0, int.class);
+    return Db.useDSLContext(ctx -> {
+      return ctx.selectCount().from(ACCOUNT_ASSET).where(ACCOUNT_ASSET.ASSET_ID.eq(assetId)).and(ACCOUNT_ASSET.LATEST.isTrue()).fetchOne(0, int.class);
+    });
   }
 
   @Override

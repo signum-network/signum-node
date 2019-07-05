@@ -196,19 +196,32 @@ public final class Db {
   }
 
   public static <T> T useDSLContext(Function<DSLContext, T> function) {
-    return null; // TODO must always be sync
+      if (isInTransaction()) {
+          return function.apply(getDSLContext());
+      } else {
+          try (DSLContext context = getDSLContext()) {
+              return function.apply(context);
+          }
+      }
   }
 
   public static void useDSLContext(Consumer<DSLContext> consumer) {
+      if (isInTransaction()) {
+          consumer.accept(getDSLContext());
+      } else {
+          try (DSLContext context = getDSLContext()) {
+              consumer.accept(context);
+          }
+      }
     // TODO sync if not in transaction, async if in transaction
   }
 
-  public static DSLContext getDSLContext2() {
+    public static DSLContext getDSLContext() {
     Connection con    = localConnection.get();
     Settings settings = new Settings();
     settings.setRenderSchema(Boolean.FALSE);
 
-    if ( con == null ) {
+        if (con == null) {
       try ( DSLContext ctx = DSL.using(cp, dialect, settings) ) {
         return ctx;
       }

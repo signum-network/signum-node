@@ -196,22 +196,14 @@ public final class Db {
   }
 
   public static <T> T useDSLContext(Function<DSLContext, T> function) {
-      if (isInTransaction()) {
-          return function.apply(getDSLContext());
-      } else {
-          try (DSLContext context = getDSLContext()) {
-              return function.apply(context);
-          }
+      try (DSLContext context = getDSLContext()) {
+          return function.apply(context);
       }
   }
 
   public static void useDSLContext(Consumer<DSLContext> consumer) {
-      if (isInTransaction()) {
-          consumer.accept(getDSLContext());
-      } else {
-          try (DSLContext context = getDSLContext()) {
-              consumer.accept(context);
-          }
+      try (DSLContext context = getDSLContext()) {
+          consumer.accept(context);
       }
     // TODO sync if not in transaction, async if in transaction
   }

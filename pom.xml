@@ -38,7 +38,7 @@
     <xzing.version>3.4.0</xzing.version>
 
     <junit-jupiter.version>5.4.2</junit-jupiter.version>
-    <junit-platform.version>1.4.2</junit-platform.version>
+    <junit-platform.version>1.5.0</junit-platform.version>
     <junit-vintage.version>5.5.0</junit-vintage.version>
     <mockito.version>2.28.2</mockito.version>
     <powermock.version>2.0.2</powermock.version>

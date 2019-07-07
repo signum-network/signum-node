@@ -16,6 +16,7 @@ import org.flywaydb.core.api.configuration.FluentConfiguration;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.conf.Settings;
+import org.jooq.conf.StatementType;
 import org.jooq.impl.DSL;
 import org.jooq.tools.jdbc.JDBCUtils;
 import org.mariadb.jdbc.MariaDbDataSource;
@@ -88,12 +89,18 @@ public final class Db {
           runFlyway = true;
           config.setAutoCommit(true);
           config.addDataSourceProperty("cachePrepStmts", "true");
-          config.addDataSourceProperty("prepStmtCacheSize", "250");
-          config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+          config.addDataSourceProperty("prepStmtCacheSize", "512");
+          config.addDataSourceProperty("prepStmtCacheSqlLimit", "4096");
           config.addDataSourceProperty("characterEncoding", "utf8mb4");
+          config.addDataSourceProperty("cacheServerConfiguration", "true");
+          config.addDataSourceProperty("useLocalSessionState", "true");
+          config.addDataSourceProperty("useLocalTransactionState", "true");
           config.addDataSourceProperty("useUnicode", "true");
-          config.addDataSourceProperty("useServerPrepStmts", "false");
+          config.addDataSourceProperty("useServerPrepStmts", "true");
           config.addDataSourceProperty("rewriteBatchedStatements", "true");
+          config.addDataSourceProperty("maintainTimeStats", "false");
+          config.addDataSourceProperty("useUnbufferedIO", "false");
+          config.addDataSourceProperty("useReadAheadInput", "false");
           MariaDbDataSource flywayDataSource = new MariaDbDataSource(dbUrl) {
             @Override
             protected synchronized void initialize() throws SQLException {
@@ -234,6 +241,7 @@ public final class Db {
       }
     }
     else {
+      settings.setStatementType(StatementType.STATIC_STATEMENT);
       try ( DSLContext ctx = DSL.using(con, dialect, settings) ) {
         return ctx;
       }

@@ -8,6 +8,9 @@ import brs.props.PropertyService;
 import brs.props.Props;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import io.reactivex.Completable;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.schedulers.Schedulers;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.configuration.FluentConfiguration;
 import org.jooq.DSLContext;
@@ -37,6 +40,7 @@ public final class Db {
   private static HikariDataSource cp;
   private static SQLDialect dialect;
   private static final ThreadLocal<Connection> localConnection = new ThreadLocal<>();
+    private static final ThreadLocal<CompositeDisposable> localConnectionDisposable = new ThreadLocal<>();
   private static final ThreadLocal<Map<String, Map<BurstKey, Object>>> transactionCaches = new ThreadLocal<>();
   private static final ThreadLocal<Map<String, Map<BurstKey, Object>>> transactionBatches = new ThreadLocal<>();
 
@@ -125,7 +129,7 @@ public final class Db {
           break;
       }
 
-      cp = new HikariDataSource(config);
+        cp = new HikariDataSource(config);
 
       if (runFlyway) {
         logger.info("Running flyway migration");
@@ -202,10 +206,21 @@ public final class Db {
   }
 
   public static void useDSLContext(Consumer<DSLContext> consumer) {
-      try (DSLContext context = getDSLContext()) {
-          consumer.accept(context);
+      if (isInTransaction()) {
+          CompositeDisposable disposable = localConnectionDisposable.get();
+          disposable.add(Completable.fromAction(() -> {
+              try (DSLContext context = getDSLContext()) {
+                  consumer.accept(context);
+              }
+          })
+                  .subscribeOn(Schedulers.io())
+                  .subscribe(() -> {
+                  }, Throwable::printStackTrace));
+      } else {
+          try (DSLContext context = getDSLContext()) {
+              consumer.accept(context);
+          }
       }
-    // TODO sync if not in transaction, async if in transaction
   }
 
     public static DSLContext getDSLContext() {
@@ -254,6 +269,7 @@ public final class Db {
       con.setAutoCommit(false);
 
       localConnection.set(con);
+        localConnectionDisposable.set(new CompositeDisposable());
       transactionCaches.set(new HashMap<>());
       transactionBatches.set(new HashMap<>());
 
@@ -270,10 +286,14 @@ public final class Db {
       throw new IllegalStateException("Not in transaction");
     }
     try {
+        CompositeDisposable compositeDisposable = localConnectionDisposable.get();
+        while (!compositeDisposable.isDisposed()) Thread.sleep(1);
+        localConnectionDisposable.set(null);
       con.commit();
-    }
-    catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
+    } catch (SQLException e) {
+        throw new RuntimeException(e.toString(), e);
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
     }
   }
 
@@ -283,6 +303,7 @@ public final class Db {
       throw new IllegalStateException("Not in transaction");
     }
     try {
+        localConnectionDisposable.get().dispose();
       con.rollback();
     }
     catch (SQLException e) {

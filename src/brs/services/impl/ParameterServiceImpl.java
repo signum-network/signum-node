@@ -304,7 +304,7 @@ public class ParameterServiceImpl implements ParameterService {
         byte[] bytes = Convert.parseHexString(transactionBytes);
         return transactionProcessor.parseTransaction(bytes);
       } catch (BurstException.ValidationException | RuntimeException e) {
-        logger.debug(e.getMessage(), e);
+          logger.debug(e.getMessage(), e); // TODO remove?
         JsonObject response = new JsonObject();
         response.addProperty(ERROR_CODE_RESPONSE, 4);
         response.addProperty(ERROR_DESCRIPTION_RESPONSE, "Incorrect transactionBytes: " + e.toString());

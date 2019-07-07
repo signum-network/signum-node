@@ -42,7 +42,6 @@ var BRS = (function(BRS, $, undefined) {
     BRS.contacts = {};
 
     BRS.isTestNet = false;
-    BRS.isLocalHost = false;
 
     BRS.lastBlockHeight = 0;
     BRS.downloadingBlockchain = false;
@@ -75,15 +74,6 @@ var BRS = (function(BRS, $, undefined) {
         else {
             BRS.isTestNet = true;
             $(".testnet_only, #testnet_login, #testnet_warning").show();
-        }
-
-        if (!BRS.server) {
-            var hostName = window.location.hostname.toLowerCase();
-            BRS.isLocalHost = hostName === "localhost" || hostName === "127.0.0.1" || BRS.isPrivateIP(hostName);
-        }
-
-        if (!BRS.isLocalHost) {
-            $(".remote_warning").show();
         }
 
         try {

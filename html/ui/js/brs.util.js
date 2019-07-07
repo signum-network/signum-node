@@ -805,10 +805,6 @@ var BRS = (function(BRS, $, undefined) {
     BRS.setupClipboardFunctionality = function() {
         var elements = "#asset_id_dropdown .dropdown-menu a, #account_id_dropdown .sbdropdown-menu a";
 
-        if (BRS.isLocalHost) {
-            $("#account_id_dropdown li.remote_only, #asset_info_dropdown li.remote_only").remove();
-        }
-
         var $el = $(elements);
 
         if (BRS.inApp) {

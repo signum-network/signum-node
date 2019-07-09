@@ -40,7 +40,7 @@
     <junit-platform.version>1.5.0</junit-platform.version>
     <junit-platform.version>1.4.2</junit-platform.version>
     <junit-vintage.version>5.5.0</junit-vintage.version>
-    <mockito.version>2.28.2</mockito.version>
+    <mockito.version>3.0.0</mockito.version>
     <powermock.version>2.0.2</powermock.version>
     <apachehttpclient.version>4.5.9</apachehttpclient.version>
     <jacoco.version>0.8.4</jacoco.version>

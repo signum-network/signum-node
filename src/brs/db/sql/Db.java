@@ -41,7 +41,6 @@ public final class Db {
   private static HikariDataSource cp;
   private static SQLDialect dialect;
   private static final ThreadLocal<Connection> localConnection = new ThreadLocal<>();
-    private static final ThreadLocal<CompositeDisposable> localConnectionDisposable = new ThreadLocal<>();
   private static final ThreadLocal<Map<String, Map<BurstKey, Object>>> transactionCaches = new ThreadLocal<>();
   private static final ThreadLocal<Map<String, Map<BurstKey, Object>>> transactionBatches = new ThreadLocal<>();
 
@@ -223,7 +222,7 @@ public final class Db {
     Settings settings = new Settings();
     settings.setRenderSchema(Boolean.FALSE);
 
-        if (con == null) {
+    if (con == null) {
       try ( DSLContext ctx = DSL.using(cp, dialect, settings) ) {
         return ctx;
       }
@@ -265,7 +264,6 @@ public final class Db {
       con.setAutoCommit(false);
 
       localConnection.set(con);
-        localConnectionDisposable.set(new CompositeDisposable());
       transactionCaches.set(new HashMap<>());
       transactionBatches.set(new HashMap<>());
 
@@ -282,14 +280,9 @@ public final class Db {
       throw new IllegalStateException("Not in transaction");
     }
     try {
-        CompositeDisposable compositeDisposable = localConnectionDisposable.get();
-        while (!compositeDisposable.isDisposed()) Thread.sleep(1);
-        localConnectionDisposable.set(null);
       con.commit();
     } catch (SQLException e) {
         throw new RuntimeException(e.toString(), e);
-    } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
     }
   }
 
@@ -299,7 +292,6 @@ public final class Db {
       throw new IllegalStateException("Not in transaction");
     }
     try {
-        localConnectionDisposable.get().dispose();
       con.rollback();
     }
     catch (SQLException e) {

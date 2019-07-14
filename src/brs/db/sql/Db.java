@@ -212,25 +212,13 @@ public final class Db {
       }
   }
 
-  public static void useDSLContext(Consumer<DSLContext> consumer) {
-      if (isInTransaction()) {
-          CompositeDisposable disposable = localConnectionDisposable.get();
-          disposable.add(Completable.fromAction(() -> {
-              try (DSLContext context = getDSLContext()) {
-                  consumer.accept(context);
-              }
-          })
-                  .subscribeOn(Schedulers.io())
-                  .subscribe(() -> {
-                  }, Throwable::printStackTrace));
-      } else {
-          try (DSLContext context = getDSLContext()) {
-              consumer.accept(context);
-          }
-      }
+  public static void useDSLContext(Consumer<DSLContext> consumer) { // TODO RxJava
+    try (DSLContext context = getDSLContext()) {
+      consumer.accept(context);
+    }
   }
 
-    public static DSLContext getDSLContext() {
+  private static DSLContext getDSLContext() {
     Connection con    = localConnection.get();
     Settings settings = new Settings();
     settings.setRenderSchema(Boolean.FALSE);

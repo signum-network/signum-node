@@ -21,7 +21,7 @@
   <properties>
     <bcprov-jdk15on.version>1.62</bcprov-jdk15on.version>
     <burstkit4j.version>v0.12.2</burstkit4j.version>
-    <rxjava.version>2.2.10</rxjava.version>
+    <rxjava.version>2.2.11</rxjava.version>
     <ehcache.version>3.8.0</ehcache.version>
     <flywaydb.version>5.2.4</flywaydb.version>
     <grpc.version>1.22.1</grpc.version>

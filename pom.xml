@@ -34,7 +34,7 @@
     <jooq.version>3.11.11</jooq.version>
     <mariadb.version>2.4.2</mariadb.version>
     <owasp.version>1.2.2</owasp.version>
-    <slf4j.version>1.7.26</slf4j.version>
+    <slf4j.version>1.7.27</slf4j.version>
     <weupnp.version>0.1.4</weupnp.version>
     <xzing.version>3.4.0</xzing.version>
     <junit-jupiter.version>5.5.0</junit-jupiter.version>

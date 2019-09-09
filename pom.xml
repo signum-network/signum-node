@@ -37,7 +37,7 @@
     <slf4j.version>1.7.28</slf4j.version>
     <weupnp.version>0.1.4</weupnp.version>
     <xzing.version>3.4.0</xzing.version>
-    <junit-jupiter.version>5.5.1</junit-jupiter.version>
+    <junit-jupiter.version>5.5.2</junit-jupiter.version>
     <junit-platform.version>1.5.1</junit-platform.version>
     <junit-platform.version>1.4.2</junit-platform.version>
     <junit-vintage.version>5.5.1</junit-vintage.version>

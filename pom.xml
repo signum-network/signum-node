@@ -43,7 +43,7 @@
     <junit-vintage.version>5.5.1</junit-vintage.version>
     <mockito.version>3.0.0</mockito.version>
     <powermock.version>2.0.2</powermock.version>
-    <apachehttpclient.version>4.5.9</apachehttpclient.version>
+    <apachehttpclient.version>4.5.10</apachehttpclient.version>
     <jacoco.version>0.8.4</jacoco.version>
 
     <maven.compiler.source>${java.version}</maven.compiler.source>

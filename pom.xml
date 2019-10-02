@@ -29,7 +29,7 @@
     <h2.version>1.4.199</h2.version>
     <hikaricp.version>3.3.1</hikaricp.version>
     <java.version>1.8</java.version>
-    <jetty.version>9.4.20.v20190813</jetty.version>
+    <jetty.version>9.4.21.v20190926</jetty.version>
     <jocl.version>2.0.1</jocl.version>
     <jooq.version>3.12.1</jooq.version>
     <mariadb.version>2.4.3</mariadb.version>

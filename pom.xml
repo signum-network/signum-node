@@ -19,7 +19,7 @@
   <packaging>jar</packaging>
 
   <properties>
-    <bcprov-jdk15on.version>1.62</bcprov-jdk15on.version>
+    <bcprov-jdk15on.version>1.64</bcprov-jdk15on.version>
     <burstkit4j.version>v0.12.2</burstkit4j.version>
     <rxjava.version>2.2.12</rxjava.version>
     <ehcache.version>3.8.0</ehcache.version>

@@ -64,7 +64,7 @@ public class AtConstants {
 
         PAGE_SIZE.put((short) 2, 256L);
 
-        MAX_MACHINE_CODE_PAGES.put((short) 2, 10L);
+        MAX_MACHINE_CODE_PAGES.put((short) 2, 20L);
         MAX_MACHINE_DATA_PAGES.put((short) 2, 10L);
         MAX_MACHINE_USER_STACK_PAGES.put((short) 2, 10L);
         MAX_MACHINE_CALL_STACK_PAGES.put((short) 2, 10L);

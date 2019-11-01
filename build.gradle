@@ -5,7 +5,7 @@ buildscript {
     ext.protobufPluginVersion = "0.8.10"
     ext.sonarqubePluginVersion = "2.8"
     ext.flywayPluginVersion = "6.0.7"
-    ext.testLoggerPluginVersion = "1.7.1"
+    ext.testLoggerPluginVersion = "2.0.0"
     ext.dokkaPluginVersion = "0.10.0"
     repositories {
         mavenCentral()

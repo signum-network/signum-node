@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS indirect_incoming
 (
-    db_id IDENTITY,
+    db_id INTEGER PRIMARY KEY AUTOINCREMENT,
     account_id bigint NOT NULL,
     transaction_id bigint NOT NULL,
     height INT NOT NULL

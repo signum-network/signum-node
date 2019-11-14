@@ -40,12 +40,12 @@ internal class GetAccountTransactionIds(
         val numberOfConfirmations = parameterService.getNumberOfConfirmations(request)
 
         val type: Byte = try {
-            request.getParameter(TYPE_PARAMETER).toByte()
+            request.getParameter(TYPE_PARAMETER)?.toByte() ?: -1
         } catch (e: NumberFormatException) {
             -1
         }
         val subtype: Byte = try {
-            request.getParameter(SUBTYPE_PARAMETER).toByte()
+            request.getParameter(SUBTYPE_PARAMETER)?.toByte() ?: -1
         } catch (e: NumberFormatException) {
             -1
         }

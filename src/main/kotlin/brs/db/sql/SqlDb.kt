@@ -77,7 +77,6 @@ class SqlDb(private val dp: DependencyProvider) : Db {
             config.maximumPoolSize = dp.propertyService.get(Props.DB_CONNECTIONS)
 
             val flywayBuilder = Flyway.configure()
-                .dataSource(dbUrl, dbUsername, dbPassword)
                 .baselineOnMigrate(true)
             var runFlyway = false
 
@@ -106,13 +105,9 @@ class SqlDb(private val dp: DependencyProvider) : Db {
                             props.setProperty("user", dbUsername)
                             props.setProperty("password", dbPassword)
                             props.setProperty("useMysqlMetadata", "true")
-                            try {
-                                val f = MariaDbDataSource::class.java.getDeclaredField("urlParser")
-                                f.isAccessible = true
-                                f.set(this, UrlParser.parse(dbUrl, props))
-                            } catch (e: Exception) {
-                                throw RuntimeException(e)
-                            }
+                            val f = MariaDbDataSource::class.java.getDeclaredField("urlParser")
+                            f.isAccessible = true
+                            f.set(this, UrlParser.parse(dbUrl, props))
                         }
                     }
                     flywayBuilder.dataSource(flywayDataSource) // TODO Remove this hack once we can use Flyway 6
@@ -140,6 +135,7 @@ class SqlDb(private val dp: DependencyProvider) : Db {
             }
 
             cp = HikariDataSource(config)
+            flywayBuilder.dataSource(cp)
 
             if (runFlyway) {
                 logger.safeInfo { "Running flyway migration" }

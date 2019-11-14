@@ -135,7 +135,9 @@ class SqlDb(private val dp: DependencyProvider) : Db {
             }
 
             cp = HikariDataSource(config)
-            flywayBuilder.dataSource(cp)
+            if (dialect != SQLDialect.MARIADB) {
+                flywayBuilder.dataSource(cp)
+            }
 
             if (runFlyway) {
                 logger.safeInfo { "Running flyway migration" }

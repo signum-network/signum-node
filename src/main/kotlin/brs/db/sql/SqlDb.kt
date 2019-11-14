@@ -35,11 +35,15 @@ class SqlDb(private val dp: DependencyProvider) : Db {
 
     override fun getDslContext(): DSLContext {
         val con = localConnection.get()
-        if (con == null) {
-            DSL.using(cp, dialect, settings).use { ctx -> return ctx }
+        val ctx = if (con == null) {
+            DSL.using(cp, dialect, settings)
         } else {
-            DSL.using(con, dialect, staticStatementSettings).use { ctx -> return ctx }
+            DSL.using(con, dialect, staticStatementSettings)
         }
+        if (dialect == SQLDialect.SQLITE) { // TODO yuck
+            ctx.execute("PRAGMA foreign_keys = ON;")
+        }
+        return ctx
     }
 
     override fun isInTransaction() = localConnection.get() != null
@@ -120,10 +124,16 @@ class SqlDb(private val dp: DependencyProvider) : Db {
                     runFlyway = true
                     config.isAutoCommit = true
                     config.addDataSourceProperty("cachePrepStmts", "true")
-                    config.addDataSourceProperty("prepStmtCacheSize", "250")
-                    config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048")
+                    config.addDataSourceProperty("prepStmtCacheSize", "512")
+                    config.addDataSourceProperty("prepStmtCacheSqlLimit", "4096")
                     config.addDataSourceProperty("DATABASE_TO_UPPER", "false")
                     config.addDataSourceProperty("CASE_INSENSITIVE_IDENTIFIERS", "true")
+                }
+                SQLDialect.SQLITE -> {
+                    Class.forName("org.sqlite.JDBC")
+                    flywayBuilder.locations("classpath:/db/migration_sqlite")
+                    runFlyway = true
+                    config.isAutoCommit = true
                 }
                 else -> {
                 }

@@ -60,9 +60,9 @@ public class AtStateRecord extends UpdatableRecordImpl<AtStateRecord> implements
     /**
      * Setter for <code>DB.at_state.state</code>.
      */
-    public void setState(byte... value) {
+    public void setState(byte[] value) {
         set(2, value);
-    }
+    } // TODO when generated this is a `byte...`
 
     /**
      * Getter for <code>DB.at_state.state</code>.

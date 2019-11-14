@@ -1,9 +1,6 @@
 package brs.db.sql
 
-import brs.db.BurstKey
-import brs.db.DigitalGoodsStoreStore
-import brs.db.VersionedEntityTable
-import brs.db.VersionedValuesTable
+import brs.db.*
 import brs.entity.DependencyProvider
 import brs.entity.EncryptedData
 import brs.entity.Goods
@@ -108,16 +105,12 @@ internal class SqlDigitalGoodsStoreStore(private val dp: DependencyProvider) : D
             }
 
             override fun save(ctx: DSLContext, purchase: Purchase, publicFeedback: String) {
-                ctx.mergeInto<PurchasePublicFeedbackRecord, Long, String, Int, Boolean>(
-                    PURCHASE_PUBLIC_FEEDBACK,
-                    PURCHASE_PUBLIC_FEEDBACK.ID,
-                    PURCHASE_PUBLIC_FEEDBACK.PUBLIC_FEEDBACK,
-                    PURCHASE_PUBLIC_FEEDBACK.HEIGHT,
-                    PURCHASE_PUBLIC_FEEDBACK.LATEST
-                )
-                    .key(PURCHASE_PUBLIC_FEEDBACK.ID, PURCHASE_PUBLIC_FEEDBACK.HEIGHT)
-                    .values(purchase.id, publicFeedback, dp.blockchainService.height, true)
-                    .execute()
+                val record = PurchasePublicFeedbackRecord()
+                record.id = purchase.id
+                record.publicFeedback = publicFeedback
+                record.height = dp.blockchainService.height
+                record.latest = true
+                ctx.upsert(record, PURCHASE_PUBLIC_FEEDBACK.ID, PURCHASE_PUBLIC_FEEDBACK.HEIGHT).execute()
             }
         }
 
@@ -154,35 +147,19 @@ internal class SqlDigitalGoodsStoreStore(private val dp: DependencyProvider) : D
     }
 
     private fun saveGoods(ctx: DSLContext, goods: Goods) {
-        ctx.mergeInto<GoodsRecord, Long, Long, String, String, String, Int, Int, Long, Boolean, Int, Boolean>(
-            GOODS,
-            GOODS.ID,
-            GOODS.SELLER_ID,
-            GOODS.NAME,
-            GOODS.DESCRIPTION,
-            GOODS.TAGS,
-            GOODS.TIMESTAMP,
-            GOODS.QUANTITY,
-            GOODS.PRICE,
-            GOODS.DELISTED,
-            GOODS.HEIGHT,
-            GOODS.LATEST
-        )
-            .key(GOODS.ID, GOODS.HEIGHT)
-            .values(
-                goods.id,
-                goods.sellerId,
-                goods.name,
-                goods.description,
-                goods.tags,
-                goods.timestamp,
-                goods.quantity,
-                goods.pricePlanck,
-                goods.isDelisted,
-                dp.blockchainService.height,
-                true
-            )
-            .execute()
+        val record = GoodsRecord()
+        record.id = goods.id
+        record.sellerId = goods.sellerId
+        record.name = goods.name
+        record.description = goods.description
+        record.tags = goods.tags
+        record.timestamp = goods.timestamp
+        record.quantity = goods.quantity
+        record.price = goods.pricePlanck
+        record.delisted = goods.isDelisted
+        record.height = dp.blockchainService.height
+        record.latest = true
+        ctx.upsert(record, GOODS.ID, GOODS.HEIGHT).execute()
     }
 
     private fun savePurchase(ctx: DSLContext, purchase: Purchase) {
@@ -204,55 +181,28 @@ internal class SqlDigitalGoodsStoreStore(private val dp: DependencyProvider) : D
             refundNote = purchase.refundNote!!.data
             refundNonce = purchase.refundNote!!.nonce
         }
-        ctx.mergeInto<PurchaseRecord, Long, Long, Long, Long, Int, Long, Int, ByteArray, ByteArray, Int, Boolean, ByteArray, ByteArray, ByteArray, ByteArray, Boolean, Boolean, Long, Long, Int, Boolean>(
-            PURCHASE,
-            PURCHASE.ID,
-            PURCHASE.BUYER_ID,
-            PURCHASE.GOODS_ID,
-            PURCHASE.SELLER_ID,
-            PURCHASE.QUANTITY,
-            PURCHASE.PRICE,
-            PURCHASE.DEADLINE,
-            PURCHASE.NOTE,
-            PURCHASE.NONCE,
-            PURCHASE.TIMESTAMP,
-            PURCHASE.PENDING,
-            PURCHASE.GOODS,
-            PURCHASE.GOODS_NONCE,
-            PURCHASE.REFUND_NOTE,
-            PURCHASE.REFUND_NONCE,
-            PURCHASE.HAS_FEEDBACK_NOTES,
-            PURCHASE.HAS_PUBLIC_FEEDBACKS,
-            PURCHASE.DISCOUNT,
-            PURCHASE.REFUND,
-            PURCHASE.HEIGHT,
-            PURCHASE.LATEST
-        )
-            .key(PURCHASE.ID, PURCHASE.HEIGHT)
-            .values(
-                purchase.id,
-                purchase.buyerId,
-                purchase.goodsId,
-                purchase.sellerId,
-                purchase.quantity,
-                purchase.pricePlanck,
-                purchase.deliveryDeadlineTimestamp,
-                note,
-                nonce,
-                purchase.timestamp,
-                purchase.isPending,
-                goods,
-                goodsNonce,
-                refundNote,
-                refundNonce,
-                purchase.feedbackNotes != null && purchase.feedbackNotes!!.isNotEmpty(),
-                purchase.getPublicFeedback()!!.isNotEmpty(),
-                purchase.discountPlanck,
-                purchase.refundPlanck,
-                dp.blockchainService.height,
-                true
-            )
-            .execute()
+        val record = PurchaseRecord()
+        record.id = purchase.id
+        record.buyerId = purchase.buyerId
+        record.goodsId = purchase.goodsId
+        record.sellerId = purchase.sellerId
+        record.quantity = purchase.quantity
+        record.price = purchase.pricePlanck
+        record.deadline = purchase.deliveryDeadlineTimestamp
+        record.note = note
+        record.nonce = nonce
+        record.timestamp = purchase.timestamp
+        record.goods = goods
+        record.goods = goodsNonce
+        record.refundNote = refundNote
+        record.refundNonce = refundNonce
+        record.hasFeedbackNotes = purchase.feedbackNotes != null && purchase.feedbackNotes!!.isNotEmpty()
+        record.hasPublicFeedbacks = purchase.getPublicFeedback()!!.isNotEmpty()
+        record.discount = purchase.discountPlanck
+        record.refund = purchase.refundPlanck
+        record.height = dp.blockchainService.height
+        record.latest = true
+        ctx.upsert(record, PURCHASE.ID, PURCHASE.HEIGHT).execute()
     }
 
     override fun getGoodsInStock(from: Int, to: Int): Collection<Goods> {

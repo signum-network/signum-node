@@ -182,7 +182,11 @@ class Burst(properties: Properties, addShutdownHook: Boolean = true) {
             // Ignore
         }
         if (!ignoreDBShutdown) {
-            dp.db.shutdown()
+            try {
+                dp.db.shutdown()
+            } catch (ignored: UninitializedPropertyAccessException) {
+                // Ignore
+            }
         }
         try {
             dp.dbCacheService.close()

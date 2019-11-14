@@ -1,9 +1,10 @@
 package brs.db.sql
 
-import brs.entity.DependencyProvider
 import brs.db.BurstKey
-import brs.db.VersionedEntityTable
 import brs.db.SubscriptionStore
+import brs.db.VersionedEntityTable
+import brs.db.upsert
+import brs.entity.DependencyProvider
 import brs.entity.Subscription
 import brs.schema.Tables.SUBSCRIPTION
 import brs.schema.tables.records.SubscriptionRecord
@@ -66,8 +67,17 @@ internal class SqlSubscriptionStore(private val dp: DependencyProvider) : Subscr
     }
 
     private fun saveSubscription(ctx: DSLContext, subscription: Subscription) {
-        ctx.mergeInto<SubscriptionRecord, Long, Long, Long, Long, Int, Int, Int, Boolean>(
-            SUBSCRIPTION,
+        val record = SubscriptionRecord()
+        record.id = subscription.id
+        record.senderId = subscription.senderId
+        record.recipientId = subscription.recipientId
+        record.amount = subscription.amountPlanck
+        record.frequency = subscription.frequency
+        record.timeNext = subscription.timeNext
+        record.height = dp.blockchainService.height
+        record.latest = true
+        ctx.upsert(
+            record,
             SUBSCRIPTION.ID,
             SUBSCRIPTION.SENDER_ID,
             SUBSCRIPTION.RECIPIENT_ID,
@@ -76,28 +86,7 @@ internal class SqlSubscriptionStore(private val dp: DependencyProvider) : Subscr
             SUBSCRIPTION.TIME_NEXT,
             SUBSCRIPTION.HEIGHT,
             SUBSCRIPTION.LATEST
-        )
-            .key(
-                SUBSCRIPTION.ID,
-                SUBSCRIPTION.SENDER_ID,
-                SUBSCRIPTION.RECIPIENT_ID,
-                SUBSCRIPTION.AMOUNT,
-                SUBSCRIPTION.FREQUENCY,
-                SUBSCRIPTION.TIME_NEXT,
-                SUBSCRIPTION.HEIGHT,
-                SUBSCRIPTION.LATEST
-            )
-            .values(
-                subscription.id,
-                subscription.senderId,
-                subscription.recipientId,
-                subscription.amountPlanck,
-                subscription.frequency,
-                subscription.timeNext,
-                dp.blockchainService.height,
-                true
-            )
-            .execute()
+        ).execute()
     }
 
     private inner class SqlSubscription internal constructor(record: Record) : Subscription(

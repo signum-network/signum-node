@@ -1,9 +1,7 @@
 package brs.db.sql
 
-import brs.db.ATStore
-import brs.db.BurstKey
-import brs.db.VersionedEntityTable
-import brs.db.getUsingDslContext
+import brs.at.AT
+import brs.db.*
 import brs.entity.DependencyProvider
 import brs.schema.Tables.*
 import brs.schema.tables.records.AtRecord
@@ -12,27 +10,28 @@ import org.jooq.DSLContext
 import org.jooq.Record
 import org.jooq.SortField
 import org.jooq.exception.DataAccessException
+import brs.schema.Tables.AT as ATTable
 
 internal class SqlATStore(private val dp: DependencyProvider) : ATStore {
-    override val atDbKeyFactory = object : SqlDbKey.LongKeyFactory<brs.at.AT>(AT.ID) {
-        override fun newKey(at: brs.at.AT): BurstKey {
+    override val atDbKeyFactory = object : SqlDbKey.LongKeyFactory<AT>(ATTable.ID) {
+        override fun newKey(at: AT): BurstKey {
             return at.dbKey
         }
     }
 
-    override val atTable: VersionedEntityTable<brs.at.AT>
+    override val atTable: VersionedEntityTable<AT>
 
-    override val atStateDbKeyFactory = object : SqlDbKey.LongKeyFactory<brs.at.AT.ATState>(AT_STATE.AT_ID) {
-        override fun newKey(atState: brs.at.AT.ATState): BurstKey {
+    override val atStateDbKeyFactory = object : SqlDbKey.LongKeyFactory<AT.ATState>(AT_STATE.AT_ID) {
+        override fun newKey(atState: AT.ATState): BurstKey {
             return atState.dbKey
         }
     }
 
-    override val atStateTable: VersionedEntityTable<brs.at.AT.ATState>
+    override val atStateTable: VersionedEntityTable<AT.ATState>
 
     override fun getOrderedATs() = dp.db.getUsingDslContext<List<Long>> { ctx ->
-        ctx.selectFrom(AT.join(AT_STATE).on(AT.ID.eq(AT_STATE.AT_ID)).join(ACCOUNT).on(AT.ID.eq(ACCOUNT.ID)))
-            .where(AT.LATEST.isTrue)
+        ctx.selectFrom(ATTable.join(AT_STATE).on(ATTable.ID.eq(AT_STATE.AT_ID)).join(ACCOUNT).on(ATTable.ID.eq(ACCOUNT.ID)))
+            .where(ATTable.LATEST.isTrue)
             .and(AT_STATE.LATEST.isTrue)
             .and(ACCOUNT.LATEST.isTrue)
             .and(AT_STATE.NEXT_HEIGHT.lessOrEqual(dp.blockchainService.height + 1))
@@ -44,22 +43,22 @@ internal class SqlATStore(private val dp: DependencyProvider) : ATStore {
                 )
             )
             .and(AT_STATE.FREEZE_WHEN_SAME_BALANCE.isFalse.or("account.balance - at_state.prev_balance >= at_state.min_activate_amount"))
-            .orderBy(AT_STATE.PREV_HEIGHT.asc(), AT_STATE.NEXT_HEIGHT.asc(), AT.ID.asc())
+            .orderBy(AT_STATE.PREV_HEIGHT.asc(), AT_STATE.NEXT_HEIGHT.asc(), ATTable.ID.asc())
             .fetch()
-            .getValues(AT.ID)
+            .getValues(ATTable.ID)
     }
 
     override fun getAllATIds() = dp.db.getUsingDslContext<Collection<Long>> { ctx ->
-        ctx.selectFrom(AT).where(AT.LATEST.isTrue).fetch().getValues(AT.ID)
+        ctx.selectFrom(ATTable).where(ATTable.LATEST.isTrue).fetch().getValues(ATTable.ID)
     }
 
     init {
-        atTable = object : VersionedEntitySqlTable<brs.at.AT>("at", AT, atDbKeyFactory, dp) {
-            override fun load(ctx: DSLContext, record: Record): brs.at.AT {
+        atTable = object : VersionedEntitySqlTable<AT>("at", ATTable, atDbKeyFactory, dp) {
+            override fun load(ctx: DSLContext, record: Record): AT {
                 throw UnsupportedOperationException("AT cannot be created with atTable.load")
             }
 
-            override fun save(ctx: DSLContext, at: brs.at.AT) {
+            override fun save(ctx: DSLContext, at: AT) {
                 saveAT(ctx, at)
             }
 
@@ -69,12 +68,12 @@ internal class SqlATStore(private val dp: DependencyProvider) : ATStore {
         }
 
         atStateTable =
-            object : VersionedEntitySqlTable<brs.at.AT.ATState>("at_state", AT_STATE, atStateDbKeyFactory, dp) {
-                override fun load(ctx: DSLContext, record: Record): brs.at.AT.ATState {
+            object : VersionedEntitySqlTable<AT.ATState>("at_state", AT_STATE, atStateDbKeyFactory, dp) {
+                override fun load(ctx: DSLContext, record: Record): AT.ATState {
                     return SqlATState(dp, record)
                 }
 
-                override fun save(ctx: DSLContext, atState: brs.at.AT.ATState) {
+                override fun save(ctx: DSLContext, atState: AT.ATState) {
                     saveATState(ctx, atState)
                 }
 
@@ -88,83 +87,68 @@ internal class SqlATStore(private val dp: DependencyProvider) : ATStore {
             }
     }
 
-    private fun saveATState(ctx: DSLContext, atState: brs.at.AT.ATState) {
-        ctx.mergeInto(
-            AT_STATE,
-            AT_STATE.AT_ID,
-            AT_STATE.STATE,
-            AT_STATE.PREV_HEIGHT,
-            AT_STATE.NEXT_HEIGHT,
-            AT_STATE.SLEEP_BETWEEN,
-            AT_STATE.PREV_BALANCE,
-            AT_STATE.FREEZE_WHEN_SAME_BALANCE,
-            AT_STATE.MIN_ACTIVATE_AMOUNT,
-            AT_STATE.HEIGHT,
-            AT_STATE.LATEST
-        )
-            .key(AT_STATE.AT_ID, AT_STATE.HEIGHT)
-            .values(
-                atState.atId,
-                brs.at.AT.compressState(atState.state),
-                atState.prevHeight,
-                atState.nextHeight,
-                atState.sleepBetween,
-                atState.prevBalance,
-                atState.freezeWhenSameBalance,
-                atState.minActivationAmount,
-                dp.blockchainService.height,
-                true
-            )
-            .execute()
+    private fun saveATState(ctx: DSLContext, atState: AT.ATState) {
+        var record = AtStateRecord()
+        record.atId = atState.atId
+        record.state = AT.compressState(atState.state)
+        record.prevHeight = atState.prevHeight
+        record.nextHeight = atState.nextHeight
+        record.sleepBetween = atState.sleepBetween
+        record.prevBalance = atState.prevBalance
+        record.freezeWhenSameBalance = atState.freezeWhenSameBalance
+        record.minActivateAmount = atState.minActivationAmount
+        record.height = dp.blockchainService.height
+        record.latest = true
+        ctx.upsert(record, AT_STATE.AT_ID, AT_STATE.HEIGHT).execute()
     }
 
-    private fun saveAT(ctx: DSLContext, at: brs.at.AT) {
+    private fun saveAT(ctx: DSLContext, at: AT) {
         ctx.insertInto(
-            AT,
-            AT.ID, AT.CREATOR_ID, AT.NAME, AT.DESCRIPTION,
-            AT.VERSION, AT.CSIZE, AT.DSIZE, AT.C_USER_STACK_BYTES,
-            AT.C_CALL_STACK_BYTES, AT.CREATION_HEIGHT,
-            AT.AP_CODE, AT.HEIGHT
+            ATTable,
+            ATTable.ID, ATTable.CREATOR_ID, ATTable.NAME, ATTable.DESCRIPTION,
+            ATTable.VERSION, ATTable.CSIZE, ATTable.DSIZE, ATTable.C_USER_STACK_BYTES,
+            ATTable.C_CALL_STACK_BYTES, ATTable.CREATION_HEIGHT,
+            ATTable.AP_CODE, ATTable.HEIGHT
         ).values(
             at.id, at.creator, at.name, at.description,
             at.version, at.cSize, at.dSize, at.cUserStackBytes,
             at.cCallStackBytes, at.creationBlockHeight,
-            brs.at.AT.compressState(at.apCodeBytes), dp.blockchainService.height
+            AT.compressState(at.apCodeBytes), dp.blockchainService.height
         ).execute()
     }
 
     override fun isATAccountId(id: Long?): Boolean {
-        return dp.db.getUsingDslContext { ctx -> ctx.fetchExists(ctx.selectOne().from(AT).where(AT.ID.eq(id)).and(AT.LATEST.isTrue)) }
+        return dp.db.getUsingDslContext { ctx -> ctx.fetchExists(ctx.selectOne().from(ATTable).where(ATTable.ID.eq(id)).and(ATTable.LATEST.isTrue)) }
     }
 
-    override fun getAT(id: Long?): brs.at.AT? {
+    override fun getAT(id: Long?): AT? {
         return dp.db.getUsingDslContext { ctx ->
-            val record = ctx.select(*AT.fields())
+            val record = ctx.select(*ATTable.fields())
                 .select(*AT_STATE.fields())
-                .from(AT.join(AT_STATE).on(AT.ID.eq(AT_STATE.AT_ID)))
+                .from(ATTable.join(AT_STATE).on(ATTable.ID.eq(AT_STATE.AT_ID)))
                 .where(
-                    AT.LATEST.isTrue
+                    ATTable.LATEST.isTrue
                         .and(AT_STATE.LATEST.isTrue)
-                        .and(AT.ID.eq(id))
+                        .and(ATTable.ID.eq(id))
                 )
                 .fetchOne() ?: return@getUsingDslContext null
 
-            val at = record.into(AT)
+            val at = record.into(ATTable)
             val atState = record.into(AT_STATE)
 
             createAT(dp, at, atState)
         }
     }
 
-    private fun createAT(dp: DependencyProvider, at: AtRecord, atState: AtStateRecord): brs.at.AT {
-        return brs.at.AT(
+    private fun createAT(dp: DependencyProvider, at: AtRecord, atState: AtStateRecord): AT {
+        return AT(
             dp,
             at.id,
             at.creatorId,
             at.name,
             at.description,
             at.version!!,
-            brs.at.AT.decompressState(atState.state)!!,
+            AT.decompressState(atState.state)!!,
             at.csize!!,
             at.dsize!!,
             at.cUserStackBytes!!,
@@ -174,14 +158,14 @@ internal class SqlATStore(private val dp: DependencyProvider) : ATStore {
             atState.nextHeight!!,
             atState.freezeWhenSameBalance!!,
             atState.minActivateAmount!!,
-            brs.at.AT.decompressState(at.apCode)!!
+            AT.decompressState(at.apCode)!!
         )
     }
 
     override fun getATsIssuedBy(accountId: Long?): List<Long> {
         return dp.db.getUsingDslContext<List<Long>> { ctx ->
-            ctx.selectFrom(AT).where(AT.LATEST.isTrue).and(AT.CREATOR_ID.eq(accountId))
-                .orderBy(AT.CREATION_HEIGHT.desc(), AT.ID.asc()).fetch().getValues(AT.ID)
+            ctx.selectFrom(ATTable).where(ATTable.LATEST.isTrue).and(ATTable.CREATOR_ID.eq(accountId))
+                .orderBy(ATTable.CREATION_HEIGHT.desc(), ATTable.ID.asc()).fetch().getValues(ATTable.ID)
         }
     }
 
@@ -224,7 +208,7 @@ internal class SqlATStore(private val dp: DependencyProvider) : ATStore {
         }
     }
 
-    internal inner class SqlATState internal constructor(dp: DependencyProvider, record: Record) : brs.at.AT.ATState(
+    internal inner class SqlATState internal constructor(dp: DependencyProvider, record: Record) : AT.ATState(
         dp,
         record.get(AT_STATE.AT_ID),
         record.get(AT_STATE.STATE),

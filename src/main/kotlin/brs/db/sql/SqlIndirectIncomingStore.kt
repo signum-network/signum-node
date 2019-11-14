@@ -2,10 +2,12 @@ package brs.db.sql
 
 import brs.db.BurstKey
 import brs.db.IndirectIncomingStore
+import brs.db.upsert
 import brs.db.useDslContext
 import brs.entity.DependencyProvider
 import brs.entity.IndirectIncoming
 import brs.schema.Tables.INDIRECT_INCOMING
+import brs.schema.tables.records.IndirectIncomingRecord
 import org.jooq.DSLContext
 import org.jooq.Query
 import org.jooq.Record
@@ -33,14 +35,11 @@ internal class SqlIndirectIncomingStore(private val dp: DependencyProvider) : In
             }
 
             private fun getQuery(ctx: DSLContext, indirectIncoming: IndirectIncoming): Query {
-                return ctx.mergeInto(
-                    INDIRECT_INCOMING,
-                    INDIRECT_INCOMING.ACCOUNT_ID,
-                    INDIRECT_INCOMING.TRANSACTION_ID,
-                    INDIRECT_INCOMING.HEIGHT
-                )
-                    .key(INDIRECT_INCOMING.ACCOUNT_ID, INDIRECT_INCOMING.TRANSACTION_ID)
-                    .values(indirectIncoming.accountId, indirectIncoming.transactionId, indirectIncoming.height)
+                val record = IndirectIncomingRecord()
+                record.accountId = indirectIncoming.accountId
+                record.transactionId = indirectIncoming.transactionId
+                record.height = indirectIncoming.height
+                return ctx.upsert(record, INDIRECT_INCOMING.ACCOUNT_ID, INDIRECT_INCOMING.TRANSACTION_ID)
             }
 
             override fun save(ctx: DSLContext, indirectIncoming: IndirectIncoming) {

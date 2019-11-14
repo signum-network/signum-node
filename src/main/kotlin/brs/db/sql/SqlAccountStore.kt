@@ -45,24 +45,16 @@ internal class SqlAccountStore(private val dp: DependencyProvider) : AccountStor
             }
 
             override fun save(ctx: DSLContext, assignment: Account.RewardRecipientAssignment) {
-                ctx.mergeInto<RewardRecipAssignRecord, Long, Long, Long, Int, Int, Boolean>(
-                    REWARD_RECIP_ASSIGN,
-                    REWARD_RECIP_ASSIGN.ACCOUNT_ID,
-                    REWARD_RECIP_ASSIGN.PREV_RECIP_ID,
-                    REWARD_RECIP_ASSIGN.RECIP_ID,
-                    REWARD_RECIP_ASSIGN.FROM_HEIGHT,
-                    REWARD_RECIP_ASSIGN.HEIGHT,
-                    REWARD_RECIP_ASSIGN.LATEST
+                val record = RewardRecipAssignRecord()
+                record.accountId = assignment.accountId
+                record.prevRecipId = assignment.prevRecipientId
+                record.recipId = assignment.recipientId
+                record.fromHeight = assignment.fromHeight
+                record.height = dp.blockchainService.height
+                record.latest = true
+                ctx.upsert(
+                    record, REWARD_RECIP_ASSIGN.ACCOUNT_ID, REWARD_RECIP_ASSIGN.HEIGHT
                 )
-                    .key(REWARD_RECIP_ASSIGN.ACCOUNT_ID, REWARD_RECIP_ASSIGN.HEIGHT)
-                    .values(
-                        assignment.accountId,
-                        assignment.prevRecipientId,
-                        assignment.recipientId,
-                        assignment.fromHeight,
-                        dp.blockchainService.height,
-                        true
-                    )
                     .execute()
             }
         }
@@ -88,24 +80,14 @@ internal class SqlAccountStore(private val dp: DependencyProvider) : AccountStor
             }
 
             override fun save(ctx: DSLContext, accountAsset: Account.AccountAsset) {
-                ctx.mergeInto<AccountAssetRecord, Long, Long, Long, Long, Int, Boolean>(
-                    ACCOUNT_ASSET,
-                    ACCOUNT_ASSET.ACCOUNT_ID,
-                    ACCOUNT_ASSET.ASSET_ID,
-                    ACCOUNT_ASSET.QUANTITY,
-                    ACCOUNT_ASSET.UNCONFIRMED_QUANTITY,
-                    ACCOUNT_ASSET.HEIGHT,
-                    ACCOUNT_ASSET.LATEST
-                )
-                    .key(ACCOUNT_ASSET.ACCOUNT_ID, ACCOUNT_ASSET.ASSET_ID, ACCOUNT_ASSET.HEIGHT)
-                    .values(
-                        accountAsset.accountId,
-                        accountAsset.assetId,
-                        accountAsset.quantity,
-                        accountAsset.unconfirmedQuantity,
-                        dp.blockchainService.height,
-                        true
-                    )
+                val record = AccountAssetRecord()
+                record.accountId = accountAsset.accountId
+                record.assetId = accountAsset.assetId
+                record.quantity = accountAsset.quantity
+                record.unconfirmedQuantity = accountAsset.unconfirmedQuantity
+                record.height = dp.blockchainService.height
+                record.latest = true
+                ctx.upsert(record, ACCOUNT_ASSET.ACCOUNT_ID, ACCOUNT_ASSET.ASSET_ID, ACCOUNT_ASSET.HEIGHT)
                     .execute()
             }
 
@@ -123,36 +105,20 @@ internal class SqlAccountStore(private val dp: DependencyProvider) : AccountStor
             override fun bulkInsert(ctx: DSLContext, accounts: Collection<Account>) {
                 val height = dp.blockchainService.height
                 ctx.batch(accounts.map { account ->
-                    ctx.mergeInto<AccountRecord, Long, Int, Int, ByteArray, Int, Long, Long, Long, String, String, Boolean>(
-                        ACCOUNT,
-                        ACCOUNT.ID,
-                        ACCOUNT.HEIGHT,
-                        ACCOUNT.CREATION_HEIGHT,
-                        ACCOUNT.PUBLIC_KEY,
-                        ACCOUNT.KEY_HEIGHT,
-                        ACCOUNT.BALANCE,
-                        ACCOUNT.UNCONFIRMED_BALANCE,
-                        ACCOUNT.FORGED_BALANCE,
-                        ACCOUNT.NAME,
-                        ACCOUNT.DESCRIPTION,
-                        ACCOUNT.LATEST
-                    )
-                        .key(ACCOUNT.ID, ACCOUNT.HEIGHT)
-                        .values(
-                            account.id,
-                            height,
-                            account.creationHeight,
-                            account.publicKey,
-                            account.keyHeight,
-                            account.balancePlanck,
-                            account.unconfirmedBalancePlanck,
-                            account.forgedBalancePlanck,
-                            account.name,
-                            account.description,
-                            true
-                        )
-                })
-                    .execute()
+                    val record = AccountRecord()
+                    record.id = account.id
+                    record.height = height
+                    record.creationHeight = account.creationHeight
+                    record.publicKey = account.publicKey
+                    record.keyHeight = account.keyHeight
+                    record.balance = account.balancePlanck
+                    record.unconfirmedBalance = account.unconfirmedBalancePlanck
+                    record.forgedBalance = account.forgedBalancePlanck
+                    record.name = account.name
+                    record.description = account.description
+                    record.latest = true
+                    ctx.upsert(record, ACCOUNT.ID, ACCOUNT.HEIGHT)
+                }).execute()
             }
         }
     }

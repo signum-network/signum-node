@@ -1,13 +1,12 @@
 package brs.db.sql
 
+import brs.db.*
 import brs.entity.DependencyProvider
 import brs.entity.Order
-import brs.db.BurstKey
-import brs.db.VersionedEntityTable
-import brs.db.getUsingDslContext
-import brs.db.OrderStore
 import brs.schema.Tables.ASK_ORDER
 import brs.schema.Tables.BID_ORDER
+import brs.schema.tables.records.AskOrderRecord
+import brs.schema.tables.records.BidOrderRecord
 import org.jooq.DSLContext
 import org.jooq.Record
 import org.jooq.SortField
@@ -103,29 +102,16 @@ internal class SqlOrderStore(private val dp: DependencyProvider) : OrderStore {
     }
 
     private fun saveAsk(ctx: DSLContext, ask: Order.Ask) {
-        ctx.mergeInto(
-            ASK_ORDER,
-            ASK_ORDER.ID,
-            ASK_ORDER.ACCOUNT_ID,
-            ASK_ORDER.ASSET_ID,
-            ASK_ORDER.PRICE,
-            ASK_ORDER.QUANTITY,
-            ASK_ORDER.CREATION_HEIGHT,
-            ASK_ORDER.HEIGHT,
-            ASK_ORDER.LATEST
-        )
-            .key(ASK_ORDER.ID, ASK_ORDER.HEIGHT)
-            .values(
-                ask.id,
-                ask.accountId,
-                ask.assetId,
-                ask.pricePlanck,
-                ask.quantity,
-                ask.height,
-                dp.blockchainService.height,
-                true
-            )
-            .execute()
+        val record = AskOrderRecord()
+        record.id = ask.id
+        record.accountId = ask.accountId
+        record.assetId = ask.assetId
+        record.price = ask.pricePlanck
+        record.quantity = ask.quantity
+        record.creationHeight = ask.height
+        record.height = dp.blockchainService.height
+        record.latest = true
+        ctx.upsert(record, BID_ORDER.ID, BID_ORDER.HEIGHT).execute()
     }
 
     override fun getBidOrdersByAccount(accountId: Long, from: Int, to: Int): Collection<Order.Bid> {
@@ -179,29 +165,16 @@ internal class SqlOrderStore(private val dp: DependencyProvider) : OrderStore {
     }
 
     private fun saveBid(ctx: DSLContext, bid: Order.Bid) {
-        ctx.mergeInto(
-            BID_ORDER,
-            BID_ORDER.ID,
-            BID_ORDER.ACCOUNT_ID,
-            BID_ORDER.ASSET_ID,
-            BID_ORDER.PRICE,
-            BID_ORDER.QUANTITY,
-            BID_ORDER.CREATION_HEIGHT,
-            BID_ORDER.HEIGHT,
-            BID_ORDER.LATEST
-        )
-            .key(BID_ORDER.ID, BID_ORDER.HEIGHT)
-            .values(
-                bid.id,
-                bid.accountId,
-                bid.assetId,
-                bid.pricePlanck,
-                bid.quantity,
-                bid.height,
-                dp.blockchainService.height,
-                true
-            )
-            .execute()
+        val record = BidOrderRecord()
+        record.id = bid.id
+        record.accountId = bid.accountId
+        record.assetId = bid.assetId
+        record.price = bid.pricePlanck
+        record.quantity = bid.quantity
+        record.creationHeight = bid.height
+        record.height = dp.blockchainService.height
+        record.latest = true
+        ctx.upsert(record, BID_ORDER.ID, BID_ORDER.HEIGHT).execute()
     }
 
     internal inner class SqlAsk internal constructor(record: Record) : Order.Ask(

@@ -1,9 +1,10 @@
 package brs.db.sql
 
-import brs.entity.DependencyProvider
 import brs.db.BurstKey
-import brs.db.VersionedEntityTable
 import brs.db.EscrowStore
+import brs.db.VersionedEntityTable
+import brs.db.upsert
+import brs.entity.DependencyProvider
 import brs.entity.Escrow
 import brs.entity.Transaction
 import brs.schema.Tables.ESCROW
@@ -53,23 +54,13 @@ internal class SqlEscrowStore(private val dp: DependencyProvider) : EscrowStore 
     }
 
     private fun saveDecision(ctx: DSLContext, decision: Escrow.Decision) {
-        ctx.mergeInto<EscrowDecisionRecord, Long, Long, Int, Int, Boolean>(
-            ESCROW_DECISION,
-            ESCROW_DECISION.ESCROW_ID,
-            ESCROW_DECISION.ACCOUNT_ID,
-            ESCROW_DECISION.DECISION,
-            ESCROW_DECISION.HEIGHT,
-            ESCROW_DECISION.LATEST
-        )
-            .key(ESCROW_DECISION.ESCROW_ID, ESCROW_DECISION.ACCOUNT_ID, ESCROW_DECISION.HEIGHT)
-            .values(
-                decision.escrowId,
-                decision.accountId,
-                Escrow.decisionToByte(decision.decision!!).toInt(),
-                dp.blockchainService.height,
-                true
-            )
-            .execute()
+        val record = EscrowDecisionRecord()
+        record.escrowId = decision.escrowId
+        record.accountId = decision.accountId
+        record.decision = Escrow.decisionToByte(decision.decision!!).toInt()
+        record.height = dp.blockchainService.height
+        record.latest = true
+        ctx.upsert(record, ESCROW_DECISION.ESCROW_ID, ESCROW_DECISION.ACCOUNT_ID, ESCROW_DECISION.HEIGHT).execute()
     }
 
     override fun getEscrowTransactionsByParticipant(accountId: Long?): Collection<Escrow> {
@@ -84,31 +75,17 @@ internal class SqlEscrowStore(private val dp: DependencyProvider) : EscrowStore 
     }
 
     private fun saveEscrow(ctx: DSLContext, escrow: Escrow) {
-        ctx.mergeInto<EscrowRecord, Long, Long, Long, Long, Int, Int, Int, Int, Boolean>(
-            ESCROW,
-            ESCROW.ID,
-            ESCROW.SENDER_ID,
-            ESCROW.RECIPIENT_ID,
-            ESCROW.AMOUNT,
-            ESCROW.REQUIRED_SIGNERS,
-            ESCROW.DEADLINE,
-            ESCROW.DEADLINE_ACTION,
-            ESCROW.HEIGHT,
-            ESCROW.LATEST
-        )
-            .key(ESCROW.ID, ESCROW.HEIGHT)
-            .values(
-                escrow.id,
-                escrow.senderId,
-                escrow.recipientId,
-                escrow.amountPlanck,
-                escrow.requiredSigners,
-                escrow.deadline,
-                Escrow.decisionToByte(escrow.deadlineAction).toInt(),
-                dp.blockchainService.height,
-                true
-            )
-            .execute()
+        val record = EscrowRecord()
+        record.id = escrow.id
+        record.senderId = escrow.senderId
+        record.recipientId = escrow.recipientId
+        record.amount = escrow.amountPlanck
+        record.requiredSigners = escrow.requiredSigners
+        record.deadline = escrow.deadline
+        record.deadlineAction = Escrow.decisionToByte(escrow.deadlineAction).toInt()
+        record.height = dp.blockchainService.height
+        record.latest = true
+        ctx.upsert(record, ESCROW.ID, ESCROW.HEIGHT).execute()
     }
 
     private inner class SqlDecision internal constructor(record: Record) : Escrow.Decision(

@@ -74,7 +74,7 @@ public class AccountRecord extends UpdatableRecordImpl<AccountRecord> implements
     /**
      * Setter for <code>DB.account.public_key</code>.
      */
-    public void setPublicKey(byte... value) {
+    public void setPublicKey(byte[] value) { // TODO when generated this is a `byte...`
         set(3, value);
     }
 

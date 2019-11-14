@@ -144,9 +144,9 @@ public class PurchaseRecord extends UpdatableRecordImpl<PurchaseRecord> implemen
     /**
      * Setter for <code>DB.purchase.note</code>.
      */
-    public void setNote(byte... value) {
+    public void setNote(byte[] value) {
         set(8, value);
-    }
+    } // TODO when generated this is a `byte...`
 
     /**
      * Getter for <code>DB.purchase.note</code>.
@@ -158,9 +158,9 @@ public class PurchaseRecord extends UpdatableRecordImpl<PurchaseRecord> implemen
     /**
      * Setter for <code>DB.purchase.nonce</code>.
      */
-    public void setNonce(byte... value) {
+    public void setNonce(byte[] value) {
         set(9, value);
-    }
+    } // TODO when generated this is a `byte...`
 
     /**
      * Getter for <code>DB.purchase.nonce</code>.
@@ -200,9 +200,9 @@ public class PurchaseRecord extends UpdatableRecordImpl<PurchaseRecord> implemen
     /**
      * Setter for <code>DB.purchase.goods</code>.
      */
-    public void setGoods(byte... value) {
+    public void setGoods(byte[] value) {
         set(12, value);
-    }
+    } // TODO when generated this is a `byte...`
 
     /**
      * Getter for <code>DB.purchase.goods</code>.
@@ -214,9 +214,9 @@ public class PurchaseRecord extends UpdatableRecordImpl<PurchaseRecord> implemen
     /**
      * Setter for <code>DB.purchase.goods_nonce</code>.
      */
-    public void setGoodsNonce(byte... value) {
+    public void setGoodsNonce(byte[] value) {
         set(13, value);
-    }
+    } // TODO when generated this is a `byte...`
 
     /**
      * Getter for <code>DB.purchase.goods_nonce</code>.
@@ -228,9 +228,9 @@ public class PurchaseRecord extends UpdatableRecordImpl<PurchaseRecord> implemen
     /**
      * Setter for <code>DB.purchase.refund_note</code>.
      */
-    public void setRefundNote(byte... value) {
+    public void setRefundNote(byte[] value) {
         set(14, value);
-    }
+    } // TODO when generated this is a `byte...`
 
     /**
      * Getter for <code>DB.purchase.refund_note</code>.
@@ -242,9 +242,9 @@ public class PurchaseRecord extends UpdatableRecordImpl<PurchaseRecord> implemen
     /**
      * Setter for <code>DB.purchase.refund_nonce</code>.
      */
-    public void setRefundNonce(byte... value) {
+    public void setRefundNonce(byte[] value) {
         set(15, value);
-    }
+    } // TODO when generated this is a `byte...`
 
     /**
      * Getter for <code>DB.purchase.refund_nonce</code>.

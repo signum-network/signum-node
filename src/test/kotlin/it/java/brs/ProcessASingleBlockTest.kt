@@ -7,7 +7,8 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
-class ProcessASingleBlockTest : AbstractIT() {
+abstract class ProcessASingleBlockTest : AbstractIT() {
+    abstract fun getDbUrl(): String
     private lateinit var jsonFirstBlock: JsonObject
 
     @Before
@@ -27,7 +28,7 @@ class ProcessASingleBlockTest : AbstractIT() {
             .timestamp(683)
             .previousBlockHash("065d8826c197cc2fc7059b15fedc7d700bc56320095eafb4c1ab115ba0a3979e")
             .toJson()
-        setupIT()
+        setupIT(getDbUrl())
     }
 
     @After

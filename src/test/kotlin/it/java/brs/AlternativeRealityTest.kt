@@ -10,10 +10,12 @@ import org.junit.Before
 import org.junit.Test
 import java.io.BufferedInputStream
 
-class AlternativeRealityTest : AbstractIT() {
+abstract class AlternativeRealityTest : AbstractIT() {
+    abstract fun getDbUrl(): String
+
     @Before
     fun setUp() {
-        setupIT()
+        setupIT(getDbUrl())
     }
 
     @After

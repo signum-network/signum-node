@@ -2,8 +2,8 @@ package it.common
 
 import brs.Burst
 import brs.common.TestInfrastructure
-import brs.peer.ProcessBlock
 import brs.objects.Props
+import brs.peer.ProcessBlock
 import com.google.gson.JsonObject
 import com.nhaarman.mockitokotlin2.mock
 import org.junit.runner.RunWith
@@ -20,9 +20,9 @@ abstract class AbstractIT {
     /**
      * Must be called by subclasses.
      */
-    fun setupIT() {
+    fun setupIT(dbUrl: String) {
         println("Setting up IT for test " + this.javaClass.toString())
-        burst = Burst(testProperties(), false)
+        burst = Burst(testProperties(dbUrl), false)
         processBlock = ProcessBlock(burst.dp.blockchainService, burst.dp.blockchainProcessorService)
     }
 
@@ -37,12 +37,12 @@ abstract class AbstractIT {
         }
     }
 
-    private fun testProperties(): Properties {
+    private fun testProperties(dbUrl: String): Properties {
         val props = Properties()
 
         props.setProperty(Props.DEV_TESTNET.name, "true")
         props.setProperty(Props.DEV_OFFLINE.name, "true")
-        props.setProperty(Props.DEV_DB_URL.name, TestInfrastructure.IN_MEMORY_DB_URL)
+        props.setProperty(Props.DEV_DB_URL.name, dbUrl)
         props.setProperty(Props.DB_MAX_ROLLBACK.name, "1440")
         props.setProperty(Props.DB_CONNECTIONS.name, "1")
 

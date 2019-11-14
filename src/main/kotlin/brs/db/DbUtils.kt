@@ -8,8 +8,6 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
-
-
 /**
  * Use the DSL Context of the DB and return a value
  * @param action The action to perform using the DSL Context, which returns a value
@@ -31,10 +29,10 @@ inline fun Db.useDslContext(action: (DSLContext) -> Unit) {
     getDslContext().use { context -> action(context) }
 }
 
-inline fun DSLContext.upsert(record: UpdatableRecord<*>, vararg keys: Field<*>): Query {
+fun DSLContext.upsert(record: UpdatableRecord<*>, vararg keys: Field<*>): Query {
     return insertInto(record.getTable())
         .set(record)
-        .onConflict(*keys)
+        .onConflict(*keys) // TODO work around having to use spread operator here...
         .doUpdate()
         .set(record)
 }

@@ -69,83 +69,77 @@ class SqlDb(private val dp: DependencyProvider) : Db {
         dialect = JDBCUtils.dialect(dbUrl)
 
         logger.safeDebug { "Database jdbc url set to: $dbUrl" }
-        try {
-            val config = HikariConfig()
-            config.jdbcUrl = dbUrl
-            if (dbUsername.isNotEmpty()) config.username = dbUsername
-            if (dbPassword.isNotEmpty()) config.password = dbPassword
-            config.maximumPoolSize = dp.propertyService.get(Props.DB_CONNECTIONS)
+        val config = HikariConfig()
+        config.jdbcUrl = dbUrl
+        if (dbUsername.isNotEmpty()) config.username = dbUsername
+        if (dbPassword.isNotEmpty()) config.password = dbPassword
+        config.maximumPoolSize = dp.propertyService.get(Props.DB_CONNECTIONS)
 
-            val flywayBuilder = Flyway.configure()
-                .baselineOnMigrate(true)
-            var runFlyway = false
+        val flywayBuilder = Flyway.configure()
+            .dataSource(dbUrl, dbUsername, dbPassword)
+            .baselineOnMigrate(true)
+        var runFlyway = false
 
-            when (dialect) {
-                SQLDialect.MYSQL, SQLDialect.MARIADB -> {
-                    flywayBuilder.locations("classpath:/db/migration_mariadb")
-                    runFlyway = true
-                    config.isAutoCommit = true
-                    config.addDataSourceProperty("cachePrepStmts", "true")
-                    config.addDataSourceProperty("prepStmtCacheSize", "512")
-                    config.addDataSourceProperty("prepStmtCacheSqlLimit", "4096")
-                    config.addDataSourceProperty("characterEncoding", "utf8mb4")
-                    config.addDataSourceProperty("cacheServerConfiguration", "true")
-                    config.addDataSourceProperty("useLocalSessionState", "true")
-                    config.addDataSourceProperty("useLocalTransactionState", "true")
-                    config.addDataSourceProperty("useUnicode", "true")
-                    config.addDataSourceProperty("useServerPrepStmts", "true")
-                    config.addDataSourceProperty("rewriteBatchedStatements", "true")
-                    config.addDataSourceProperty("maintainTimeStats", "false")
-                    config.addDataSourceProperty("useUnbufferedIO", "false")
-                    config.addDataSourceProperty("useReadAheadInput", "false")
-                    val flywayDataSource = object : MariaDbDataSource(dbUrl) {
-                        override fun initialize() {
-                            super.initialize()
-                            val props = Properties()
-                            props.setProperty("user", dbUsername)
-                            props.setProperty("password", dbPassword)
-                            props.setProperty("useMysqlMetadata", "true")
-                            val f = MariaDbDataSource::class.java.getDeclaredField("urlParser")
-                            f.isAccessible = true
-                            f.set(this, UrlParser.parse(dbUrl, props))
-                        }
+        when (dialect) {
+            SQLDialect.MYSQL, SQLDialect.MARIADB -> {
+                flywayBuilder.locations("classpath:/db/migration_mariadb")
+                runFlyway = true
+                config.isAutoCommit = true
+                config.addDataSourceProperty("cachePrepStmts", "true")
+                config.addDataSourceProperty("prepStmtCacheSize", "512")
+                config.addDataSourceProperty("prepStmtCacheSqlLimit", "4096")
+                config.addDataSourceProperty("characterEncoding", "utf8mb4")
+                config.addDataSourceProperty("cacheServerConfiguration", "true")
+                config.addDataSourceProperty("useLocalSessionState", "true")
+                config.addDataSourceProperty("useLocalTransactionState", "true")
+                config.addDataSourceProperty("useUnicode", "true")
+                config.addDataSourceProperty("useServerPrepStmts", "true")
+                config.addDataSourceProperty("rewriteBatchedStatements", "true")
+                config.addDataSourceProperty("maintainTimeStats", "false")
+                config.addDataSourceProperty("useUnbufferedIO", "false")
+                config.addDataSourceProperty("useReadAheadInput", "false")
+                val flywayDataSource = object : MariaDbDataSource(dbUrl) {
+                    override fun initialize() {
+                        super.initialize()
+                        val props = Properties()
+                        props.setProperty("user", dbUsername)
+                        props.setProperty("password", dbPassword)
+                        props.setProperty("useMysqlMetadata", "true")
+                        val f = MariaDbDataSource::class.java.getDeclaredField("urlParser")
+                        f.isAccessible = true
+                        f.set(this, UrlParser.parse(dbUrl, props))
                     }
-                    flywayBuilder.dataSource(flywayDataSource) // TODO Remove this hack once we can use Flyway 6
-                    config.connectionInitSql = "SET NAMES utf8mb4;"
                 }
-                SQLDialect.H2 -> {
-                    Class.forName("org.h2.Driver")
-                    flywayBuilder.locations("classpath:/db/migration_h2")
-                    runFlyway = true
-                    config.isAutoCommit = true
-                    config.addDataSourceProperty("cachePrepStmts", "true")
-                    config.addDataSourceProperty("prepStmtCacheSize", "512")
-                    config.addDataSourceProperty("prepStmtCacheSqlLimit", "4096")
-                    config.addDataSourceProperty("DATABASE_TO_UPPER", "false")
-                    config.addDataSourceProperty("CASE_INSENSITIVE_IDENTIFIERS", "true")
-                }
-                SQLDialect.SQLITE -> {
-                    Class.forName("org.sqlite.JDBC")
-                    flywayBuilder.locations("classpath:/db/migration_sqlite")
-                    runFlyway = true
-                    config.isAutoCommit = true
-                }
-                else -> {
-                }
+                flywayBuilder.dataSource(flywayDataSource) // TODO Remove this hack once we can use Flyway 6
+                config.connectionInitSql = "SET NAMES utf8mb4;"
             }
+            SQLDialect.H2 -> {
+                Class.forName("org.h2.Driver")
+                flywayBuilder.locations("classpath:/db/migration_h2")
+                runFlyway = true
+                config.isAutoCommit = true
+                config.addDataSourceProperty("cachePrepStmts", "true")
+                config.addDataSourceProperty("prepStmtCacheSize", "512")
+                config.addDataSourceProperty("prepStmtCacheSqlLimit", "4096")
+                config.addDataSourceProperty("DATABASE_TO_UPPER", "false")
+                config.addDataSourceProperty("CASE_INSENSITIVE_IDENTIFIERS", "true")
+            }
+            SQLDialect.SQLITE -> {
+                Class.forName("org.sqlite.JDBC")
+                flywayBuilder.locations("classpath:/db/migration_sqlite")
+                runFlyway = true
+                config.isAutoCommit = true
+            }
+            else -> {
+            }
+        }
 
-            cp = HikariDataSource(config)
-            if (dialect != SQLDialect.MARIADB) {
-                flywayBuilder.dataSource(cp)
-            }
+        cp = HikariDataSource(config)
 
-            if (runFlyway) {
-                logger.safeInfo { "Running flyway migration" }
-                val flyway = flywayBuilder.load()
-                flyway.migrate()
-            }
-        } catch (e: Exception) {
-            throw RuntimeException(e.toString(), e)
+        if (runFlyway) {
+            logger.safeInfo { "Running flyway migration" }
+            val flyway = flywayBuilder.load()
+            flyway.migrate()
         }
     }
 

@@ -87,6 +87,8 @@ interface Appendix {
             return if (transactionVersion.toInt() == 0) version.toInt() == 0 else version > 0
         }
 
+        abstract fun preValidate(transaction: Transaction, height: Int)
+
         abstract fun validate(transaction: Transaction)
 
         abstract fun apply(transaction: Transaction, senderAccount: Account, recipientAccount: Account)
@@ -158,7 +160,7 @@ interface Appendix {
             attachment.addProperty("messageIsText", isText)
         }
 
-        override fun validate(transaction: Transaction) {
+        override fun preValidate(transaction: Transaction, height: Int) {
             if (this.isText && transaction.version.toInt() == 0) {
                 throw BurstException.NotValidException("Text messages not yet enabled")
             }
@@ -168,6 +170,10 @@ interface Appendix {
             if (messageBytes.size > Constants.MAX_ARBITRARY_MESSAGE_LENGTH) {
                 throw BurstException.NotValidException("Invalid arbitrary message length: " + messageBytes.size)
             }
+        }
+
+        override fun validate(transaction: Transaction) {
+            // Nothing to validate.
         }
 
         override fun apply(transaction: Transaction, senderAccount: Account, recipientAccount: Account) {
@@ -252,13 +258,20 @@ interface Appendix {
             json.addProperty("isText", isText)
         }
 
-        override fun validate(transaction: Transaction) {
+        override fun preValidate(transaction: Transaction, height: Int) {
             if (encryptedData.data.size > Constants.MAX_ENCRYPTED_MESSAGE_LENGTH) {
                 throw BurstException.NotValidException("Max encrypted message length exceeded")
             }
             if (encryptedData.nonce.size != 32 && encryptedData.data.isNotEmpty() || encryptedData.nonce.isNotEmpty() && encryptedData.data.isEmpty()) {
                 throw BurstException.NotValidException("Invalid nonce length " + encryptedData.nonce.size)
             }
+            if (transaction.version.toInt() == 0) {
+                throw BurstException.NotValidException("Encrypted message attachments not enabled for version 0 transactions")
+            }
+        }
+
+        override fun validate(transaction: Transaction) {
+            // Nothing to validate.
         }
 
         override fun apply(transaction: Transaction, senderAccount: Account, recipientAccount: Account) {
@@ -300,13 +313,10 @@ interface Appendix {
             json.add("encryptedMessage", encryptedMessageJSON)
         }
 
-        override fun validate(transaction: Transaction) {
-            super.validate(transaction)
+        override fun preValidate(transaction: Transaction, height: Int) {
+            super.preValidate(transaction, height)
             if (!transaction.type.hasRecipient()) {
                 throw BurstException.NotValidException("Encrypted messages cannot be attached to transactions with no recipient")
-            }
-            if (transaction.version.toInt() == 0) {
-                throw BurstException.NotValidException("Encrypted message attachments not enabled for version 0 transactions")
             }
         }
 
@@ -354,13 +364,6 @@ interface Appendix {
             val encryptToSelfMessageJSON = JsonObject()
             super.putMyJSON(encryptToSelfMessageJSON)
             json.add("encryptToSelfMessage", encryptToSelfMessageJSON)
-        }
-
-        override fun validate(transaction: Transaction) {
-            super.validate(transaction)
-            if (transaction.version.toInt() == 0) {
-                throw BurstException.NotValidException("Encrypt-to-self message attachments not enabled for version 0 transactions")
-            }
         }
 
         companion object {
@@ -426,7 +429,7 @@ interface Appendix {
             attachment.addProperty("recipientPublicKey", publicKey.toHexString())
         }
 
-        override fun validate(transaction: Transaction) {
+        override fun preValidate(transaction: Transaction, height: Int) {
             if (!transaction.type.hasRecipient()) {
                 throw BurstException.NotValidException("PublicKeyAnnouncement cannot be attached to transactions with no recipient")
             }
@@ -439,6 +442,13 @@ interface Appendix {
             }
             if (transaction.version.toInt() == 0) {
                 throw BurstException.NotValidException("Public key announcements not enabled for version 0 transactions")
+            }
+        }
+
+        override fun validate(transaction: Transaction) {
+            val recipientId = transaction.recipientId
+            if (Account.getId(this.publicKey) != recipientId) {
+                throw BurstException.NotValidException("Announced public key does not match recipient accountId")
             }
             val recipientAccount = Account.getAccount(dp, recipientId)
             if (recipientAccount?.publicKey != null && !publicKey.contentEquals(recipientAccount.publicKey!!)) {

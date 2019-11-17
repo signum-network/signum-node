@@ -11,7 +11,9 @@ interface TransactionService {
     /**
      * TODO
      */
-    fun validate(transaction: Transaction)
+    fun validate(transaction: Transaction, preValidate: Boolean = true)
+
+    fun preValidate(transaction: Transaction, height: Int)
 
     /**
      * TODO

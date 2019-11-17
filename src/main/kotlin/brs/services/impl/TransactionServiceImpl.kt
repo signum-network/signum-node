@@ -14,19 +14,20 @@ class TransactionServiceImpl(private val dp: DependencyProvider) : TransactionSe
         } else account.setOrVerify(dp, transaction.senderPublicKey, transaction.height)
     }
 
-    override fun validate(transaction: Transaction) {
+    override fun validate(transaction: Transaction, preValidate: Boolean) {
         for (appendage in transaction.appendages) {
             appendage.validate(transaction)
         }
-        val minimumFeePlanck =
-            transaction.type.minimumFeePlanck(dp.blockchainService.height, transaction.appendagesSize)
+        if (preValidate) preValidate(transaction, dp.blockchainService.height)
+    }
+
+    override fun preValidate(transaction: Transaction, height: Int) {
+        val minimumFeePlanck = transaction.type.minimumFeePlanck(height, transaction.appendagesSize)
         if (transaction.feePlanck < minimumFeePlanck) {
-            throw BurstException.NotCurrentlyValidException(
-                String.format(
-                    "Transaction fee %d less than minimum fee %d at height %d",
-                    transaction.feePlanck, minimumFeePlanck, dp.blockchainService.height
-                )
-            )
+            throw BurstException.NotCurrentlyValidException("Transaction fee ${transaction.feePlanck} less than minimum fee $minimumFeePlanck at height ${dp.blockchainService.height}")
+        }
+        for (appendage in transaction.appendages) {
+            appendage.validate(transaction)
         }
     }
 

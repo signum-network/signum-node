@@ -109,6 +109,10 @@ class AtController(private val dp: DependencyProvider) {
         state.machineState.pc = opc
     }
 
+    /**
+     * Validates creation bytes. Does not validate code.
+     * @return The total number of pages
+     */
     fun checkCreationBytes(creation: ByteArray, height: Int): Int {
         val totalPages: Int
         try {
@@ -150,7 +154,7 @@ class AtController(private val dp: DependencyProvider) {
             if (codeLen < 1 || codeLen > codePages * 256) {
                 throw AtException(AtError.INCORRECT_CODE_LENGTH.description)
             }
-            val code = ByteArray(codeLen)
+            val code = ByteArray(codeLen) // TODO just skip bytes as this is never read
             b.get(code, 0, codeLen)
 
             val dataLen = getLength(dataPages.toInt(), b)

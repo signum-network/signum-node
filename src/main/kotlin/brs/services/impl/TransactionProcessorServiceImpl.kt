@@ -313,7 +313,6 @@ class TransactionProcessorServiceImpl(private val dp: DependencyProvider) : Tran
             } catch (e: ValidationException) {
                 invalidTransactions.add(t)
             }
-
         }
 
         for (t in invalidTransactions) {

@@ -70,6 +70,7 @@ class BlockServiceImpl(private val dp: DependencyProvider) : BlockService {
                 return false
             }
             val elapsedTime = block.timestamp - previousBlock.timestamp
+            // TODO pocTime is accessed outside of lock.
             val pTime = block.pocTime!!.divide(BigInteger.valueOf(previousBlock.baseTarget))
             return BigInteger.valueOf(elapsedTime.toLong()) > pTime
         } catch (e: RuntimeException) {
@@ -79,46 +80,49 @@ class BlockServiceImpl(private val dp: DependencyProvider) : BlockService {
 
     }
 
-    @Throws(BlockchainProcessorService.BlockNotAcceptedException::class, InterruptedException::class)
-    override fun preVerify(block: Block) {
-        preVerify(block, null)
-    }
-
-    @Throws(BlockchainProcessorService.BlockNotAcceptedException::class, InterruptedException::class)
-    override fun preVerify(block: Block, scoopData: ByteArray?) { // TODO pre-verify more stuff
-        // Just in case its already verified
-        if (block.isVerified) {
-            return
-        }
-
-        try {
-            // Pre-verify poc:
-            if (scoopData == null) {
-                block.pocTime = dp.generatorService.calculateHit(
-                    block.generatorId,
-                    block.nonce, block.generationSignature, getScoopNum(block), block.height
-                )
-            } else {
-                block.pocTime = dp.generatorService.calculateHit(
-                    block.generatorId,
-                    block.nonce, block.generationSignature, scoopData
-                )
+    override fun preVerify(block: Block, scoopData: ByteArray?, warnIfNotVerified: Boolean) {
+        block.verificationLock.withLock {
+            // Check if it's already verified
+            if (block.verified) {
+                return
             }
-        } catch (e: RuntimeException) {
-            logger.safeInfo(e) { "Error pre-verifying block generation signature" }
-            return
-        }
 
-        for (transaction in block.transactions) {
-            if (!transaction.verifySignature()) {
-                logger.safeInfo { "Bad transaction signature during block pre-verification for tx: ${transaction.stringId} at block height: ${block.height}" }
-                throw BlockchainProcessorService.TransactionNotAcceptedException(
-                    "Invalid signature for tx " + transaction.stringId + " at block height: " + block.height,
-                    transaction
-                )
+            if (warnIfNotVerified) {
+                logger.warn("Block was not pre-verified!")
             }
-        }
 
+            dp.downloadCacheService.removeUnverified(block.id)
+
+            try {
+                // Pre-verify poc:
+                if (scoopData == null) {
+                    block.pocTime = dp.generatorService.calculateHit(
+                        block.generatorId,
+                        block.nonce, block.generationSignature, getScoopNum(block), block.height
+                    )
+                } else {
+                    block.pocTime = dp.generatorService.calculateHit(
+                        block.generatorId,
+                        block.nonce, block.generationSignature, scoopData
+                    )
+                }
+            } catch (e: RuntimeException) {
+                logger.safeInfo(e) { "Error pre-verifying block generation signature" }
+                return
+            }
+
+            for (transaction in block.transactions) {
+                if (!transaction.verifySignature()) {
+                    logger.safeInfo { "Bad transaction signature during block pre-verification for tx: ${transaction.stringId} at block height: ${block.height}" }
+                    throw BlockchainProcessorService.TransactionNotAcceptedException(
+                        "Invalid signature for tx " + transaction.stringId + " at block height: " + block.height,
+                        transaction
+                    )
+                }
+                dp.transactionService.preValidate(transaction, block.height)
+            }
+            block.verified = true
+        }
     }
 
     override fun apply(block: Block) {

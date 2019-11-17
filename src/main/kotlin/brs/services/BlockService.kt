@@ -4,16 +4,12 @@ import brs.entity.Block
 
 interface BlockService {
     /**
-     * TODO
+     * Checks whether a block is verified, and verifies it if it is not,
+     * before removing it from the download cache unverified list.
+     * @param scoopData Pre-calculated scoop data for this block to use to verify the block's PoC proof. Will be calculated if null
+     * @param warnIfNotVerified Emit a logger debug warning if the block was not pre-verified yet
      */
-    @Throws(BlockchainProcessorService.BlockNotAcceptedException::class, InterruptedException::class)
-    fun preVerify(block: Block)
-
-    /**
-     * TODO
-     */
-    @Throws(BlockchainProcessorService.BlockNotAcceptedException::class, InterruptedException::class)
-    fun preVerify(block: Block, scoopData: ByteArray?)
+    fun preVerify(block: Block, scoopData: ByteArray? = null, warnIfNotVerified: Boolean = false)
 
     /**
      * TODO

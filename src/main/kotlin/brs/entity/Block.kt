@@ -13,6 +13,7 @@ import brs.util.delegates.AtomicLazy
 import brs.util.json.*
 import brs.util.logging.safeDebug
 import brs.util.logging.safeError
+import brs.util.sync.Mutex
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import org.slf4j.LoggerFactory
@@ -66,13 +67,13 @@ class Block internal constructor(
         Crypto.sha256().digest(toBytes())
     }
 
+    // Pre-verification stuff
+    val verificationLock = Mutex()
+    var verified: Boolean = false
     var pocTime: BigInteger? = null
 
     var peer: Peer? = null
     var byteLength = 0
-
-    val isVerified: Boolean
-        get() = pocTime != null
 
     fun toJsonObject(): JsonObject {
         val json = JsonObject()

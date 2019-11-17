@@ -167,6 +167,7 @@ open class Account {
             return dp.accountStore.accountTable
         }
 
+        @Deprecated("Use dp.accountService.getAccount()")
         fun getAccount(dp: DependencyProvider, id: Long): Account? {
             return if (id == 0L) null else accountTable(dp)[accountBurstKeyFactory(
                 dp

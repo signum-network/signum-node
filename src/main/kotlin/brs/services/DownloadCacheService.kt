@@ -61,7 +61,7 @@ interface DownloadCacheService {
     fun getUnverifiedBlockIdFromPos(pos: Int): Long
 
     /**
-     * TODO
+     * Removes a block from the unverified block list
      */
     fun removeUnverified(blockId: Long)
 

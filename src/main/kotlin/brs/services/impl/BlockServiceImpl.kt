@@ -11,7 +11,9 @@ import brs.services.BlockchainProcessorService
 import brs.services.BlockchainProcessorService.BlockOutOfOrderException
 import brs.util.crypto.Crypto
 import brs.util.crypto.verifySignature
+import brs.util.logging.safeDebug
 import brs.util.logging.safeInfo
+import brs.util.logging.safeWarn
 import org.slf4j.LoggerFactory
 import java.math.BigInteger
 
@@ -89,7 +91,7 @@ class BlockServiceImpl(private val dp: DependencyProvider) : BlockService {
             }
 
             if (warnIfNotVerified) {
-                logger.warn("Block was not pre-verified!")
+                logger.safeWarn { "Block was not pre-verified!" }
             }
 
             dp.downloadCacheService.removeUnverified(block.id)
@@ -139,6 +141,8 @@ class BlockServiceImpl(private val dp: DependencyProvider) : BlockService {
             if (!block.payloadHash.contentEquals(sha256.digest())) {
                 throw BlockchainProcessorService.BlockNotAcceptedException("Payload hash doesn't match for block " + block.height)
             }
+
+            logger.safeDebug { "Pre-verified block at height ${block.height}"}
 
             block.verified = true
         }

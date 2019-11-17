@@ -581,7 +581,7 @@ var BRS = (function(BRS, $, undefined) {
                         $("#dashboard_message").addClass("alert-success").removeClass("alert-danger").html($.t("status_new_account", {
                             "account_id": String(BRS.accountRS).escapeHTML(),
                             "public_key": String(BRS.publicKey).escapeHTML()
-                        })).show();
+                        }) + $.t("no_public_key_warning_note")).show();
                     }
                 }
                 else {

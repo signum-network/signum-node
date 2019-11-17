@@ -577,7 +577,6 @@ var BRS = (function(BRS, $, undefined) {
 							}
 					});
 				}
-				console.log(response);
 			}
 		});
 	}

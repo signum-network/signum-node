@@ -12,8 +12,8 @@ matrix:
       jdk: openjdk9
       dist: bionic
       script: ./gradlew -Dheadless=true clean test
-    - name: "OpenJDK 12"
-      jdk: openjdk12
+    - name: "OpenJDK 13"
+      jdk: openjdk13
       dist: bionic
       script: ./gradlew -Dheadless=true clean test
 

@@ -111,7 +111,7 @@ internal class SqlOrderStore(private val dp: DependencyProvider) : OrderStore {
         record.creationHeight = ask.height
         record.height = dp.blockchainService.height
         record.latest = true
-        ctx.upsert(record, BID_ORDER.ID, BID_ORDER.HEIGHT).execute()
+        ctx.upsert(record, ASK_ORDER.ID, ASK_ORDER.HEIGHT).execute()
     }
 
     override fun getBidOrdersByAccount(accountId: Long, from: Int, to: Int): Collection<Order.Bid> {

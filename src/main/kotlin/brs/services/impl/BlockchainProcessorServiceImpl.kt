@@ -879,7 +879,7 @@ class BlockchainProcessorServiceImpl(private val dp: DependencyProvider) : Block
                     dp.dbCacheService.flushCache()
                     dp.db.commitTransaction()
                     dp.downloadCacheService.resetCache()
-                } catch (e: RuntimeException) {
+                } catch (e: Exception) {
                     dp.db.rollbackTransaction()
                     logger.safeDebug(e) { "Error popping off to ${commonBlock.height}" }
                     throw e

@@ -4,6 +4,7 @@ import brs.entity.Account
 import brs.entity.DependencyProvider
 import brs.objects.FluxValues
 import brs.objects.Props
+import brs.util.byteArray.skip
 import brs.util.convert.toUnsignedString
 import brs.util.crypto.Crypto
 import brs.util.logging.safeDebug
@@ -154,15 +155,13 @@ class AtController(private val dp: DependencyProvider) {
             if (codeLen < 1 || codeLen > codePages * 256) {
                 throw AtException(AtError.INCORRECT_CODE_LENGTH.description)
             }
-            val code = ByteArray(codeLen) // TODO just skip bytes as this is never read
-            b.get(code, 0, codeLen)
+            b.skip(codeLen)
 
             val dataLen = getLength(dataPages.toInt(), b)
             if (dataLen < 0 || dataLen > dataPages * 256) {
                 throw AtException(AtError.INCORRECT_DATA_LENGTH.description)
             }
-            val data = ByteArray(dataLen)
-            b.get(data, 0, dataLen)
+            b.skip(dataLen)
 
             totalPages = codePages.toInt() + dataPages.toInt() + userStackPages.toInt() + callStackPages.toInt()
 

@@ -9,6 +9,7 @@ import brs.objects.Genesis
 import brs.services.BlockService
 import brs.services.BlockchainProcessorService
 import brs.services.BlockchainProcessorService.BlockOutOfOrderException
+import brs.util.crypto.Crypto
 import brs.util.crypto.verifySignature
 import brs.util.logging.safeInfo
 import org.slf4j.LoggerFactory
@@ -111,7 +112,9 @@ class BlockServiceImpl(private val dp: DependencyProvider) : BlockService {
                 return
             }
 
-            for (transaction in block.transactions) {
+            val feeArray = LongArray(block.transactions.size)
+            val sha256 = Crypto.sha256()
+            for ((slotIdx, transaction) in block.transactions.withIndex()) {
                 if (!transaction.verifySignature()) {
                     logger.safeInfo { "Bad transaction signature during block pre-verification for tx: ${transaction.stringId} at block height: ${block.height}" }
                     throw BlockchainProcessorService.TransactionNotAcceptedException(
@@ -120,7 +123,23 @@ class BlockServiceImpl(private val dp: DependencyProvider) : BlockService {
                     )
                 }
                 dp.transactionService.preValidate(transaction, block.height)
+                sha256.update(transaction.toBytes())
+                feeArray[slotIdx] = transaction.feePlanck
             }
+
+            if (dp.fluxCapacitorService.getValue(FluxValues.NEXT_FORK)) {
+                feeArray.sort()
+                for (i in feeArray.indices) {
+                    if (feeArray[i] >= Constants.FEE_QUANT * (i + 1)) {
+                        throw BlockchainProcessorService.BlockNotAcceptedException("Transaction fee is not enough to be included in this block " + block.height)
+                    }
+                }
+            }
+
+            if (!block.payloadHash.contentEquals(sha256.digest())) {
+                throw BlockchainProcessorService.BlockNotAcceptedException("Payload hash doesn't match for block " + block.height)
+            }
+
             block.verified = true
         }
     }

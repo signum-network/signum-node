@@ -558,7 +558,7 @@
     "no_products_found": "Немає жодного товару.",
     "no_products_listed_yet": "Ви ще не опублікували товари для продажу <a href='#'' data-toggle='modal' data-target='#dgs_listing_modal'>додати один.<\/a>",
     "no_public_key_warning": "<strong>Попередження!<\/strong>: ваш аккаунт не має відкритого ключа! Це означає, що ваш аккаунт не захищений належним чином. Ви повинні зробити хоч би одну витікаючу транзакцію, щоб виправити цю проблему.",
-	"no_public_key_warning_note": "<br><strong>Note:<\/strong>: This account does not have a public key! Make sure to activate your account.",
+	"no_public_key_warning_note": "<br><strong>Note:<\/strong> This account does not have a public key! Activate your account <a id='act_lnk' href='#' onclick='BRS.activateAccount();return false;'>here</a>",
     "no_purchased_products_found": "Куплені товари не знайдені .",
     "no_sell_orders_for_asset": "Немає заявок на продаж цього активу.",
     "no_trade_history": "Історія торгівлі не доступна.",

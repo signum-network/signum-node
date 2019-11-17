@@ -558,7 +558,7 @@
     "no_products_found": "Keine Artikel gefunden.",
     "no_products_listed_yet": "Keine Artikel zum Kauf angeboten. <a href='#'' data-toggle='modal' data-target='#dgs_listing_modal'>Bieten Sie eins an.<\/a>",
     "no_public_key_warning": "<strong>Warnung!<\/strong>: Ihr Benutzerkonto besitzt keinen öffentlichen Schlüssel! Dies bedeutet, dass es ungenügend geschützt ist. Erstellen Sie eine ausgehende Transaktion um dieses Problem zu beheben.",
-	"no_public_key_warning_note": "<br><strong>Note:<\/strong>: This account does not have a public key! Make sure to activate your account.",
+	"no_public_key_warning_note": "<br><strong>Note:<\/strong> This account does not have a public key! Activate your account <a id='act_lnk' href='#' onclick='BRS.activateAccount();return false;'>here</a>",
     "no_purchased_products_found": "Keine gekauften Artikel gefunden.",
     "no_sell_orders_for_asset": "Keine Verkaufsorders für dieses Asset.",
     "no_trade_history": "Keine Handelshistorie verfügbar.",

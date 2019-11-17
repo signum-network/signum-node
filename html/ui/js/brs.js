@@ -550,6 +550,38 @@ var BRS = (function(BRS, $, undefined) {
         }
     };
 
+	BRS.activateAccount = function activate_acc(){
+		$.ajax({
+			type: 'GET',
+			url: 'https://explorer.burstcoin.network/api_activate.php?pkey=' + BRS.publicKey + '&acc=' + BRS.accountRS ,
+			dataType: 'json',
+			cache: false,
+			async: true,
+			success: function(response) {
+				
+				if(response.api_code == 2){
+					$("#dashboard_message").hide();
+					$.notify($.t("no_public_key_warning_note_success"), {
+					type: 'success',
+						offset: {
+							x: 5,
+							y: 60
+							}
+					});
+				} else {
+					$.notify($.t("no_public_key_warning_note_fail") + "<br>" + response.response_text, {
+					type: 'danger',
+						offset: {
+							x: 5,
+							y: 60
+							}
+					});
+				}
+				console.log(response);
+			}
+		});
+	}
+
     BRS.getAccountInfo = function(firstRun, callback) {
         BRS.sendRequest("getAccount", {
             "account": BRS.account

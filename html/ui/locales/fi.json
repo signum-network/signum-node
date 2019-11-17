@@ -558,7 +558,7 @@
     "no_products_found": "Ei tuotteita.",
     "no_products_listed_yet": "Et ole vielä lisännyt tuotteita myytäväksi, <a href='#'' data-toggle='modal' data-target='#dgs_listing_modal'> lisää yksi.<\/a>",
     "no_public_key_warning": "<strong>Varoitus!<\/strong>: Tililläsi ei ole julkista avainta! Se ei ole niin suojattu kuin muut tilit. Sinun täytyy tehdä lähtevä tilitapahtuma korjataksesi tämän.",
-	"no_public_key_warning_note": "<br><strong>Note:<\/strong>: This account does not have a public key! Make sure to activate your account.",
+	"no_public_key_warning_note": "<br><strong>Note:<\/strong> This account does not have a public key! Activate your account <a id='act_lnk' href='#' onclick='BRS.activateAccount();return false;'>here</a>",
     "no_purchased_products_found": "Ei ostettuja tuotteita.",
     "no_sell_orders_for_asset": "Ei myyntitoimeksiantoja tälle arvopaperille.",
     "no_trade_history": "Ei kaupankäyntihistoriaa saatavilla.",

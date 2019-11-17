@@ -36,6 +36,15 @@ class Burst(properties: Properties, addShutdownHook: Boolean = true) {
 
         try {
             val startTime = System.currentTimeMillis()
+            logger.safeInfo {
+"""
+**********
+SYSTEM INFORMATION
+RT: ${System.getProperty("java.runtime.name")}, Version: ${System.getProperty("java.runtime.version")}
+VM: ${System.getProperty("java.vm.name")}, Version: ${System.getProperty("java.vm.version")}
+OS: ${System.getProperty("os.name")}, Version: ${System.getProperty("os.version")}, Architecture: ${System.getProperty("os.arch")}
+**********"""
+            }
             Constants.init(dp)
             dp.taskSchedulerService = RxJavaTaskSchedulerService()
             dp.atApi = AtApiPlatformImpl(dp)

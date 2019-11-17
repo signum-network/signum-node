@@ -27,7 +27,7 @@ class TransactionServiceImpl(private val dp: DependencyProvider) : TransactionSe
             throw BurstException.NotCurrentlyValidException("Transaction fee ${transaction.feePlanck} less than minimum fee $minimumFeePlanck at height ${dp.blockchainService.height}")
         }
         for (appendage in transaction.appendages) {
-            appendage.validate(transaction)
+            appendage.preValidate(transaction, height)
         }
     }
 

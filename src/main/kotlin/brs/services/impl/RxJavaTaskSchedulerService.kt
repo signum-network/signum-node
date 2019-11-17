@@ -108,7 +108,7 @@ class RxJavaTaskSchedulerService: TaskSchedulerService {
     private fun delayedRepeatingTaskToTask(task: Task, taskType: TaskType, initialDelayMs: Long, delayMs: Long): Completable {
         return safeCreateCompletable {
             Thread.sleep(initialDelayMs)
-            while (!it.isDisposed) {
+            while (!it.isDisposed) { // TODO catch stuff
                 task()
                 Thread.sleep(delayMs)
             }
@@ -118,7 +118,7 @@ class RxJavaTaskSchedulerService: TaskSchedulerService {
 
     private fun repeatingTaskToTask(task: RepeatingTask, taskType: TaskType): Completable {
         return safeCreateCompletable {
-            while (!it.isDisposed) {
+            while (!it.isDisposed) { // TODO catch stuff
                 if (!task()) {
                     Thread.sleep(Constants.TASK_FAILURE_DELAY_MS)
                 }

@@ -39,10 +39,7 @@ class DigitalGoodsQuantityChange(dp: DependencyProvider) : DigitalGoods(dp) {
             throw BurstException.NotValidException("Invalid digital goods quantity change: " + attachment.jsonObject.toJsonString())
         }
         if (goods == null || goods.isDelisted) {
-            throw BurstException.NotCurrentlyValidException(
-                "Goods " + attachment.goodsId.toUnsignedString() +
-                        "not yet listed or already delisted"
-            )
+            throw BurstException.NotCurrentlyValidException("Goods ${attachment.goodsId.toUnsignedString()} not yet listed or already delisted")
         }
     }
 

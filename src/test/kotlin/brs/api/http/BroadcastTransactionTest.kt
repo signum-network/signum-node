@@ -1,16 +1,16 @@
 package brs.api.http
 
-import brs.util.BurstException
-import brs.entity.Transaction
-import brs.services.TransactionProcessorService
 import brs.api.http.common.Parameters.TRANSACTION_BYTES_PARAMETER
 import brs.api.http.common.Parameters.TRANSACTION_JSON_PARAMETER
 import brs.api.http.common.ResultFields.ERROR_CODE_RESPONSE
 import brs.api.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE
 import brs.api.http.common.ResultFields.FULL_HASH_RESPONSE
 import brs.api.http.common.ResultFields.TRANSACTION_RESPONSE
+import brs.entity.Transaction
 import brs.services.ParameterService
+import brs.services.TransactionProcessorService
 import brs.services.TransactionService
+import brs.util.BurstException
 import brs.util.convert.parseHexString
 import brs.util.convert.toHexString
 import brs.util.json.safeGetAsLong
@@ -79,7 +79,7 @@ class BroadcastTransactionTest {
 
         whenever(parameterServiceMock.parseTransaction(eq(mockTransactionBytesParameter), eq(mockTransactionJson))).doReturn(mockTransaction)
 
-        doAnswer { throw BurstException.NotCurrentlyValidException("") }.whenever(transactionServiceMock).validate(eq(mockTransaction))
+        doAnswer { throw BurstException.NotCurrentlyValidException("") }.whenever(transactionServiceMock).validate(eq(mockTransaction), any())
 
         val result = t.processRequest(request) as JsonObject
 

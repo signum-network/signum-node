@@ -558,6 +558,7 @@
    "no_products_found" : "No s'han trobat articles.",
    "no_products_listed_yet" : "Encara no heu possat cap producte a la venta",
    "no_public_key_warning" : "Alerta!: el vostre compte no té una clau pública! Això significa que no està tan protegida com altres comptes. Hi heu de fer una transacció per solucionar aquest problema.",
+   "no_public_key_warning_note": "<br><strong>Note:<\/strong>: This account does not have a public key! Make sure to activate your account.",
    "no_purchased_products_found" : "No s'han trobat productes adquirits.",
    "no_sell_orders_for_asset" : "No hi ha ordres de venta para aquest actiu.",
    "no_trade_history" : "Historial de comerç no disponible.",

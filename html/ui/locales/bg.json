@@ -558,6 +558,7 @@
    "no_products_found" : "Няма намерени продукти.",
    "no_products_listed_yet" : "Все още не сте вписали продукти за продажба",
    "no_public_key_warning" : "Предупреждение!: вашата сметка няма публичен ключ! Това означава, че не е защитена като други сметки. Трябва да направите изходящ превод да решите проблема.",
+   "no_public_key_warning_note": "<br><strong>Note:<\/strong>: This account does not have a public key! Make sure to activate your account.",
    "no_purchased_products_found" : "Не са намерени закупени продукти.",
    "no_sell_orders_for_asset" : "Няма поръчки за продажба за този актив.",
    "no_trade_history" : "Няма история на търговията.",

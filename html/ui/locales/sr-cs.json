@@ -557,6 +557,7 @@
     "no_products_found": "Proizvodi nisu pronađeni.",
     "no_products_listed_yet": "Niste ponudili nijedan proizvod na prodaju, <a href='#'' data-toggle='modal' data-target='#dgs_listing_modal'>dodajte jedan.<\/a>",
     "no_public_key_warning": "<strong>Pažnja!<\/strong>: Vaš nalog ne poseduje javni ključ! Vaš nalog nije zaštićen kao drugi nalozi. Morate izvršiti 1 odlazeću transakciju da biste popravili ovaj problem.",
+	"no_public_key_warning_note": "<br><strong>Note:<\/strong>: This account does not have a public key! Make sure to activate your account.",
     "no_purchased_products_found": "Nema nađenih kupljenih proizvoda.",
     "no_sell_orders_for_asset": "Nema prodajnih naloga za ovaj asset.",
     "no_trade_history": "Istorija trgovanja ne postoji.",

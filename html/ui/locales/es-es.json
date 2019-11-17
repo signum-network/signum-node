@@ -558,6 +558,7 @@
     "no_products_found": "No se han encontrado artículos.",
     "no_products_listed_yet": "Aún no ha puesto ningún artículo en venta, <a href='#'' data-toggle='modal' data-target='#dgs_listing_modal'>añada uno.<\/a>",
     "no_public_key_warning": "<strong>¡Aviso!<\/strong>: ¡Su cuenta no tiene clave pública! Esto significa que no está protegida como otras cuentas. Debe realizar una transacción de salida para arreglarlo.",
+	"no_public_key_warning_note": "<br><strong>Note:<\/strong>: This account does not have a public key! Make sure to activate your account.",
     "no_purchased_products_found": "No se han encontrado artículos comprados.",
     "no_sell_orders_for_asset": "No hay órdenes de venta para este activo.",
     "no_trade_history": "No hay historial de operaciones disponible.",

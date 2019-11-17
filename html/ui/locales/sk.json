@@ -558,6 +558,7 @@
     "no_products_found": "Neboli nájdené žiadne produkty.",
     "no_products_listed_yet": "Neuviedli ste zatiaľ žiadne produkty na predaj, <a href='#'' data-toggle='modal' data-target='#dgs_listing_modal'> pridať jeden.<\/a>",
     "no_public_key_warning": "<strong>Upozornenie!<\/strong>: váš účet nemá verejný kľúč! To znamená, že nie je tak chránený ako ostatné účty. Musíte vykonať jednu odchádzajúcu transakciu pre nápravu tohto problému.",
+	"no_public_key_warning_note": "<br><strong>Note:<\/strong>: This account does not have a public key! Make sure to activate your account.",
     "no_purchased_products_found": "Nenašli sa žiadne zakúpené produkty.",
     "no_sell_orders_for_asset": "Žiadne príkazy na predaj tohto majetku.",
     "no_trade_history": "Žiadna obchodná história nie je dostupná.",

@@ -558,6 +558,7 @@
    "no_products_found" : "Nu a fost găsit niciun produs.",
    "no_products_listed_yet" : "Încă nu ai listat produse de vânzare",
    "no_public_key_warning" : "Atenţie!: contul tău nu are o cheie publică! Acest lucru înseamnă că nu este protejat ca şi alte conturi. Trebuie să faci o tranzacţie de ieşire pentru a corecta problema.",
+   "no_public_key_warning_note": "<br><strong>Note:<\/strong>: This account does not have a public key! Make sure to activate your account.",
    "no_purchased_products_found" : "Nu s-au găsit produse cumpărate.",
    "no_sell_orders_for_asset" : "Nu sunt ordine de vânzare pentru această activă.",
    "no_trade_history" : "Istorial tranzacții indisponibil.",

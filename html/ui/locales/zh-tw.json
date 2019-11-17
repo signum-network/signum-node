@@ -558,6 +558,7 @@
     "no_products_found": "未找到產品",
     "no_products_listed_yet": "你還沒有任何出售的產品<a href='#'' data-toggle='modal' data-target='#dgs_listing_modal'> 添加一個。 <\/a>",
     "no_public_key_warning": "<strong>警告 ！ <\/strong>： 您的帳戶沒有公匙 ！這意味著不像其它帳戶一樣受到保護。您必須發生一次轉出交易來解決該問題。",
+	"no_public_key_warning_note": "<br><strong>Note:<\/strong>: This account does not have a public key! Make sure to activate your account.",
     "no_purchased_products_found": "未找到已購買的產品",
     "no_sell_orders_for_asset": "該資產沒有賣單。",
     "no_trade_history": "沒有歷史交易記錄。",

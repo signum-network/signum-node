@@ -111,7 +111,7 @@ interface Attachment : Appendix {
         }
 
         override fun validate(transaction: Transaction) {
-            transactionType.validateAttachment(transaction)
+            transactionType.preValidateAttachment(transaction,)
         }
 
         override fun apply(transaction: Transaction, senderAccount: Account, recipientAccount: Account) {

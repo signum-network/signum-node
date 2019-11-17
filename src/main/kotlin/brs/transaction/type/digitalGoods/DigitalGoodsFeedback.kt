@@ -28,7 +28,11 @@ class DigitalGoodsFeedback(dp: DependencyProvider) : DigitalGoods(dp) {
         )
     }
 
-    override fun doValidateAttachment(transaction: Transaction) {
+    override fun doPreValidateAttachment(transaction: Transaction, height: Int) {
+        // Nothing to pre-validate.
+    }
+
+    override fun validateAttachment(transaction: Transaction) {
         val attachment = transaction.attachment as Attachment.DigitalGoodsFeedback
         val purchase = dp.digitalGoodsStoreService.getPurchase(attachment.purchaseId)
         if (purchase != null && (purchase.sellerId != transaction.recipientId || transaction.senderId != purchase.buyerId)) {

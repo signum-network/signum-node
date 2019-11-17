@@ -35,6 +35,19 @@ abstract class TransactionType constructor(internal val dp: DependencyProvider) 
     open val isSigned = true
     abstract fun parseAttachment(buffer: ByteBuffer, transactionVersion: Byte): AbstractAttachment
     internal abstract fun parseAttachment(attachmentData: JsonObject): AbstractAttachment
+
+    /**
+     * Validate that the attachment is valid at the height specified.
+     * May be called from different threads - must not modify any transaction data
+     * and must not rely on current blockchain state.
+     */
+    internal abstract fun preValidateAttachment(transaction: Transaction, height: Int)
+
+    /**
+     * Validate that the attachment is valid at the height specified.
+     * Called from the block importer thread before pushing so may
+     * rely on current blockchain state.
+     */
     internal abstract fun validateAttachment(transaction: Transaction)
 
     /**

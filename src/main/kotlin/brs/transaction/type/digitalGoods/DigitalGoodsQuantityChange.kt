@@ -25,7 +25,11 @@ class DigitalGoodsQuantityChange(dp: DependencyProvider) : DigitalGoods(dp) {
         dp.digitalGoodsStoreService.changeQuantity(attachment.goodsId, attachment.deltaQuantity, false)
     }
 
-    override fun doValidateAttachment(transaction: Transaction) {
+    override fun doPreValidateAttachment(transaction: Transaction, height: Int) {
+        // Nothing to pre-validate.
+    }
+
+    override fun validateAttachment(transaction: Transaction) {
         val attachment = transaction.attachment as Attachment.DigitalGoodsQuantityChange
         val goods = dp.digitalGoodsStoreService.getGoods(attachment.goodsId)
         if (attachment.deltaQuantity < -Constants.MAX_DGS_LISTING_QUANTITY

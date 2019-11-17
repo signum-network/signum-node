@@ -67,7 +67,7 @@ class AssetTransfer(dp: DependencyProvider) : ColoredCoins(dp) {
         )
     }
 
-    override fun validateAttachment(transaction: Transaction) {
+    override fun preValidateAttachment(transaction: Transaction, height: Int) {
         val attachment = transaction.attachment as Attachment.ColoredCoinsAssetTransfer
         if (transaction.amountPlanck != 0L
             || attachment.comment != null && attachment.comment.length > Constants.MAX_ASSET_TRANSFER_COMMENT_LENGTH
@@ -78,15 +78,17 @@ class AssetTransfer(dp: DependencyProvider) : ColoredCoins(dp) {
         if (transaction.version > 0 && attachment.comment != null) {
             throw BurstException.NotValidException("Asset transfer comments no longer allowed, use message " + "or encrypted message appendix instead")
         }
+    }
+
+    override fun validateAttachment(transaction: Transaction) {
+        val attachment = transaction.attachment as Attachment.ColoredCoinsAssetTransfer
         val asset = dp.assetExchangeService.getAsset(attachment.assetId)
-        if (attachment.quantity <= 0 || asset != null && attachment.quantity > asset.quantity) {
-            throw BurstException.NotValidException("Invalid asset transfer asset or quantity: " + attachment.jsonObject.toJsonString())
-        }
-        if (asset == null) {
-            throw BurstException.NotCurrentlyValidException(
+            ?: throw BurstException.NotCurrentlyValidException(
                 "Asset " + attachment.assetId.toUnsignedString() +
                         " does not exist yet"
             )
+        if (attachment.quantity <= 0 || attachment.quantity > asset.quantity) {
+            throw BurstException.NotValidException("Invalid asset transfer asset or quantity: " + attachment.jsonObject.toJsonString())
         }
     }
 

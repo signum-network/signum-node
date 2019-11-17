@@ -40,6 +40,10 @@ class BidOrderCancellation(dp: DependencyProvider) : OrderCancellation(dp) {
         )
     }
 
+    override fun preValidateAttachment(transaction: Transaction, height: Int) {
+        // Nothing to pre-validate.
+    }
+
     override fun validateAttachment(transaction: Transaction) {
         val attachment = transaction.attachment as Attachment.ColoredCoinsBidOrderCancellation
         val bid = dp.assetExchangeService.getBidOrder(attachment.orderId)

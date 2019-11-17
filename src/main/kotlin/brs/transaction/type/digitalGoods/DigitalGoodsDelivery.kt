@@ -26,7 +26,11 @@ class DigitalGoodsDelivery(dp: DependencyProvider) : DigitalGoods(dp) {
         dp.digitalGoodsStoreService.deliver(transaction, attachment)
     }
 
-    override fun doValidateAttachment(transaction: Transaction) {
+    override fun doPreValidateAttachment(transaction: Transaction, height: Int) {
+        // Nothing to pre-validate.
+    }
+
+    override fun validateAttachment(transaction: Transaction) {
         val attachment = transaction.attachment as Attachment.DigitalGoodsDelivery
         val purchase = dp.digitalGoodsStoreService.getPendingPurchase(attachment.purchaseId)
         if (attachment.goods.data.size > Constants.MAX_DGS_GOODS_LENGTH

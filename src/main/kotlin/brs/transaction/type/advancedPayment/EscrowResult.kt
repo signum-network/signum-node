@@ -23,6 +23,9 @@ class EscrowResult(dp: DependencyProvider) : AdvancedPayment(dp) {
     override fun applyAttachment(transaction: Transaction, senderAccount: Account, recipientAccount: Account) = Unit
     override fun undoAttachmentUnconfirmed(transaction: Transaction, senderAccount: Account) = Unit
     override fun getDuplicationKey(transaction: Transaction) = TransactionDuplicationKey.IS_ALWAYS_DUPLICATE
+    override fun preValidateAttachment(transaction: Transaction, height: Int) =
+        throw BurstException.NotValidException("Escrow result never validates")
+
     override fun validateAttachment(transaction: Transaction) =
         throw BurstException.NotValidException("Escrow result never validates")
 

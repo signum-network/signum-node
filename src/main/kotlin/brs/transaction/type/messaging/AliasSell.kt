@@ -47,9 +47,9 @@ class AliasSell(dp: DependencyProvider) : Messaging(dp) {
         )
     }
 
-    override fun validateAttachment(transaction: Transaction) {
-        if (!dp.fluxCapacitorService.getValue(FluxValues.DIGITAL_GOODS_STORE, dp.blockchainService.lastBlock.height)) {
-            throw BurstException.NotYetEnabledException("Alias transfer not yet enabled at height " + dp.blockchainService.lastBlock.height)
+    override fun preValidateAttachment(transaction: Transaction, height: Int) {
+        if (!dp.fluxCapacitorService.getValue(FluxValues.DIGITAL_GOODS_STORE, height)) {
+            throw BurstException.NotYetEnabledException("Alias transfer not yet enabled at height $height")
         }
         if (transaction.amountPlanck != 0L) {
             throw BurstException.NotValidException("Invalid sell alias transaction: " + transaction.toJsonObject().toJsonString())
@@ -70,6 +70,11 @@ class AliasSell(dp: DependencyProvider) : Messaging(dp) {
                 throw BurstException.NotValidException("Missing alias transfer recipient")
             }
         }
+    }
+
+    override fun validateAttachment(transaction: Transaction) {
+        val attachment = transaction.attachment as Attachment.MessagingAliasSell
+        val aliasName = attachment.aliasName
         val alias = dp.aliasService.getAlias(aliasName)
         if (alias == null) {
             throw BurstException.NotCurrentlyValidException("Alias hasn't been registered yet: $aliasName")

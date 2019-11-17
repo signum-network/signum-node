@@ -50,7 +50,13 @@ class DigitalGoodsPurchase(dp: DependencyProvider) : DigitalGoods(dp) {
         dp.digitalGoodsStoreService.purchase(transaction, attachment)
     }
 
-    override fun doValidateAttachment(transaction: Transaction) {
+    override fun doPreValidateAttachment(transaction: Transaction, height: Int) {
+        if (transaction.encryptedMessage != null && !transaction.encryptedMessage.isText) {
+            throw BurstException.NotValidException("Only text encrypted messages allowed")
+        }
+    }
+
+    override fun validateAttachment(transaction: Transaction) {
         val attachment = transaction.attachment as Attachment.DigitalGoodsPurchase
         val goods = dp.digitalGoodsStoreService.getGoods(attachment.goodsId)
         if (attachment.quantity <= 0 || attachment.quantity > Constants.MAX_DGS_LISTING_QUANTITY
@@ -58,9 +64,6 @@ class DigitalGoodsPurchase(dp: DependencyProvider) : DigitalGoods(dp) {
             || goods != null && goods.sellerId != transaction.recipientId
         ) {
             throw BurstException.NotValidException("Invalid digital goods purchase: " + attachment.jsonObject.toJsonString())
-        }
-        if (transaction.encryptedMessage != null && !transaction.encryptedMessage.isText) {
-            throw BurstException.NotValidException("Only text encrypted messages allowed")
         }
         if (goods == null || goods.isDelisted) {
             throw BurstException.NotCurrentlyValidException(

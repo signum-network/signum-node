@@ -22,15 +22,19 @@ class MultiOutSamePayment(dp: DependencyProvider) : Payment(dp) {
     override fun parseAttachment(attachmentData: JsonObject) =
         Attachment.PaymentMultiSameOutCreation(dp, attachmentData)
 
-    override fun validateAttachment(transaction: Transaction) {
-        if (!dp.fluxCapacitorService.getValue(FluxValues.PRE_DYMAXION, transaction.height)) {
-            throw BurstException.NotCurrentlyValidException("Multi Same Out Payments are not allowed before the Pre Dymaxion block")
+    override fun preValidateAttachment(transaction: Transaction, height: Int) {
+        if (!dp.fluxCapacitorService.getValue(FluxValues.PRE_DYMAXION, height)) {
+            throw BurstException.NotCurrentlyValidException("Multi Same Out Payments are not allowed at height $height")
         }
 
         val attachment = transaction.attachment as Attachment.PaymentMultiSameOutCreation
         if (attachment.getRecipients().size < 2 && transaction.amountPlanck % attachment.getRecipients().size == 0L) {
             throw BurstException.NotValidException("Invalid multi out payment")
         }
+    }
+
+    override fun validateAttachment(transaction: Transaction) {
+        // Nothing to validate.
     }
 
     override fun applyAttachment(

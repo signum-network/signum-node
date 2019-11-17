@@ -45,7 +45,7 @@ class AliasAssignment(dp: DependencyProvider) : Messaging(dp) {
         )
     }
 
-    override fun validateAttachment(transaction: Transaction) {
+    override fun preValidateAttachment(transaction: Transaction, height: Int) {
         val attachment = transaction.attachment as Attachment.MessagingAliasAssignment
         if (attachment.aliasName.isEmpty()
             || attachment.aliasName.toBytes().size > Constants.MAX_ALIAS_LENGTH
@@ -56,6 +56,10 @@ class AliasAssignment(dp: DependencyProvider) : Messaging(dp) {
         if (!attachment.aliasName.isInAlphabet()) {
             throw BurstException.NotValidException("Invalid alias name: " + attachment.aliasName)
         }
+    }
+
+    override fun validateAttachment(transaction: Transaction) {
+        val attachment = transaction.attachment as Attachment.MessagingAliasAssignment
         val alias = dp.aliasService.getAlias(attachment.aliasName)
         if (alias != null && alias.accountId != transaction.senderId) {
             throw BurstException.NotCurrentlyValidException("Alias already owned by another account: " + attachment.aliasName)

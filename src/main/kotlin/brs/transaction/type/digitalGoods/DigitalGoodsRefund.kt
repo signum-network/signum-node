@@ -55,16 +55,19 @@ class DigitalGoodsRefund(dp: DependencyProvider) : DigitalGoods(dp) {
         )
     }
 
-    override fun doValidateAttachment(transaction: Transaction) {
+    override fun doPreValidateAttachment(transaction: Transaction, height: Int) {
+        if (transaction.encryptedMessage != null && !transaction.encryptedMessage.isText) {
+            throw BurstException.NotValidException("Only text encrypted messages allowed")
+        }
+    }
+
+    override fun validateAttachment(transaction: Transaction) {
         val attachment = transaction.attachment as Attachment.DigitalGoodsRefund
         val purchase = dp.digitalGoodsStoreService.getPurchase(attachment.purchaseId)
         if (attachment.refundPlanck < 0 || attachment.refundPlanck > Constants.MAX_BALANCE_PLANCK
             || purchase != null && (purchase.buyerId != transaction.recipientId || transaction.senderId != purchase.sellerId)
         ) {
             throw BurstException.NotValidException("Invalid digital goods refund: " + attachment.jsonObject.toJsonString())
-        }
-        if (transaction.encryptedMessage != null && !transaction.encryptedMessage.isText) {
-            throw BurstException.NotValidException("Only text encrypted messages allowed")
         }
         if (purchase?.encryptedGoods == null || purchase.refundPlanck != 0L) {
             throw BurstException.NotCurrentlyValidException("Purchase does not exist or is not delivered or is already refunded")

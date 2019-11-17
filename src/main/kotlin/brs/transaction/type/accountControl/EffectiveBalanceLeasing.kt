@@ -27,13 +27,14 @@ class EffectiveBalanceLeasing(dp: DependencyProvider) : AccountControl(dp) {
     }
 
     override fun applyAttachment(transaction: Transaction, senderAccount: Account, recipientAccount: Account) {
-        // TODO harry1453: Remove in next fork
     }
 
-    @Throws(BurstException.ValidationException::class)
-    override fun validateAttachment(transaction: Transaction) {
-        if (dp.fluxCapacitorService.getValue(FluxValues.NEXT_FORK))
+    override fun preValidateAttachment(transaction: Transaction, height: Int) {
+        if (dp.fluxCapacitorService.getValue(FluxValues.NEXT_FORK, height))
             throw BurstException.NotCurrentlyValidException("Effective Balance Leasing is disabled.")
+    }
+
+    override fun validateAttachment(transaction: Transaction) {
         val attachment = transaction.attachment as Attachment.AccountControlEffectiveBalanceLeasing
         val recipientAccount = dp.accountService.getAccount(transaction.recipientId)
         if (transaction.senderId == transaction.recipientId || transaction.amountPlanck != 0L || attachment.period < 1440) {

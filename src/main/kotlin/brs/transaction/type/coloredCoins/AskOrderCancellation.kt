@@ -41,6 +41,10 @@ class AskOrderCancellation(dp: DependencyProvider) : OrderCancellation(dp) {
         }
     }
 
+    override fun preValidateAttachment(transaction: Transaction, height: Int) {
+        // Nothing to pre-validate.
+    }
+
     override fun validateAttachment(transaction: Transaction) {
         val attachment = transaction.attachment as Attachment.ColoredCoinsAskOrderCancellation
         val ask = dp.assetExchangeService.getAskOrder(attachment.orderId)

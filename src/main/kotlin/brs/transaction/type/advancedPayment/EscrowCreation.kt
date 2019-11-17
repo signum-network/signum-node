@@ -80,13 +80,13 @@ class EscrowCreation(dp: DependencyProvider) : AdvancedPayment(dp) {
         return TransactionDuplicationKey.IS_NEVER_DUPLICATE
     }
 
-    override fun validateAttachment(transaction: Transaction) {
+    override fun preValidateAttachment(transaction: Transaction, height: Int) {
         val attachment = transaction.attachment as Attachment.AdvancedPaymentEscrowCreation
-        var totalAmountPlanck: Long? = attachment.amountPlanck.safeAdd(transaction.feePlanck)
+        var totalAmountPlanck = attachment.amountPlanck.safeAdd(transaction.feePlanck)
         if (transaction.senderId == transaction.recipientId) {
             throw BurstException.NotValidException("Escrow must have different sender and recipient")
         }
-        totalAmountPlanck = totalAmountPlanck!!.safeAdd(attachment.totalSigners * Constants.ONE_BURST)
+        totalAmountPlanck = totalAmountPlanck.safeAdd(attachment.totalSigners * Constants.ONE_BURST)
         if (transaction.amountPlanck != 0L) {
             throw BurstException.NotValidException("Transaction sent amount must be 0 for escrow")
         }
@@ -108,7 +108,7 @@ class EscrowCreation(dp: DependencyProvider) : AdvancedPayment(dp) {
         if (attachment.deadline < 1 || attachment.deadline > 7776000) { // max deadline 3 months
             throw BurstException.NotValidException("Escrow deadline must be 1 - 7776000 seconds")
         }
-        if (attachment.deadlineAction == null || attachment.deadlineAction == Escrow.DecisionType.UNDECIDED) {
+        if (attachment.deadlineAction == Escrow.DecisionType.UNDECIDED) {
             throw BurstException.NotValidException("Invalid deadline action for escrow")
         }
         if (attachment.getSigners().contains(transaction.senderId) || attachment.getSigners().contains(
@@ -117,6 +117,10 @@ class EscrowCreation(dp: DependencyProvider) : AdvancedPayment(dp) {
         ) {
             throw BurstException.NotValidException("Escrow sender and recipient cannot be signers")
         }
+    }
+
+    override fun validateAttachment(transaction: Transaction) {
+        // Nothing to validate.
     }
 
     override fun hasRecipient() = true

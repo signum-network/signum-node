@@ -45,14 +45,13 @@ class SubscriptionCancel(dp: DependencyProvider) : AdvancedPayment(dp) {
         )
     }
 
+    override fun preValidateAttachment(transaction: Transaction, height: Int) {
+        // Nothing to pre-validate.
+    }
+
     override fun validateAttachment(transaction: Transaction) {
         val attachment = transaction.attachment as Attachment.AdvancedPaymentSubscriptionCancel
-        if (attachment.subscriptionId == null) {
-            throw BurstException.NotValidException("Subscription cancel must include subscription id")
-        }
-
         val subscription = dp.subscriptionService.getSubscription(attachment.subscriptionId)!!
-
         if (subscription.senderId != transaction.senderId && subscription.recipientId != transaction.senderId) {
             throw BurstException.NotValidException("Subscription cancel can only be done by participants")
         }

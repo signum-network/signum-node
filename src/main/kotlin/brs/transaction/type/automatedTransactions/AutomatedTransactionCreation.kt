@@ -24,40 +24,45 @@ class AutomatedTransactionCreation(dp: DependencyProvider) : AutomatedTransactio
     override fun parseAttachment(attachmentData: JsonObject) =
         Attachment.AutomatedTransactionsCreation(dp, attachmentData)
 
-    override fun doValidateAttachment(transaction: Transaction) {
+    override fun preValidateAttachment(transaction: Transaction, height: Int) {
+        if (transaction.amountPlanck != 0L) {
+            throw BurstException.NotValidException("Invalid automated transaction transaction")
+        }
         if (!dp.fluxCapacitorService.getValue(
                 FluxValues.AUTOMATED_TRANSACTION_BLOCK,
-                dp.blockchainService.lastBlock.height
+                height
             )
         ) {
-            throw BurstException.NotYetEnabledException("Automated Transactions not yet enabled at height " + dp.blockchainService.lastBlock.height)
-        }
-        if (transaction.signature != null && dp.accountService.getAccount(transaction.id) != null) {
-            val existingAccount = dp.accountService.getAccount(transaction.id)
-                ?: throw BurstException.NotValidException("Account with transaction's ID does not exist")
-            if (existingAccount.publicKey != null && !existingAccount.publicKey!!.isZero())
-                throw BurstException.NotValidException("Account with id already exists")
+            throw BurstException.NotYetEnabledException("Automated Transactions not yet enabled at height $height")
         }
         val attachment = transaction.attachment as Attachment.AutomatedTransactionsCreation
         val totalPages: Long
         try {
-            totalPages =
-                dp.atController.checkCreationBytes(attachment.creationBytes, dp.blockchainService.height).toLong()
+            totalPages = dp.atController.checkCreationBytes(attachment.creationBytes, height).toLong()
         } catch (e: AtException) {
             throw BurstException.NotCurrentlyValidException("Invalid AT creation bytes", e)
         }
 
-        val requiredFee = totalPages * dp.atConstants.costPerPage(transaction.height)
+        val requiredFee = totalPages * dp.atConstants.costPerPage(height)
         if (transaction.feePlanck < requiredFee) {
             throw BurstException.NotValidException("Insufficient fee for AT creation. Minimum: " + (requiredFee / Constants.ONE_BURST).toUnsignedString())
         }
-        if (dp.fluxCapacitorService.getValue(FluxValues.AT_FIX_BLOCK_3)) {
+        if (dp.fluxCapacitorService.getValue(FluxValues.AT_FIX_BLOCK_3, height)) {
             if (attachment.name!!.length > Constants.MAX_AUTOMATED_TRANSACTION_NAME_LENGTH) {
                 throw BurstException.NotValidException("Name of automated transaction over size limit")
             }
             if (attachment.description!!.length > Constants.MAX_AUTOMATED_TRANSACTION_DESCRIPTION_LENGTH) {
                 throw BurstException.NotValidException("Description of automated transaction over size limit")
             }
+        }
+    }
+
+    override fun validateAttachment(transaction: Transaction) {
+        if (transaction.signature != null && dp.accountService.getAccount(transaction.id) != null) {
+            val existingAccount = dp.accountService.getAccount(transaction.id)
+                ?: throw BurstException.NotValidException("Account with transaction's ID does not exist")
+            if (existingAccount.publicKey != null && !existingAccount.publicKey!!.isZero())
+                throw BurstException.NotValidException("Account with id already exists")
         }
     }
 

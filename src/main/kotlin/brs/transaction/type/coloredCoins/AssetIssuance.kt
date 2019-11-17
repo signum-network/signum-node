@@ -48,7 +48,7 @@ class AssetIssuance(dp: DependencyProvider) : ColoredCoins(dp) {
         // Nothing to undo
     }
 
-    override fun validateAttachment(transaction: Transaction) {
+    override fun preValidateAttachment(transaction: Transaction, height: Int) {
         val attachment = transaction.attachment as Attachment.ColoredCoinsAssetIssuance
         if (attachment.name.length < Constants.MIN_ASSET_NAME_LENGTH
             || attachment.name.length > Constants.MAX_ASSET_NAME_LENGTH
@@ -62,6 +62,10 @@ class AssetIssuance(dp: DependencyProvider) : ColoredCoins(dp) {
         if (!attachment.name.isInAlphabet()) {
             throw BurstException.NotValidException("Invalid asset name: " + attachment.name)
         }
+    }
+
+    override fun validateAttachment(transaction: Transaction) {
+        // Nothing to validate.
     }
 
     override fun hasRecipient() = false

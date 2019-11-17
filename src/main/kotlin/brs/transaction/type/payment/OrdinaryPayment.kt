@@ -16,10 +16,14 @@ class OrdinaryPayment(dp: DependencyProvider) : Payment(dp) {
 
     override fun parseAttachment(attachmentData: JsonObject) = Attachment.OrdinaryPayment(dp)
 
-    override fun validateAttachment(transaction: Transaction) {
+    override fun preValidateAttachment(transaction: Transaction, height: Int) {
         if (transaction.amountPlanck <= 0 || transaction.amountPlanck >= Constants.MAX_BALANCE_PLANCK) {
             throw BurstException.NotValidException("Invalid ordinary payment")
         }
+    }
+
+    override fun validateAttachment(transaction: Transaction) {
+        // Nothing to validate.
     }
 
     override fun hasRecipient() = true

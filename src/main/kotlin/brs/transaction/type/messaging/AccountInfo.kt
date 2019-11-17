@@ -26,12 +26,16 @@ class AccountInfo(dp: DependencyProvider) : Messaging(dp) {
 
     override fun parseAttachment(attachmentData: JsonObject) = Attachment.MessagingAccountInfo(dp, attachmentData)
 
-    override fun validateAttachment(transaction: Transaction) {
+    override fun preValidateAttachment(transaction: Transaction, height: Int) {
         val attachment = transaction.attachment as Attachment.MessagingAccountInfo
         if (attachment.name.toBytes().size > Constants.MAX_ACCOUNT_NAME_LENGTH || attachment.description.toBytes().size > Constants.MAX_ACCOUNT_DESCRIPTION_LENGTH
         ) {
             throw BurstException.NotValidException("Invalid account info issuance: " + attachment.jsonObject.toJsonString())
         }
+    }
+
+    override fun validateAttachment(transaction: Transaction) {
+        // Nothing to validate
     }
 
     override fun applyAttachment(

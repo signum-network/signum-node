@@ -27,14 +27,18 @@ class ArbitraryMessage(dp: DependencyProvider) : Messaging(dp) {
         // No appendices
     }
 
-    override fun validateAttachment(transaction: Transaction) {
+    override fun preValidateAttachment(transaction: Transaction, height: Int) {
         val attachment = transaction.attachment
         if (transaction.amountPlanck != 0L) {
             throw BurstException.NotValidException("Invalid arbitrary message: " + attachment.jsonObject.toJsonString())
         }
-        if (!dp.fluxCapacitorService.getValue(FluxValues.DIGITAL_GOODS_STORE) && transaction.message == null) {
+        if (!dp.fluxCapacitorService.getValue(FluxValues.DIGITAL_GOODS_STORE, height) && transaction.message == null) {
             throw BurstException.NotCurrentlyValidException("Missing message appendix not allowed before DGS block")
         }
+    }
+
+    override fun validateAttachment(transaction: Transaction) {
+        // Nothing to validate.
     }
 
     override fun hasRecipient() = true

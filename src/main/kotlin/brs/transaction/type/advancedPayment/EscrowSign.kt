@@ -34,7 +34,7 @@ class EscrowSign(dp: DependencyProvider) : AdvancedPayment(dp) {
         return TransactionDuplicationKey(EscrowSign::class, uniqueString)
     }
 
-    override fun validateAttachment(transaction: Transaction) {
+    override fun preValidateAttachment(transaction: Transaction, height: Int) {
         val attachment = transaction.attachment as Attachment.AdvancedPaymentEscrowSign
         if (transaction.amountPlanck != 0L || transaction.feePlanck != Constants.ONE_BURST) {
             throw BurstException.NotValidException("Escrow signing must have amount 0 and fee of 1")
@@ -42,6 +42,10 @@ class EscrowSign(dp: DependencyProvider) : AdvancedPayment(dp) {
         if (attachment.escrowId == null || attachment.decision == null) {
             throw BurstException.NotValidException("Escrow signing requires escrow id and decision set")
         }
+    }
+
+    override fun validateAttachment(transaction: Transaction) {
+        val attachment = transaction.attachment as Attachment.AdvancedPaymentEscrowSign
         val escrow = dp.escrowService.getEscrowTransaction(attachment.escrowId)
             ?: throw BurstException.NotValidException("Escrow transaction not found")
         if (!dp.escrowService.isIdSigner(transaction.senderId, escrow) &&

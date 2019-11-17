@@ -45,10 +45,13 @@ class AliasBuy(dp: DependencyProvider) : Messaging(dp) {
         )
     }
 
-    override fun validateAttachment(transaction: Transaction) {
-        if (!dp.fluxCapacitorService.getValue(FluxValues.DIGITAL_GOODS_STORE, dp.blockchainService.lastBlock.height)) {
-            throw BurstException.NotYetEnabledException("Alias transfer not yet enabled at height " + dp.blockchainService.lastBlock.height)
+    override fun preValidateAttachment(transaction: Transaction, height: Int) {
+        if (!dp.fluxCapacitorService.getValue(FluxValues.DIGITAL_GOODS_STORE, height)) {
+            throw BurstException.NotYetEnabledException("Alias transfer not yet enabled at height $height")
         }
+    }
+
+    override fun validateAttachment(transaction: Transaction) {
         val attachment = transaction.attachment as Attachment.MessagingAliasBuy
         val aliasName = attachment.aliasName
         val alias = dp.aliasService.getAlias(aliasName)

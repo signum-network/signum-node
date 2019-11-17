@@ -11,14 +11,14 @@ abstract class DigitalGoods(dp: DependencyProvider) : TransactionType(dp) {
     override val type = TYPE_DIGITAL_GOODS
     override fun applyAttachmentUnconfirmed(transaction: Transaction, senderAccount: Account) = true
     override fun undoAttachmentUnconfirmed(transaction: Transaction, senderAccount: Account) = Unit
-    internal abstract fun doValidateAttachment(transaction: Transaction)
-    override fun validateAttachment(transaction: Transaction) {
-        if (!dp.fluxCapacitorService.getValue(FluxValues.DIGITAL_GOODS_STORE, dp.blockchainService.lastBlock.height)) {
-            throw BurstException.NotYetEnabledException("Digital goods listing not yet enabled at height " + dp.blockchainService.lastBlock.height)
+    internal abstract fun doPreValidateAttachment(transaction: Transaction, height: Int)
+    override fun preValidateAttachment(transaction: Transaction, height: Int) {
+        if (!dp.fluxCapacitorService.getValue(FluxValues.DIGITAL_GOODS_STORE, height)) {
+            throw BurstException.NotYetEnabledException("Digital goods listing not yet enabled at height $height")
         }
         if (transaction.amountPlanck != 0L) {
             throw BurstException.NotValidException("Invalid digital goods transaction")
         }
-        doValidateAttachment(transaction)
+        doPreValidateAttachment(transaction, height)
     }
 }

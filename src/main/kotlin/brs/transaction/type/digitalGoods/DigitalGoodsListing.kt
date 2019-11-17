@@ -23,7 +23,7 @@ class DigitalGoodsListing(dp: DependencyProvider) : DigitalGoods(dp) {
         dp.digitalGoodsStoreService.listGoods(transaction, attachment)
     }
 
-    override fun doValidateAttachment(transaction: Transaction) {
+    override fun doPreValidateAttachment(transaction: Transaction, height: Int) {
         val attachment = transaction.attachment as Attachment.DigitalGoodsListing
         if (attachment.name!!.isEmpty()
             || attachment.name.length > Constants.MAX_DGS_LISTING_NAME_LENGTH
@@ -34,6 +34,10 @@ class DigitalGoodsListing(dp: DependencyProvider) : DigitalGoods(dp) {
         ) {
             throw BurstException.NotValidException("Invalid digital goods listing: " + attachment.jsonObject.toJsonString())
         }
+    }
+
+    override fun validateAttachment(transaction: Transaction) {
+        // Nothing to validate.
     }
 
     override fun hasRecipient() = false

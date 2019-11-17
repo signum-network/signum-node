@@ -40,7 +40,7 @@ class SubscriptionSubscribe(dp: DependencyProvider) : AdvancedPayment(dp) {
     override fun undoAttachmentUnconfirmed(transaction: Transaction, senderAccount: Account) = Unit
     override fun getDuplicationKey(transaction: Transaction) = TransactionDuplicationKey.IS_NEVER_DUPLICATE
 
-    override fun validateAttachment(transaction: Transaction) {
+    override fun preValidateAttachment(transaction: Transaction, height: Int) {
         val attachment = transaction.attachment as Attachment.AdvancedPaymentSubscriptionSubscribe
         if (attachment.frequency == null ||
             attachment.frequency < Constants.BURST_SUBSCRIPTION_MIN_FREQUENCY ||
@@ -54,6 +54,10 @@ class SubscriptionSubscribe(dp: DependencyProvider) : AdvancedPayment(dp) {
         if (transaction.senderId == transaction.recipientId) {
             throw BurstException.NotValidException("Cannot create subscription to same address")
         }
+    }
+
+    override fun validateAttachment(transaction: Transaction) {
+        // Nothing to validate.
     }
 
     override fun hasRecipient() = true

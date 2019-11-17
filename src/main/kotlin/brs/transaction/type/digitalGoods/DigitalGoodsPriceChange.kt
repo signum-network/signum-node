@@ -25,7 +25,11 @@ class DigitalGoodsPriceChange(dp: DependencyProvider) : DigitalGoods(dp) {
         dp.digitalGoodsStoreService.changePrice(attachment.goodsId, attachment.pricePlanck)
     }
 
-    override fun doValidateAttachment(transaction: Transaction) {
+    override fun doPreValidateAttachment(transaction: Transaction, height: Int) {
+        // Nothing to pre-validate.
+    }
+
+    override fun validateAttachment(transaction: Transaction) {
         val attachment = transaction.attachment as Attachment.DigitalGoodsPriceChange
         val goods = dp.digitalGoodsStoreService.getGoods(attachment.goodsId)
         if (attachment.pricePlanck <= 0 || attachment.pricePlanck > Constants.MAX_BALANCE_PLANCK
@@ -35,8 +39,7 @@ class DigitalGoodsPriceChange(dp: DependencyProvider) : DigitalGoods(dp) {
         }
         if (goods == null || goods.isDelisted) {
             throw BurstException.NotCurrentlyValidException(
-                "Goods " + attachment.goodsId.toUnsignedString() +
-                        "not yet listed or already delisted"
+                "Goods ${attachment.goodsId.toUnsignedString()} not yet listed or already delisted"
             )
         }
     }

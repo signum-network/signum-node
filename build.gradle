@@ -53,6 +53,9 @@ repositories {
     maven {
         url = "http://repo.maven.apache.org/maven2"
     }
+    maven {
+        url = "https://dl.bintray.com/mockito/maven/" // TODO remove once Mockito has a Java 13 supporting version in central
+    }
 }
 
 def jettyVersion = "9.4.22.v20191022"

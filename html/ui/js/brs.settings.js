@@ -2,6 +2,8 @@
  * @depends {brs.js}
  */
 var BRS = (function(BRS, $, undefined) {
+	var API_URL = "https://explorer.burstcoin.network/api_activate.php";
+	
     BRS.defaultSettings = {
 	"submit_on_enter": 0,
 	"news": -1,
@@ -11,7 +13,8 @@ var BRS = (function(BRS, $, undefined) {
 	"asset_transfer_warning": "10000",
 	"24_hour_format": 1,
 	"remember_passphrase": 0,
-	"language": "en"
+	"language": "en",
+	"act_api": API_URL
     };
     BRS.pages.settings = function() {
 	for (var key in BRS.settings) {
@@ -98,7 +101,11 @@ var BRS = (function(BRS, $, undefined) {
 		}
 	    }
 	}
-
+	
+	if (!key || key == "act_api") {
+		document.getElementById("act_api_id").value = BRS.settings.act_api;
+	}
+	
 	if (!key || key == "submit_on_enter") {
 	    if (BRS.settings.submit_on_enter) {
 		$(".modal form:not('#decrypt_note_form_container')").on("submit.onEnter", function(e) {
@@ -151,6 +158,13 @@ var BRS = (function(BRS, $, undefined) {
 	    }
 	}
     };
+	
+	BRS.api_reset = function() {
+		var key = "act_api";
+		document.getElementById("act_api_id").value = API_URL;
+		BRS.updateSettings(key, API_URL);
+	}
+	
     BRS.updateSettings = function(key, value) {
 	if (key) {
 	    BRS.settings[key] = value;
@@ -188,6 +202,6 @@ var BRS = (function(BRS, $, undefined) {
 	}
 	BRS.updateSettings(key, value);
     });
-
+	
     return BRS;
 }(BRS || {}, jQuery));

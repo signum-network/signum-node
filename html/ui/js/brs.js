@@ -21,6 +21,7 @@
  * @depends {util/extensions.js}
  * @depends {util/nxtaddress.js}
  */
+ 
 var BRS = (function(BRS, $, undefined) {
     "use strict";
 
@@ -553,12 +554,11 @@ var BRS = (function(BRS, $, undefined) {
 	BRS.activateAccount = function activate_acc(){
 		$.ajax({
 			type: 'GET',
-			url: 'https://explorer.burstcoin.network/api_activate.php?pkey=' + BRS.publicKey + '&acc=' + BRS.accountRS ,
+			url: BRS.settings.act_api + '?pkey=' + BRS.publicKey + '&acc=' + BRS.accountRS ,
 			dataType: 'json',
 			cache: false,
 			async: true,
 			success: function(response) {
-				
 				if(response.api_code == 2){
 					$("#dashboard_message").hide();
 					$.notify($.t("no_public_key_warning_note_success"), {
@@ -577,7 +577,16 @@ var BRS = (function(BRS, $, undefined) {
 							}
 					});
 				}
-			}
+			},
+			error: function(response, status, error) {
+				$.notify($.t("no_public_key_warning_api_not_avaliable"), {
+					type: 'danger',
+					offset: {
+						x: 5,
+						y: 60
+						}
+				});
+			},
 		});
 	}
 
@@ -612,7 +621,7 @@ var BRS = (function(BRS, $, undefined) {
                         $("#dashboard_message").addClass("alert-success").removeClass("alert-danger").html($.t("status_new_account", {
                             "account_id": String(BRS.accountRS).escapeHTML(),
                             "public_key": String(BRS.publicKey).escapeHTML()
-                        }) + $.t("no_public_key_warning_note")).show();
+                        }) + "<br>" + $.t("no_public_key_warning_note")).show();
                     }
                 }
                 else {

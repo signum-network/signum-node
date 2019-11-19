@@ -3,9 +3,6 @@
     <h1 data-i18n="settings">Settings</h1>
   </section>
   <section class="content" id="settings_box">
-    <!--              <style type="text/css">
-      /*form.settings_form > .form-group > .control-label { width: 120px; }*/
-      </style> -->
     <div class="box box-primary">
       <div class="box-header">
         <h3 class="box-title" data-i18n="general">General</h3>
@@ -83,6 +80,23 @@
               <option value="1" data-i18n="yes">Yes</option>
               <option value="0" data-i18n="no">No</option>
             </select>
+          </div>
+        </div>
+      </form>
+    </div>
+	<div class="box box-secondary" id="settings_box">
+      <div class="box-header">
+        <h3 class="box-title" data-i18n="form_act_api">Activation API</h3>
+      </div>
+      <form role="form" autocomplete="off">
+        <div class="box-body" style="padding-top:0;">
+          <p class="help-block" data-i18n="form_act_help">Below you can replace the path for the activation API or reset to default.</p>
+          <div class="form-group">
+            <label for="settings_amount_warning" data-i18n="form_act_label">API Path</label>
+            <div class="input-group mb-3" style="width:410px">				
+				<input class="input-xlarge form-control" id="act_api_id" name="act_api" type="text" />					
+					<span class="input-group-addon" onclick="BRS.api_reset()"><b>Reset</b></span>				
+            </div>
           </div>
         </div>
       </form>

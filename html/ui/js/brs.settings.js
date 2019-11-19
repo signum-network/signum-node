@@ -103,6 +103,7 @@ var BRS = (function(BRS, $, undefined) {
 	}
 	
 	if (!key || key == "act_api") {
+		//Comment this line out if you do not wish users to save custom API URL or disable the input box at /ui/html/pages/settings.html
 		document.getElementById("act_api_id").value = BRS.settings.act_api;
 	}
 	

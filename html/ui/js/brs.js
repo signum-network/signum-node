@@ -554,14 +554,14 @@ var BRS = (function(BRS, $, undefined) {
 	BRS.activateAccount = function activate_acc(){
 		$.ajax({
 			type: 'GET',
-			url: BRS.settings.act_api + '?pkey=' + BRS.publicKey + '&acc=' + BRS.accountRS ,
+			url: BRS.settings.act_api + '?pkey=' + BRS.publicKey + '&acc=' + BRS.accountRS + "&test=1" ,
 			dataType: 'json',
 			cache: false,
 			async: true,
 			success: function(response) {
 				if(response.api_code == 2){
 					$("#dashboard_message").hide();
-					$.notify($.t("no_public_key_warning_note_success"), {
+					$.notify($.t("no_public_key_warning_note_success") + "<br>" + response.response_text, {
 					type: 'success',
 						offset: {
 							x: 5,

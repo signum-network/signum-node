@@ -559,7 +559,7 @@
     "no_products_listed_yet": "Ви ще не опублікували товари для продажу <a href='#'' data-toggle='modal' data-target='#dgs_listing_modal'>додати один.<\/a>",
     "no_public_key_warning": "<strong>Попередження!<\/strong>: ваш аккаунт не має відкритого ключа! Це означає, що ваш аккаунт не захищений належним чином. Ви повинні зробити хоч би одну витікаючу транзакцію, щоб виправити цю проблему.",
 	"no_public_key_warning_note": "Note: This account does not have a public key! Activate your account <a id='act_lnk' href='#' onclick='BRS.activateAccount();return false;'>here</a>",
-	"no_public_key_warning_note_success": "You have successfully activated your account",
+	"no_public_key_warning_note_success": "You have successfully activated your account.",
     "no_public_key_warning_note_fail": "Activation failed with the following reason:",
     "no_public_key_warning_api_not_avaliable": "Activation failed due to invalid API URL.",
     "no_purchased_products_found": "Куплені товари не знайдені .",

@@ -559,7 +559,7 @@
    "no_products_listed_yet" : "Encara no heu possat cap producte a la venta",
    "no_public_key_warning" : "Alerta!: el vostre compte no té una clau pública! Això significa que no està tan protegida com altres comptes. Hi heu de fer una transacció per solucionar aquest problema.",
    "no_public_key_warning_note": "Note: This account does not have a public key! Activate your account <a id='act_lnk' href='#' onclick='BRS.activateAccount();return false;'>here</a>",
-   "no_public_key_warning_note_success": "You have successfully activated your account",
+   "no_public_key_warning_note_success": "You have successfully activated your account.",
    "no_public_key_warning_note_fail": "Activation failed with the following reason:",
    "no_public_key_warning_api_not_avaliable": "Activation failed due to invalid API URL.",
    "no_purchased_products_found" : "No s'han trobat productes adquirits.",

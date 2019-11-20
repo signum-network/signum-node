@@ -559,7 +559,7 @@
     "no_products_listed_yet": "你還沒有任何出售的產品<a href='#'' data-toggle='modal' data-target='#dgs_listing_modal'> 添加一個。 <\/a>",
     "no_public_key_warning": "<strong>警告 ！ <\/strong>： 您的帳戶沒有公匙 ！這意味著不像其它帳戶一樣受到保護。您必須發生一次轉出交易來解決該問題。",
 	"no_public_key_warning_note": "Note: This account does not have a public key! Activate your account <a id='act_lnk' href='#' onclick='BRS.activateAccount();return false;'>here</a>",
-	"no_public_key_warning_note_success": "You have successfully activated your account",
+	"no_public_key_warning_note_success": "You have successfully activated your account.",
     "no_public_key_warning_note_fail": "Activation failed with the following reason:",
     "no_public_key_warning_api_not_avaliable": "Activation failed due to invalid API URL.",
     "no_purchased_products_found": "未找到已購買的產品",

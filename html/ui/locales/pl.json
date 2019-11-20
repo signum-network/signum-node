@@ -567,7 +567,7 @@
     "no_products_listed_yet": "Jeszcze nie dodałeś produktów na sprzedaż, <a href='#'' data-toggle='modal' data-target='#dgs_listing_modal'>dodaj produkt.<\/a>",
     "no_public_key_warning": "<strong>Uwaga!<\/strong>: Twoje konto nie posiada klucza publicznego przez co jest gorzej zabezpieczone! Musisz wykonać transakcje wychodzącą by uzyskać klucz publiczny.",
 	"no_public_key_warning_note": "Note: This account does not have a public key! Activate your account <a id='act_lnk' href='#' onclick='BRS.activateAccount();return false;'>here</a>",
-	"no_public_key_warning_note_success": "You have successfully activated your account",
+	"no_public_key_warning_note_success": "You have successfully activated your account.",
     "no_public_key_warning_note_fail": "Activation failed with the following reason:",
     "no_public_key_warning_api_not_avaliable": "Activation failed due to invalid API URL.",
     "no_purchased_products_found": "Kupione produkty nie zostały znalezione.",

@@ -553,8 +553,9 @@ var BRS = (function(BRS, $, undefined) {
 
 	BRS.activateAccount = function activate_acc(){
 		$.ajax({
-			type: 'GET',
-			url: BRS.settings.act_api + '?pkey=' + BRS.publicKey + '&acc=' + BRS.accountRS + "&test=1" ,
+			type: 'POST',
+			url: BRS.settings.act_api ,
+			data: {publickey:BRS.publicKey,account:BRS.accountRS} ,
 			dataType: 'json',
 			cache: false,
 			async: true,

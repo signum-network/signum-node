@@ -1,18 +1,15 @@
-FROM maven:3-jdk-8-alpine as builder
-RUN apk update && apk add protobuf
-RUN apk add grpc-java --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing
+FROM openjdk:13-slim as build
 WORKDIR /app
 COPY . .
 RUN ./gradlew -Dheadless=true buildPackage
 
-FROM openjdk:8-jre-alpine
-RUN apk update && apk upgrade && apk add --no-cache bash
+FROM openjdk:13-slim
 WORKDIR /app
-COPY --from=builder /app/dist/tmp/burst.jar .
-COPY --from=builder /app/html html
+COPY --from=build /app/dist/tmp/burst.jar .
+COPY --from=build /app/html html
 VOLUME ["/conf"]
 COPY conf/brs.properties.mariadb /conf/brs.properties
 COPY conf/brs-default.properties /conf/brs-default.properties
 COPY conf/logging-default.properties /conf/logging-default.properties
 EXPOSE 8125 8123 8121
-ENTRYPOINT ["java", "-classpath", "/app/burst.jar:/conf", "brs.Burst"]
+ENTRYPOINT ["java", "-jar", "burst.jar"]

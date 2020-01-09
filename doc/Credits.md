@@ -80,4 +80,4 @@ Numerous people have contributed to make this software what it is today. The Nxt
 * lots of bugfixes
 
 Accepted pull requests improving the wallet quality in several areas
-were made by [ChrisMaroglou](https://github.com/ChrisMaroglou), [DarkS0il](https://github.com/DarkS0il), [Doncode](https://github.com/Doncode), [HeosSacer](https://github.com/HeosSacer), [jake-b](https://github.com/jake-b) [llybin](https://github.com/llybin), [naiduv](https://github.com/naiduv), [umbrellacorp03](https://github.com/umbrellacorp03), [velmyshanovnyi](https://github.com/velmyshanovnyi)
+were made by [ChrisMaroglou](https://github.com/ChrisMaroglou), [DarkS0il](https://github.com/DarkS0il), [Doncode](https://github.com/Doncode), [HeosSacer](https://github.com/HeosSacer), [jake-b](https://github.com/jake-b), [llybin](https://github.com/llybin), [naiduv](https://github.com/naiduv), [umbrellacorp03](https://github.com/umbrellacorp03), [velmyshanovnyi](https://github.com/velmyshanovnyi)

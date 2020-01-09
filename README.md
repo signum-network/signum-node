@@ -97,6 +97,10 @@ A number of other Homebrew formulas written by [Nixops](https://github.com/nixop
 
 A `.deb` package is available [here](https://github.com/burst-apps-team/burstcoin-packages/releases/tag/v2.3.0).
 
+##### Archlinux
+
+A package is available in [AUR](https://aur.archlinux.org/packages/burstcoin-wallet/).
+
 ##### Docker
 
 [Docker repository](https://hub.docker.com/r/burstappsteam/burstcoin)

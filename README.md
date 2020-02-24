@@ -163,7 +163,7 @@ Once you have done this, look through the existing properties if there is anythi
 
 ### Testnet
 
-Please see the [Wiki article](https://burstwiki.org/en/testnet/) for details on how to setup a Ttestnet node.
+Please see the [Wiki article](https://burstwiki.org/en/testnet/) for details on how to setup a Testnet node.
 
 # Building
 

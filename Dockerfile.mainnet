@@ -4,12 +4,12 @@ COPY . .
 RUN ./gradlew -Dheadless=true -DskipDeleteTempPackageFiles=true buildPackage
 
 FROM openjdk:13-slim
-ARG CUSTOM_CONF=.sqlite
+ARG CUSTOM_CONF=brs.properties.sqlite
 WORKDIR /app
 COPY --from=build /app/dist/tmp/burst.jar .
 COPY --from=build /app/html html
 VOLUME ["/conf", "/db"]
-COPY conf/brs.properties$CUSTOM_CONF /conf/brs.properties
+COPY conf/$CUSTOM_CONF /conf/brs.properties
 COPY conf/brs-default.properties /conf/brs-default.properties
 COPY conf/logging-docker.properties /conf/logging.properties
 COPY conf/logging-default.properties /conf/logging-default.properties

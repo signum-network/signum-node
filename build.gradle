@@ -69,7 +69,7 @@ def grpcVersion = "1.27.1"
 // We have to use an older version of Flyway because v6 does not support MariaDB 10.1 which is still in widespread use, and throws an exception when it detects MariaDB 10.1.
 def flywayVersion = "5.2.4"
 def owaspVersion = "1.2.2"
-def jooqVersion = "3.13.0"
+def jooqVersion = "3.13.1"
 def webUpnpVersion = "0.1.4"
 def ehCacheVersion = "3.8.1"
 def jUnit5Version = "5.6.0"

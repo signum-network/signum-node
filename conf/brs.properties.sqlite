@@ -1,0 +1,9 @@
+# mainnet
+DB.Url=jdbc:sqlite:/db/burst.sqlite
+DB.Username=
+DB.Password=
+
+# testnet
+DEV.DB.Url=jdbc:sqlite:/db/burst.sqlite
+DEV.DB.Username=
+DEV.DB.Password=

@@ -1,10 +1,9 @@
-#### API SERVER ####
-API.Listen = 0.0.0.0
-API.allowed = *
-
-#### DATABASE ####
-
-# Database connection JDBC url
-DB.Url=jdbc:h2:file:/db/burst;DB_CLOSE_ON_EXIT=FALSE
+# mainnet
+DB.Url=jdbc:h2:file:/db/burst.h2;DB_CLOSE_ON_EXIT=FALSE
 DB.Username=
 DB.Password=
+
+# testnet
+DEV.DB.Url=jdbc:h2:file:/db/burst.h2;DB_CLOSE_ON_EXIT=FALSE
+DEV.DB.Username=
+DEV.DB.Password=

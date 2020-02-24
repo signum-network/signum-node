@@ -1,10 +1,9 @@
-#### API SERVER ####
-API.Listen = 0.0.0.0
-API.allowed = *
-
-#### DATABASE ####
-
-# Database connection JDBC url
+# mainnet
 DB.Url=jdbc:mariadb://mariadb:3306/burst
 DB.Username=root
 DB.Password=burst
+
+# testnet
+DEV.DB.Url=jdbc:mariadb://mariadb:3306/burst
+DEV.DB.Username=root
+DEV.DB.Password=burst

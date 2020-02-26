@@ -67,7 +67,7 @@ def h2Version = "1.4.200"
 def sqliteVersion = "3.30.1"
 def zxingVersion = "3.4.0"
 def protocVersion = "3.11.4"
-def grpcVersion = "1.27.1"
+def grpcVersion = "1.27.2"
 // We have to use an older version of Flyway because v6 does not support MariaDB 10.1 which is still in widespread use, and throws an exception when it detects MariaDB 10.1.
 def flywayVersion = "5.2.4"
 def owaspVersion = "1.2.2"

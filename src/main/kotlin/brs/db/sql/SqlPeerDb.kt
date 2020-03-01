@@ -14,9 +14,9 @@ internal class SqlPeerDb(private val dp: DependencyProvider) : PeerDb {
 
     override fun updatePeers(peers: List<String>) {
         dp.db.useDslContext { ctx ->
-            val peers = ctx.selectFrom(PEER).fetch(PEER.ADDRESS)
-            ctx.deleteFrom(PEER).where(PEER.ADDRESS.notIn(peers))
-            ctx.batch(peers.mapNotNull { if (peers.contains(it)) null else ctx.insertInto(PEER).set(PEER.ADDRESS, it) })
+            val peerEntities = ctx.selectFrom(PEER).fetch(PEER.ADDRESS)
+            ctx.deleteFrom(PEER).where(PEER.ADDRESS.notIn(peerEntities))
+            ctx.batch(peerEntities.mapNotNull { if (peerEntities.contains(it)) null else ctx.insertInto(PEER).set(PEER.ADDRESS, it) })
         }
     }
 

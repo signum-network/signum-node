@@ -140,7 +140,7 @@ internal class SqlTransactionDb(private val dp: DependencyProvider) : Transactio
 
     override fun saveTransactions(transactions: Collection<Transaction>) {
         if (transactions.isNotEmpty()) {
-            dp.db.useDslContext<Unit> { ctx ->
+            dp.db.useDslContext { ctx ->
                 var insertQuery = ctx.insertInto(
                     TRANSACTION,
                     TRANSACTION.ID,

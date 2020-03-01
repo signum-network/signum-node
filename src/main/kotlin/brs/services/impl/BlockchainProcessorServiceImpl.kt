@@ -173,7 +173,7 @@ class BlockchainProcessorServiceImpl(private val dp: DependencyProvider) : Block
                         if (saveInCache) {
                             if (dp.downloadCacheService.getLastBlockId() == block.previousBlockId) { //still maps back? we might have got announced/forged blocks
                                 if (!dp.downloadCacheService.addBlock(block)) {
-                                    //we stop the loop since cahce has been locked
+                                    //we stop the loop since cache has been locked
                                     return@run true
                                 }
                                 logger.safeDebug { "Added from download: Id: ${block.id} Height: ${block.height}" }

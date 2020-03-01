@@ -1,4 +1,3 @@
-PRAGMA foreign_keys = ON;
 CREATE TABLE block (db_id INTEGER PRIMARY KEY AUTOINCREMENT, id BIGINT NOT NULL, version INT NOT NULL,
     timestamp INT NOT NULL, previous_block_id BIGINT REFERENCES block(id) ON DELETE CASCADE, total_amount BIGINT NOT NULL,
     total_fee BIGINT NOT NULL, payload_length INT NOT NULL, generator_public_key BLOB NOT NULL,

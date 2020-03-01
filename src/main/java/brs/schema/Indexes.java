@@ -121,9 +121,6 @@ public class Indexes {
     public static final Index TRANSACTION_TRANSACTION_RECIPIENT_ID_AMOUNT_HEIGHT_IDX = Indexes0.TRANSACTION_TRANSACTION_RECIPIENT_ID_AMOUNT_HEIGHT_IDX;
     public static final Index TRANSACTION_TRANSACTION_RECIPIENT_ID_IDX = Indexes0.TRANSACTION_TRANSACTION_RECIPIENT_ID_IDX;
     public static final Index TRANSACTION_TRANSACTION_SENDER_ID_IDX = Indexes0.TRANSACTION_TRANSACTION_SENDER_ID_IDX;
-    public static final Index UNCONFIRMED_TRANSACTION_PRIMARY = Indexes0.UNCONFIRMED_TRANSACTION_PRIMARY;
-    public static final Index UNCONFIRMED_TRANSACTION_UNCONFIRMED_TRANSACTION_HEIGHT_FEE_TIMESTAMP_IDX = Indexes0.UNCONFIRMED_TRANSACTION_UNCONFIRMED_TRANSACTION_HEIGHT_FEE_TIMESTAMP_IDX;
-    public static final Index UNCONFIRMED_TRANSACTION_UNCONFIRMED_TRANSACTION_ID_IDX = Indexes0.UNCONFIRMED_TRANSACTION_UNCONFIRMED_TRANSACTION_ID_IDX;
 
     // -------------------------------------------------------------------------
     // [#1459] distribute members to avoid static initialisers > 64kb
@@ -222,8 +219,5 @@ public class Indexes {
         public static Index TRANSACTION_TRANSACTION_RECIPIENT_ID_AMOUNT_HEIGHT_IDX = Internal.createIndex("transaction_recipient_id_amount_height_idx", Transaction.TRANSACTION, new OrderField[] { Transaction.TRANSACTION.RECIPIENT_ID, Transaction.TRANSACTION.AMOUNT, Transaction.TRANSACTION.HEIGHT }, false);
         public static Index TRANSACTION_TRANSACTION_RECIPIENT_ID_IDX = Internal.createIndex("transaction_recipient_id_idx", Transaction.TRANSACTION, new OrderField[] { Transaction.TRANSACTION.RECIPIENT_ID }, false);
         public static Index TRANSACTION_TRANSACTION_SENDER_ID_IDX = Internal.createIndex("transaction_sender_id_idx", Transaction.TRANSACTION, new OrderField[] { Transaction.TRANSACTION.SENDER_ID }, false);
-        public static Index UNCONFIRMED_TRANSACTION_PRIMARY = Internal.createIndex("PRIMARY", UnconfirmedTransaction.UNCONFIRMED_TRANSACTION, new OrderField[] { UnconfirmedTransaction.UNCONFIRMED_TRANSACTION.DB_ID }, true);
-        public static Index UNCONFIRMED_TRANSACTION_UNCONFIRMED_TRANSACTION_HEIGHT_FEE_TIMESTAMP_IDX = Internal.createIndex("unconfirmed_transaction_height_fee_timestamp_idx", UnconfirmedTransaction.UNCONFIRMED_TRANSACTION, new OrderField[] { UnconfirmedTransaction.UNCONFIRMED_TRANSACTION.TRANSACTION_HEIGHT, UnconfirmedTransaction.UNCONFIRMED_TRANSACTION.FEE_PER_BYTE, UnconfirmedTransaction.UNCONFIRMED_TRANSACTION.TIMESTAMP }, false);
-        public static Index UNCONFIRMED_TRANSACTION_UNCONFIRMED_TRANSACTION_ID_IDX = Internal.createIndex("unconfirmed_transaction_id_idx", UnconfirmedTransaction.UNCONFIRMED_TRANSACTION, new OrderField[] { UnconfirmedTransaction.UNCONFIRMED_TRANSACTION.ID }, true);
     }
 }

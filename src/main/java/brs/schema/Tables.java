@@ -141,9 +141,4 @@ public class Tables {
      * The table <code>DB.transaction</code>.
      */
     public static final Transaction TRANSACTION = Transaction.TRANSACTION;
-
-    /**
-     * The table <code>DB.unconfirmed_transaction</code>.
-     */
-    public static final UnconfirmedTransaction UNCONFIRMED_TRANSACTION = UnconfirmedTransaction.UNCONFIRMED_TRANSACTION;
 }

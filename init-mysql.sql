@@ -572,28 +572,6 @@ CREATE TABLE `transaction` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `unconfirmed_transaction`
---
-
-DROP TABLE IF EXISTS `unconfirmed_transaction`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `unconfirmed_transaction` (
-  `db_id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `id` bigint(20) NOT NULL,
-  `expiration` int(11) NOT NULL,
-  `transaction_height` int(11) NOT NULL,
-  `fee_per_byte` bigint(20) NOT NULL,
-  `timestamp` int(11) NOT NULL,
-  `transaction_bytes` blob NOT NULL,
-  `height` int(11) NOT NULL,
-  PRIMARY KEY (`db_id`),
-  UNIQUE KEY `unconfirmed_transaction_id_idx` (`id`),
-  KEY `unconfirmed_transaction_height_fee_timestamp_idx` (`transaction_height`,`fee_per_byte`,`timestamp`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
 -- Table structure for table `version`
 --
 

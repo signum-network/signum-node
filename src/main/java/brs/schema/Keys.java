@@ -54,7 +54,6 @@ public class Keys {
     public static final Identity<SubscriptionRecord, Long> IDENTITY_SUBSCRIPTION = Identities0.IDENTITY_SUBSCRIPTION;
     public static final Identity<TradeRecord, Long> IDENTITY_TRADE = Identities0.IDENTITY_TRADE;
     public static final Identity<TransactionRecord, Long> IDENTITY_TRANSACTION = Identities0.IDENTITY_TRANSACTION;
-    public static final Identity<UnconfirmedTransactionRecord, Long> IDENTITY_UNCONFIRMED_TRANSACTION = Identities0.IDENTITY_UNCONFIRMED_TRANSACTION;
 
     // -------------------------------------------------------------------------
     // UNIQUE and PRIMARY KEY definitions
@@ -107,8 +106,6 @@ public class Keys {
     public static final UniqueKey<TransactionRecord> KEY_TRANSACTION_PRIMARY = UniqueKeys0.KEY_TRANSACTION_PRIMARY;
     public static final UniqueKey<TransactionRecord> KEY_TRANSACTION_TRANSACTION_ID_IDX = UniqueKeys0.KEY_TRANSACTION_TRANSACTION_ID_IDX;
     public static final UniqueKey<TransactionRecord> KEY_TRANSACTION_TRANSACTION_FULL_HASH_IDX = UniqueKeys0.KEY_TRANSACTION_TRANSACTION_FULL_HASH_IDX;
-    public static final UniqueKey<UnconfirmedTransactionRecord> KEY_UNCONFIRMED_TRANSACTION_PRIMARY = UniqueKeys0.KEY_UNCONFIRMED_TRANSACTION_PRIMARY;
-    public static final UniqueKey<UnconfirmedTransactionRecord> KEY_UNCONFIRMED_TRANSACTION_UNCONFIRMED_TRANSACTION_ID_IDX = UniqueKeys0.KEY_UNCONFIRMED_TRANSACTION_UNCONFIRMED_TRANSACTION_ID_IDX;
 
     // -------------------------------------------------------------------------
     // FOREIGN KEY definitions
@@ -145,7 +142,6 @@ public class Keys {
         public static Identity<SubscriptionRecord, Long> IDENTITY_SUBSCRIPTION = Internal.createIdentity(Subscription.SUBSCRIPTION, Subscription.SUBSCRIPTION.DB_ID);
         public static Identity<TradeRecord, Long> IDENTITY_TRADE = Internal.createIdentity(Trade.TRADE, Trade.TRADE.DB_ID);
         public static Identity<TransactionRecord, Long> IDENTITY_TRANSACTION = Internal.createIdentity(Transaction.TRANSACTION, Transaction.TRANSACTION.DB_ID);
-        public static Identity<UnconfirmedTransactionRecord, Long> IDENTITY_UNCONFIRMED_TRANSACTION = Internal.createIdentity(UnconfirmedTransaction.UNCONFIRMED_TRANSACTION, UnconfirmedTransaction.UNCONFIRMED_TRANSACTION.DB_ID);
     }
 
     private static class UniqueKeys0 {
@@ -196,8 +192,6 @@ public class Keys {
         public static final UniqueKey<TransactionRecord> KEY_TRANSACTION_PRIMARY = Internal.createUniqueKey(Transaction.TRANSACTION, "KEY_transaction_PRIMARY", Transaction.TRANSACTION.DB_ID);
         public static final UniqueKey<TransactionRecord> KEY_TRANSACTION_TRANSACTION_ID_IDX = Internal.createUniqueKey(Transaction.TRANSACTION, "KEY_transaction_transaction_id_idx", Transaction.TRANSACTION.ID);
         public static final UniqueKey<TransactionRecord> KEY_TRANSACTION_TRANSACTION_FULL_HASH_IDX = Internal.createUniqueKey(Transaction.TRANSACTION, "KEY_transaction_transaction_full_hash_idx", Transaction.TRANSACTION.FULL_HASH);
-        public static final UniqueKey<UnconfirmedTransactionRecord> KEY_UNCONFIRMED_TRANSACTION_PRIMARY = Internal.createUniqueKey(UnconfirmedTransaction.UNCONFIRMED_TRANSACTION, "KEY_unconfirmed_transaction_PRIMARY", UnconfirmedTransaction.UNCONFIRMED_TRANSACTION.DB_ID);
-        public static final UniqueKey<UnconfirmedTransactionRecord> KEY_UNCONFIRMED_TRANSACTION_UNCONFIRMED_TRANSACTION_ID_IDX = Internal.createUniqueKey(UnconfirmedTransaction.UNCONFIRMED_TRANSACTION, "KEY_unconfirmed_transaction_unconfirmed_transaction_id_idx", UnconfirmedTransaction.UNCONFIRMED_TRANSACTION.ID);
     }
 
     private static class ForeignKeys0 {

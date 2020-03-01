@@ -273,8 +273,7 @@ internal class SqlDb(private val dp: DependencyProvider) : Db {
                 Tables.GOODS, Tables.PEER, Tables.PURCHASE,
                 Tables.PURCHASE_FEEDBACK, Tables.PURCHASE_PUBLIC_FEEDBACK,
                 Tables.REWARD_RECIP_ASSIGN, Tables.SUBSCRIPTION,
-                Tables.TRADE, Tables.TRANSACTION,
-                Tables.UNCONFIRMED_TRANSACTION
+                Tables.TRADE, Tables.TRANSACTION
             )
             for (table in tables) {
                 ctx.truncate(table).execute()

@@ -156,11 +156,6 @@ public class Db extends SchemaImpl {
     public final Transaction TRANSACTION = brs.schema.tables.Transaction.TRANSACTION;
 
     /**
-     * The table <code>DB.unconfirmed_transaction</code>.
-     */
-    public final UnconfirmedTransaction UNCONFIRMED_TRANSACTION = brs.schema.tables.UnconfirmedTransaction.UNCONFIRMED_TRANSACTION;
-
-    /**
      * No further instances allowed
      */
     private Db() {
@@ -205,7 +200,7 @@ public class Db extends SchemaImpl {
             RewardRecipAssign.REWARD_RECIP_ASSIGN,
             Subscription.SUBSCRIPTION,
             Trade.TRADE,
-            Transaction.TRANSACTION,
-            UnconfirmedTransaction.UNCONFIRMED_TRANSACTION);
+            Transaction.TRANSACTION
+        );
     }
 }

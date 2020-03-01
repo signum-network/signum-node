@@ -141,36 +141,62 @@ internal class SqlTransactionDb(private val dp: DependencyProvider) : Transactio
     override fun saveTransactions(transactions: Collection<Transaction>) {
         if (transactions.isNotEmpty()) {
             dp.db.useDslContext<Unit> { ctx ->
-                ctx.batchInsert(transactions.map { transaction ->
-                    TransactionRecord().apply {
-                        id = transaction.id
-                        deadline = transaction.deadline
-                        setSenderPublicKey(*transaction.senderPublicKey) // TODO better way of setting
-                        if (transaction.recipientId != 0L) recipientId = transaction.recipientId
-                        amount = transaction.amountPlanck
-                        fee = transaction.feePlanck
-                        if (transaction.referencedTransactionFullHash != null) setReferencedTransactionFullhash(*transaction.referencedTransactionFullHash) // TODO better way of setting
-                        height = transaction.height
-                        blockId = transaction.blockId
-                        if (transaction.signature != null) setSignature(*transaction.signature!!) // TODO better way of setting
-                        timestamp = transaction.timestamp
-                        type = transaction.type.type
-                        subtype = transaction.type.subtype
-                        senderId = transaction.senderId
-                        val attachment = getAttachmentBytes(transaction)
-                        if (attachment != null) setAttachmentBytes(*attachment) // TODO better way of setting
-                        blockTimestamp = transaction.blockTimestamp
-                        setFullHash(*transaction.fullHash) // TODO better way of setting
-                        version = transaction.version
-                        hasMessage = transaction.message != null
-                        hasEncryptedMessage = transaction.encryptedMessage != null
-                        hasPublicKeyAnnouncement = transaction.publicKeyAnnouncement != null
-                        hasEncrypttoselfMessage = transaction.encryptToSelfMessage != null
-                        ecBlockHeight = transaction.ecBlockHeight
-                        if (transaction.ecBlockId != 0L) ecBlockId = transaction.ecBlockId
-                        changed(true)
-                    }
-                }).execute()
+                var insertQuery = ctx.insertInto(
+                    TRANSACTION,
+                    TRANSACTION.ID,
+                    TRANSACTION.DEADLINE,
+                    TRANSACTION.SENDER_PUBLIC_KEY,
+                    TRANSACTION.RECIPIENT_ID,
+                    TRANSACTION.AMOUNT,
+                    TRANSACTION.FEE,
+                    TRANSACTION.REFERENCED_TRANSACTION_FULLHASH,
+                    TRANSACTION.HEIGHT,
+                    TRANSACTION.BLOCK_ID,
+                    TRANSACTION.SIGNATURE,
+                    TRANSACTION.TIMESTAMP,
+                    TRANSACTION.TYPE,
+                    TRANSACTION.SUBTYPE,
+                    TRANSACTION.SENDER_ID,
+                    TRANSACTION.ATTACHMENT_BYTES,
+                    TRANSACTION.BLOCK_TIMESTAMP,
+                    TRANSACTION.FULL_HASH,
+                    TRANSACTION.VERSION,
+                    TRANSACTION.HAS_MESSAGE,
+                    TRANSACTION.HAS_ENCRYPTED_MESSAGE,
+                    TRANSACTION.HAS_PUBLIC_KEY_ANNOUNCEMENT,
+                    TRANSACTION.HAS_ENCRYPTTOSELF_MESSAGE,
+                    TRANSACTION.EC_BLOCK_HEIGHT,
+                    TRANSACTION.EC_BLOCK_ID
+                )
+                transactions.map { transaction ->
+                    insertQuery = insertQuery.values(
+                        transaction.id,
+                        transaction.deadline,
+                        transaction.senderPublicKey,
+                        transaction.recipientId,
+                        transaction.amountPlanck,
+                        transaction.feePlanck,
+                        transaction.referencedTransactionFullHash,
+                        transaction.height,
+                        transaction.blockId,
+                        transaction.signature,
+                        transaction.timestamp,
+                        transaction.type.type,
+                        transaction.type.subtype,
+                        transaction.senderId,
+                        getAttachmentBytes(transaction),
+                        transaction.blockTimestamp,
+                        transaction.fullHash,
+                        transaction.version,
+                        transaction.message != null,
+                        transaction.encryptedMessage != null,
+                        transaction.publicKeyAnnouncement != null,
+                        transaction.encryptToSelfMessage != null,
+                        transaction.ecBlockHeight,
+                        transaction.ecBlockId
+                    )
+                }
+                insertQuery.execute()
             }
         }
     }

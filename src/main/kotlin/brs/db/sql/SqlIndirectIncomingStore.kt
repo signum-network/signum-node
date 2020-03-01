@@ -9,7 +9,6 @@ import brs.entity.IndirectIncoming
 import brs.schema.Tables.INDIRECT_INCOMING
 import brs.schema.tables.records.IndirectIncomingRecord
 import org.jooq.DSLContext
-import org.jooq.Query
 import org.jooq.Record
 
 internal class SqlIndirectIncomingStore(private val dp: DependencyProvider) : IndirectIncomingStore {
@@ -33,30 +32,33 @@ internal class SqlIndirectIncomingStore(private val dp: DependencyProvider) : In
                 )
             }
 
-            private fun getQuery(ctx: DSLContext, indirectIncoming: IndirectIncoming): Query {
-                val record = IndirectIncomingRecord()
-                record.accountId = indirectIncoming.accountId
-                record.transactionId = indirectIncoming.transactionId
-                record.height = indirectIncoming.height
-                return ctx.upsert(record, INDIRECT_INCOMING.ACCOUNT_ID, INDIRECT_INCOMING.TRANSACTION_ID)
-            }
-
             override fun save(ctx: DSLContext, entity: IndirectIncoming) {
-                getQuery(ctx, entity).execute()
-            }
-
-            override fun save(ctx: DSLContext, entities: Array<IndirectIncoming>) {
-                val queries = mutableListOf<Query>()
-                for (indirectIncoming in entities) {
-                    queries.add(getQuery(ctx, indirectIncoming))
-                }
-                ctx.batch(queries).execute()
+                val record = IndirectIncomingRecord()
+                record.accountId = entity.accountId
+                record.transactionId = entity.transactionId
+                record.height = entity.height
+                ctx.upsert(record, INDIRECT_INCOMING.ACCOUNT_ID, INDIRECT_INCOMING.TRANSACTION_ID)
             }
         }
     }
 
     override fun addIndirectIncomings(indirectIncomings: Collection<IndirectIncoming>) {
-        dp.db.useDslContext { ctx -> indirectIncomingTable.save(ctx, indirectIncomings.toTypedArray()) }
+        dp.db.useDslContext { ctx ->
+            var insertQuery = ctx.insertInto(
+                INDIRECT_INCOMING,
+                INDIRECT_INCOMING.ACCOUNT_ID,
+                INDIRECT_INCOMING.TRANSACTION_ID,
+                INDIRECT_INCOMING.HEIGHT
+            )
+            indirectIncomings.toTypedArray().map { entity ->
+                insertQuery = insertQuery.values(
+                    entity.accountId,
+                    entity.transactionId,
+                    entity.height
+                )
+            }
+            insertQuery.execute()
+        }
     }
 
     override fun getIndirectIncomings(accountId: Long, from: Int, to: Int): List<Long> {

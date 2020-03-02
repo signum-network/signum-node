@@ -47,7 +47,7 @@ internal class SqlIndirectIncomingStore(private val dp: DependencyProvider) : In
                     INDIRECT_INCOMING.TRANSACTION_ID,
                     INDIRECT_INCOMING.HEIGHT
                 )
-                entities.map { entity ->
+                entities.forEach { entity ->
                     insertQuery = insertQuery.values(
                         entity.accountId,
                         entity.transactionId,

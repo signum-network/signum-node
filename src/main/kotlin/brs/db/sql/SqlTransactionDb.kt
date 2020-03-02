@@ -168,7 +168,7 @@ internal class SqlTransactionDb(private val dp: DependencyProvider) : Transactio
                     TRANSACTION.EC_BLOCK_HEIGHT,
                     TRANSACTION.EC_BLOCK_ID
                 )
-                transactions.map { transaction ->
+                transactions.forEach { transaction ->
                     insertQuery = insertQuery.values(
                         transaction.id,
                         transaction.deadline,

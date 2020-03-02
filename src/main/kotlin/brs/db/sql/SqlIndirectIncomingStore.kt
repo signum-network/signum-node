@@ -39,26 +39,28 @@ internal class SqlIndirectIncomingStore(private val dp: DependencyProvider) : In
                 record.height = entity.height
                 ctx.upsert(record, INDIRECT_INCOMING.ACCOUNT_ID, INDIRECT_INCOMING.TRANSACTION_ID)
             }
+
+            override fun save(ctx: DSLContext, entities: Array<IndirectIncoming>) {
+                var insertQuery = ctx.insertInto(
+                    INDIRECT_INCOMING,
+                    INDIRECT_INCOMING.ACCOUNT_ID,
+                    INDIRECT_INCOMING.TRANSACTION_ID,
+                    INDIRECT_INCOMING.HEIGHT
+                )
+                entities.map { entity ->
+                    insertQuery = insertQuery.values(
+                        entity.accountId,
+                        entity.transactionId,
+                        entity.height
+                    )
+                }
+                insertQuery.execute()
+            }
         }
     }
 
     override fun addIndirectIncomings(indirectIncomings: Collection<IndirectIncoming>) {
-        dp.db.useDslContext { ctx ->
-            var insertQuery = ctx.insertInto(
-                INDIRECT_INCOMING,
-                INDIRECT_INCOMING.ACCOUNT_ID,
-                INDIRECT_INCOMING.TRANSACTION_ID,
-                INDIRECT_INCOMING.HEIGHT
-            )
-            indirectIncomings.toList().map { entity ->
-                insertQuery = insertQuery.values(
-                    entity.accountId,
-                    entity.transactionId,
-                    entity.height
-                )
-            }
-            insertQuery.execute()
-        }
+        dp.db.useDslContext { ctx -> indirectIncomingTable.save(ctx, indirectIncomings.toTypedArray()) }
     }
 
     override fun getIndirectIncomings(accountId: Long, from: Int, to: Int): List<Long> {

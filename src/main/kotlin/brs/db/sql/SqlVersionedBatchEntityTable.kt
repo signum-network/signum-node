@@ -75,10 +75,10 @@ internal abstract class SqlVersionedBatchEntityTable<T> internal constructor(
 
     override fun finish() {
         dp.db.assertInTransaction()
-        if (batch.keys.isEmpty()) {
+        val keySet = batch.keys
+        if (keySet.isEmpty()) {
             return
         }
-        val keySet = batch.keys
 
         dp.db.useDslContext { ctx ->
             // keySet chunked due:

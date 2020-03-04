@@ -7,6 +7,7 @@ import brs.db.useDslContext
 import brs.entity.DependencyProvider
 import org.ehcache.Cache
 import org.jooq.*
+import org.jooq.impl.DSL
 
 internal abstract class SqlVersionedBatchEntityTable<T> internal constructor(
     table: Table<*>,
@@ -38,7 +39,7 @@ internal abstract class SqlVersionedBatchEntityTable<T> internal constructor(
         check(!dp.db.isInTransaction()) { "Cannot use batch table during transaction" }
     }
 
-    protected abstract fun bulkInsert(ctx: DSLContext, entities: Collection<T>)
+    protected abstract fun bulkUpsert(ctx: DSLContext, entities: Collection<T>)
 
     override fun delete(t: T): Boolean {
         dp.db.assertInTransaction()
@@ -74,32 +75,31 @@ internal abstract class SqlVersionedBatchEntityTable<T> internal constructor(
 
     override fun finish() {
         dp.db.assertInTransaction()
-        val keySet = batch.keys
-        if (keySet.isEmpty()) {
+        if (batch.keys.isEmpty()) {
             return
         }
+        val keySet = batch.keys
 
         dp.db.useDslContext { ctx ->
-            val updateQuery = ctx.updateQuery(table)
-            updateQuery.addValue(latestField, false)
-            for (idColumn in dbKeyFactory.pkColumns) {
-                updateQuery.addConditions(table.field(idColumn, Long::class.java).eq(0L))
-            }
-            updateQuery.addConditions(latestField?.isTrue)
-
-            // TODO can we avoid batching the single query here?
-            val updateBatch = ctx.batch(updateQuery)
-            for (dbKey in keySet) {
-                val pkValues = dbKey.pkValues
-                val bindArgs = arrayOfNulls<Any>(pkValues.size + 1)
-                bindArgs[0] = false
-                for (i in pkValues.indices) {
-                    bindArgs[i + 1] = pkValues[i]
+            // keySet chunked due:
+            // [SQLITE_ERROR] SQL error or missing database (Expression tree is too large (maximum depth 1000)
+            for (keySetChunk in keySet.chunked(990)) {
+                val updateQuery = ctx.updateQuery(table)
+                updateQuery.addConditions(latestField?.isTrue)
+                updateQuery.addValue(latestField, false)
+                var accountsCondition = DSL.noCondition()
+                for (dbKey in keySetChunk) {
+                    var pkCondition = DSL.noCondition()
+                    for ((index, idColumn) in dbKeyFactory.pkColumns.withIndex()) {
+                        pkCondition = pkCondition
+                            .and(table.field(idColumn, Long::class.java).eq(dbKey.pkValues[index]))
+                    }
+                    accountsCondition = accountsCondition.or(pkCondition)
                 }
-                updateBatch.bind(bindArgs)
+                updateQuery.addConditions(accountsCondition)
+                ctx.execute(updateQuery)
             }
-            updateBatch.execute()
-            bulkInsert(ctx, batch.values)
+            bulkUpsert(ctx, batch.values)
             batch.clear()
         }
     }

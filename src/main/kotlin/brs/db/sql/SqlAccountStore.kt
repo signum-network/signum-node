@@ -51,9 +51,7 @@ internal class SqlAccountStore(private val dp: DependencyProvider) : AccountStor
                 record.fromHeight = entity.fromHeight
                 record.height = dp.blockchainService.height
                 record.latest = true
-                ctx.upsert(
-                    record, REWARD_RECIP_ASSIGN.ACCOUNT_ID, REWARD_RECIP_ASSIGN.HEIGHT
-                )
+                ctx.upsert(record, REWARD_RECIP_ASSIGN.ACCOUNT_ID, REWARD_RECIP_ASSIGN.HEIGHT)
                     .execute()
             }
         }
@@ -94,7 +92,7 @@ internal class SqlAccountStore(private val dp: DependencyProvider) : AccountStor
                 return sqlToAccount(record)
             }
 
-            override fun bulkInsert(ctx: DSLContext, entities: Collection<Account>) {
+            override fun bulkUpsert(ctx: DSLContext, entities: Collection<Account>) {
                 val height = dp.blockchainService.height
                 ctx.batch(entities.map { account ->
                     val record = AccountRecord()
@@ -196,7 +194,7 @@ internal class SqlAccountStore(private val dp: DependencyProvider) : AccountStor
         rs.get(ACCOUNT_ASSET.UNCONFIRMED_QUANTITY),
         accountAssetDbKeyFactory.newKey(rs.get(ACCOUNT_ASSET.ACCOUNT_ID), rs.get(ACCOUNT_ASSET.ASSET_ID))
     )
-    
+
     private fun sqlToAccount(record: Record): Account {
         val account = Account(
             record.get(ACCOUNT.ID),

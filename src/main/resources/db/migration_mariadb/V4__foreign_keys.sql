@@ -1,8 +1,6 @@
 -- Descending index will give effect only for MySQL/Oracle, maybe for MariaDB in future
 -- https://jira.mariadb.org/browse/MDEV-13756
 
--- TODO: for height fg?
-
 -- account
 
 drop index account_id_balance_height_idx on account;

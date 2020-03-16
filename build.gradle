@@ -69,7 +69,7 @@ def zxingVersion = "3.4.0"
 def protocVersion = "3.11.4"
 def grpcVersion = "1.28.0"
 // We have to use an older version of Flyway because v6 does not support MariaDB 10.1 which is still in widespread use, and throws an exception when it detects MariaDB 10.1.
-def flywayVersion = "5.2.4"
+def flywayVersion = "6.3.1"
 def owaspVersion = "1.2.2"
 def jooqVersion = "3.13.1"
 def webUpnpVersion = "0.1.4"

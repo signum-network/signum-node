@@ -56,7 +56,7 @@ repositories {
 
 def jettyVersion = "9.4.27.v20200227"
 def burstKit4jVersion = "0.15.1"
-def rxJavaVersion = "2.2.18"
+def rxJavaVersion = "2.2.19"
 def joclVersion = "2.0.2"
 def bouncyCastleVersion = "1.64"
 def gsonVersion = "2.8.6"

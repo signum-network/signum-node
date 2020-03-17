@@ -29,25 +29,9 @@ import brs.util.logging.*
 import brs.util.sync.Mutex
 import org.slf4j.LoggerFactory
 import java.util.*
-import kotlin.collections.List
-import kotlin.collections.Map
-import kotlin.collections.MutableList
-import kotlin.collections.MutableMap
-import kotlin.collections.associateBy
 import kotlin.collections.component1
 import kotlin.collections.component2
-import kotlin.collections.contentEquals
-import kotlin.collections.emptyList
-import kotlin.collections.filter
-import kotlin.collections.forEach
-import kotlin.collections.indices
-import kotlin.collections.isNullOrEmpty
-import kotlin.collections.iterator
-import kotlin.collections.joinToString
-import kotlin.collections.mutableListOf
-import kotlin.collections.mutableMapOf
 import kotlin.collections.set
-import kotlin.collections.sortedWith
 import kotlin.math.max
 
 class BlockchainProcessorServiceImpl(private val dp: DependencyProvider) : BlockchainProcessorService {
@@ -646,15 +630,14 @@ class BlockchainProcessorServiceImpl(private val dp: DependencyProvider) : Block
                     blockListeners.accept(BlockchainProcessorService.Event.BEFORE_BLOCK_ACCEPT, block)
                     dp.unconfirmedTransactionService.removeForgedTransactions(block.transactions)
                     dp.unconfirmedTransactionService.resetAccountBalances()
-                    dp.accountService.flushAccountTable()
-                    addBlock(block)
-                    dp.downloadCacheService.removeBlock(block) // We make sure downloadCache do not have this block anymore.
-                    accept(block, remainingAmount, remainingFee)
                     dp.derivedTableService.derivedTables.forEach {
                         if (it is VersionedBatchEntityTable<*>) {
                             it.finish()
                         }
                     }
+                    addBlock(block)
+                    dp.downloadCacheService.removeBlock(block) // We make sure downloadCache do not have this block anymore.
+                    accept(block, remainingAmount, remainingFee)
                 }
             } catch (e: BlockchainProcessorService.BlockNotAcceptedException) {
                 dp.blockchainService.lastBlock = lastBlock

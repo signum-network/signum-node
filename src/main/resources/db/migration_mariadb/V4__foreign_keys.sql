@@ -76,6 +76,11 @@ alter table ask_order
 		foreign key (account_id) references account (id)
 			on delete cascade;
 
+alter table ask_order
+	add constraint ask_order_asset_id_fk
+		foreign key (asset_id) references asset (id)
+			on delete cascade;
+
 -- asset
 
 alter table asset

@@ -706,3 +706,8 @@ create index trade_buyer_id_idx
 create index trade_seller_id_idx
     on trade (seller_id asc, height desc);
 
+-- peer
+
+create table peer (
+    address VARCHAR PRIMARY KEY
+);

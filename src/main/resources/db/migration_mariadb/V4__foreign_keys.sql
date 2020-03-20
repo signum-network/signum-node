@@ -280,6 +280,11 @@ create index purchase_timestamp_idx
 	on purchase (timestamp desc, id asc);
 
 alter table purchase
+	add constraint purchase_transaction_id_fk
+		foreign key (id) references transaction (id)
+			on delete cascade;
+
+alter table purchase
 	add constraint purchase_account_id_fk
 		foreign key (buyer_id) references account (id)
 			on delete cascade;
@@ -295,14 +300,22 @@ alter table purchase
 			on delete cascade;
 
 -- purchase_feedback
--- TODO: what is purchase_feedback.id? purchase.id?
+
+alter table purchase_feedback
+	add constraint purchase_feedback_purchase_id_fk
+		foreign key (id) references purchase (id)
+			on delete cascade;
 
 drop index purchase_feedback_id_height_idx on purchase_feedback;
 create index purchase_feedback_id_height_idx
 	on purchase_feedback (id asc, height desc);
 
 -- purchase_public_feedback
--- TODO: what is purchase_public_feedback.id? purchase.id?
+
+alter table purchase_public_feedback
+	add constraint purchase_public_feedback_purchase_id_fk
+		foreign key (id) references purchase (id)
+			on delete cascade;
 
 drop index purchase_public_feedback_id_height_idx on purchase_public_feedback;
 create index purchase_public_feedback_id_height_idx

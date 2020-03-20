@@ -513,7 +513,10 @@ create table purchase
 (
     db_id                INTEGER
         primary key autoincrement,
-    id                   BIGINT  not null,
+    id                   BIGINT  not null
+        constraint purchase_transaction_id_fk
+            references "transaction" (id)
+            on delete cascade,
     buyer_id             BIGINT  not null
         constraint purchase_account_id_fk
             references account (id)
@@ -561,13 +564,15 @@ create index purchase_timestamp_idx
     on purchase (timestamp desc, id asc);
 
 -- purchase_feedback
--- TODO: what is purchase_feedback.id? purchase.id?
 
 create table purchase_feedback
 (
     db_id          INTEGER
         primary key autoincrement,
-    id             BIGINT not null,
+    id             BIGINT not null
+        constraint purchase_feedback_purchase_id_fk
+            references purchase (id)
+            on delete cascade,
     feedback_data  BLOB   not null,
     feedback_nonce BLOB   not null,
     height         INT    not null,
@@ -578,13 +583,15 @@ create index purchase_feedback_id_height_idx
     on purchase_feedback (id asc, height desc);
 
 -- purchase_public_feedback
--- TODO: what is purchase_public_feedback.id? purchase.id?
 
 create table purchase_public_feedback
 (
     db_id           INTEGER
         primary key autoincrement,
-    id              BIGINT  not null,
+    id              BIGINT  not null
+        constraint purchase_public_feedback_purchase_id_fk
+            references purchase (id)
+            on delete cascade,
     public_feedback VARCHAR not null,
     height          INT     not null,
     latest          BOOLEAN default TRUE not null

@@ -45,8 +45,8 @@ alter table "ask_order"
 -- asset
 
 alter table "asset"
-	add constraint ASSET_ASSET_ID_FK
-		foreign key ("account_id") references "asset" ("id")
+	add constraint ASSET_ACCOUNT_ID_FK
+		foreign key ("account_id") references "account" ("id")
 			on delete cascade;
 
 -- asset_transfer
@@ -141,6 +141,11 @@ alter table "indirect_incoming"
 -- purchase
 
 alter table "purchase"
+	add constraint PURCHASE_TRANSACTION_ID_FK
+		foreign key ("id") references "transaction" ("id")
+			on delete cascade;
+
+alter table "purchase"
 	add constraint PURCHASE_ACCOUNT_ID_FK
 		foreign key ("buyer_id") references "account" ("id")
 			on delete cascade;
@@ -156,10 +161,18 @@ alter table "purchase"
 			on delete cascade;
 
 -- purchase_feedback
--- TODO: what is purchase_feedback.id? purchase.id?
+
+alter table "purchase_feedback"
+	add constraint PURCHASE_FEEDBACK_PURCHASE_ID_FK
+		foreign key ("id") references "purchase" ("id")
+			on delete cascade;
 
 -- purchase_public_feedback
--- TODO: what is purchase_public_feedback.id? purchase.id?
+
+alter table "purchase_public_feedback"
+	add constraint PURCHASE_PUBLIC_FEEDBACK_PURCHASE_ID_FK
+		foreign key ("id") references "purchase" ("id")
+			on delete cascade;
 
 -- reward_recip_assign
 

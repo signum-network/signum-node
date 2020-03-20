@@ -42,6 +42,11 @@ create unique index alias_id_height_idx
 	on alias (id asc, height desc);
 
 alter table alias
+	add constraint alias_transaction_id_fk
+		foreign key (id) references transaction (id)
+			on delete cascade;
+
+alter table alias
 	add constraint alias_account_id_fk
 		foreign key (account_id) references account (id)
 			on delete cascade;
@@ -51,6 +56,11 @@ alter table alias
 drop index alias_offer_id_height_idx on alias_offer;
 create unique index alias_offer_id_height_idx
 	on alias_offer (id asc, height desc);
+
+alter table alias_offer
+	add constraint alias_offer_alias_id_fk
+		foreign key (id) references alias (id)
+			on delete cascade;
 
 alter table alias_offer
 	add constraint alias_offer_account_id_fk

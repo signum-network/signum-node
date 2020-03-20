@@ -191,7 +191,10 @@ create table alias
 (
     db_id            INTEGER
         primary key autoincrement,
-    id               BIGINT  not null,
+    id               BIGINT  not null
+        constraint alias_transaction_id_fk
+            references "transaction" (id)
+            on delete cascade,
     account_id       BIGINT  not null
         constraint alias_account_id_fk
             references account (id)
@@ -219,7 +222,10 @@ create table alias_offer
 (
     db_id    INTEGER
         primary key autoincrement,
-    id       BIGINT not null,
+    id       BIGINT not null
+        constraint alias_offer_alias_id_fk
+            references alias (id)
+            on delete cascade,
     price    BIGINT not null,
     buyer_id BIGINT
         constraint alias_offer_account_id_fk

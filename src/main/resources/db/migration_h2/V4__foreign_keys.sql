@@ -19,11 +19,21 @@ alter table "account_asset"
 -- alias
 
 alter table "alias"
+	add constraint ALIAS_TRANSACTION_ID_FK
+		foreign key ("id") references "transaction" ("id")
+			on delete cascade;
+
+alter table "alias"
 	add constraint ALIAS_ACCOUNT_ID_FK
 		foreign key ("account_id") references "account" ("id")
 			on delete cascade;
 
 -- alias_offer
+
+alter table "alias_offer"
+	add constraint ALIAS_OFFER_ALIAS_ID_FK
+		foreign key ("id") references "alias" ("id")
+			on delete cascade;
 
 alter table "alias_offer"
 	add constraint ALIAS_OFFER_ACCOUNT_ID_FK

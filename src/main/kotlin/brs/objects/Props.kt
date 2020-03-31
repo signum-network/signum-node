@@ -28,6 +28,12 @@ object Props {
     val DEV_PRE_DYMAXION_BLOCK_HEIGHT = Prop("DEV.preDymaxion.startBlock", -1)
     val DEV_POC2_BLOCK_HEIGHT = Prop("DEV.poc2.startBlock", -1)
     val DEV_NEXT_FORK_BLOCK_HEIGHT = Prop("DEV.nextFork.startBlock", -1)
+	
+	// Checkpoint block for low CPU usage when syncing an empty database
+	val BRS_CHECKPOINT_HEIGHT = Prop("brs.checkPointHeight", 730_000)
+	val BRS_CHECKPOINT_HASH = Prop("brs.checkPointPrevHash", "7c9f8eb553ae1c47cb8960847f6ae672a9923d9c0c4c13a2e23a430e1099a5bc")
+	val DEV_CHECKPOINT_HEIGHT = Prop("DEV.checkPointHeight", 150_000)
+	val DEV_CHECKPOINT_HASH = Prop("DEV.checkPointPrevHash", "c99b807f4bff0d439375d083e2e04c465e96ec36d85092e8faba7b9a19534b94")
 
     // GPU options
     val GPU_ACCELERATION = Prop("GPU.Acceleration", false)
@@ -157,4 +163,5 @@ object Props {
     val ALLOW_OTHER_SOLO_MINERS = Prop("AllowOtherSoloMiners", true)
 
     val NUM_PRE_VERIFIER_THREADS = Prop("PreVerifier.NumberOfInstances", 0)
+    val MAX_CACHED_ENTITIES = Prop("MaxCachedEntities", 65536)
 }

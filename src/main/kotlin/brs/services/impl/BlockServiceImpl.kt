@@ -6,6 +6,7 @@ import brs.entity.DependencyProvider
 import brs.objects.Constants
 import brs.objects.FluxValues
 import brs.objects.Genesis
+import brs.objects.Props
 import brs.services.BlockService
 import brs.services.BlockchainProcessorService
 import brs.services.BlockchainProcessorService.BlockOutOfOrderException
@@ -15,6 +16,7 @@ import brs.util.crypto.Crypto
 import brs.util.crypto.verifySignature
 import brs.util.logging.safeDebug
 import brs.util.logging.safeInfo
+import org.bouncycastle.util.encoders.Hex
 import org.slf4j.LoggerFactory
 import java.math.BigInteger
 
@@ -79,11 +81,27 @@ class BlockServiceImpl(private val dp: DependencyProvider) : BlockService {
                 logger.safeDebug { "Block at height ${block.height} was not pre-verified! Pre-verification threads are probably not keeping up..." }
             }
 
+            val checkPointHeight = dp.propertyService.get(if (dp.propertyService.get(Props.DEV_TESTNET)) Props.DEV_CHECKPOINT_HEIGHT else Props.BRS_CHECKPOINT_HEIGHT)
             val pocTime = try {
-                if (scoopData == null) {
+                if(block.height < checkPointHeight){
+                    // do not verify the nonce up to the checkpoint block (lowers CPU usage)
+                    BigInteger.valueOf(0L)
+                }
+                else {
+                    if(block.height == checkPointHeight) {
+                        val checkPointHash =
+                            dp.propertyService.get(if (dp.propertyService.get(Props.DEV_TESTNET)) Props.DEV_CHECKPOINT_HASH else Props.BRS_CHECKPOINT_HASH)
+
+                        val receivedHash = Hex.toHexString(block.previousBlockHash)
+                        if (!receivedHash.equals(checkPointHash)) {
+                            throw BlockchainProcessorService.BlockNotAcceptedException("Error pre-verifying checkpoint block hash")
+                        }
+                    }
+                    if (scoopData == null) {
                     dp.generatorService.calculateHit(block.generatorId, block.nonce, block.generationSignature, getScoopNum(block), block.height)
-                } else {
-                    dp.generatorService.calculateHit(block.generationSignature, scoopData)
+                    } else {
+                        dp.generatorService.calculateHit(block.generationSignature, scoopData)
+                    }
                 }
             } catch (e: Exception) {
                 throw BlockchainProcessorService.BlockNotAcceptedException("Error pre-verifying block generation signature", e)

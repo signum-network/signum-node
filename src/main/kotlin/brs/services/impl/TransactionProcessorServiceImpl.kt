@@ -108,14 +108,15 @@ class TransactionProcessorServiceImpl(private val dp: DependencyProvider) : Tran
         if (!transaction.verifySignature()) {
             throw BurstException.NotValidException("Transaction signature verification failed")
         }
-        val processedTransactions = processTransactions(listOf(transaction), null)
-        if (dp.transactionDb.hasTransaction(transaction.id)) {
-            logger.safeDebug { "Transaction ${transaction.stringId} already in blockchain, will not broadcast again" }
-            return null
-        }
 
         if (dp.unconfirmedTransactionService.exists(transaction.id)) {
             logger.safeDebug { "Transaction ${transaction.stringId} already in unconfirmed pool, will not broadcast again" }
+            return null
+        }
+
+        val processedTransactions = processTransactions(listOf(transaction), null)
+        if (dp.transactionDb.hasTransaction(transaction.id)) {
+            logger.safeDebug { "Transaction ${transaction.stringId} already in blockchain, will not broadcast again" }
             return null
         }
 

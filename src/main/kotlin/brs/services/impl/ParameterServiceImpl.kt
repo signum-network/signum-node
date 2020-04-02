@@ -75,7 +75,7 @@ class ParameterServiceImpl(private val dp: DependencyProvider) : ParameterServic
             return dp.accountService.getAccount(accountId.parseAccountId())
                 ?: throw ParameterException(UNKNOWN_ACCOUNT)
         } catch (e: Exception) {
-            throw ParameterException(INCORRECT_ACCOUNT)
+            throw ParameterException(UNKNOWN_ACCOUNT)
         }
     }
 

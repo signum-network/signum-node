@@ -610,7 +610,7 @@ class PeerServiceImpl(private val dp: DependencyProvider) : PeerService {
             when {
                 !beingProcessed.contains(peer) -> {
                     beingProcessed.add(peer)
-                    dp.taskSchedulerService.run { feedPeer(peer, foodDispenser, doneFeedingLog) }
+                    dp.taskSchedulerService.async(TaskType.IO) { feedPeer(peer, foodDispenser, doneFeedingLog) }
                 }
                 !processingQueue.contains(peer) -> processingQueue.add(peer)
             }

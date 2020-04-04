@@ -81,6 +81,7 @@ object Parameters {
     const val NUM_BLOCKS_PARAMETER = "numBlocks"
     const val BLOCK_PARAMETER = "block"
     const val INCLUDE_COUNTS_PARAMETER = "includeCounts"
+    const val INCLUDE_EFFECTIVE_BALANCE_PARAMETER = "includeEffectiveBalance"
     const val DEADLINE_PARAMETER = "deadline"
     const val REFERENCED_TRANSACTION_FULL_HASH_PARAMETER = "referencedTransactionFullHash"
     const val REFERENCED_TRANSACTION_PARAMETER = "referencedTransaction"

@@ -1,7 +1,9 @@
 package brs.api.http
 
 import brs.Burst
+import brs.api.http.common.Parameters
 import brs.api.http.common.Parameters.INCLUDE_COUNTS_PARAMETER
+import brs.api.http.common.Parameters.INCLUDE_EFFECTIVE_BALANCE_PARAMETER
 import brs.api.http.common.ResultFields.TIME_RESPONSE
 import brs.entity.DependencyProvider
 import brs.objects.Constants
@@ -15,7 +17,7 @@ import javax.servlet.http.HttpServletRequest
  * TODO
  */
 internal class GetState(private val dp: DependencyProvider) :
-    APIServlet.JsonRequestHandler(arrayOf(APITag.INFO), INCLUDE_COUNTS_PARAMETER) {
+    APIServlet.JsonRequestHandler(arrayOf(APITag.INFO), INCLUDE_COUNTS_PARAMETER, INCLUDE_EFFECTIVE_BALANCE_PARAMETER) {
     override fun processRequest(request: HttpServletRequest): JsonElement {
         val response = JsonObject()
 
@@ -25,18 +27,20 @@ internal class GetState(private val dp: DependencyProvider) :
         response.addProperty("lastBlock", dp.blockchainService.lastBlock.stringId)
         response.addProperty("cumulativeDifficulty", dp.blockchainService.lastBlock.cumulativeDifficulty.toString())
 
-        if (!"false".equals(request["includeCounts"], ignoreCase = true)) {
-            var totalEffectiveBalance: Long = 0
-            for (account in dp.accountService.getAllAccounts(0, -1)) {
-                val effectiveBalanceBURST = account.balancePlanck
-                if (effectiveBalanceBURST > 0) {
-                    totalEffectiveBalance += effectiveBalanceBURST
+        if (!"false".equals(request[INCLUDE_COUNTS_PARAMETER], ignoreCase = true)) {
+            if ("true".equals(request[INCLUDE_EFFECTIVE_BALANCE_PARAMETER], ignoreCase = true)) {
+                var totalEffectiveBalance: Long = 0
+                for (account in dp.accountService.getAllAccounts(0, -1)) {
+                    val effectiveBalanceBURST = account.balancePlanck
+                    if (effectiveBalanceBURST > 0) {
+                        totalEffectiveBalance += effectiveBalanceBURST
+                    }
                 }
+                for (escrow in dp.escrowService.getAllEscrowTransactions()) {
+                    totalEffectiveBalance += escrow.amountPlanck
+                }
+                response.addProperty("totalEffectiveBalanceNXT", totalEffectiveBalance / Constants.ONE_BURST)
             }
-            for (escrow in dp.escrowService.getAllEscrowTransactions()) {
-                totalEffectiveBalance += escrow.amountPlanck
-            }
-            response.addProperty("totalEffectiveBalanceNXT", totalEffectiveBalance / Constants.ONE_BURST)
 
             response.addProperty("numberOfBlocks", dp.blockchainService.height + 1)
             response.addProperty("numberOfTransactions", dp.blockchainService.getTransactionCount())

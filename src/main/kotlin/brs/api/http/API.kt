@@ -6,6 +6,9 @@ import brs.util.Subnet
 import brs.util.jetty.InverseExistsOrRewriteRegexRule
 import brs.util.logging.safeError
 import brs.util.logging.safeInfo
+import org.berndpruenster.netlayer.tor.HiddenServiceSocket
+import org.berndpruenster.netlayer.tor.NativeTor
+import org.berndpruenster.netlayer.tor.Tor
 import org.eclipse.jetty.rewrite.handler.RewriteHandler
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.HandlerList
@@ -17,7 +20,9 @@ import org.eclipse.jetty.servlets.DoSFilter
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.slf4j.LoggerFactory
 import java.io.File
-import java.net.UnknownHostException
+import java.io.IOException
+import java.net.*
+
 
 class API(dp: DependencyProvider) {
     private val apiServer: Server?
@@ -186,6 +191,27 @@ class API(dp: DependencyProvider) {
                 try {
                     apiServer.start()
                     logger.safeInfo { "Started API server at $host:$port" }
+
+                    if (dp.propertyService.get(Props.API_TOR)) {
+                        //Create a default Tor instance, this will take some time
+                        Tor.default = NativeTor(File(dp.propertyService.get(Props.API_TOR_FOLDER)))
+                        logger.safeInfo { "Tor has been bootstrapped" }
+
+                        val localPort = dp.propertyService.get(Props.API_TOR_PORT)
+
+                        //create a hidden service inside the brs-tor directory
+                        val hiddenServiceSocket = HiddenServiceSocket(
+                            localPort, "burst", port
+                        )
+                        hiddenServiceSocket.addReadyListener { socket ->
+                            logger.safeInfo { "TOR hidden service $socket is ready!" }
+                            // run the proxy accepting connections and forwarding to the regular port
+                            while (true) {
+                                ThreadProxy(socket.accept(), port).start()
+                            }
+                        }
+                    }
+
                 } catch (e: Exception) {
                     logger.safeError(e) { "Failed to start API server" }
                 }
@@ -193,6 +219,61 @@ class API(dp: DependencyProvider) {
         } else {
             apiServer = null
             logger.safeInfo { "API server not enabled" }
+        }
+    }
+
+    // TODO: find a library doing this, or manage to add a Jetty Connector directly!!
+    // This class creates two threads for every new connection on the hidden service
+    class ThreadProxy(private val client: Socket, private val port: Int) : Thread() {
+        override fun run() {
+            try {
+                val request = ByteArray(1024)
+                val reply = ByteArray(4096)
+
+                val inFromClient = client.getInputStream()
+                val outToClient = client.getOutputStream()
+
+                val server = Socket(InetAddress.getLocalHost(), port)
+
+                val inFromServer = server.getInputStream()
+                val outToServer = server.getOutputStream()
+
+                // a new thread for uploading to the server
+                object : Thread() {
+                    override fun run() {
+                        var bytesRead: Int
+                        try {
+                            while (inFromClient.read(request).also { bytesRead = it } != -1) {
+                                outToServer.write(request, 0, bytesRead)
+                                outToServer.flush()
+                            }
+                        } catch (e: IOException) {
+                        }
+                        try {
+                            outToServer.close()
+                        } catch (e: IOException) {
+                            e.printStackTrace()
+                        }
+                    }
+                }.start()
+
+                // current thread manages streams from server to client (DOWNLOAD)
+                var bytesRead: Int
+                try {
+                    while (inFromServer.read(reply).also { bytesRead = it } != -1) {
+                        outToClient.write(reply, 0, bytesRead)
+                        outToClient.flush()
+                    }
+                } catch (e: IOException) {
+                }
+                outToClient.close()
+                client.close()
+
+                server.close()
+            }
+            catch (e: IOException) {
+                e.printStackTrace()
+            }
         }
     }
 

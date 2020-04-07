@@ -103,6 +103,9 @@ object Props {
 
     val API_LISTEN = Prop("API.Listen", "127.0.0.1")
     val API_PORT = Prop("API.Port", 8125)
+    val API_TOR = Prop("API.Tor", false)
+    val API_TOR_PORT = Prop("API.TorPort", 1025)
+    val API_TOR_FOLDER = Prop("API.TorFolder", "brs-tor")
     val API_V2_LISTEN = Prop("API.V2.Listen", "0.0.0.0")
     val API_V2_PORT = Prop("API.V2.Port", 8121)
 

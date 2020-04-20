@@ -1,6 +1,6 @@
 buildscript {
     ext.kotlinVersion = "1.3.71"
-    ext.jooqPluginVersion = "4.1"
+    ext.jooqPluginVersion = "4.2"
     ext.shadowPluginVersion = "5.2.0"
     ext.protobufPluginVersion = "0.8.12"
     ext.sonarqubePluginVersion = "2.8"

@@ -28,6 +28,7 @@
     <grpc.version>1.23.0</grpc.version>
     <gson.version>2.8.5</gson.version>
     <h2.version>1.4.199</h2.version>
+    <cli.version>1.4</cli.version>
     <hikaricp.version>3.3.1</hikaricp.version>
     <java.version>1.8</java.version>
     <jetty.version>9.4.20.v20190813</jetty.version>
@@ -164,6 +165,12 @@
       <groupId>com.google.zxing</groupId>
       <artifactId>javase</artifactId>
       <version>${xzing.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-cli</groupId>
+      <artifactId>commons-cli</artifactId>
+      <version>${cli.version}</version>
     </dependency>
 
     <dependency>

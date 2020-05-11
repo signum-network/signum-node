@@ -6,6 +6,6 @@ API.allowed = *
 
 # Database connection JDBC url
 # Append ;AUTO_SERVER=TRUE to enable automatic mixed mode access.
-DB.Url=jdbc:h2:file:/db/burst;DB_CLOSE_ON_EXIT=FALSE
+DB.Url=jdbc:h2:file:./burst_db/burst.h2;DB_CLOSE_ON_EXIT=FALSE
 DB.Username=
 DB.Password=

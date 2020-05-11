@@ -68,18 +68,19 @@ public final class Burst {
   private static API api;
   private static Server apiV2Server;
 
-  private static PropertyService loadProperties() {
-    final Properties defaultProperties = new Properties();
-
+  private static PropertyService loadProperties(String confFolder) {
     logger.info("Initializing Burst Reference Software (BRS) version {}", VERSION);
-    try (InputStream is = new FileInputStream(new File(CONF_FOLDER, DEFAULT_PROPERTIES_NAME))) {
+    
+    logger.info("Configurations from folder {}", confFolder);
+    Properties defaultProperties = new Properties();
+    try (InputStream is = new FileInputStream(new File(confFolder, DEFAULT_PROPERTIES_NAME))) {
        defaultProperties.load(is);
     } catch (IOException e) {
       throw new RuntimeException("Error loading " + DEFAULT_PROPERTIES_NAME, e);
     }
 
     Properties properties = new Properties(defaultProperties);
-    try (InputStream is = new FileInputStream(new File(CONF_FOLDER, PROPERTIES_NAME))) {
+    try (InputStream is = new FileInputStream(new File(confFolder, PROPERTIES_NAME))) {
       if (is != null) { // parse if brs.properties was loaded
         properties.load(is);
       }
@@ -113,9 +114,12 @@ public final class Burst {
     return dbs;
   }
 
-  public static void main(String[] args) {
+  public static void main(String []args) {
     Runtime.getRuntime().addShutdownHook(new Thread(Burst::shutdown));
-    init();
+    String confFolder = CONF_FOLDER;
+    if(args!=null && args.length == 1)
+    	confFolder = args[0];
+    init(confFolder);
   }
 
   private static boolean validateVersionNotDev(PropertyService propertyService) {
@@ -130,8 +134,8 @@ public final class Burst {
     loadWallet(new PropertyServiceImpl(customProperties));
   }
 
-  private static void init() {
-    loadWallet(loadProperties());
+  private static void init(String confFolder) {
+    loadWallet(loadProperties(confFolder));
   }
 
   private static void loadWallet(PropertyService propertyService) {

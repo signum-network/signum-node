@@ -61,7 +61,7 @@ public class BurstGUI extends JFrame {
     private static final int OUTPUT_MAX_LINES = 500;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BurstGUI.class);
-    private static String[] args;
+    private static String confFolder = Burst.CONF_FOLDER;
 
     private boolean userClosed = false;
     private TrayIcon trayIcon = null;
@@ -71,8 +71,9 @@ public class BurstGUI extends JFrame {
 	private JScrollPane textScrollPane = null;
     Color iconColor = Color.BLACK;
 
-    public static void main(String[] args) {
-        BurstGUI.args = args;
+    public static void main(String []args) {
+        if(args!=null && args.length == 1)
+        	BurstGUI.confFolder = args[0];
         new BurstGUI();
     }
 
@@ -288,7 +289,7 @@ public class BurstGUI extends JFrame {
 
     private void runBrs() {
         try {
-            Burst.main(args);
+            Burst.main(new String[] {confFolder});
             try {
             	SwingUtilities.invokeLater(() -> showTrayIcon());
             	

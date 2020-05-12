@@ -61,7 +61,7 @@ public class BurstGUI extends JFrame {
     private static final int OUTPUT_MAX_LINES = 500;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BurstGUI.class);
-    private static String confFolder = Burst.CONF_FOLDER;
+    private static String []args;
 
     private boolean userClosed = false;
     private TrayIcon trayIcon = null;
@@ -73,7 +73,7 @@ public class BurstGUI extends JFrame {
 
     public static void main(String []args) {
         if(args!=null && args.length == 1)
-        	BurstGUI.confFolder = args[0];
+        	BurstGUI.args = args;
         new BurstGUI();
     }
 
@@ -147,6 +147,7 @@ public class BurstGUI extends JFrame {
         	}
         });
         
+        showWindow();
         new Timer(5000, e -> {
         	try {
         		Blockchain blockChain = Burst.getBlockchain();
@@ -185,9 +186,6 @@ public class BurstGUI extends JFrame {
     private void showTrayIcon() {
         if (trayIcon == null) { // Don't start running in tray twice
             trayIcon = createTrayIcon();
-
-            // Also show the main window
-            SwingUtilities.invokeLater(() -> showWindow());
         }
     }
 
@@ -234,7 +232,7 @@ public class BurstGUI extends JFrame {
     		
     		return newTrayIcon;
     	} catch (Exception e) {
-    		LOGGER.warn("Could not create tray icon");
+    		LOGGER.info("Could not create tray icon");
     		return null;
     	}
     }
@@ -289,7 +287,7 @@ public class BurstGUI extends JFrame {
 
     private void runBrs() {
         try {
-            Burst.main(new String[] {confFolder});
+            Burst.main(args);
             try {
             	SwingUtilities.invokeLater(() -> showTrayIcon());
             	

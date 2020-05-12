@@ -31,6 +31,11 @@ import brs.util.LoggerConfigurator;
 import brs.util.ThreadPool;
 import brs.util.Time;
 import io.grpc.Server;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +53,22 @@ public final class Burst {
   public static final String CONF_FOLDER = "./conf";
   public static final String DEFAULT_PROPERTIES_NAME = "brs-default.properties";
   public static final String PROPERTIES_NAME = "brs.properties";
+
+  public static final Option CONF_FOLDER_OPTION = Option.builder("c")
+		  .longOpt("config")
+		  .argName("conf folder")
+		  .desc("The configuration folder to use")
+		  .build();
+
+  public static final Options CLI_OPTIONS = new Options()
+		  .addOption(CONF_FOLDER_OPTION)
+		  .addOption(Option.builder("l")
+	        		.longOpt("headless")
+	        		.desc("Run in headless mode")
+	        		.build())
+		  .addOption(Option.builder("h")
+	        		.longOpt("help")
+	        		.build());
 
   private static final Logger logger = LoggerFactory.getLogger(Burst.class);
 
@@ -117,8 +138,14 @@ public final class Burst {
   public static void main(String []args) {
     Runtime.getRuntime().addShutdownHook(new Thread(Burst::shutdown));
     String confFolder = CONF_FOLDER;
-    if(args!=null && args.length == 1)
-    	confFolder = args[0];
+    try {
+      CommandLine cmd = new DefaultParser().parse(CLI_OPTIONS, args, false);
+      if(cmd.hasOption(CONF_FOLDER_OPTION.getOpt()))
+    	  confFolder = cmd.getOptionValue(CONF_FOLDER_OPTION.getOpt());
+    }
+    catch (Exception e) {
+    	logger.error("Exception parsing command line arguments", e);
+	}
     init(confFolder);
   }
 

@@ -72,8 +72,7 @@ public class BurstGUI extends JFrame {
     Color iconColor = Color.BLACK;
 
     public static void main(String []args) {
-        if(args!=null && args.length == 1)
-        	BurstGUI.args = args;
+       	BurstGUI.args = args;
         new BurstGUI();
     }
 

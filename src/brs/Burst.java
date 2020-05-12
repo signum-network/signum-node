@@ -57,6 +57,7 @@ public final class Burst {
   public static final Option CONF_FOLDER_OPTION = Option.builder("c")
 		  .longOpt("config")
 		  .argName("conf folder")
+		  .numberOfArgs(1)
 		  .desc("The configuration folder to use")
 		  .build();
 
@@ -139,7 +140,7 @@ public final class Burst {
     Runtime.getRuntime().addShutdownHook(new Thread(Burst::shutdown));
     String confFolder = CONF_FOLDER;
     try {
-      CommandLine cmd = new DefaultParser().parse(CLI_OPTIONS, args, false);
+      CommandLine cmd = new DefaultParser().parse(CLI_OPTIONS, args);
       if(cmd.hasOption(CONF_FOLDER_OPTION.getOpt()))
     	  confFolder = cmd.getOptionValue(CONF_FOLDER_OPTION.getOpt());
     }

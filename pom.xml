@@ -421,6 +421,7 @@
                 <headerType>gui</headerType>
                 <outfile>target/burst.exe</outfile>
                 <dontWrapJar>true</dontWrapJar>
+                <downloadUrl>https://www.java.com/en/download/manual.jsp</downloadUrl>
                 <errTitle>Burst Reference Software</errTitle>
                 <icon>resources/images/burst_overlay_logo.ico</icon>
                 <jar>burst.jar</jar>

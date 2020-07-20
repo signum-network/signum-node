@@ -15,6 +15,7 @@ import java.util.List;
 import static brs.http.JSONResponses.INCORRECT_ACCOUNT;
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.INCLUDE_INDIRECT_PARAMETER;
+import static brs.http.common.Parameters.TIMESTAMP_PARAMETER;
 import static brs.http.common.ResultFields.UNCONFIRMED_TRANSACTIONS_RESPONSE;
 
 final class GetUnconfirmedTransactions extends APIServlet.JsonRequestHandler {
@@ -24,16 +25,17 @@ final class GetUnconfirmedTransactions extends APIServlet.JsonRequestHandler {
   private final ParameterService parameterService;
 
   GetUnconfirmedTransactions(TransactionProcessor transactionProcessor, IndirectIncomingService indirectIncomingService, ParameterService parameterService) {
-    super(new APITag[]{APITag.TRANSACTIONS, APITag.ACCOUNTS}, ACCOUNT_PARAMETER, INCLUDE_INDIRECT_PARAMETER);
+    super(new APITag[]{APITag.TRANSACTIONS, APITag.ACCOUNTS}, ACCOUNT_PARAMETER, INCLUDE_INDIRECT_PARAMETER, TIMESTAMP_PARAMETER);
     this.transactionProcessor = transactionProcessor;
     this.indirectIncomingService = indirectIncomingService;
     this.parameterService = parameterService;
   }
 
   @Override
-  JsonElement processRequest(HttpServletRequest req) {
+  JsonElement processRequest(HttpServletRequest req) throws ParameterException {
     final String accountIdString = Convert.emptyToNull(req.getParameter(ACCOUNT_PARAMETER));
     boolean includeIndirect = parameterService.getIncludeIndirect(req);
+    int timestamp = ParameterParser.getTimestamp(req);
 
     long accountId = 0;
 
@@ -53,7 +55,8 @@ final class GetUnconfirmedTransactions extends APIServlet.JsonRequestHandler {
       if (accountId == 0
               || (accountId == transaction.getSenderId() || accountId == transaction.getRecipientId())
               || (includeIndirect && indirectIncomingService.isIndirectlyReceiving(transaction, accountId))) {
-        transactions.add(JSONData.unconfirmedTransaction(transaction));
+        if(timestamp == 0 || timestamp <= transaction.getTimestamp())
+          transactions.add(JSONData.unconfirmedTransaction(transaction));
       }
     }
 

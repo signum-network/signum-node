@@ -55,7 +55,7 @@ final class GetUnconfirmedTransactionIds extends APIServlet.JsonRequestHandler {
       if (accountId == 0
               || (accountId == transaction.getSenderId() || accountId == transaction.getRecipientId())
               || (includeIndirect && indirectIncomingService.isIndirectlyReceiving(transaction, accountId))) {
-        if(timestamp == 0 || timestamp <= transaction.getTimestamp())
+        if (timestamp == 0 || timestamp <= transaction.getTimestamp())
           transactionIds.add(transaction.getStringId());
       }
     }

@@ -1116,6 +1116,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           Map<Long, Map<Long, Transaction>> unconfirmedTransactionsOrderedBySlotThenPriority = new HashMap<>();
             inclusionCandidates.collect(Collectors.toMap(Function.identity(), priorityCalculator::applyAsLong)).forEach((transaction, priority) -> {
             long slot = (transaction.getFeeNQT() - (transaction.getFeeNQT() % FEE_QUANT)) / FEE_QUANT;
+            slot = Math.min(Burst.getFluxCapacitor().getValue(FluxValues.MAX_NUMBER_TRANSACTIONS), slot);
             unconfirmedTransactionsOrderedBySlotThenPriority.computeIfAbsent(slot, k -> new HashMap<>());
             unconfirmedTransactionsOrderedBySlotThenPriority.get(slot).put(priority, transaction);
           });

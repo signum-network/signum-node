@@ -10,7 +10,6 @@ import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.EscrowService;
 import brs.services.TimeService;
-import brs.services.impl.BlockServiceImpl;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -57,11 +56,6 @@ final class GetState extends APIServlet.JsonRequestHandler {
 
     if ("true".equalsIgnoreCase(req.getParameter(INCLUDE_COUNTS_PARAMETER))) {
       long totalEffectiveBalance = 0;
-      long totalMined = 0;
-      
-      for (int i=0; i <= blockchain.getHeight(); i++) {
-    	totalMined += BlockServiceImpl.getBlockReward(i);
-      }
 
       for (Account account : accountService.getAllAccounts(0, -1)) {
         long effectiveBalanceBURST = account.getBalanceNQT();
@@ -75,7 +69,6 @@ final class GetState extends APIServlet.JsonRequestHandler {
       response.addProperty("totalEffectiveBalanceNXT", totalEffectiveBalance / Constants.ONE_BURST);
       response.addProperty("totalEffectiveBalance", totalEffectiveBalance / Constants.ONE_BURST);
       response.addProperty("totalEffectiveBalanceNQT", totalEffectiveBalance);
-      response.addProperty("totalMinedBalanceNQT", totalMined);
     }
 
     response.addProperty("numberOfBlocks", blockchain.getHeight() + 1);

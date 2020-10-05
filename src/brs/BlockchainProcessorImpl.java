@@ -18,10 +18,12 @@ import brs.peer.Peers;
 import brs.props.PropertyService;
 import brs.props.Props;
 import brs.services.*;
+import brs.services.impl.BlockServiceImpl;
 import brs.statistics.StatisticsManagerImpl;
 import brs.transactionduplicates.TransactionDuplicatesCheckerImpl;
 import brs.unconfirmedtransactions.UnconfirmedTransactionStore;
 import brs.util.*;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -158,6 +160,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
 
     addGenesisBlock();
+    if(!propertyService.getBoolean(Props.DB_SKIP_CHECK)) {
+      checkDatabaseState();
+    }
 
     Runnable getMoreBlocksThread = new Runnable() {
       private JsonElement getCumulativeDifficultyRequest;
@@ -764,6 +769,33 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   private void addBlock(Block block) {
     blockchainStore.addBlock(block);
     blockchain.setLastBlock(block);
+  }
+  
+  private void checkDatabaseState() {
+    logger.info("Checking database state (it can take a minute or two)...");
+    long totalEffectiveBalance = 0;
+    long totalMined = 0;
+    
+    for (int i=0; i <= blockchain.getHeight(); i++) {
+      totalMined += BlockServiceImpl.getBlockReward(i);
+    }
+
+    for (Account account : accountService.getAllAccounts(0, -1)) {
+      long effectiveBalanceBURST = account.getBalanceNQT();
+      if (effectiveBalanceBURST > 0 && account.getId() != 0) {
+        totalEffectiveBalance += effectiveBalanceBURST;
+      }
+    }
+    for (Escrow escrow : escrowService.getAllEscrowTransactions()) {
+      totalEffectiveBalance += escrow.getAmountNQT();
+    }
+    
+    logger.info("Total mined {}, total effective on wallets {}", totalMined, totalEffectiveBalance);
+    
+    if(totalEffectiveBalance > totalMined) {
+      logger.info("Database is inconsistent, please sync from empty or add 'DB.SkipCheck = true' at your own risk.");
+      System.exit(-1);
+    }
   }
 
   private void addGenesisBlock() {

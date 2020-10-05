@@ -219,6 +219,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               if (betterCumulativeDifficulty.compareTo(curCumulativeDifficulty) <= 0) {
                 return;
               }
+              logger.trace("Got a better cumulative difficulty {} than current {}.", betterCumulativeDifficulty, curCumulativeDifficulty);
 
               long commonBlockId = Genesis.GENESIS_BLOCK_ID;
               long cacheLastBlockId = downloadCache.getLastBlockId();

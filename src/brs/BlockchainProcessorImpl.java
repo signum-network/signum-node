@@ -793,7 +793,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     logger.info("Total mined {}, total effective on wallets {}", totalMined, totalEffectiveBalance);
     
     if(totalEffectiveBalance > totalMined) {
-      logger.info("Database is inconsistent, please sync from empty or add 'DB.SkipCheck = true' at your own risk.");
+      logger.info("Database is inconsistent, please sync from empty or add '" + Props.DB_SKIP_CHECK.getName() + " = true' at your own risk.");
       System.exit(-1);
     }
   }

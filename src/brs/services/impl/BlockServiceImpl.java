@@ -187,12 +187,16 @@ public class BlockServiceImpl implements BlockService {
 
   @Override
   public long getBlockReward(Block block) {
-    if (block.getHeight() == 0 || block.getHeight() >= 1944000) {
-      return 0;
-    }
-    int month = block.getHeight() / 10800;
-    return BigInteger.valueOf(10000).multiply(BigInteger.valueOf(95).pow(month))
-        .divide(BigInteger.valueOf(100).pow(month)).longValue() * Constants.ONE_BURST;
+    return getBlockReward(block.getHeight());
+  }
+
+  public static long getBlockReward(int height) {
+	if (height == 0 || height >= 1944000) {
+	  return 0;
+	}
+	int month = height / 10800;
+	return BigInteger.valueOf(10000).multiply(BigInteger.valueOf(95).pow(month))
+	  .divide(BigInteger.valueOf(100).pow(month)).longValue() * Constants.ONE_BURST;
   }
 
   @Override

@@ -161,7 +161,7 @@ display:block
 margin-top:84px
 }
 
-.data-loading-container,.data-empty-container,.data-container.data-empty table,.data-container.data-loading table,.testnet_only,.page,#brs_update_explanation span,.show_logout,.advanced,.recipient_public_key,.optional_message,.optional_note {
+.data-loading-container,.data-empty-container,.data-container.data-empty table,.data-container.data-loading table,.testnet_only,.page,#brs_update_explanation span,.show_logout,.advanced,.recipient_public_key,.optional_message,.optional_burstcoin,.optional_note {
 display:none
 }
 

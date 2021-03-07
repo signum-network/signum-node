@@ -135,12 +135,9 @@ class AtApiController {
                 atApi.bToAddressOfCreator(state);
                 break;
             case 780:  
-                atApi.GetAssetIdForTxInA(state);  //0x030c get the asset id in a asset transfer transaction
-                break;
+                return atApi.GetAssetIdForTxInA(state);  //0x030c get the asset id in a asset transfer transaction
             case 781:  
-                atApi.GetAssetAmountForTxInA(state);  //0x030d get the asset amount in a asset transfer transaction
-                break;    
-
+                return atApi.GetAssetAmountForTxInA(state);  //0x030d get the asset amount in a asset transfer transaction
             case 1024:
                 return atApi.getCurrentBalance(state);
             case 1025:

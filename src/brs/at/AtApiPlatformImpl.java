@@ -3,7 +3,7 @@ package brs.at;
 import brs.Appendix;
 import brs.Burst;
 import brs.Transaction;
-import brs.Attachment.ATColoredCoinsAssetTransfer;
+import brs.Attachment.ColoredCoinsAssetTransfer;
 import brs.crypto.Crypto;
 import brs.fluxcapacitor.FluxValues;
 import org.slf4j.Logger;
@@ -106,6 +106,11 @@ public class AtApiPlatformImpl extends AtApiImpl {
             return 1;
         }
 
+        ColoredCoinsAssetTransfer attachment = (tx.getAttachment() instanceof ColoredCoinsAssetTransfer)?(ColoredCoinsAssetTransfer)tx.getAttachment():null;
+        if (attachment != null) {
+            return 2;
+        }
+
         return 0;
     }
 
@@ -136,7 +141,7 @@ public class AtApiPlatformImpl extends AtApiImpl {
             return -1;
         }
 
-        ATColoredCoinsAssetTransfer attachment = (tx.getAttachment() instanceof ATColoredCoinsAssetTransfer)?(ATColoredCoinsAssetTransfer)tx.getAttachment():null;
+        ColoredCoinsAssetTransfer attachment = (tx.getAttachment() instanceof ColoredCoinsAssetTransfer)?(ColoredCoinsAssetTransfer)tx.getAttachment():null;
         if (attachment != null) {
             return attachment.getAssetId();
         }
@@ -154,7 +159,7 @@ public class AtApiPlatformImpl extends AtApiImpl {
             return -1;
         }
 
-        ATColoredCoinsAssetTransfer attachment = (tx.getAttachment() instanceof ATColoredCoinsAssetTransfer)?(ATColoredCoinsAssetTransfer)tx.getAttachment():null;
+        ColoredCoinsAssetTransfer attachment = (tx.getAttachment() instanceof ColoredCoinsAssetTransfer)?(ColoredCoinsAssetTransfer)tx.getAttachment():null;
         if (attachment != null) {
             return attachment.getQuantityQNT();
         }

@@ -350,6 +350,16 @@ var BRS = (function(BRS, $, undefined) {
         }
     });
 
+    $(".add_burstcoin").on("change", function(e) {
+        if ($(this).is(":checked")) {
+            $(this).closest("form").find(".optional_burstcoin").fadeIn();
+            $(this).closest(".form-group").css("margin-bottom", "5px");
+        } else {
+            $(this).closest("form").find(".optional_burstcoin").hide();
+            $(this).closest(".form-group").css("margin-bottom", "");
+        }
+    });
+
     $(".add_note_to_self").on("change", function(e) {
         if ($(this).is(":checked")) {
             $(this).closest("form").find(".optional_note").fadeIn();
@@ -468,7 +478,7 @@ var BRS = (function(BRS, $, undefined) {
 
         $(this).find(".recipient_public_key").hide();
 
-        $(this).find(".optional_message, .optional_note").hide();
+        $(this).find(".optional_message .optional_burstcoin .optional_note").hide();
 
         $(this).find(".advanced_info a").text($.t("advanced"));
 

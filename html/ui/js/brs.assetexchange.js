@@ -1813,6 +1813,8 @@ var BRS = (function(BRS, $, undefined) {
             delete data.encrypt_message;
         }
 
+        delete data.add_burstcoin;
+
         return {
             "data": data
         };

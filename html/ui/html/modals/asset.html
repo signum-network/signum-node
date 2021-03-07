@@ -141,6 +141,16 @@
             </div>
           </div>
           <div class="form-group">
+            <input type="checkbox" name="add_burstcoin" id="transfer_asset_add_burstcoin" class="add_burstcoin" tabindex="4" /> <label for="transfer_asset_add_burstcoin" style="font-weight:normal;margin-bottom:0;"> <span data-i18n="add_burstcoin_q">Send BURST as well?</span></label>
+          </div>
+          <div class="form-group optional_burstcoin">
+            <label for="transfer_asset_burst_amount" data-i18n="amount">AMOUNT</label>
+            <div class="input-group">
+                <input type="text" name="amountNXT" id="transfer_asset_burst_amount" step="any" min="0.00000001" class="form-control" value="0" placeholder="Amount" data-i18n="[placeholder]amount"  tabindex="5">
+                <span class="input-group-addon">BURST</span>
+            </div>
+         </div>
+          <div class="form-group">
             <input type="checkbox" name="add_message" id="transfer_asset_add_message" class="add_message" tabindex="6" /> <label for="transfer_asset_add_message" style="font-weight:normal;margin-bottom:0;"> <span data-i18n="add_message_q">Add a Message?</span></label>
           </div>
           <div class="form-group optional_message">
@@ -155,7 +165,7 @@
               <div class="form-group">
                 <label for="transfer_asset_fee" data-i18n="fee">FEE</label>
                 <div class="input-group">
-                  <input type="number" name="feeNXT" id="transfer_asset_fee" class="form-control" step="any" min="0.00735" placeholder="Fee" data-i18n="[placeholder]fee" data-default="0.1" value="0.1" tabindex="5">
+                  <input type="number" name="feeNXT" id="transfer_asset_fee" class="form-control" step="any" min="0.00735" placeholder="Fee" data-i18n="[placeholder]fee" data-default="0.1" value="0.1" tabindex="8">
                   <span class="input-group-addon">BURST</span>
                 </div>
               </div>
@@ -163,27 +173,27 @@
             <div class="col-xs-6 col-sm-6 col-md-6">
               <div class="form-group">
                 <label for="transfer_asset_deadline" data-i18n="deadline_hours">DEADLINE (HOURS)</label>
-                <input type="number" name="deadline" id="transfer_asset_deadline" class="form-control" placeholder="Deadline" data-i18n="[placeholder]deadline" min="1" data-default="24" value="1" tabindex="6">
+                <input type="number" name="deadline" id="transfer_asset_deadline" class="form-control" placeholder="Deadline" data-i18n="[placeholder]deadline" min="1" data-default="24" value="1" tabindex="9">
               </div>
             </div>
           </div>
           <div class="form-group secret_phrase">
             <label for="transfer_asset_password" data-i18n="passphrase">PASSPHRASE</label>
-            <input type="password" name="secretPhrase" id="transfer_asset_password" class="form-control" placeholder="" tabindex="7" autocomplete="">
+            <input type="password" name="secretPhrase" id="transfer_asset_password" class="form-control" placeholder="" tabindex="10" autocomplete="">
           </div>
           <div class="form-group advanced">
             <label for="transfer_asset_referenced_transaction" data-i18n="referenced_transaction_hash">REFERENCED TRANSACTION HASH</label>
-            <input type="text" class="form-control" name="referencedTransactionFullHash" id="transfer_asset_referenced_transaction" placeholder="Referenced Transaction Full Hash" data-i18n="[placeholder]referenced_transaction_full_hash" tabindex="8" spellcheck="false" />
+            <input type="text" class="form-control" name="referencedTransactionFullHash" id="transfer_asset_referenced_transaction" placeholder="Referenced Transaction Full Hash" data-i18n="[placeholder]referenced_transaction_full_hash" tabindex="11" spellcheck="false" />
           </div>
           <div class="form-group advanced" style="margin-bottom:5px;">
-            <input type="checkbox" name="doNotBroadcast" id="transfer_asset_do_not_broadcast" value="1" /> <label for="transfer_asset_do_not_broadcast" style="font-weight:normal;" tabindex="9" data-i18n="do_not_broadcast">Do Not Broadcast</label>
+            <input type="checkbox" name="doNotBroadcast" id="transfer_asset_do_not_broadcast" value="1" /> <label for="transfer_asset_do_not_broadcast" style="font-weight:normal;" tabindex="12" data-i18n="do_not_broadcast">Do Not Broadcast</label>
           </div>
           <div class="form-group advanced">
-            <input type="checkbox" name="add_note_to_self" id="transfer_asset_add_note_to_self" class="add_note_to_self" tabindex="10" /> <label for="transfer_asset_add_note_to_self" style="font-weight:normal;margin-bottom:0;"> <span data-i18n="add_note_to_self">Add Note to Self?</span></label>
+            <input type="checkbox" name="add_note_to_self" id="transfer_asset_add_note_to_self" class="add_note_to_self" tabindex="13" /> <label for="transfer_asset_add_note_to_self" style="font-weight:normal;margin-bottom:0;"> <span data-i18n="add_note_to_self">Add Note to Self?</span></label>
           </div>
           <div class="form-group advanced optional_note">
             <label for="transfer_asset_note_to_self" data-i18n="note_to_self">Note to Self</label>
-            <textarea class="form-control" id="transfer_asset_note_to_self" name="note_to_self" rows="4" tabindex="11"></textarea>
+            <textarea class="form-control" id="transfer_asset_note_to_self" name="note_to_self" rows="4" tabindex="14"></textarea>
             <div style="margin-top:3px;">
               <label style="font-weight:normal;color:#666" data-i18n="note_is_encrypted">This note is encrypted.</label>
             </div>

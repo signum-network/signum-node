@@ -4,14 +4,15 @@
 package brs.schema.tables.records;
 
 
-import brs.schema.tables.BidOrder;
+import javax.annotation.processing.Generated;
+
 import org.jooq.Field;
 import org.jooq.Record1;
 import org.jooq.Record9;
 import org.jooq.Row9;
 import org.jooq.impl.UpdatableRecordImpl;
 
-import javax.annotation.Generated;
+import brs.schema.tables.BidOrder;
 
 
 /**

@@ -4,13 +4,14 @@
 package brs.schema.tables.records;
 
 
-import brs.schema.tables.Peer;
+import javax.annotation.processing.Generated;
+
 import org.jooq.Field;
 import org.jooq.Record1;
 import org.jooq.Row1;
 import org.jooq.impl.UpdatableRecordImpl;
 
-import javax.annotation.Generated;
+import brs.schema.tables.Peer;
 
 
 /**

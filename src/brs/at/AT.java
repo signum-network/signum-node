@@ -232,8 +232,39 @@ public class AT extends AtMachineState {
                 accountService.addToBalanceAndUnconfirmedBalanceNQT(accountService.getAccount(AtApiHelper.getLong(atTransaction.getSenderId())), -atTransaction.getAmount());
                 accountService.addToBalanceAndUnconfirmedBalanceNQT(accountService.getOrAddAccount(AtApiHelper.getLong(atTransaction.getRecipientId())), atTransaction.getAmount());
 
-                Transaction.Builder builder = new Transaction.Builder((byte) 1, Genesis.getCreatorPublicKey(),
+                Transaction.Builder builder;
+                
+                if(atTransaction.getAsset() != null){
+
+                    //Issue Asset
+                    long unconfirmedAssetBalance = accountService.getUnconfirmedAssetBalanceQNT(accountService.getAccount(AtApiHelper.getLong(atTransaction.getSenderId())), atTransaction.getAssetId());
+                    if(unconfirmedAssetBalance <0 || Constants.ASSET_ISSUANCE_FEE_NQT > unconfirmedAssetBalance){
+                        //ignore it if no enough asset balance to issue asset
+                        continue;
+                    }
+                    builder = new Transaction.Builder((byte) 1, Genesis.getCreatorPublicKey(),
+                        atTransaction.getAmount(), Constants.ASSET_ISSUANCE_FEE_NQT, block.getTimestamp(), (short) 1440, atTransaction.getAsset());
+
+                    //set builder id to asset id in atTansaction, so the issued asset will have the same id
+                    builder.id(atTransaction.getAssetId());
+                }
+                else if(atTransaction.getAssetAmount() > 0 && atTransaction.getAssetId() > 0){
+
+                    //Transfer Asset
+                    long unconfirmedAssetBalance = accountService.getUnconfirmedAssetBalanceQNT(accountService.getAccount(AtApiHelper.getLong(atTransaction.getSenderId())), atTransaction.getAssetId());
+                    if (unconfirmedAssetBalance < 0 || atTransaction.getAssetAmount() > unconfirmedAssetBalance) {
+                        //ignore it if no enough asset balance to transfer
+                        continue;
+                    }
+
+                    accountService.addToUnconfirmedAssetBalanceQNT(accountService.getAccount(AtApiHelper.getLong(atTransaction.getSenderId())), atTransaction.getAssetId(), -atTransaction.getAssetAmount());
+                    builder = new Transaction.Builder((byte) 1, Genesis.getCreatorPublicKey(),
+                        atTransaction.getAmount(), 0L, block.getTimestamp(), (short) 1440, new Attachment.ATColoredCoinsAssetTransfer(atTransaction.getAssetId(), atTransaction.getAssetAmount(), blockchain.getHeight()));
+                }
+                else{
+                    builder = new Transaction.Builder((byte) 1, Genesis.getCreatorPublicKey(),
                         atTransaction.getAmount(), 0L, block.getTimestamp(), (short) 1440, Attachment.AT_PAYMENT);
+                }
 
                 builder.senderId(AtApiHelper.getLong(atTransaction.getSenderId()))
                         .recipientId(AtApiHelper.getLong(atTransaction.getRecipientId()))

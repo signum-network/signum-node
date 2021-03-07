@@ -433,6 +433,30 @@ interface AtApi {
 
     /**
      * @param state AT machine state
+     * @return bool if A is a valid tx with @addr to tx asset id
+     */
+    long GetAssetIdForTxInA(AtMachineState state);
+
+    /**
+     * @param state AT machine state
+     * @return bool if A is a valid tx with @addr to tx asset amount
+     */
+    long GetAssetAmountForTxInA(AtMachineState state);
+
+     /**
+     * @param state AT machine state
+     * @return bool if Mold is done successfully set A to the asset id, asset information in  B1(assetDecimals) B2(assetQuantity) A1~4(assetDesc) B3-4(assetName)
+     */
+    long Mold(AtMachineState state);
+
+     /**
+     * @param state AT machine state
+     * @return bool if B1 is a valid address then send it the amount, asset and msg.  B1(address) B2(asset amount) A1~4(message) B3(asset id) B4(amount)
+     */
+    long Mint(AtMachineState state);
+
+    /**
+     * @param state AT machine state
      * @return bool if A is a valid tx with @addr to the tx timestamp
      */
     long getTimestampForTxInA(AtMachineState state);

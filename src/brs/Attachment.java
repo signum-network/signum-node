@@ -480,17 +480,17 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-      public TransactionType getTransactionType() {
-        return TransactionType.AutomatedTransactions.AT_PAYMENT;
-      }
+    public TransactionType getTransactionType() {
+      return TransactionType.AutomatedTransactions.AT_PAYMENT;
+    }
 
-      @Override
-      String getAppendixName() {
-        return "AT Payment";
-      }
+    @Override
+    String getAppendixName() {
+      return "AT Payment";
+    }
 
 
-    };
+  };
 
   class MessagingAliasAssignment extends AbstractAttachment {
 
@@ -890,7 +890,7 @@ public interface Attachment extends Appendix {
     }
   }
 
-  final class ColoredCoinsAssetTransfer extends AbstractAttachment {
+  class ColoredCoinsAssetTransfer extends AbstractAttachment {
 
     private final long assetId;
     private final long quantityQNT;
@@ -1256,6 +1256,42 @@ public interface Attachment extends Appendix {
     @Override
     public TransactionType getTransactionType() {
       return TransactionType.ColoredCoins.BID_ORDER_CANCELLATION;
+    }
+
+  }
+
+  final class ATColoredCoinsAssetIssuance extends ColoredCoinsAssetIssuance {
+
+    public ATColoredCoinsAssetIssuance(String name, String description, long quantityQNT, byte decimals, int blockchainHeight){
+      super(name, description, quantityQNT, decimals, blockchainHeight);
+    }
+
+    @Override
+    String getAppendixName() {
+      return "ATAssetIssuance";
+    }
+
+    @Override
+    public TransactionType getTransactionType() {
+      return TransactionType.AutomatedTransactions.AT_ASSET_ISSUANCE;
+    }
+
+  }
+
+  final class ATColoredCoinsAssetTransfer extends ColoredCoinsAssetTransfer {
+
+    public ATColoredCoinsAssetTransfer(long assetId, long quantityQNT, int blockchainHeight) {
+      super(assetId, quantityQNT, blockchainHeight);
+    }
+
+    @Override
+    String getAppendixName() {
+      return "ATAssetTransfer";
+    }
+
+    @Override
+    public TransactionType getTransactionType() {
+      return TransactionType.AutomatedTransactions.AT_ASSET_TRANSFER;
     }
 
   }

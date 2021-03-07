@@ -69,6 +69,8 @@ public abstract class TransactionType {
 
   private static final byte SUBTYPE_AT_CREATION = 0;
   private static final byte SUBTYPE_AT_NXT_PAYMENT = 1;
+  private static final byte SUBTYPE_AT_ASSET_ISSUANCE = 2;
+  private static final byte SUBTYPE_AT_ASSET_TRANSFER = 3;
 
   private static final byte SUBTYPE_ACCOUNT_CONTROL_EFFECTIVE_BALANCE_LEASING = 0;
 
@@ -2549,6 +2551,138 @@ public abstract class TransactionType {
       }
     };
 
+    public static final TransactionType AT_ASSET_ISSUANCE = new AutomatedTransactions() {
+      @Override
+      public final byte getSubtype() {
+        return TransactionType.SUBTYPE_AT_ASSET_ISSUANCE;
+      }
+
+      @Override
+      public String getDescription() {
+        return "AT Asset Issuance";
+      }
+
+      @Override
+      public Fee getBaselineFee(int height) {
+        return BASELINE_ASSET_ISSUANCE_FEE;
+      }
+
+      @Override
+      public Attachment.ColoredCoinsAssetIssuance parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        return new Attachment.ColoredCoinsAssetIssuance(buffer, transactionVersion);
+      }
+
+      @Override
+      Attachment.ColoredCoinsAssetIssuance parseAttachment(JsonObject attachmentData) {
+        return new Attachment.ColoredCoinsAssetIssuance(attachmentData);
+      }
+
+      @Override
+      boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        return true;
+      }
+
+      @Override
+      void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+        Attachment.ColoredCoinsAssetIssuance attachment = (Attachment.ColoredCoinsAssetIssuance) transaction.getAttachment();
+        long assetId = transaction.getId();
+        assetExchange.addAsset(transaction, attachment);
+        accountService.addToAssetAndUnconfirmedAssetBalanceQNT(senderAccount, assetId, attachment.getQuantityQNT());
+      }
+
+      @Override
+      void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        // Nothing to undo
+      }
+
+      @Override
+      void doValidateAttachment(Transaction transaction) throws BurstException.ValidationException {
+        Attachment.ColoredCoinsAssetIssuance attachment = (Attachment.ColoredCoinsAssetIssuance)transaction.getAttachment();
+        if (attachment.getName().length() < Constants.MIN_ASSET_NAME_LENGTH
+                || attachment.getName().length() > Constants.MAX_ASSET_NAME_LENGTH
+                || attachment.getDescription().length() > Constants.MAX_ASSET_DESCRIPTION_LENGTH
+                || attachment.getDecimals() < 0 || attachment.getDecimals() > 8
+                || attachment.getQuantityQNT() <= 0
+                || attachment.getQuantityQNT() > Constants.MAX_ASSET_QUANTITY_QNT
+        ) {
+          throw new BurstException.NotValidException("Invalid at asset issuance: " + JSON.toJsonString(attachment.getJsonObject()));
+        }
+        if (!TextUtils.isInAlphabet(attachment.getName())) {
+          throw new BurstException.NotValidException("Invalid at asset name: " + attachment.getName());
+        }
+      }
+
+      @Override
+      public boolean hasRecipient() {
+        return false;
+      }
+
+      @Override
+      public final boolean isSigned() {
+        return false;
+      }
+    }; 
+    
+    public static final TransactionType AT_ASSET_TRANSFER = new AutomatedTransactions() {
+      @Override
+      public final byte getSubtype() {
+        return TransactionType.SUBTYPE_AT_ASSET_TRANSFER;
+      }
+
+      @Override
+      public String getDescription() {
+        return "AT Asset Transfer";
+      }
+
+      @Override
+      public Attachment.ColoredCoinsAssetTransfer parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException{
+        return new Attachment.ColoredCoinsAssetTransfer(buffer, transactionVersion);
+      }
+
+      @Override
+      Attachment.ColoredCoinsAssetTransfer parseAttachment(JsonObject attachmentData) {
+        return new Attachment.ColoredCoinsAssetTransfer(attachmentData);
+      }
+
+      @Override
+      void doValidateAttachment(Transaction transaction) throws BurstException.ValidationException {
+        Attachment.ColoredCoinsAssetTransfer attachment = (Attachment.ColoredCoinsAssetTransfer)transaction.getAttachment();
+        if ( attachment.getComment() != null && attachment.getComment().length() > Constants.MAX_ASSET_TRANSFER_COMMENT_LENGTH
+                || attachment.getAssetId() == 0) {
+          throw new BurstException.NotValidException("Invalid asset transfer amount or comment: " + JSON.toJsonString(attachment.getJsonObject()));
+        }
+        if (transaction.getVersion() > 0 && attachment.getComment() != null) {
+          throw new BurstException.NotValidException("Asset transfer comments no longer allowed, use message " +
+                  "or encrypted message appendix instead");
+        }
+        Asset asset = assetExchange.getAsset(attachment.getAssetId());
+        if (attachment.getQuantityQNT() <= 0 || (asset != null && attachment.getQuantityQNT() > asset.getQuantityQNT())) {
+          throw new BurstException.NotValidException("Invalid asset transfer asset or quantity: " + JSON.toJsonString(attachment.getJsonObject()));
+        }
+        if (asset == null) {
+          throw new BurstException.NotCurrentlyValidException("Asset " + Convert.toUnsignedLong(attachment.getAssetId()) +
+                  " does not exist yet");
+        }
+      }
+
+      @Override
+      void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+        Attachment.ColoredCoinsAssetTransfer attachment = (Attachment.ColoredCoinsAssetTransfer) transaction.getAttachment();
+        accountService.addToAssetBalanceQNT(senderAccount, attachment.getAssetId(), -attachment.getQuantityQNT());
+        accountService.addToAssetAndUnconfirmedAssetBalanceQNT(recipientAccount, attachment.getAssetId(), attachment.getQuantityQNT());
+        assetExchange.addAssetTransfer(transaction, attachment);
+      }
+
+      @Override
+      public boolean hasRecipient() {
+        return true;
+      }
+
+      @Override
+      public final boolean isSigned() {
+        return false;
+      }
+    };
   }
 
   public long minimumFeeNQT(int height, int appendagesSize) {

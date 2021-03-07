@@ -211,7 +211,7 @@ public class AtMachineState {
     void addTransaction(AtTransaction tx) {
         ByteBuffer recipId = ByteBuffer.wrap(tx.getRecipientId());
         AtTransaction oldTx = transactions.get(recipId);
-        if (oldTx == null) {
+        if (oldTx == null || tx.getAsset() != null || tx.getAssetId() > 0) {
             transactions.put(recipId, tx);
         } else {
             AtTransaction newTx = new AtTransaction(tx.getSenderId(),

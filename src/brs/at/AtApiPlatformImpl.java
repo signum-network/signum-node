@@ -3,6 +3,7 @@ package brs.at;
 import brs.Appendix;
 import brs.Burst;
 import brs.Transaction;
+import brs.Attachment.ATColoredCoinsAssetTransfer;
 import brs.crypto.Crypto;
 import brs.fluxcapacitor.FluxValues;
 import org.slf4j.Logger;
@@ -125,6 +126,116 @@ public class AtApiPlatformImpl extends AtApiImpl {
         return 0;
     }
 
+    @Override
+    public long GetAssetIdForTxInA(AtMachineState state) {
+        long txId = AtApiHelper.getLong(state.getA1());
+
+        Transaction tx = Burst.getBlockchain().getTransaction(txId);
+
+        if (tx == null || (tx.getHeight() >= state.getHeight())) {
+            return -1;
+        }
+
+        ATColoredCoinsAssetTransfer attachment = (tx.getAttachment() instanceof ATColoredCoinsAssetTransfer)?(ATColoredCoinsAssetTransfer)tx.getAttachment():null;
+        if (attachment != null) {
+            return attachment.getAssetId();
+        }
+
+        return 0;
+    }
+
+    @Override
+    public long GetAssetAmountForTxInA(AtMachineState state) {
+        long txId = AtApiHelper.getLong(state.getA1());
+
+        Transaction tx = Burst.getBlockchain().getTransaction(txId);
+
+        if (tx == null || (tx.getHeight() >= state.getHeight())) {
+            return -1;
+        }
+
+        ATColoredCoinsAssetTransfer attachment = (tx.getAttachment() instanceof ATColoredCoinsAssetTransfer)?(ATColoredCoinsAssetTransfer)tx.getAttachment():null;
+        if (attachment != null) {
+            return attachment.getQuantityQNT();
+        }
+
+        return 0;
+    }
+
+    @Override
+    public long Mold(AtMachineState state) {
+
+        //if Mold is done successfully set A to the asset id, asset information in  B1(assetDecimals) B2(assetQuantity) A1~4(assetDesc) B3-4(assetName)
+
+        //asset name in B3 and B4
+        ByteBuffer bName = ByteBuffer.allocate(16);
+        bName.order(ByteOrder.LITTLE_ENDIAN);
+        bName.put(state.getB3());
+        bName.put(state.getB4());
+        bName.clear(); 
+
+        //asset description in A1 ~ A4
+        ByteBuffer bDesc = ByteBuffer.allocate(32);
+        bDesc.order(ByteOrder.LITTLE_ENDIAN);
+        bDesc.put(state.getA1());
+        bDesc.put(state.getA2());
+        bDesc.put(state.getA3());
+        bDesc.put(state.getA4());
+        bDesc.clear();
+
+        //asset quantity QNT in B2
+        long quantityQNT = AtApiHelper.getLong(state.getB2());
+
+        //asset decimals in B1
+        long decimals = AtApiHelper.getLong(state.getB1());
+
+        int height = state.getHeight();
+
+        AtTransaction tx = new AtTransaction(state.getId(), state.getB1(), 0L,bName.array());
+        long assetState = tx.setAsset(bName.array(), bDesc.array(), quantityQNT, (byte)decimals, height);
+        if(assetState < 0)
+            return assetState;
+        
+        state.setA1(AtApiHelper.getByteArray(tx.getAssetId()));
+        
+        state.addTransaction(tx);
+        
+        return tx.getAssetId();
+    }
+
+    @Override
+    public long Mint(AtMachineState state) {
+
+        //if B1 is a valid address then send it the amount, asset and msg.  B1(address) B2(asset amount) A1~4(message) B3(asset id) B4(amount)
+
+        //burstcoin amount QNT in B4
+        long amountQNT = AtApiHelper.getLong(state.getB4());
+
+        //message in A1 ~ A4
+        ByteBuffer bMsg = ByteBuffer.allocate(32);
+        bMsg.order(ByteOrder.LITTLE_ENDIAN);
+        bMsg.put(state.getA1());
+        bMsg.put(state.getA2());
+        bMsg.put(state.getA3());
+        bMsg.put(state.getA4());
+        bMsg.clear();
+
+        //asset id in B3
+        long assetId = AtApiHelper.getLong(state.getB3());
+
+        //asset amount QNT in B2
+        long assetAmountQNT = AtApiHelper.getLong(state.getB2());
+
+        AtTransaction tx = new AtTransaction(state.getId(), state.getB1(), amountQNT, bMsg.array());
+        tx.setAssetId(assetId);
+        tx.setAssetAmount(assetAmountQNT);
+        state.addTransaction(tx);
+       
+
+        return 0;
+        
+    }
+ 
     @Override
     public long getTimestampForTxInA(AtMachineState state) {
         long txId = AtApiHelper.getLong(state.getA1());

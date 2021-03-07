@@ -25,6 +25,7 @@ public class AtTransaction {
     private ATColoredCoinsAssetIssuance asset;
     private byte[] senderId;
     private byte[] recipientId;
+    private byte[] fullHash;
 
     AtTransaction(byte[] senderId, byte[] recipientId, long amount, byte[] message) {
         this.senderId = senderId.clone();
@@ -70,11 +71,16 @@ public class AtTransaction {
             asset.putBytes(buffer);
             buffer.put(senderId);
 
-            byte[] hash = Crypto.sha256().digest(buffer.array());
-            assetId = Convert.fullHashToId(hash);
+            fullHash = Crypto.sha256().digest(buffer.array());
+            
+            assetId = Convert.fullHashToId(fullHash);
         }
 
         return assetId;
+    }
+
+    public byte[] getFullHash(){
+        return fullHash;
     }
 
     public long getAssetAmount(){
@@ -121,13 +127,16 @@ public class AtTransaction {
         return -3;
         }
     
+        description = description.trim();
         if (description != null && description.length() > brs.Constants.MAX_ASSET_DESCRIPTION_LENGTH) {
         return -4;
         }
 
-        if (decimals < 0 || decimals > 8)
+        if (quantityQNT <= 0 || quantityQNT > brs.Constants.MAX_ASSET_QUANTITY_QNT)
         return -5;
-        
+
+        if (decimals < 0 || decimals > 8)
+        return -6;
 
         this.asset = new ATColoredCoinsAssetIssuance( name, description, quantityQNT, decimals, blockchainHeight);
 

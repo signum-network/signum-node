@@ -191,10 +191,13 @@ public class AtApiPlatformImpl extends AtApiImpl {
 
         int height = state.getHeight();
 
-        AtTransaction tx = new AtTransaction(state.getId(), state.getB1(), 0L,bName.array());
+
+        AtTransaction tx = new AtTransaction(state.getId(), AtApiHelper.getByteArray(0L), 0L,bName.array());
         long assetState = tx.setAsset(bName.array(), bDesc.array(), quantityQNT, (byte)decimals, height);
-        if(assetState < 0)
+        if(assetState < 0){
+            state.setA1(AtApiHelper.getByteArray(assetState));
             return assetState;
+        }
         
         state.setA1(AtApiHelper.getByteArray(tx.getAssetId()));
         
@@ -226,7 +229,7 @@ public class AtApiPlatformImpl extends AtApiImpl {
         //asset amount QNT in B2
         long assetAmountQNT = AtApiHelper.getLong(state.getB2());
 
-        AtTransaction tx = new AtTransaction(state.getId(), state.getB1(), amountQNT, bMsg.array());
+        AtTransaction tx = new AtTransaction(state.getId(), state.getB1().clone(), amountQNT, bMsg.array());
         tx.setAssetId(assetId);
         tx.setAssetAmount(assetAmountQNT);
         state.addTransaction(tx);

@@ -142,6 +142,8 @@ public abstract class TransactionType {
     Map<Byte, TransactionType> atTypes = new HashMap<>();
     atTypes.put(SUBTYPE_AT_CREATION, AutomatedTransactions.AUTOMATED_TRANSACTION_CREATION);
     atTypes.put(SUBTYPE_AT_NXT_PAYMENT, AutomatedTransactions.AT_PAYMENT);
+    atTypes.put(SUBTYPE_AT_ASSET_ISSUANCE, AutomatedTransactions.AT_ASSET_ISSUANCE);
+    atTypes.put(SUBTYPE_AT_ASSET_TRANSFER, AutomatedTransactions.AT_ASSET_TRANSFER);
 
     Map<Byte, TransactionType> accountControlTypes = new HashMap<>();
     accountControlTypes.put(SUBTYPE_ACCOUNT_CONTROL_EFFECTIVE_BALANCE_LEASING, AccountControl.EFFECTIVE_BALANCE_LEASING);
@@ -265,6 +267,10 @@ public abstract class TransactionType {
     if (logger.isTraceEnabled()) {
       logger.trace("applying transaction - id: {}, type: {}", transaction.getId(), transaction.getType());
     }
+    applyAttachment(transaction, senderAccount, recipientAccount);
+  }
+
+  final public void applyAT(Transaction transaction, Account senderAccount, Account recipientAccount) {
     applyAttachment(transaction, senderAccount, recipientAccount);
   }
 
@@ -2584,6 +2590,14 @@ public abstract class TransactionType {
 
       @Override
       void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+
+        try{
+          doValidateAttachment(transaction);
+        }
+        catch(BurstException.ValidationException ex){
+          return;
+        }
+
         Attachment.ColoredCoinsAssetIssuance attachment = (Attachment.ColoredCoinsAssetIssuance) transaction.getAttachment();
         long assetId = transaction.getId();
         assetExchange.addAsset(transaction, attachment);
@@ -2667,6 +2681,14 @@ public abstract class TransactionType {
 
       @Override
       void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+
+        try{
+          doValidateAttachment(transaction);
+        }
+        catch(BurstException.ValidationException ex){
+          return;
+        }
+
         Attachment.ColoredCoinsAssetTransfer attachment = (Attachment.ColoredCoinsAssetTransfer) transaction.getAttachment();
         accountService.addToAssetBalanceQNT(senderAccount, attachment.getAssetId(), -attachment.getQuantityQNT());
         accountService.addToAssetAndUnconfirmedAssetBalanceQNT(recipientAccount, attachment.getAssetId(), attachment.getQuantityQNT());

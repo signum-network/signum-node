@@ -237,8 +237,8 @@ public class AT extends AtMachineState {
                 if(atTransaction.getAsset() != null){
 
                     //Issue Asset
-                    long unconfirmedAssetBalance = accountService.getUnconfirmedAssetBalanceQNT(accountService.getAccount(AtApiHelper.getLong(atTransaction.getSenderId())), atTransaction.getAssetId());
-                    if(unconfirmedAssetBalance <0 || Constants.ASSET_ISSUANCE_FEE_NQT > unconfirmedAssetBalance){
+                    long accountBalance = accountService.getAccount(AtApiHelper.getLong(atTransaction.getSenderId())).getBalanceNQT();
+                    if(accountBalance <0 || Constants.ASSET_ISSUANCE_FEE_NQT > accountBalance){
                         //ignore it if no enough asset balance to issue asset
                         continue;
                     }
@@ -247,6 +247,7 @@ public class AT extends AtMachineState {
 
                     //set builder id to asset id in atTansaction, so the issued asset will have the same id
                     builder.id(atTransaction.getAssetId());
+                    builder.fullHash(atTransaction.getFullHash());
                 }
                 else if(atTransaction.getAssetAmount() > 0 && atTransaction.getAssetId() > 0){
 
@@ -283,6 +284,8 @@ public class AT extends AtMachineState {
                     Transaction transaction = builder.build();
                     if (!transactionDb.hasTransaction(transaction.getId())) {
                         transactions.add(transaction);
+
+                        transaction.getType().applyAT(transaction, accountService.getAccount(AtApiHelper.getLong(atTransaction.getSenderId())), accountService.getAccount(AtApiHelper.getLong(atTransaction.getRecipientId())));
                     }
                 } catch (BurstException.NotValidException e) {
                     throw new RuntimeException("Failed to construct AT payment transaction", e);

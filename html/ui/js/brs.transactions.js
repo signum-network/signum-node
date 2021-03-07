@@ -599,6 +599,12 @@ var BRS = (function(BRS, $, undefined) {
             case 1:
                 transactionType = "AT Payment";
                 break;
+            case 2:
+                transactionType = "AT Asset Issuance";
+                break;
+            case 3:
+                transactionType = "AT Asset Transfer";
+                break;
             }
         }
         return transactionType;

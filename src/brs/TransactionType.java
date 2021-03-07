@@ -2573,13 +2573,13 @@ public abstract class TransactionType {
       }
 
       @Override
-      public Attachment.ColoredCoinsAssetIssuance parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
-        return new Attachment.ColoredCoinsAssetIssuance(buffer, transactionVersion);
+      public Attachment.ATColoredCoinsAssetIssuance parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        return new Attachment.ATColoredCoinsAssetIssuance(buffer, transactionVersion);
       }
 
       @Override
-      Attachment.ColoredCoinsAssetIssuance parseAttachment(JsonObject attachmentData) {
-        return new Attachment.ColoredCoinsAssetIssuance(attachmentData);
+      Attachment.ATColoredCoinsAssetIssuance parseAttachment(JsonObject attachmentData) {
+        return new Attachment.ATColoredCoinsAssetIssuance(attachmentData);
       }
 
       @Override
@@ -2648,13 +2648,13 @@ public abstract class TransactionType {
       }
 
       @Override
-      public Attachment.ColoredCoinsAssetTransfer parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException{
-        return new Attachment.ColoredCoinsAssetTransfer(buffer, transactionVersion);
+      public Attachment.ATColoredCoinsAssetTransfer parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException{
+        return new Attachment.ATColoredCoinsAssetTransfer(buffer, transactionVersion);
       }
 
       @Override
-      Attachment.ColoredCoinsAssetTransfer parseAttachment(JsonObject attachmentData) {
-        return new Attachment.ColoredCoinsAssetTransfer(attachmentData);
+      Attachment.ATColoredCoinsAssetTransfer parseAttachment(JsonObject attachmentData) {
+        return new Attachment.ATColoredCoinsAssetTransfer(attachmentData);
       }
 
       @Override

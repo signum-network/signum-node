@@ -1262,6 +1262,14 @@ public interface Attachment extends Appendix {
 
   final class ATColoredCoinsAssetIssuance extends ColoredCoinsAssetIssuance {
 
+    ATColoredCoinsAssetIssuance(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+      super(buffer, transactionVersion);
+    }
+
+    ATColoredCoinsAssetIssuance(JsonObject attachmentData) {
+      super(attachmentData);
+    }
+
     public ATColoredCoinsAssetIssuance(String name, String description, long quantityQNT, byte decimals, int blockchainHeight){
       super(name, description, quantityQNT, decimals, blockchainHeight);
     }
@@ -1282,6 +1290,14 @@ public interface Attachment extends Appendix {
 
     public ATColoredCoinsAssetTransfer(long assetId, long quantityQNT, int blockchainHeight) {
       super(assetId, quantityQNT, blockchainHeight);
+    }
+
+    ATColoredCoinsAssetTransfer(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+      super(buffer, transactionVersion);
+    }
+
+    ATColoredCoinsAssetTransfer(JsonObject attachmentData) {
+      super(attachmentData);
     }
 
     @Override

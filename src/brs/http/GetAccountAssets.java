@@ -38,14 +38,27 @@ public final class GetAccountAssets extends APIServlet.JsonRequestHandler {
         JsonArray assetBalances = new JsonArray();
         JsonArray unconfirmedAssetBalances = new JsonArray();
 
+        //the account is an AT
+        boolean accountIsAT = brs.at.AT.getAT(account.getId()) != null;
+
         for (Account.AccountAsset accountAsset : accountService.getAssets(account.getId(), firstIndex, lastIndex)) {
+
+            // the asset balance will show zero if the the asset is issued by an AT which is the current account 
+            boolean showAssetBalance = true; 
+            if(accountIsAT){
+                brs.Asset asset = brs.Burst.getStores().getAssetStore().getAssetTable().getBy(brs.schema.Tables.ASSET.ID.eq(accountAsset.getAssetId()));
+                if(asset != null && asset.getAccountId() == account.getId()){
+                showAssetBalance = false;
+                }
+            }
+
             JsonObject assetBalance = new JsonObject();
             assetBalance.addProperty(ASSET_RESPONSE, Convert.toUnsignedLong(accountAsset.getAssetId()));
-            assetBalance.addProperty(BALANCE_QNT_RESPONSE, String.valueOf(accountAsset.getQuantityQNT()));
+            assetBalance.addProperty(BALANCE_QNT_RESPONSE, showAssetBalance ? String.valueOf(accountAsset.getQuantityQNT()) : "0");
             assetBalances.add(assetBalance);
             JsonObject unconfirmedAssetBalance = new JsonObject();
             unconfirmedAssetBalance.addProperty(ASSET_RESPONSE, Convert.toUnsignedLong(accountAsset.getAssetId()));
-            unconfirmedAssetBalance.addProperty(UNCONFIRMED_BALANCE_QNT_RESPONSE, String.valueOf(accountAsset.getUnconfirmedQuantityQNT()));
+            unconfirmedAssetBalance.addProperty(UNCONFIRMED_BALANCE_QNT_RESPONSE, showAssetBalance ? String.valueOf(accountAsset.getUnconfirmedQuantityQNT()) : "0");
             unconfirmedAssetBalances.add(unconfirmedAssetBalance);
         }
 

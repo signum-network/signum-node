@@ -12,6 +12,7 @@ import brs.db.BurstKey;
 import brs.db.TransactionDb;
 import brs.db.VersionedEntityTable;
 import brs.services.AccountService;
+import brs.util.Convert;
 import brs.util.Listener;
 
 import java.io.ByteArrayInputStream;
@@ -233,17 +234,20 @@ public class AT extends AtMachineState {
                 accountService.addToBalanceAndUnconfirmedBalanceNQT(accountService.getOrAddAccount(AtApiHelper.getLong(atTransaction.getRecipientId())), atTransaction.getAmount());
 
                 Transaction.Builder builder;
+                boolean messageIsText = false;
                 
                 if(atTransaction.getAsset() != null){
 
                     //Issue Asset
-                    long accountBalance = accountService.getAccount(AtApiHelper.getLong(atTransaction.getSenderId())).getBalanceNQT();
-                    if(accountBalance <0 || Constants.ASSET_ISSUANCE_FEE_NQT > accountBalance){
-                        //ignore it if no enough asset balance to issue asset
-                        continue;
-                    }
+                    //looks do not need to pay fee since already paid AT running fees
+                    //long accountBalance = accountService.getAccount(AtApiHelper.getLong(atTransaction.getSenderId())).getBalanceNQT();
+                    //if(accountBalance <0 || Constants.ASSET_ISSUANCE_FEE_NQT > accountBalance){
+                    //    //ignore it if no enough asset balance to issue asset
+                    //    continue;
+                    //}
+
                     builder = new Transaction.Builder((byte) 1, Genesis.getCreatorPublicKey(),
-                        atTransaction.getAmount(), Constants.ASSET_ISSUANCE_FEE_NQT, block.getTimestamp(), (short) 1440, atTransaction.getAsset());
+                        atTransaction.getAmount(), 0L, block.getTimestamp(), (short) 1440, atTransaction.getAsset());
 
                     //set builder id to asset id in atTansaction, so the issued asset will have the same id
                     builder.id(atTransaction.getAssetId());
@@ -252,6 +256,7 @@ public class AT extends AtMachineState {
                 else if(atTransaction.getAssetAmount() > 0 && atTransaction.getAssetId() > 0){
 
                     //Transfer Asset
+                    messageIsText = true;
                     long unconfirmedAssetBalance = accountService.getUnconfirmedAssetBalanceQNT(accountService.getAccount(AtApiHelper.getLong(atTransaction.getSenderId())), atTransaction.getAssetId());
                     if (unconfirmedAssetBalance < 0 || atTransaction.getAssetAmount() > unconfirmedAssetBalance) {
                         //ignore it if no enough asset balance to transfer
@@ -277,7 +282,10 @@ public class AT extends AtMachineState {
 
                 byte[] message = atTransaction.getMessage();
                 if (message != null) {
-                    builder.message(new Appendix.Message(message, blockchain.getHeight()));
+                    if(messageIsText)
+                        builder.message(new Appendix.Message(Convert.toString( message), blockchain.getHeight()));
+                    else
+                        builder.message(new Appendix.Message(message, blockchain.getHeight()));
                 }
 
                 try {

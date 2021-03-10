@@ -2564,7 +2564,7 @@ public abstract class TransactionType {
 
       @Override
       public String getDescription() {
-        return "AT Asset Issuance";
+        return "AT Asset Mold";
       }
 
       @Override
@@ -2618,7 +2618,7 @@ public abstract class TransactionType {
                 || attachment.getQuantityQNT() <= 0
                 || attachment.getQuantityQNT() > Constants.MAX_ASSET_QUANTITY_QNT
         ) {
-          throw new BurstException.NotValidException("Invalid at asset issuance: " + JSON.toJsonString(attachment.getJsonObject()));
+          throw new BurstException.NotValidException("Invalid at asset Mold: " + JSON.toJsonString(attachment.getJsonObject()));
         }
         if (!TextUtils.isInAlphabet(attachment.getName())) {
           throw new BurstException.NotValidException("Invalid at asset name: " + attachment.getName());
@@ -2644,7 +2644,7 @@ public abstract class TransactionType {
 
       @Override
       public String getDescription() {
-        return "AT Asset Transfer";
+        return "AT Asset Mint";
       }
 
       @Override

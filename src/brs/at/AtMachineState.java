@@ -209,16 +209,27 @@ public class AtMachineState {
     }
 
     void addTransaction(AtTransaction tx) {
-        ByteBuffer recipId = ByteBuffer.wrap(tx.getRecipientId());
-        AtTransaction oldTx = transactions.get(recipId);
-        if (oldTx == null || tx.getAsset() != null || tx.getAssetId() > 0) {
-            transactions.put(recipId, tx);
+
+        ByteBuffer keyBuf = ByteBuffer.allocate(16);
+        keyBuf.put(tx.getRecipientId());
+        keyBuf.putLong(tx.getAssetId()); //add asset id to the key which might be 0L
+        keyBuf.position(0);
+
+        AtTransaction oldTx = transactions.get(keyBuf);
+        if (oldTx == null || tx.getAsset() != null) {  //a duplicated mold call will replace the previous mold with the same asset
+            transactions.put(keyBuf, tx);
         } else {
             AtTransaction newTx = new AtTransaction(tx.getSenderId(),
-                    tx.getRecipientId(),
-                    oldTx.getAmount() + tx.getAmount(),
-                    tx.getMessage() != null ? tx.getMessage() : oldTx.getMessage());
-            transactions.put(recipId, newTx);
+                tx.getRecipientId(),
+                oldTx.getAmount() + tx.getAmount(),
+                tx.getMessage() != null ? tx.getMessage() : oldTx.getMessage());
+
+            if(tx.getAssetId() != 0L ){
+                newTx.setAssetId(tx.getAssetId());
+                newTx.setAssetAmount(oldTx.getAssetAmount() + tx.getAssetAmount());
+            }
+
+            transactions.put(keyBuf, newTx);
         }
     }
 

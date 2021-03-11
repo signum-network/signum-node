@@ -57,6 +57,7 @@ public class GetAllAssetsTest extends AbstractUnitTest {
     when(mockAsset.getDescription()).thenReturn("description");
     when(mockAsset.getDecimals()).thenReturn((byte) 1);
     when(mockAsset.getQuantityQNT()).thenReturn(2L);
+    when(mockAsset.getCapabilityQNT()).thenReturn(2L);
 
     final Collection<Asset> mockAssetIterator = mockCollection(mockAsset);
 

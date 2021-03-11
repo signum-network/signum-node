@@ -503,6 +503,13 @@ interface AtApi {
      */
     long getCurrentBalance(AtMachineState state);
 
+        /**
+     * sets @addr to asset mintable balance of the AT
+     *
+     * @param state AT machine state
+     */
+    long getAssetMintableBalance(AtMachineState state);
+
     /**
      * sets @addr to the balance it had last had when running
      * this amount does not include any additional amounts sent to the

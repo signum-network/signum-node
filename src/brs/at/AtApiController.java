@@ -157,6 +157,8 @@ class AtApiController {
             case 1032:
                 atApi.Mint(state);    //0x0408  if B1 is a valid address then send it the amount, asset and msg.  B1(address) B2(asset amount) A1~4(message) B3(asset id) B4(amount)
                 break;
+            case 1033:
+                return atApi.getAssetMintableBalance(state);  //0x0409  if B1 is a valid asset id and the asset is issued by the AT then return its mintable amount, 
             default:
                 return 0;
         }

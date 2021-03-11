@@ -735,6 +735,11 @@ public class AtApiImpl implements AtApi {
     }
 
     @Override
+    public long getAssetMintableBalance(AtMachineState state) {
+        return platform.getAssetMintableBalance(state);
+    }
+
+    @Override
     public long getPreviousBalance(AtMachineState state) {
         return platform.getPreviousBalance(state);
     }

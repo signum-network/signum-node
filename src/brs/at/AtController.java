@@ -417,7 +417,7 @@ public abstract class AtController {
         long totalAmount = 0;
         if (!Burst.getFluxCapacitor().getValue(FluxValues.AT_FIX_BLOCK_4, at.getHeight())) {
             for (AtTransaction tx : at.getTransactions()) {
-                if (AT.findPendingTransaction(tx.getRecipientId())) {
+                if (AT.findPendingTransaction(tx.getRecipientId(), tx.getAssetId())) {
                     throw new AtException("Conflicting transaction found");
                 }
             }

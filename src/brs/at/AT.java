@@ -78,9 +78,9 @@ public class AT extends AtMachineState {
         pendingTransactions.add(atTransaction);
     }
 
-    public static boolean findPendingTransaction(byte[] recipientId) {
+    public static boolean findPendingTransaction(byte[] recipientId, long assetId) {
         for (AtTransaction tx : pendingTransactions) {
-            if (Arrays.equals(recipientId, tx.getRecipientId())) {
+            if (assetId == tx.getAssetId() && Arrays.equals(recipientId, tx.getRecipientId())) {
                 return true;
             }
         }
@@ -253,7 +253,7 @@ public class AT extends AtMachineState {
                     builder.id(atTransaction.getAssetId());
                     builder.fullHash(atTransaction.getFullHash());
                 }
-                else if(atTransaction.getAssetAmount() > 0 && atTransaction.getAssetId() > 0){
+                else if(atTransaction.getAssetAmount() > 0) {
 
                     //Transfer Asset
                     messageIsText = true;
@@ -291,12 +291,15 @@ public class AT extends AtMachineState {
                 try {
                     Transaction transaction = builder.build();
                     if (!transactionDb.hasTransaction(transaction.getId())) {
-                        transactions.add(transaction);
 
                         transaction.getType().applyAT(transaction, accountService.getAccount(AtApiHelper.getLong(atTransaction.getSenderId())), accountService.getAccount(AtApiHelper.getLong(atTransaction.getRecipientId())));
+
+                        transactions.add(transaction);
+
+                        
                     }
                 } catch (BurstException.NotValidException e) {
-                    throw new RuntimeException("Failed to construct AT payment transaction", e);
+                    throw new RuntimeException("Failed to construct AT transaction", e);
                 }
             }
 

@@ -398,6 +398,27 @@ public class AtApiPlatformImpl extends AtApiImpl {
     }
 
     @Override
+    public long getAssetMintableBalance(AtMachineState state) {
+
+        if (!Burst.getFluxCapacitor().getValue(FluxValues.AT_FIX_BLOCK_2, state.getHeight())) {
+            return 0;
+        }
+
+        //asset id in B1
+        long assetId = AtApiHelper.getLong(state.getB1());
+        brs.Asset asset = Burst.getStores().getAssetStore().getAssetTable().getBy(brs.schema.Tables.ASSET.ID.eq(assetId));
+        if(asset != null && asset.getAccountId() == AtApiHelper.getLong(state.getId()))
+        {
+            brs.Account.AccountAsset accountAsset = Burst.getStores().getAccountStore().getAccountAssetTable().getBy(brs.schema.Tables.ACCOUNT_ASSET.ACCOUNT_ID.eq(asset.getAccountId())
+                                                                                                    .and(brs.schema.Tables.ACCOUNT_ASSET.ASSET_ID.eq(assetId)));
+            if(accountAsset != null)
+                return accountAsset.getQuantityQNT();
+        }
+        
+        return 0;
+    }
+
+    @Override
     public long getPreviousBalance(AtMachineState state) {
         if (!Burst.getFluxCapacitor().getValue(FluxValues.AT_FIX_BLOCK_2, state.getHeight())) {
             return 0;

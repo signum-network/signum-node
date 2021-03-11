@@ -982,7 +982,7 @@ public abstract class TransactionType {
                   "or encrypted message appendix instead");
         }
         Asset asset = assetExchange.getAsset(attachment.getAssetId());
-        if (attachment.getQuantityQNT() <= 0 || (asset != null && attachment.getQuantityQNT() > asset.getQuantityQNT())) {
+        if (attachment.getQuantityQNT() <= 0 || (asset != null && attachment.getQuantityQNT() > asset.getCapabilityQNT())) {
           throw new BurstException.NotValidException("Invalid asset transfer asset or quantity: " + JSON.toJsonString(attachment.getJsonObject()));
         }
         if (asset == null) {
@@ -1008,7 +1008,7 @@ public abstract class TransactionType {
           throw new BurstException.NotValidException("Invalid asset order placement: " + JSON.toJsonString(attachment.getJsonObject()));
         }
         Asset asset = assetExchange.getAsset(attachment.getAssetId());
-        if (attachment.getQuantityQNT() <= 0 || (asset != null && attachment.getQuantityQNT() > asset.getQuantityQNT())) {
+        if (attachment.getQuantityQNT() <= 0 || (asset != null && attachment.getQuantityQNT() > asset.getCapabilityQNT())) {
           throw new BurstException.NotValidException("Invalid asset order placement asset or quantity: " + JSON.toJsonString(attachment.getJsonObject()));
         }
         if (asset == null) {
@@ -2610,7 +2610,7 @@ public abstract class TransactionType {
 
       @Override
       void doValidateAttachment(Transaction transaction) throws BurstException.ValidationException {
-        Attachment.ColoredCoinsAssetIssuance attachment = (Attachment.ColoredCoinsAssetIssuance)transaction.getAttachment();
+        Attachment.ATColoredCoinsAssetIssuance attachment = (Attachment.ATColoredCoinsAssetIssuance)transaction.getAttachment();
         if (attachment.getName().length() < Constants.MIN_ASSET_NAME_LENGTH
                 || attachment.getName().length() > Constants.MAX_ASSET_NAME_LENGTH
                 || attachment.getDescription().length() > Constants.MAX_ASSET_DESCRIPTION_LENGTH
@@ -2659,7 +2659,7 @@ public abstract class TransactionType {
 
       @Override
       void doValidateAttachment(Transaction transaction) throws BurstException.ValidationException {
-        Attachment.ColoredCoinsAssetTransfer attachment = (Attachment.ColoredCoinsAssetTransfer)transaction.getAttachment();
+        Attachment.ATColoredCoinsAssetTransfer attachment = (Attachment.ATColoredCoinsAssetTransfer)transaction.getAttachment();
         if (attachment.getComment() != null && attachment.getComment().length() > Constants.MAX_ASSET_TRANSFER_COMMENT_LENGTH
                 || attachment.getAssetId() == 0) {
           throw new BurstException.NotValidException("Invalid asset transfer amount or comment: " + JSON.toJsonString(attachment.getJsonObject()));
@@ -2669,7 +2669,7 @@ public abstract class TransactionType {
                   "or encrypted message appendix instead");
         }
         Asset asset = assetExchange.getAsset(attachment.getAssetId());
-        if (attachment.getQuantityQNT() <= 0 || (asset != null && attachment.getQuantityQNT() > asset.getQuantityQNT())) {
+        if (attachment.getQuantityQNT() <= 0 || (asset != null && attachment.getQuantityQNT() > asset.getCapabilityQNT())) {
           throw new BurstException.NotValidException("Invalid asset transfer asset or quantity: " + JSON.toJsonString(attachment.getJsonObject()));
         }
         if (asset == null) {

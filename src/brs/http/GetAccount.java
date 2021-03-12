@@ -49,7 +49,14 @@ public final class GetAccount extends APIServlet.JsonRequestHandler {
     JsonArray unconfirmedAssetBalances = new JsonArray();
 
     //the account is an AT
-    boolean accountIsAT = brs.at.AT.getAT(account.getId()) != null;
+    boolean accountIsAT = false;
+    try{
+      accountIsAT = brs.at.AT.getAT(account.getId()) != null;
+    }
+    catch(Exception ex)
+    {
+      accountIsAT = false;
+    }
 
     for (Account.AccountAsset accountAsset : accountService.getAssets(account.getId(), 0, -1)) {
 

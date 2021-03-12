@@ -48,5 +48,17 @@ public class ATTest {
         AtTestHelper.addTipThanksAT();
         assertTrue(tipThanksReceived.get());
         assertEquals(3, AT.getOrderedATs().size());
+
+        AtomicBoolean fundsForFaucetReceived = new AtomicBoolean(false);
+        AtTestHelper.setOnAtAdded(at -> {
+            assertEquals("FundsForFaucet", at.getName());
+            fundsForFaucetReceived.set(true);
+        });
+        AtTestHelper.addFundsForFaucetAT();
+        assertTrue(fundsForFaucetReceived.get());
+        assertEquals(4, AT.getOrderedATs().size());
+
+
+        
     }
 }

@@ -146,7 +146,7 @@ public class AtApiPlatformImpl extends AtApiImpl {
             return attachment.getAssetId();
         }
 
-        return 0;
+        return -1;
     }
 
     @Override

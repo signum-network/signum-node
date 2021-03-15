@@ -46,7 +46,7 @@ import java.util.regex.Pattern;
 
 public final class Burst {
 
-  public static final Version VERSION = Version.parse("v2.5.4");
+  public static final Version VERSION = Version.parse("v3.0.0-alpha12");
 
   public static final String APPLICATION = "BRS";
 
@@ -200,9 +200,11 @@ public final class Burst {
 
       EconomicClustering economicClustering = new EconomicClustering(blockchain);
 
-      final Generator generator = propertyService.getBoolean(Props.DEV_MOCK_MINING) ? new GeneratorImpl.MockGenerator(propertyService, blockchain, timeService, fluxCapacitor) : new GeneratorImpl(blockchain, timeService, fluxCapacitor);
-
       final AccountService accountService = new AccountServiceImpl(stores.getAccountStore(), stores.getAssetTransferStore());
+
+      final DownloadCacheImpl downloadCache = new DownloadCacheImpl(propertyService, fluxCapacitor, blockchain);
+
+      final Generator generator = propertyService.getBoolean(Props.DEV_MOCK_MINING) ? new GeneratorImpl.MockGenerator(propertyService, blockchain, timeService, fluxCapacitor) : new GeneratorImpl(blockchain, downloadCache, accountService, timeService, fluxCapacitor);
 
       final TransactionService transactionService = new TransactionServiceImpl(accountService, blockchain);
 
@@ -216,8 +218,6 @@ public final class Burst {
 
       final AssetExchange assetExchange = new AssetExchangeImpl(accountService, stores.getTradeStore(), stores.getAccountStore(), stores.getAssetTransferStore(), stores.getAssetStore(), stores.getOrderStore());
 
-      final DownloadCacheImpl downloadCache = new DownloadCacheImpl(propertyService, fluxCapacitor, blockchain);
-
       final IndirectIncomingService indirectIncomingService = new IndirectIncomingServiceImpl(stores.getIndirectIncomingStore(), propertyService);
 
       TransactionType.init(blockchain, fluxCapacitor, accountService, digitalGoodsStoreService, aliasService, assetExchange, subscriptionService, escrowService);
@@ -228,7 +228,7 @@ public final class Burst {
           blockDb, transactionDb, economicClustering, blockchainStore, stores, escrowService, transactionService, downloadCache, generator, statisticsManager,
           dbCacheManager, accountService, indirectIncomingService);
 
-      final FeeSuggestionCalculator feeSuggestionCalculator = new FeeSuggestionCalculator(blockchainProcessor, blockchainStore, 10);
+      final FeeSuggestionCalculator feeSuggestionCalculator = new FeeSuggestionCalculator(blockchainProcessor, stores.getUnconfirmedTransactionStore());
 
       generator.generateForBlockchainProcessor(threadPool, blockchainProcessor);
 
@@ -273,7 +273,7 @@ public final class Burst {
       logger.info("BRS {} started successfully.", VERSION);
 
       if (propertyService.getBoolean(Props.DEV_TESTNET)) {
-        logger.info("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
+        logger.info("RUNNING ON TESTNET!");
       }
     } catch (Exception e) {
       logger.error(e.getMessage(), e);

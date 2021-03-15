@@ -1,7 +1,6 @@
 package brs.http;
 
 import brs.BurstException;
-import brs.services.AccountService;
 import brs.services.ParameterService;
 import com.google.gson.JsonElement;
 
@@ -12,17 +11,15 @@ import static brs.http.common.Parameters.AT_PARAMETER;
 final class GetAT extends APIServlet.JsonRequestHandler {
 
   private final ParameterService parameterService;
-  private final AccountService accountService;
 
-  GetAT(ParameterService parameterService, AccountService accountService) {
+  GetAT(ParameterService parameterService) {
     super(new APITag[]{APITag.AT}, AT_PARAMETER);
     this.parameterService = parameterService;
-    this.accountService = accountService;
   }
 
   @Override
   JsonElement processRequest(HttpServletRequest req) throws BurstException {
-    return JSONData.at(parameterService.getAT(req), accountService);
+    return JSONData.at(parameterService.getAT(req));
   }
 
 }

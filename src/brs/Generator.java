@@ -30,10 +30,14 @@ public interface Generator {
 
   BigInteger calculateHit(long accountId, long nonce, byte[] genSig, int scoop, int blockHeight);
 
-  BigInteger calculateHit(long accountId, long nonce, byte[] genSig, byte[] scoopData);
+  BigInteger calculateHit(byte[] genSig, byte[] scoopData);
 
-  BigInteger calculateDeadline(BigInteger hit, long baseTarget, int blockHeight);
+  BigInteger calculateDeadline(BigInteger hit, long capacityBaseTarget, long commitment, long averageCommitment, int blockHeight);
 
+  long estimateCommitment(long generatorId, Block prevBlock);
+  
+  double getCommitmentFactor(long commitment, long averageCommitment, int blockHeight);
+  
   interface GeneratorState {
     byte[] getPublicKey();
 

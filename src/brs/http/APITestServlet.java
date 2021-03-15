@@ -25,7 +25,7 @@ public class APITestServlet extends HttpServlet {
       + "    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">"
       + "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
       + "    <title>Burst http API</title>\n"
-      + "    <link href=\"css/bootstrap.min.css\" rel=\"stylesheet\" type=\"text/css\" />"
+      + "    <link href=\"classic/css/bootstrap.min.css\" rel=\"stylesheet\" type=\"text/css\" />"
       + "    <style type=\"text/css\">\n"
       + "        table {border-collapse: collapse;}\n"
       + "        td {padding: 10px;}\n"
@@ -77,7 +77,7 @@ public class APITestServlet extends HttpServlet {
       + "<div class=\"navbar navbar-default\" role=\"navigation\">"
       + "   <div class=\"container\" style=\"min-width: 90%;\">"
       + "       <div class=\"navbar-header\">"
-      + "           <a class=\"navbar-brand\" href=\"/test\">Burst http API</a>"
+      + "           <a class=\"navbar-brand\" href=\"" + API.API_TEST_PATH + "\">Burst http API</a>"
       + "       </div>"
       + "       <div class=\"navbar-collapse collapse\">"
       + "           <ul class=\"nav navbar-nav navbar-right\">"
@@ -113,8 +113,8 @@ public class APITestServlet extends HttpServlet {
       + "  </div> "
       + "</div> "
       + "</div> "
-      + "<script src=\"js/3rdparty/jquery.min.js\" integrity=\"sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT\"></script>"
-      + "<script src=\"js/3rdparty/bootstrap.min.js\" integrity=\"sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa\" type=\"text/javascript\"></script>"
+      + "<script src=\"classic/js/3rdparty/jquery.min.js\" integrity=\"sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT\"></script>"
+      + "<script src=\"classic/js/3rdparty/bootstrap.min.js\" integrity=\"sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa\" type=\"text/javascript\"></script>"
       + "<script>"
       + "  $(document).ready(function() {"
       + "    apiCalls = [];\n";
@@ -185,14 +185,14 @@ public class APITestServlet extends HttpServlet {
     if (requestTag.equals("")) {
       buf.append(" class=\"active\"");
     }
-    buf.append("><a href=\"/test\">All</a></li>");
+    buf.append("><a href=\"" + API.API_TEST_PATH + "\">All</a></li>");
     for (APITag apiTag : APITag.values()) {
       if (requestTags.get(apiTag.name()) != null) {
         buf.append("<li");
         if (requestTag.equals(apiTag.name())) {
           buf.append(" class=\"active\"");
         }
-        buf.append("><a href=\"/test?requestTag=").append(apiTag.name()).append("\">");
+        buf.append("><a href=\"" + API.API_TEST_PATH + "?requestTag=").append(apiTag.name()).append("\">");
         buf.append(apiTag.getDisplayName()).append("</a></li>").append(" ");
       }
     }
@@ -259,7 +259,7 @@ public class APITestServlet extends HttpServlet {
     buf.append("</a>");
     buf.append("<span style=\"float:right;font-weight:normal;font-size:14px;\">");
     if (!singleView) {
-      buf.append("<a href=\"/test?requestType=").append(requestType);
+      buf.append("<a href=\"" + API.API_TEST_PATH + "?requestType=").append(requestType);
       buf.append("\" target=\"_blank\" style=\"font-weight:normal;font-size:14px;color:#777;\"><span class=\"glyphicon glyphicon-new-window\"></span></a>");
       buf.append(" &nbsp;&nbsp;");
     }

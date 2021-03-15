@@ -62,7 +62,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
   @Override
   public final void checkAvailable(int height) {
     if (multiversion && height < Burst.getBlockchainProcessor().getMinRollbackHeight()) {
-      throw new IllegalArgumentException("Historical data as of height " + height + " not available, set brs.trimDerivedTables=false and re-scan");
+      throw new IllegalArgumentException("Historical data as of height " + height + " not available, set DB.trimDerivedTables=false and re-scan");
     }
   }
 
@@ -91,24 +91,12 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
   @Override
   public T get(BurstKey nxtKey, int height) {
     DbKey dbKey = (DbKey) nxtKey;
-    checkAvailable(height);
 
     return Db.useDSLContext(ctx -> {
       SelectQuery<Record> query = ctx.selectQuery();
       query.addFrom(tableClass);
       query.addConditions(dbKey.getPKConditions(tableClass));
       query.addConditions(heightField.le(height));
-      if ( multiversion ) {
-        Table<?> innerTable = tableClass.as("b");
-        SelectQuery<Record> innerQuery = ctx.selectQuery();
-        innerQuery.addConditions(innerTable.field("height", Integer.class).gt(height));
-        innerQuery.addConditions(dbKey.getPKConditions(innerTable));
-        query.addConditions(
-          latestField.isTrue().or(
-            DSL.field(DSL.exists(innerQuery))
-          )
-        );
-      }
       query.addOrderBy(heightField.desc());
       query.addLimit(1);
 
@@ -350,7 +338,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     }
     Db.useDSLContext(ctx -> {
       if (multiversion) {
-        UpdateQuery query = ctx.updateQuery(tableClass);
+        UpdateQuery<?> query = ctx.updateQuery(tableClass);
         query.addValue(
           latestField,
           false

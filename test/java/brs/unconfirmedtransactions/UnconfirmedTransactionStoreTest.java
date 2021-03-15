@@ -56,7 +56,6 @@ public class UnconfirmedTransactionStoreTest {
     mockStatic(Burst.class);
 
     final PropertyService mockPropertyService = mock(PropertyService.class);
-    when(mockPropertyService.getInt(eq(Props.DB_MAX_ROLLBACK))).thenReturn(1440);
     when(Burst.getPropertyService()).thenReturn(mockPropertyService);
     when(mockPropertyService.getInt(eq(Props.P2P_MAX_UNCONFIRMED_TRANSACTIONS))).thenReturn(8192);
     when(mockPropertyService.getInt(eq(Props.P2P_MAX_PERCENTAGE_UNCONFIRMED_TRANSACTIONS_FULL_HASH_REFERENCE))).thenReturn(5);

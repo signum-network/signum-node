@@ -44,7 +44,6 @@ public class GetBalanceTest {
 
     assertEquals("1", JSON.getAsString(result.get(BALANCE_NQT_RESPONSE)));
     assertEquals("2", JSON.getAsString(result.get(UNCONFIRMED_BALANCE_NQT_RESPONSE)));
-    assertEquals("1", JSON.getAsString(result.get(EFFECTIVE_BALANCE_NQT_RESPONSE)));
     assertEquals("3", JSON.getAsString(result.get(FORGED_BALANCE_NQT_RESPONSE)));
     assertEquals("1", JSON.getAsString(result.get(GUARANTEED_BALANCE_NQT_RESPONSE)));
   }
@@ -59,7 +58,6 @@ public class GetBalanceTest {
 
     assertEquals("0", JSON.getAsString(result.get(BALANCE_NQT_RESPONSE)));
     assertEquals("0", JSON.getAsString(result.get(UNCONFIRMED_BALANCE_NQT_RESPONSE)));
-    assertEquals("0", JSON.getAsString(result.get(EFFECTIVE_BALANCE_NQT_RESPONSE)));
     assertEquals("0", JSON.getAsString(result.get(FORGED_BALANCE_NQT_RESPONSE)));
     assertEquals("0", JSON.getAsString(result.get(GUARANTEED_BALANCE_NQT_RESPONSE)));
   }

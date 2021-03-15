@@ -13,6 +13,8 @@ public interface UnconfirmedTransactionStore {
   Transaction get(Long transactionId);
 
   boolean exists(Long transactionId);
+  
+  long getFreeSlot(int numberOfBlocks);
 
   List<Transaction> getAll();
 

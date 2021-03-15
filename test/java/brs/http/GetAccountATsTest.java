@@ -13,6 +13,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
@@ -41,7 +42,7 @@ public class GetAccountATsTest {
     mockATService = mock(ATService.class);
     mockAccountService = mock(AccountService.class);
 
-    t = new GetAccountATs(mockParameterService, mockATService, mockAccountService);
+    t = new GetAccountATs(mockParameterService, mockATService);
   }
 
   @Test
@@ -54,7 +55,7 @@ public class GetAccountATsTest {
 
     final long mockATId = 1L;
     byte[] mockATIDBytes = new byte[ AtConstants.AT_ID_SIZE ];
-    byte[] creatorBytes = new byte[]{(byte) 'c', (byte) 'r', (byte) 'e', (byte) 'a', (byte) 't', (byte) 'o', (byte) 'r'};
+    byte[] creatorBytes = new byte[]{(byte) 'c', (byte) 'r', (byte) 'e', (byte) 'a', (byte) 't', (byte) 'o', (byte) 'r', (byte) 'r'};
     final AtMachineState.MachineState mockMachineState = mock(AtMachineState.MachineState.class);
     final AT mockAT = mock(AT.class);
     when(mockAT.getCreator()).thenReturn(creatorBytes);
@@ -67,6 +68,7 @@ public class GetAccountATsTest {
 
     when(mockATService.getATsIssuedBy(eq(mockAccountId))).thenReturn(Arrays.asList(mockATId));
     when(mockATService.getAT(eq(mockATId))).thenReturn(mockAT);
+    when(mockATService.getAT(eq(mockATId), ArgumentMatchers.anyInt())).thenReturn(mockAT);
 
     JsonObject result = (JsonObject) t.processRequest(req);
     assertNotNull(result);

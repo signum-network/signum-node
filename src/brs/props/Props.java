@@ -30,6 +30,8 @@ public class Props {
   public static final Prop<Integer> DEV_PRE_POC2_BLOCK_HEIGHT = new Prop<>("DEV.prePoc2.startBlock", -1);
   public static final Prop<Integer> DEV_POC2_BLOCK_HEIGHT = new Prop<>("DEV.poc2.startBlock", -1);
   public static final Prop<Integer> DEV_SODIUM_BLOCK_HEIGHT = new Prop<>("DEV.sodium.startBlock", -1);
+  public static final Prop<Integer> DEV_PRE_POC_PLUS = new Prop<>("DEV.prePocPlus.startBlock", -1);
+  public static final Prop<Integer> DEV_POC_PLUS = new Prop<>("DEV.pocPlus.startBlock", -1);
   public static final Prop<Integer> DEV_NEXT_FORK_BLOCK_HEIGHT = new Prop<>("DEV.nextFork.startBlock", -1);
 
   public static final Prop<Boolean> BRS_DEBUG_TRACE_ENABLED = new Prop<>("brs.debugTraceEnable", false);
@@ -71,7 +73,6 @@ public class Props {
   public static final Prop<Integer> DB_LOCK_TIMEOUT = new Prop<>("DB.LockTimeout", 60);
 
   public static final Prop<Boolean> DB_TRIM_DERIVED_TABLES = new Prop<>("DB.trimDerivedTables", true);
-  public static final Prop<Integer> DB_MAX_ROLLBACK        = new Prop<>("DB.maxRollback", 1440);
 
   public static final Prop<Boolean> BRS_TEST_UNCONFIRMED_TRANSACTIONS = new Prop<>("brs.testUnconfirmedTransactions", false);
 

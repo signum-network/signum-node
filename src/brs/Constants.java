@@ -6,7 +6,7 @@ import java.util.Calendar;
 import java.util.TimeZone;
 
 public final class Constants {
-	
+
   public static final long BURST_BLOCK_TIME = 240L;
 
   public static final int BURST_DIFF_ADJUST_CHANGE_BLOCK = 2700;
@@ -22,14 +22,18 @@ public final class Constants {
   public static final int BLOCK_HEADER_LENGTH = 232;
 
   public static final long MAX_BALANCE_BURST = 2158812800L;
-  
+
   public static final long FEE_QUANT =    735000;
   public static final long ONE_BURST = 100000000;
+  public static final long INITIAL_COMMITMENT = 1000 * ONE_BURST;
+  public static final int COMMITMENT_WAIT = 60;
 
   public static final long MAX_BALANCE_NQT = MAX_BALANCE_BURST * ONE_BURST;
   public static final long INITIAL_BASE_TARGET = 18325193796L;
+  public static final int CAPACITY_ESTIMATION_BLOCKS_MAX = 10800 * 3;
+  public static final int CAPACITY_ESTIMATION_BLOCKS = 360;
   public static final long MAX_BASE_TARGET = 18325193796L;
-  public static final int MAX_ROLLBACK = Burst.getPropertyService().getInt(Props.DB_MAX_ROLLBACK);
+  public static final int MAX_ROLLBACK = 1440;
 
   public static final int MAX_ALIAS_URI_LENGTH = 1000;
   public static final int MAX_ALIAS_LENGTH = 100;
@@ -50,11 +54,6 @@ public final class Constants {
   public static final int MAX_ASSET_DESCRIPTION_LENGTH = 1000;
   public static final int MAX_ASSET_TRANSFER_COMMENT_LENGTH = 1000;
 
-  public static final int MAX_POLL_NAME_LENGTH = 100;
-  public static final int MAX_POLL_DESCRIPTION_LENGTH = 1000;
-  public static final int MAX_POLL_OPTION_LENGTH = 100;
-  public static final int MAX_POLL_OPTION_COUNT = 100;
-
   public static final int MAX_DGS_LISTING_QUANTITY = 1000000000;
   public static final int MAX_DGS_LISTING_NAME_LENGTH = 100;
   public static final int MAX_DGS_LISTING_DESCRIPTION_LENGTH = 1000;
@@ -67,6 +66,10 @@ public final class Constants {
 
   public static final int MAX_AUTOMATED_TRANSACTION_NAME_LENGTH = 30;
   public static final int MAX_AUTOMATED_TRANSACTION_DESCRIPTION_LENGTH = 1000;
+
+
+  public static final int PEER_DEFAULT_PORT = 8123;
+  public static final int PEER_TESTNET_PORT = 7123;
 
   /**
    * Must be >= 1.
@@ -90,10 +93,6 @@ public final class Constants {
     calendar.set(Calendar.SECOND, 0);
     calendar.set(Calendar.MILLISECOND, 0);
     EPOCH_BEGINNING = calendar.getTimeInMillis();
-
-    if (MAX_ROLLBACK < 1440) {
-      throw new IllegalArgumentException("brs.maxRollback must be at least 1440");
-    }
   }
 
   public static final String ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";

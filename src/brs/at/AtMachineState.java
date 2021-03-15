@@ -40,12 +40,14 @@ public class AtMachineState {
     private int height;
 
     protected AtMachineState(byte[] atId, byte[] creator, short version,
+                             int height,
                              byte[] stateBytes, int cSize, int dSize, int cUserStackBytes, int cCallStackBytes,
                              int creationBlockHeight, int sleepBetween,
                              boolean freezeWhenSameBalance, long minActivationAmount, byte[] apCode) {
         this.atID = atId;
         this.creator = creator;
         this.version = version;
+        this.height = height;
         this.machineState = new MachineState();
         this.setState(stateBytes);
         this.cSize = cSize;

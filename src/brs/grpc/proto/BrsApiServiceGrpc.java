@@ -1,22 +1,26 @@
 package brs.grpc.proto;
 
 import static io.grpc.MethodDescriptor.generateFullMethodName;
+import static io.grpc.stub.ClientCalls.asyncBidiStreamingCall;
+import static io.grpc.stub.ClientCalls.asyncClientStreamingCall;
 import static io.grpc.stub.ClientCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ClientCalls.asyncUnaryCall;
 import static io.grpc.stub.ClientCalls.blockingServerStreamingCall;
 import static io.grpc.stub.ClientCalls.blockingUnaryCall;
 import static io.grpc.stub.ClientCalls.futureUnaryCall;
+import static io.grpc.stub.ServerCalls.asyncBidiStreamingCall;
+import static io.grpc.stub.ServerCalls.asyncClientStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncUnaryCall;
+import static io.grpc.stub.ServerCalls.asyncUnimplementedStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 
 import javax.annotation.processing.Generated;
 
-
 /**
  */
 @Generated(
-    value = "by gRPC proto compiler (version 1.21.0)",
+    value = "by gRPC proto compiler (version 1.23.0)",
     comments = "Source: brsApi.proto")
 public final class BrsApiServiceGrpc {
 
@@ -39,22 +43,21 @@ public final class BrsApiServiceGrpc {
     if ((getBroadcastTransactionMethod = BrsApiServiceGrpc.getBroadcastTransactionMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getBroadcastTransactionMethod = BrsApiServiceGrpc.getBroadcastTransactionMethod) == null) {
-          BrsApiServiceGrpc.getBroadcastTransactionMethod = getBroadcastTransactionMethod = 
+          BrsApiServiceGrpc.getBroadcastTransactionMethod = getBroadcastTransactionMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.BasicTransaction, brs.grpc.proto.BrsApi.TransactionBroadcastResult>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "BroadcastTransaction"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "BroadcastTransaction"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.BasicTransaction.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.TransactionBroadcastResult.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("BroadcastTransaction"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("BroadcastTransaction"))
+              .build();
         }
-     }
-     return getBroadcastTransactionMethod;
+      }
+    }
+    return getBroadcastTransactionMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.TransactionBytes,
@@ -71,22 +74,21 @@ public final class BrsApiServiceGrpc {
     if ((getBroadcastTransactionBytesMethod = BrsApiServiceGrpc.getBroadcastTransactionBytesMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getBroadcastTransactionBytesMethod = BrsApiServiceGrpc.getBroadcastTransactionBytesMethod) == null) {
-          BrsApiServiceGrpc.getBroadcastTransactionBytesMethod = getBroadcastTransactionBytesMethod = 
+          BrsApiServiceGrpc.getBroadcastTransactionBytesMethod = getBroadcastTransactionBytesMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.TransactionBytes, brs.grpc.proto.BrsApi.TransactionBroadcastResult>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "BroadcastTransactionBytes"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "BroadcastTransactionBytes"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.TransactionBytes.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.TransactionBroadcastResult.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("BroadcastTransactionBytes"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("BroadcastTransactionBytes"))
+              .build();
         }
-     }
-     return getBroadcastTransactionBytesMethod;
+      }
+    }
+    return getBroadcastTransactionBytesMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.BasicTransaction,
@@ -103,22 +105,21 @@ public final class BrsApiServiceGrpc {
     if ((getCompleteBasicTransactionMethod = BrsApiServiceGrpc.getCompleteBasicTransactionMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getCompleteBasicTransactionMethod = BrsApiServiceGrpc.getCompleteBasicTransactionMethod) == null) {
-          BrsApiServiceGrpc.getCompleteBasicTransactionMethod = getCompleteBasicTransactionMethod = 
+          BrsApiServiceGrpc.getCompleteBasicTransactionMethod = getCompleteBasicTransactionMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.BasicTransaction, brs.grpc.proto.BrsApi.BasicTransaction>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "CompleteBasicTransaction"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CompleteBasicTransaction"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.BasicTransaction.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.BasicTransaction.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("CompleteBasicTransaction"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("CompleteBasicTransaction"))
+              .build();
         }
-     }
-     return getCompleteBasicTransactionMethod;
+      }
+    }
+    return getCompleteBasicTransactionMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetAccountRequest,
@@ -135,22 +136,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetAccountMethod = BrsApiServiceGrpc.getGetAccountMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetAccountMethod = BrsApiServiceGrpc.getGetAccountMethod) == null) {
-          BrsApiServiceGrpc.getGetAccountMethod = getGetAccountMethod = 
+          BrsApiServiceGrpc.getGetAccountMethod = getGetAccountMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetAccountRequest, brs.grpc.proto.BrsApi.Account>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetAccount"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetAccount"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetAccountRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.Account.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAccount"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAccount"))
+              .build();
         }
-     }
-     return getGetAccountMethod;
+      }
+    }
+    return getGetAccountMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetAccountRequest,
@@ -167,22 +167,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetAccountATsMethod = BrsApiServiceGrpc.getGetAccountATsMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetAccountATsMethod = BrsApiServiceGrpc.getGetAccountATsMethod) == null) {
-          BrsApiServiceGrpc.getGetAccountATsMethod = getGetAccountATsMethod = 
+          BrsApiServiceGrpc.getGetAccountATsMethod = getGetAccountATsMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetAccountRequest, brs.grpc.proto.BrsApi.AccountATs>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetAccountATs"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetAccountATs"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetAccountRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.AccountATs.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAccountATs"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAccountATs"))
+              .build();
         }
-     }
-     return getGetAccountATsMethod;
+      }
+    }
+    return getGetAccountATsMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetAccountBlocksRequest,
@@ -199,22 +198,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetAccountBlocksMethod = BrsApiServiceGrpc.getGetAccountBlocksMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetAccountBlocksMethod = BrsApiServiceGrpc.getGetAccountBlocksMethod) == null) {
-          BrsApiServiceGrpc.getGetAccountBlocksMethod = getGetAccountBlocksMethod = 
+          BrsApiServiceGrpc.getGetAccountBlocksMethod = getGetAccountBlocksMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetAccountBlocksRequest, brs.grpc.proto.BrsApi.Blocks>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetAccountBlocks"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetAccountBlocks"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetAccountBlocksRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.Blocks.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAccountBlocks"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAccountBlocks"))
+              .build();
         }
-     }
-     return getGetAccountBlocksMethod;
+      }
+    }
+    return getGetAccountBlocksMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetAccountOrdersRequest,
@@ -231,22 +229,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetAccountCurrentOrdersMethod = BrsApiServiceGrpc.getGetAccountCurrentOrdersMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetAccountCurrentOrdersMethod = BrsApiServiceGrpc.getGetAccountCurrentOrdersMethod) == null) {
-          BrsApiServiceGrpc.getGetAccountCurrentOrdersMethod = getGetAccountCurrentOrdersMethod = 
+          BrsApiServiceGrpc.getGetAccountCurrentOrdersMethod = getGetAccountCurrentOrdersMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetAccountOrdersRequest, brs.grpc.proto.BrsApi.Orders>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetAccountCurrentOrders"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetAccountCurrentOrders"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetAccountOrdersRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.Orders.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAccountCurrentOrders"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAccountCurrentOrders"))
+              .build();
         }
-     }
-     return getGetAccountCurrentOrdersMethod;
+      }
+    }
+    return getGetAccountCurrentOrdersMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetAccountRequest,
@@ -263,22 +260,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetAccountEscrowTransactionsMethod = BrsApiServiceGrpc.getGetAccountEscrowTransactionsMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetAccountEscrowTransactionsMethod = BrsApiServiceGrpc.getGetAccountEscrowTransactionsMethod) == null) {
-          BrsApiServiceGrpc.getGetAccountEscrowTransactionsMethod = getGetAccountEscrowTransactionsMethod = 
+          BrsApiServiceGrpc.getGetAccountEscrowTransactionsMethod = getGetAccountEscrowTransactionsMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetAccountRequest, brs.grpc.proto.BrsApi.EscrowTransactions>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetAccountEscrowTransactions"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetAccountEscrowTransactions"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetAccountRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.EscrowTransactions.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAccountEscrowTransactions"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAccountEscrowTransactions"))
+              .build();
         }
-     }
-     return getGetAccountEscrowTransactionsMethod;
+      }
+    }
+    return getGetAccountEscrowTransactionsMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetAccountsRequest,
@@ -295,22 +291,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetAccountsMethod = BrsApiServiceGrpc.getGetAccountsMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetAccountsMethod = BrsApiServiceGrpc.getGetAccountsMethod) == null) {
-          BrsApiServiceGrpc.getGetAccountsMethod = getGetAccountsMethod = 
+          BrsApiServiceGrpc.getGetAccountsMethod = getGetAccountsMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetAccountsRequest, brs.grpc.proto.BrsApi.Accounts>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetAccounts"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetAccounts"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetAccountsRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.Accounts.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAccounts"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAccounts"))
+              .build();
         }
-     }
-     return getGetAccountsMethod;
+      }
+    }
+    return getGetAccountsMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetAccountRequest,
@@ -327,22 +322,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetAccountSubscriptionsMethod = BrsApiServiceGrpc.getGetAccountSubscriptionsMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetAccountSubscriptionsMethod = BrsApiServiceGrpc.getGetAccountSubscriptionsMethod) == null) {
-          BrsApiServiceGrpc.getGetAccountSubscriptionsMethod = getGetAccountSubscriptionsMethod = 
+          BrsApiServiceGrpc.getGetAccountSubscriptionsMethod = getGetAccountSubscriptionsMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetAccountRequest, brs.grpc.proto.BrsApi.Subscriptions>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetAccountSubscriptions"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetAccountSubscriptions"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetAccountRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.Subscriptions.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAccountSubscriptions"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAccountSubscriptions"))
+              .build();
         }
-     }
-     return getGetAccountSubscriptionsMethod;
+      }
+    }
+    return getGetAccountSubscriptionsMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetAccountTransactionsRequest,
@@ -359,22 +353,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetAccountTransactionsMethod = BrsApiServiceGrpc.getGetAccountTransactionsMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetAccountTransactionsMethod = BrsApiServiceGrpc.getGetAccountTransactionsMethod) == null) {
-          BrsApiServiceGrpc.getGetAccountTransactionsMethod = getGetAccountTransactionsMethod = 
+          BrsApiServiceGrpc.getGetAccountTransactionsMethod = getGetAccountTransactionsMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetAccountTransactionsRequest, brs.grpc.proto.BrsApi.Transactions>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetAccountTransactions"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetAccountTransactions"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetAccountTransactionsRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.Transactions.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAccountTransactions"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAccountTransactions"))
+              .build();
         }
-     }
-     return getGetAccountTransactionsMethod;
+      }
+    }
+    return getGetAccountTransactionsMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetAliasRequest,
@@ -391,22 +384,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetAliasMethod = BrsApiServiceGrpc.getGetAliasMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetAliasMethod = BrsApiServiceGrpc.getGetAliasMethod) == null) {
-          BrsApiServiceGrpc.getGetAliasMethod = getGetAliasMethod = 
+          BrsApiServiceGrpc.getGetAliasMethod = getGetAliasMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetAliasRequest, brs.grpc.proto.BrsApi.Alias>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetAlias"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetAlias"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetAliasRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.Alias.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAlias"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAlias"))
+              .build();
         }
-     }
-     return getGetAliasMethod;
+      }
+    }
+    return getGetAliasMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetAliasesRequest,
@@ -423,22 +415,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetAliasesMethod = BrsApiServiceGrpc.getGetAliasesMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetAliasesMethod = BrsApiServiceGrpc.getGetAliasesMethod) == null) {
-          BrsApiServiceGrpc.getGetAliasesMethod = getGetAliasesMethod = 
+          BrsApiServiceGrpc.getGetAliasesMethod = getGetAliasesMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetAliasesRequest, brs.grpc.proto.BrsApi.Aliases>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetAliases"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetAliases"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetAliasesRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.Aliases.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAliases"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAliases"))
+              .build();
         }
-     }
-     return getGetAliasesMethod;
+      }
+    }
+    return getGetAliasesMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetByIdRequest,
@@ -455,22 +446,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetAssetMethod = BrsApiServiceGrpc.getGetAssetMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetAssetMethod = BrsApiServiceGrpc.getGetAssetMethod) == null) {
-          BrsApiServiceGrpc.getGetAssetMethod = getGetAssetMethod = 
+          BrsApiServiceGrpc.getGetAssetMethod = getGetAssetMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetByIdRequest, brs.grpc.proto.BrsApi.Asset>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetAsset"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetAsset"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetByIdRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.Asset.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAsset"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAsset"))
+              .build();
         }
-     }
-     return getGetAssetMethod;
+      }
+    }
+    return getGetAssetMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetAssetBalancesRequest,
@@ -487,22 +477,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetAssetBalancesMethod = BrsApiServiceGrpc.getGetAssetBalancesMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetAssetBalancesMethod = BrsApiServiceGrpc.getGetAssetBalancesMethod) == null) {
-          BrsApiServiceGrpc.getGetAssetBalancesMethod = getGetAssetBalancesMethod = 
+          BrsApiServiceGrpc.getGetAssetBalancesMethod = getGetAssetBalancesMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetAssetBalancesRequest, brs.grpc.proto.BrsApi.AssetBalances>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetAssetBalances"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetAssetBalances"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetAssetBalancesRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.AssetBalances.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAssetBalances"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAssetBalances"))
+              .build();
         }
-     }
-     return getGetAssetBalancesMethod;
+      }
+    }
+    return getGetAssetBalancesMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetAssetsRequest,
@@ -519,22 +508,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetAssetsMethod = BrsApiServiceGrpc.getGetAssetsMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetAssetsMethod = BrsApiServiceGrpc.getGetAssetsMethod) == null) {
-          BrsApiServiceGrpc.getGetAssetsMethod = getGetAssetsMethod = 
+          BrsApiServiceGrpc.getGetAssetsMethod = getGetAssetsMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetAssetsRequest, brs.grpc.proto.BrsApi.Assets>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetAssets"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetAssets"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetAssetsRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.Assets.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAssets"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAssets"))
+              .build();
         }
-     }
-     return getGetAssetsMethod;
+      }
+    }
+    return getGetAssetsMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetAccountRequest,
@@ -551,22 +539,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetAssetsByIssuerMethod = BrsApiServiceGrpc.getGetAssetsByIssuerMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetAssetsByIssuerMethod = BrsApiServiceGrpc.getGetAssetsByIssuerMethod) == null) {
-          BrsApiServiceGrpc.getGetAssetsByIssuerMethod = getGetAssetsByIssuerMethod = 
+          BrsApiServiceGrpc.getGetAssetsByIssuerMethod = getGetAssetsByIssuerMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetAccountRequest, brs.grpc.proto.BrsApi.Assets>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetAssetsByIssuer"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetAssetsByIssuer"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetAccountRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.Assets.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAssetsByIssuer"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAssetsByIssuer"))
+              .build();
         }
-     }
-     return getGetAssetsByIssuerMethod;
+      }
+    }
+    return getGetAssetsByIssuerMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetAssetTransfersRequest,
@@ -583,22 +570,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetAssetTradesMethod = BrsApiServiceGrpc.getGetAssetTradesMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetAssetTradesMethod = BrsApiServiceGrpc.getGetAssetTradesMethod) == null) {
-          BrsApiServiceGrpc.getGetAssetTradesMethod = getGetAssetTradesMethod = 
+          BrsApiServiceGrpc.getGetAssetTradesMethod = getGetAssetTradesMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetAssetTransfersRequest, brs.grpc.proto.BrsApi.AssetTrades>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetAssetTrades"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetAssetTrades"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetAssetTransfersRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.AssetTrades.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAssetTrades"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAssetTrades"))
+              .build();
         }
-     }
-     return getGetAssetTradesMethod;
+      }
+    }
+    return getGetAssetTradesMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetAssetTransfersRequest,
@@ -615,22 +601,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetAssetTransfersMethod = BrsApiServiceGrpc.getGetAssetTransfersMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetAssetTransfersMethod = BrsApiServiceGrpc.getGetAssetTransfersMethod) == null) {
-          BrsApiServiceGrpc.getGetAssetTransfersMethod = getGetAssetTransfersMethod = 
+          BrsApiServiceGrpc.getGetAssetTransfersMethod = getGetAssetTransfersMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetAssetTransfersRequest, brs.grpc.proto.BrsApi.AssetTransfers>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetAssetTransfers"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetAssetTransfers"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetAssetTransfersRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.AssetTransfers.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAssetTransfers"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAssetTransfers"))
+              .build();
         }
-     }
-     return getGetAssetTransfersMethod;
+      }
+    }
+    return getGetAssetTransfersMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetByIdRequest,
@@ -647,22 +632,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetATMethod = BrsApiServiceGrpc.getGetATMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetATMethod = BrsApiServiceGrpc.getGetATMethod) == null) {
-          BrsApiServiceGrpc.getGetATMethod = getGetATMethod = 
+          BrsApiServiceGrpc.getGetATMethod = getGetATMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetByIdRequest, brs.grpc.proto.BrsApi.AT>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetAT"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetAT"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetByIdRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.AT.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAT"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetAT"))
+              .build();
         }
-     }
-     return getGetATMethod;
+      }
+    }
+    return getGetATMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<com.google.protobuf.Empty,
@@ -679,22 +663,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetATIdsMethod = BrsApiServiceGrpc.getGetATIdsMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetATIdsMethod = BrsApiServiceGrpc.getGetATIdsMethod) == null) {
-          BrsApiServiceGrpc.getGetATIdsMethod = getGetATIdsMethod = 
+          BrsApiServiceGrpc.getGetATIdsMethod = getGetATIdsMethod =
               io.grpc.MethodDescriptor.<com.google.protobuf.Empty, brs.grpc.proto.BrsApi.ATIds>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetATIds"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetATIds"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   com.google.protobuf.Empty.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.ATIds.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetATIds"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetATIds"))
+              .build();
         }
-     }
-     return getGetATIdsMethod;
+      }
+    }
+    return getGetATIdsMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetBlockRequest,
@@ -711,22 +694,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetBlockMethod = BrsApiServiceGrpc.getGetBlockMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetBlockMethod = BrsApiServiceGrpc.getGetBlockMethod) == null) {
-          BrsApiServiceGrpc.getGetBlockMethod = getGetBlockMethod = 
+          BrsApiServiceGrpc.getGetBlockMethod = getGetBlockMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetBlockRequest, brs.grpc.proto.BrsApi.Block>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetBlock"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetBlock"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetBlockRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.Block.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetBlock"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetBlock"))
+              .build();
         }
-     }
-     return getGetBlockMethod;
+      }
+    }
+    return getGetBlockMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetBlocksRequest,
@@ -743,22 +725,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetBlocksMethod = BrsApiServiceGrpc.getGetBlocksMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetBlocksMethod = BrsApiServiceGrpc.getGetBlocksMethod) == null) {
-          BrsApiServiceGrpc.getGetBlocksMethod = getGetBlocksMethod = 
+          BrsApiServiceGrpc.getGetBlocksMethod = getGetBlocksMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetBlocksRequest, brs.grpc.proto.BrsApi.Blocks>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetBlocks"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetBlocks"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetBlocksRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.Blocks.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetBlocks"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetBlocks"))
+              .build();
         }
-     }
-     return getGetBlocksMethod;
+      }
+    }
+    return getGetBlocksMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<com.google.protobuf.Empty,
@@ -775,22 +756,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetConstantsMethod = BrsApiServiceGrpc.getGetConstantsMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetConstantsMethod = BrsApiServiceGrpc.getGetConstantsMethod) == null) {
-          BrsApiServiceGrpc.getGetConstantsMethod = getGetConstantsMethod = 
+          BrsApiServiceGrpc.getGetConstantsMethod = getGetConstantsMethod =
               io.grpc.MethodDescriptor.<com.google.protobuf.Empty, brs.grpc.proto.BrsApi.Constants>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetConstants"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetConstants"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   com.google.protobuf.Empty.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.Constants.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetConstants"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetConstants"))
+              .build();
         }
-     }
-     return getGetConstantsMethod;
+      }
+    }
+    return getGetConstantsMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<com.google.protobuf.Empty,
@@ -807,22 +787,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetCountsMethod = BrsApiServiceGrpc.getGetCountsMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetCountsMethod = BrsApiServiceGrpc.getGetCountsMethod) == null) {
-          BrsApiServiceGrpc.getGetCountsMethod = getGetCountsMethod = 
+          BrsApiServiceGrpc.getGetCountsMethod = getGetCountsMethod =
               io.grpc.MethodDescriptor.<com.google.protobuf.Empty, brs.grpc.proto.BrsApi.Counts>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetCounts"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetCounts"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   com.google.protobuf.Empty.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.Counts.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetCounts"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetCounts"))
+              .build();
         }
-     }
-     return getGetCountsMethod;
+      }
+    }
+    return getGetCountsMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<com.google.protobuf.Empty,
@@ -839,22 +818,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetCurrentTimeMethod = BrsApiServiceGrpc.getGetCurrentTimeMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetCurrentTimeMethod = BrsApiServiceGrpc.getGetCurrentTimeMethod) == null) {
-          BrsApiServiceGrpc.getGetCurrentTimeMethod = getGetCurrentTimeMethod = 
+          BrsApiServiceGrpc.getGetCurrentTimeMethod = getGetCurrentTimeMethod =
               io.grpc.MethodDescriptor.<com.google.protobuf.Empty, brs.grpc.proto.BrsApi.Time>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetCurrentTime"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetCurrentTime"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   com.google.protobuf.Empty.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.Time.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetCurrentTime"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetCurrentTime"))
+              .build();
         }
-     }
-     return getGetCurrentTimeMethod;
+      }
+    }
+    return getGetCurrentTimeMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetByIdRequest,
@@ -871,22 +849,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetDgsGoodMethod = BrsApiServiceGrpc.getGetDgsGoodMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetDgsGoodMethod = BrsApiServiceGrpc.getGetDgsGoodMethod) == null) {
-          BrsApiServiceGrpc.getGetDgsGoodMethod = getGetDgsGoodMethod = 
+          BrsApiServiceGrpc.getGetDgsGoodMethod = getGetDgsGoodMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetByIdRequest, brs.grpc.proto.BrsApi.DgsGood>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetDgsGood"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetDgsGood"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetByIdRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.DgsGood.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetDgsGood"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetDgsGood"))
+              .build();
         }
-     }
-     return getGetDgsGoodMethod;
+      }
+    }
+    return getGetDgsGoodMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetDgsGoodsRequest,
@@ -903,22 +880,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetDgsGoodsMethod = BrsApiServiceGrpc.getGetDgsGoodsMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetDgsGoodsMethod = BrsApiServiceGrpc.getGetDgsGoodsMethod) == null) {
-          BrsApiServiceGrpc.getGetDgsGoodsMethod = getGetDgsGoodsMethod = 
+          BrsApiServiceGrpc.getGetDgsGoodsMethod = getGetDgsGoodsMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetDgsGoodsRequest, brs.grpc.proto.BrsApi.DgsGoods>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetDgsGoods"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetDgsGoods"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetDgsGoodsRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.DgsGoods.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetDgsGoods"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetDgsGoods"))
+              .build();
         }
-     }
-     return getGetDgsGoodsMethod;
+      }
+    }
+    return getGetDgsGoodsMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetDgsPendingPurchasesRequest,
@@ -935,22 +911,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetDgsPendingPurchasesMethod = BrsApiServiceGrpc.getGetDgsPendingPurchasesMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetDgsPendingPurchasesMethod = BrsApiServiceGrpc.getGetDgsPendingPurchasesMethod) == null) {
-          BrsApiServiceGrpc.getGetDgsPendingPurchasesMethod = getGetDgsPendingPurchasesMethod = 
+          BrsApiServiceGrpc.getGetDgsPendingPurchasesMethod = getGetDgsPendingPurchasesMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetDgsPendingPurchasesRequest, brs.grpc.proto.BrsApi.DgsPurchases>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetDgsPendingPurchases"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetDgsPendingPurchases"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetDgsPendingPurchasesRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.DgsPurchases.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetDgsPendingPurchases"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetDgsPendingPurchases"))
+              .build();
         }
-     }
-     return getGetDgsPendingPurchasesMethod;
+      }
+    }
+    return getGetDgsPendingPurchasesMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetByIdRequest,
@@ -967,22 +942,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetDgsPurchaseMethod = BrsApiServiceGrpc.getGetDgsPurchaseMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetDgsPurchaseMethod = BrsApiServiceGrpc.getGetDgsPurchaseMethod) == null) {
-          BrsApiServiceGrpc.getGetDgsPurchaseMethod = getGetDgsPurchaseMethod = 
+          BrsApiServiceGrpc.getGetDgsPurchaseMethod = getGetDgsPurchaseMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetByIdRequest, brs.grpc.proto.BrsApi.DgsPurchase>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetDgsPurchase"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetDgsPurchase"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetByIdRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.DgsPurchase.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetDgsPurchase"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetDgsPurchase"))
+              .build();
         }
-     }
-     return getGetDgsPurchaseMethod;
+      }
+    }
+    return getGetDgsPurchaseMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetDgsPurchasesRequest,
@@ -999,22 +973,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetDgsPurchasesMethod = BrsApiServiceGrpc.getGetDgsPurchasesMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetDgsPurchasesMethod = BrsApiServiceGrpc.getGetDgsPurchasesMethod) == null) {
-          BrsApiServiceGrpc.getGetDgsPurchasesMethod = getGetDgsPurchasesMethod = 
+          BrsApiServiceGrpc.getGetDgsPurchasesMethod = getGetDgsPurchasesMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetDgsPurchasesRequest, brs.grpc.proto.BrsApi.DgsPurchases>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetDgsPurchases"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetDgsPurchases"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetDgsPurchasesRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.DgsPurchases.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetDgsPurchases"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetDgsPurchases"))
+              .build();
         }
-     }
-     return getGetDgsPurchasesMethod;
+      }
+    }
+    return getGetDgsPurchasesMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetByIdRequest,
@@ -1031,22 +1004,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetEscrowTransactionMethod = BrsApiServiceGrpc.getGetEscrowTransactionMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetEscrowTransactionMethod = BrsApiServiceGrpc.getGetEscrowTransactionMethod) == null) {
-          BrsApiServiceGrpc.getGetEscrowTransactionMethod = getGetEscrowTransactionMethod = 
+          BrsApiServiceGrpc.getGetEscrowTransactionMethod = getGetEscrowTransactionMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetByIdRequest, brs.grpc.proto.BrsApi.EscrowTransaction>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetEscrowTransaction"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetEscrowTransaction"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetByIdRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.EscrowTransaction.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetEscrowTransaction"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetEscrowTransaction"))
+              .build();
         }
-     }
-     return getGetEscrowTransactionMethod;
+      }
+    }
+    return getGetEscrowTransactionMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<com.google.protobuf.Empty,
@@ -1063,22 +1035,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetMiningInfoMethod = BrsApiServiceGrpc.getGetMiningInfoMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetMiningInfoMethod = BrsApiServiceGrpc.getGetMiningInfoMethod) == null) {
-          BrsApiServiceGrpc.getGetMiningInfoMethod = getGetMiningInfoMethod = 
+          BrsApiServiceGrpc.getGetMiningInfoMethod = getGetMiningInfoMethod =
               io.grpc.MethodDescriptor.<com.google.protobuf.Empty, brs.grpc.proto.BrsApi.MiningInfo>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.SERVER_STREAMING)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetMiningInfo"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetMiningInfo"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   com.google.protobuf.Empty.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.MiningInfo.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetMiningInfo"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetMiningInfo"))
+              .build();
         }
-     }
-     return getGetMiningInfoMethod;
+      }
+    }
+    return getGetMiningInfoMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetOrderRequest,
@@ -1095,22 +1066,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetOrderMethod = BrsApiServiceGrpc.getGetOrderMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetOrderMethod = BrsApiServiceGrpc.getGetOrderMethod) == null) {
-          BrsApiServiceGrpc.getGetOrderMethod = getGetOrderMethod = 
+          BrsApiServiceGrpc.getGetOrderMethod = getGetOrderMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetOrderRequest, brs.grpc.proto.BrsApi.Order>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetOrder"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetOrder"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetOrderRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.Order.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetOrder"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetOrder"))
+              .build();
         }
-     }
-     return getGetOrderMethod;
+      }
+    }
+    return getGetOrderMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetOrdersRequest,
@@ -1127,22 +1097,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetOrdersMethod = BrsApiServiceGrpc.getGetOrdersMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetOrdersMethod = BrsApiServiceGrpc.getGetOrdersMethod) == null) {
-          BrsApiServiceGrpc.getGetOrdersMethod = getGetOrdersMethod = 
+          BrsApiServiceGrpc.getGetOrdersMethod = getGetOrdersMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetOrdersRequest, brs.grpc.proto.BrsApi.Orders>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetOrders"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetOrders"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetOrdersRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.Orders.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetOrders"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetOrders"))
+              .build();
         }
-     }
-     return getGetOrdersMethod;
+      }
+    }
+    return getGetOrdersMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetPeerRequest,
@@ -1159,22 +1128,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetPeerMethod = BrsApiServiceGrpc.getGetPeerMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetPeerMethod = BrsApiServiceGrpc.getGetPeerMethod) == null) {
-          BrsApiServiceGrpc.getGetPeerMethod = getGetPeerMethod = 
+          BrsApiServiceGrpc.getGetPeerMethod = getGetPeerMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetPeerRequest, brs.grpc.proto.BrsApi.Peer>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetPeer"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetPeer"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetPeerRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.Peer.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetPeer"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetPeer"))
+              .build();
         }
-     }
-     return getGetPeerMethod;
+      }
+    }
+    return getGetPeerMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetPeersRequest,
@@ -1191,22 +1159,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetPeersMethod = BrsApiServiceGrpc.getGetPeersMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetPeersMethod = BrsApiServiceGrpc.getGetPeersMethod) == null) {
-          BrsApiServiceGrpc.getGetPeersMethod = getGetPeersMethod = 
+          BrsApiServiceGrpc.getGetPeersMethod = getGetPeersMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetPeersRequest, brs.grpc.proto.BrsApi.Peers>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetPeers"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetPeers"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetPeersRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.Peers.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetPeers"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetPeers"))
+              .build();
         }
-     }
-     return getGetPeersMethod;
+      }
+    }
+    return getGetPeersMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<com.google.protobuf.Empty,
@@ -1223,22 +1190,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetStateMethod = BrsApiServiceGrpc.getGetStateMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetStateMethod = BrsApiServiceGrpc.getGetStateMethod) == null) {
-          BrsApiServiceGrpc.getGetStateMethod = getGetStateMethod = 
+          BrsApiServiceGrpc.getGetStateMethod = getGetStateMethod =
               io.grpc.MethodDescriptor.<com.google.protobuf.Empty, brs.grpc.proto.BrsApi.State>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetState"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetState"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   com.google.protobuf.Empty.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.State.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetState"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetState"))
+              .build();
         }
-     }
-     return getGetStateMethod;
+      }
+    }
+    return getGetStateMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetByIdRequest,
@@ -1255,22 +1221,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetSubscriptionMethod = BrsApiServiceGrpc.getGetSubscriptionMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetSubscriptionMethod = BrsApiServiceGrpc.getGetSubscriptionMethod) == null) {
-          BrsApiServiceGrpc.getGetSubscriptionMethod = getGetSubscriptionMethod = 
+          BrsApiServiceGrpc.getGetSubscriptionMethod = getGetSubscriptionMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetByIdRequest, brs.grpc.proto.BrsApi.Subscription>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetSubscription"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetSubscription"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetByIdRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.Subscription.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetSubscription"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetSubscription"))
+              .build();
         }
-     }
-     return getGetSubscriptionMethod;
+      }
+    }
+    return getGetSubscriptionMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetAccountRequest,
@@ -1287,22 +1252,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetSubscriptionsToAccountMethod = BrsApiServiceGrpc.getGetSubscriptionsToAccountMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetSubscriptionsToAccountMethod = BrsApiServiceGrpc.getGetSubscriptionsToAccountMethod) == null) {
-          BrsApiServiceGrpc.getGetSubscriptionsToAccountMethod = getGetSubscriptionsToAccountMethod = 
+          BrsApiServiceGrpc.getGetSubscriptionsToAccountMethod = getGetSubscriptionsToAccountMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetAccountRequest, brs.grpc.proto.BrsApi.Subscriptions>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetSubscriptionsToAccount"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetSubscriptionsToAccount"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetAccountRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.Subscriptions.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetSubscriptionsToAccount"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetSubscriptionsToAccount"))
+              .build();
         }
-     }
-     return getGetSubscriptionsToAccountMethod;
+      }
+    }
+    return getGetSubscriptionsToAccountMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetTransactionRequest,
@@ -1319,22 +1283,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetTransactionMethod = BrsApiServiceGrpc.getGetTransactionMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetTransactionMethod = BrsApiServiceGrpc.getGetTransactionMethod) == null) {
-          BrsApiServiceGrpc.getGetTransactionMethod = getGetTransactionMethod = 
+          BrsApiServiceGrpc.getGetTransactionMethod = getGetTransactionMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetTransactionRequest, brs.grpc.proto.BrsApi.Transaction>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetTransaction"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetTransaction"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetTransactionRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.Transaction.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetTransaction"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetTransaction"))
+              .build();
         }
-     }
-     return getGetTransactionMethod;
+      }
+    }
+    return getGetTransactionMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.BasicTransaction,
@@ -1351,22 +1314,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetTransactionBytesMethod = BrsApiServiceGrpc.getGetTransactionBytesMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetTransactionBytesMethod = BrsApiServiceGrpc.getGetTransactionBytesMethod) == null) {
-          BrsApiServiceGrpc.getGetTransactionBytesMethod = getGetTransactionBytesMethod = 
+          BrsApiServiceGrpc.getGetTransactionBytesMethod = getGetTransactionBytesMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.BasicTransaction, brs.grpc.proto.BrsApi.TransactionBytes>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetTransactionBytes"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetTransactionBytes"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.BasicTransaction.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.TransactionBytes.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetTransactionBytes"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetTransactionBytes"))
+              .build();
         }
-     }
-     return getGetTransactionBytesMethod;
+      }
+    }
+    return getGetTransactionBytesMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.GetAccountRequest,
@@ -1383,22 +1345,21 @@ public final class BrsApiServiceGrpc {
     if ((getGetUnconfirmedTransactionsMethod = BrsApiServiceGrpc.getGetUnconfirmedTransactionsMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getGetUnconfirmedTransactionsMethod = BrsApiServiceGrpc.getGetUnconfirmedTransactionsMethod) == null) {
-          BrsApiServiceGrpc.getGetUnconfirmedTransactionsMethod = getGetUnconfirmedTransactionsMethod = 
+          BrsApiServiceGrpc.getGetUnconfirmedTransactionsMethod = getGetUnconfirmedTransactionsMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.GetAccountRequest, brs.grpc.proto.BrsApi.UnconfirmedTransactions>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "GetUnconfirmedTransactions"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetUnconfirmedTransactions"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.GetAccountRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.UnconfirmedTransactions.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetUnconfirmedTransactions"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("GetUnconfirmedTransactions"))
+              .build();
         }
-     }
-     return getGetUnconfirmedTransactionsMethod;
+      }
+    }
+    return getGetUnconfirmedTransactionsMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.TransactionBytes,
@@ -1415,22 +1376,21 @@ public final class BrsApiServiceGrpc {
     if ((getParseTransactionMethod = BrsApiServiceGrpc.getParseTransactionMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getParseTransactionMethod = BrsApiServiceGrpc.getParseTransactionMethod) == null) {
-          BrsApiServiceGrpc.getParseTransactionMethod = getParseTransactionMethod = 
+          BrsApiServiceGrpc.getParseTransactionMethod = getParseTransactionMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.TransactionBytes, brs.grpc.proto.BrsApi.BasicTransaction>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "ParseTransaction"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ParseTransaction"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.TransactionBytes.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.BasicTransaction.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("ParseTransaction"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("ParseTransaction"))
+              .build();
         }
-     }
-     return getParseTransactionMethod;
+      }
+    }
+    return getParseTransactionMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<brs.grpc.proto.BrsApi.SubmitNonceRequest,
@@ -1447,22 +1407,21 @@ public final class BrsApiServiceGrpc {
     if ((getSubmitNonceMethod = BrsApiServiceGrpc.getSubmitNonceMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getSubmitNonceMethod = BrsApiServiceGrpc.getSubmitNonceMethod) == null) {
-          BrsApiServiceGrpc.getSubmitNonceMethod = getSubmitNonceMethod = 
+          BrsApiServiceGrpc.getSubmitNonceMethod = getSubmitNonceMethod =
               io.grpc.MethodDescriptor.<brs.grpc.proto.BrsApi.SubmitNonceRequest, brs.grpc.proto.BrsApi.SubmitNonceResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "SubmitNonce"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "SubmitNonce"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.SubmitNonceRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.SubmitNonceResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("SubmitNonce"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("SubmitNonce"))
+              .build();
         }
-     }
-     return getSubmitNonceMethod;
+      }
+    }
+    return getSubmitNonceMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<com.google.protobuf.Empty,
@@ -1479,22 +1438,21 @@ public final class BrsApiServiceGrpc {
     if ((getSuggestFeeMethod = BrsApiServiceGrpc.getSuggestFeeMethod) == null) {
       synchronized (BrsApiServiceGrpc.class) {
         if ((getSuggestFeeMethod = BrsApiServiceGrpc.getSuggestFeeMethod) == null) {
-          BrsApiServiceGrpc.getSuggestFeeMethod = getSuggestFeeMethod = 
+          BrsApiServiceGrpc.getSuggestFeeMethod = getSuggestFeeMethod =
               io.grpc.MethodDescriptor.<com.google.protobuf.Empty, brs.grpc.proto.BrsApi.FeeSuggestion>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "BrsApiService", "SuggestFee"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "SuggestFee"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   com.google.protobuf.Empty.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   brs.grpc.proto.BrsApi.FeeSuggestion.getDefaultInstance()))
-                  .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("SuggestFee"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BrsApiServiceMethodDescriptorSupplier("SuggestFee"))
+              .build();
         }
-     }
-     return getSuggestFeeMethod;
+      }
+    }
+    return getSuggestFeeMethod;
   }
 
   /**

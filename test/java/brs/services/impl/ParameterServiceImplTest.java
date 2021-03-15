@@ -17,6 +17,7 @@ import brs.util.Convert;
 import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -695,6 +696,7 @@ public class ParameterServiceImplTest {
     final AT mockAT = mock(AT.class);
 
     when(atServiceMock.getAT(eq(atId))).thenReturn(mockAT);
+    when(atServiceMock.getAT(eq(atId), ArgumentMatchers.anyInt())).thenReturn(mockAT);
 
     assertEquals(mockAT, t.getAT(req));
   }

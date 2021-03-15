@@ -1,7 +1,7 @@
 <img align="right" width="120" height="120" title="Burst Logo" src="https://raw.githubusercontent.com/burst-apps-team/Marketing_Resources/master/BURST_LOGO/PNG/icon_blue.png" />
 
 # Burstcoin Reference Software (Burstcoin Wallet)
-[![Build Status](https://travis-ci.com/burst-apps-team/burstcoin.svg?branch=v2.5)](https://travis-ci.com/burst-apps-team/burstcoin)
+[![example workflow](https://github.com/github/docs/actions/workflows/build.yml/badge.svg)](https://github.com/burst-apps-team/burstcoin/actions/workflows/build.yml)
 [![GPLv3](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE.txt)
 [![Get Support at https://discord.gg/ms6eagX](https://img.shields.io/badge/join-discord-blue.svg)](https://discord.gg/ms6eagX)
 
@@ -153,9 +153,29 @@ Your packaged release will now be available in `dist/burstcoin-3.0.0.zip`.
 
 **Please note that development builds will refuse to run outside of testnet or a private chain**
 
+
+## Updating the Phoenix Wallet
+
+Since V3.0 the Phoenix Wallet is available as built-in alternative to the classic wallet. As the Phoenix Wallet is a project apart from this repository one need to update it from time to time.
+The update process is semi-automated, i.e. one needs to trigger the update script which sites in `./ci`.
+
+**Inside** `./ci` run `./updatePhoenix.sh`
+
+> This script requires NodeJS V14+ runtime environment installed on your machine. The bash script is tested on Linux only, and may not work on other OSes.
+
+# Releasing
+
+To cut a new (pre)-release just create a tag of the following format `vD.D.D[-suffix]`. Githubs actions automatically creates
+a pre-release with entirely build executable as zip.
+
+```bash
+git tag v3.0.1-beta
+git push --tags
+```
+
 # Developers
 
-Main Developer: [Harry1453](https://github.com/harry1453). Donation address: [BURST-W5YR-ZZQC-KUBJ-G78KB](https://explore.burstcoin.network/?action=account&account=16484518239061020631)
+Main Developer: [jjos2372](https://github.com/jjos2372). Donation address: [BURST-JJQS-MMA4-GHB4-4ZNZU](https://explore.burstcoin.network/?action=account&account=3278233074628313816)
 
 For more information, see [Credits](doc/Credits.md)
 

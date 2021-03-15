@@ -24,7 +24,6 @@ final class GetState extends APIServlet.JsonRequestHandler {
   private final Blockchain blockchain;
   private final AssetExchange assetExchange;
   private final AccountService accountService;
-  private final EscrowService escrowService;
   private final AliasService aliasService;
   private final TimeService timeService;
   private final Generator generator;
@@ -36,7 +35,6 @@ final class GetState extends APIServlet.JsonRequestHandler {
     this.blockchain = blockchain;
     this.assetExchange = assetExchange;
     this.accountService = accountService;
-    this.escrowService = escrowService;
     this.aliasService = aliasService;
     this.timeService = timeService;
     this.generator = generator;
@@ -55,20 +53,13 @@ final class GetState extends APIServlet.JsonRequestHandler {
     response.addProperty("cumulativeDifficulty", blockchain.getLastBlock().getCumulativeDifficulty().toString());
 
     if ("true".equalsIgnoreCase(req.getParameter(INCLUDE_COUNTS_PARAMETER))) {
-      long totalEffectiveBalance = 0;
-
-      for (Account account : accountService.getAllAccounts(0, -1)) {
-        long effectiveBalanceBURST = account.getBalanceNQT();
-        if (effectiveBalanceBURST > 0 && account.getId() != 0) {
-          totalEffectiveBalance += effectiveBalanceBURST;
-        }
-      }
-      for (Escrow escrow : escrowService.getAllEscrowTransactions()) {
-        totalEffectiveBalance += escrow.getAmountNQT();
-      }
+      long totalEffectiveBalance = accountService.getAllAccountsBalance();
       response.addProperty("totalEffectiveBalanceNXT", totalEffectiveBalance / Constants.ONE_BURST);
       response.addProperty("totalEffectiveBalance", totalEffectiveBalance / Constants.ONE_BURST);
       response.addProperty("totalEffectiveBalanceNQT", totalEffectiveBalance);
+      
+      long totalCommitted = blockchain.getCommittedAmount(null, blockchain.getHeight(), blockchain.getHeight());
+      response.addProperty("totalCommittedNQT", totalCommitted);
     }
 
     response.addProperty("numberOfBlocks", blockchain.getHeight() + 1);

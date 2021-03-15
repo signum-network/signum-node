@@ -28,11 +28,11 @@ public class AtApiHelper {
         if (bytes.length > 8) {
             throw new BufferOverflowException();
         }
-        return burstCrypto.bytesToLong(bytes);
+        return burstCrypto.bytesToLongLE(bytes);
     }
 
     public static byte[] getByteArray(long l) {
-        return Arrays.reverse(burstCrypto.longToBytes(l));
+        return burstCrypto.longToBytesLE(l);
     }
 
     public static int longToNumOfTx(long x) {

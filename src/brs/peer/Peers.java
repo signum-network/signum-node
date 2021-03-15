@@ -1,6 +1,7 @@
 package brs.peer;
 
 import brs.*;
+import brs.Constants;
 import brs.fluxcapacitor.FluxValues;
 import brs.props.PropertyService;
 import brs.props.Props;
@@ -89,8 +90,7 @@ public final class Peers {
   static int blacklistingPeriod;
   static boolean getMorePeers;
 
-  static final int DEFAULT_PEER_PORT = 8123;
-  static final int TESTNET_PEER_PORT = 7123;
+
   private static String myPlatform;
   private static String myAddress;
   private static int myPeerServerPort;
@@ -142,12 +142,12 @@ public final class Peers {
       myAddress = propertyService.getString(Props.P2P_MY_ADDRESS);
     }
 
-    if (myAddress != null && myAddress.endsWith(":" + TESTNET_PEER_PORT) && !Burst.getPropertyService().getBoolean(Props.DEV_TESTNET)) {
-      throw new RuntimeException("Port " + TESTNET_PEER_PORT + " should only be used for testnet!!!");
+    if (myAddress != null && myAddress.endsWith(":" + Constants.PEER_TESTNET_PORT) && !Burst.getPropertyService().getBoolean(Props.DEV_TESTNET)) {
+      throw new RuntimeException("Port " + Constants.PEER_TESTNET_PORT + " should only be used for testnet!!!");
     }
     myPeerServerPort = propertyService.getInt(Props.P2P_PORT);
-    if (myPeerServerPort == TESTNET_PEER_PORT && !Burst.getPropertyService().getBoolean(Props.DEV_TESTNET)) {
-      throw new RuntimeException("Port " + TESTNET_PEER_PORT + " should only be used for testnet!!!");
+    if (myPeerServerPort == Constants.PEER_TESTNET_PORT && !Burst.getPropertyService().getBoolean(Props.DEV_TESTNET)) {
+      throw new RuntimeException("Port " + Constants.PEER_TESTNET_PORT + " should only be used for testnet!!!");
     }
     useUpnp = propertyService.getBoolean(Props.P2P_UPNP);
     shareMyAddress = propertyService.getBoolean(Props.P2P_SHARE_MY_ADDRESS) && ! Burst.getPropertyService().getBoolean(Props.DEV_OFFLINE);
@@ -163,7 +163,7 @@ public final class Peers {
             json.addProperty("announcedAddress", myAddress);
           }
           else {
-            json.addProperty("announcedAddress", host + (myPeerServerPort != DEFAULT_PEER_PORT ? ":" + myPeerServerPort : ""));
+            json.addProperty("announcedAddress", host + (myPeerServerPort != Constants.PEER_DEFAULT_PORT ? ":" + myPeerServerPort : ""));
           }
         }
         else {
@@ -299,7 +299,7 @@ public final class Peers {
     static void init(TimeService timeService, AccountService accountService, Blockchain blockchain, TransactionProcessor transactionProcessor,
                      BlockchainProcessor blockchainProcessor, PropertyService propertyService, ThreadPool threadPool) {
       if (Peers.shareMyAddress) {
-        port = Burst.getPropertyService().getBoolean(Props.DEV_TESTNET) ? TESTNET_PEER_PORT : Peers.myPeerServerPort;
+        port = Burst.getPropertyService().getBoolean(Props.DEV_TESTNET) ? Constants.PEER_TESTNET_PORT : Peers.myPeerServerPort;
         if (useUpnp) {
           GatewayDiscover gatewayDiscover = new GatewayDiscover();
           gatewayDiscover.setTimeout(2000);
@@ -722,8 +722,8 @@ public final class Peers {
     }
 
     peer = new PeerImpl(peerAddress, announcedPeerAddress);
-    if (Burst.getPropertyService().getBoolean(Props.DEV_TESTNET) && peer.getPort() > 0 && peer.getPort() != TESTNET_PEER_PORT) {
-      logger.debug("Peer {} on testnet port is not using port {}, ignoring", peerAddress, TESTNET_PEER_PORT);
+    if (Burst.getPropertyService().getBoolean(Props.DEV_TESTNET) && peer.getPort() > 0 && peer.getPort() != Constants.PEER_TESTNET_PORT) {
+      logger.debug("Peer {} on testnet port is not using port {}, ignoring", peerAddress, Constants.PEER_TESTNET_PORT);
       return null;
     }
     peers.put(peerAddress, peer);

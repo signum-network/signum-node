@@ -4,6 +4,7 @@ import brs.Block;
 import brs.Blockchain;
 import brs.BlockchainProcessor;
 import brs.Burst;
+import brs.http.common.ResultFields;
 import brs.peer.Peer;
 import brs.services.TimeService;
 import com.google.gson.JsonElement;
@@ -35,6 +36,7 @@ final class GetBlockchainStatus extends APIServlet.JsonRequestHandler {
     Block lastBlock = blockchain.getLastBlock();
     response.addProperty("lastBlock", lastBlock.getStringId());
     response.addProperty("cumulativeDifficulty", lastBlock.getCumulativeDifficulty().toString());
+    response.addProperty(ResultFields.AVERAGE_COMMITMENT_NQT_RESPONSE, lastBlock.getAverageCommitment());
     response.addProperty("numberOfBlocks", lastBlock.getHeight() + 1);
     Peer lastBlockchainFeeder = blockchainProcessor.getLastBlockchainFeeder();
     response.addProperty("lastBlockchainFeeder", lastBlockchainFeeder == null ? null : lastBlockchainFeeder.getAnnouncedAddress());

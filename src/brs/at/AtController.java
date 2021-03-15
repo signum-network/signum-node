@@ -213,7 +213,7 @@ public abstract class AtController {
         return codeLen;
     }
 
-    public static AtBlock getCurrentBlockATs(int freePayload, int blockHeight) {
+    public static AtBlock getCurrentBlockATs(int freePayload, int blockHeight, long generatorId) {
         List<Long> orderedATs = AT.getOrderedATs();
         Iterator<Long> keys = orderedATs.iterator();
 
@@ -252,7 +252,7 @@ public abstract class AtController {
                     }
                     at.setpBalance(at.getgBalance());
 
-                    long amount = makeTransactions(at);
+                    long amount = makeTransactions(at, blockHeight, generatorId);
                     if (!Burst.getFluxCapacitor().getValue(FluxValues.AT_FIX_BLOCK_4, blockHeight)) {
                         totalAmount = amount;
                     } else {
@@ -260,7 +260,7 @@ public abstract class AtController {
                     }
 
                     totalFee += fee;
-                    AT.addPendingFee(id, fee);
+                    AT.addPendingFee(id, fee, blockHeight, generatorId);
 
                     payload += costOfOneAT;
 
@@ -278,7 +278,7 @@ public abstract class AtController {
         return new AtBlock(totalFee, totalAmount, bytesForBlock);
     }
 
-    public static AtBlock validateATs(byte[] blockATs, int blockHeight) throws AtException {
+    public static AtBlock validateATs(byte[] blockATs, int blockHeight, long generatorId) throws AtException {
         if (blockATs == null) {
             return new AtBlock(0, 0, null);
         }
@@ -296,13 +296,15 @@ public abstract class AtController {
             ByteBuffer atIdBuffer = entry.getKey();
             byte[] receivedMd5 = entry.getValue();
             byte[] atId = atIdBuffer.array();
+            long atIdLong = AtApiHelper.getLong(atId);
             AT at = AT.getAT(atId);
+            logger.debug("Running AT {}", Convert.toUnsignedLong(atIdLong));
             try {
                 at.clearTransactions();
                 at.setHeight(blockHeight);
                 at.setWaitForNumberOfBlocks(at.getSleepBetween());
 
-                long atAccountBalance = getATAccountBalance(AtApiHelper.getLong(atId));
+                long atAccountBalance = getATAccountBalance(atIdLong);
                 if (atAccountBalance < AtConstants.getInstance().stepFee(at.getCreationBlockHeight())
                         * AtConstants.getInstance().apiStepMultiplier(at.getCreationBlockHeight())) {
                     throw new AtException("AT has insufficient balance to run");
@@ -330,24 +332,26 @@ public abstract class AtController {
                 at.setpBalance(at.getgBalance());
 
                 if (!Burst.getFluxCapacitor().getValue(FluxValues.AT_FIX_BLOCK_4, blockHeight)) {
-                    totalAmount = makeTransactions(at);
+                    totalAmount = makeTransactions(at, blockHeight, generatorId);
                 } else {
-                    totalAmount += makeTransactions(at);
+                    totalAmount += makeTransactions(at, blockHeight, generatorId);
                 }
 
                 totalFee += fee;
-                AT.addPendingFee(atId, fee);
+                AT.addPendingFee(atId, fee, blockHeight, generatorId);
 
                 processedATs.add(at);
 
                 md5 = digest.digest(at.getBytes());
                 if (!Arrays.equals(md5, receivedMd5)) {
+                    logger.debug("MD5 mismatch for AT {}", Convert.toUnsignedLong(atIdLong));
                     throw new AtException("Calculated md5 and received md5 are not matching");
                 }
             } catch (Exception e) {
                 debugLogger.debug("ATs error", e);
                 throw new AtException("ATs error. Block rejected", e);
             }
+            logger.debug("Finished running AT {}", Convert.toUnsignedLong(atIdLong));
         }
 
         for (AT at : processedATs) {
@@ -413,18 +417,18 @@ public abstract class AtController {
 
     //platform based implementations
     //platform based
-    private static long makeTransactions(AT at) throws AtException {
+    private static long makeTransactions(AT at, int blockHeight, long generatorId) throws AtException {
         long totalAmount = 0;
         if (!Burst.getFluxCapacitor().getValue(FluxValues.AT_FIX_BLOCK_4, at.getHeight())) {
             for (AtTransaction tx : at.getTransactions()) {
-                if (AT.findPendingTransaction(tx.getRecipientId(), tx.getAssetId())) {
+                if (AT.findPendingTransaction(tx.getRecipientId(), tx.getAssetId(), blockHeight, generatorId)) {
                     throw new AtException("Conflicting transaction found");
                 }
             }
         }
         for (AtTransaction tx : at.getTransactions()) {
             totalAmount += tx.getAmount();
-            AT.addPendingTransaction(tx);
+            AT.addPendingTransaction(tx, blockHeight, generatorId);
             if (logger.isDebugEnabled()) {
                 logger.debug("Transaction to {}, amount {}", Convert.toUnsignedLong(AtApiHelper.getLong(tx.getRecipientId())), tx.getAmount());
             }

@@ -12,7 +12,6 @@ public class ResultFields {
   public static final String BALANCE_QNT_RESPONSE = "balanceQNT";
   public static final String UNCONFIRMED_BALANCE_NQT_RESPONSE = "unconfirmedBalanceNQT";
   public static final String UNCONFIRMED_BALANCE_QNT_RESPONSE = "unconfirmedBalanceQNT";
-  public static final String EFFECTIVE_BALANCE_NQT_RESPONSE = "effectiveBalanceNXT";
   public static final String FORGED_BALANCE_NQT_RESPONSE = "forgedBalanceNQT";
   public static final String GUARANTEED_BALANCE_NQT_RESPONSE = "guaranteedBalanceNQT";
   public static final String TRANSACTION_RESPONSE = "transaction";
@@ -35,6 +34,7 @@ public class ResultFields {
   public static final String PUBLIC_KEY_RESPONSE = "publicKey";
   public static final String NAME_RESPONSE = "name";
   public static final String DESCRIPTION_RESPONSE = "description";
+  public static final String COMMITMENT_NQT_RESPONSE = "commitmentNQT";
   public static final String ASSET_RESPONSE = "asset";
   public static final String ASSET_BALANCES_RESPONSE = "assetBalances";
   public static final String UNCONFIRMED_ASSET_BALANCES_RESPONSE = "unconfirmedAssetBalances";
@@ -52,9 +52,11 @@ public class ResultFields {
   public static final String TOTAL_AMOUNT_NQT_RESPONSE = "totalAmountNQT";
   public static final String TOTAL_FEE_NQT_RESPONSE = "totalFeeNQT";
   public static final String BLOCK_REWARD_RESPONSE = "blockReward";
+  public static final String LAST_BLOCK_REWARD_RESPONSE = "lastBlockReward";
   public static final String PAYLOAD_LENGTH_RESPONSE = "payloadLength";
   public static final String VERSION_RESPONSE = "version";
   public static final String BASE_TARGET_RESPONSE = "baseTarget";
+  public static final String AVERAGE_COMMITMENT_NQT_RESPONSE = "averageCommitmentNQT";
   public static final String PREVIOUS_BLOCK_RESPONSE = "previousBlock";
   public static final String NEXT_BLOCK_RESPONSE = "nextBlock";
   public static final String PAYLOAD_HASH_RESPONSE = "payloadHash";
@@ -133,7 +135,6 @@ public class ResultFields {
   public static final String ALIASES_RESPONSE = "aliases";
   public static final String BID_ORDER_IDS_RESPONSE = "bidOrderIds";
   public static final String TRANSFERS_RESPONSE = "transfers";
-  public static final String LESSORS_RESPONSE = "lessors";
   public static final String DELTA_QUANTITY_RESPONSE = "deltaQuantity";
   public static final String URI_RESPONSE = "uri";
   public static final String PERIOD_RESPONSE = "period";

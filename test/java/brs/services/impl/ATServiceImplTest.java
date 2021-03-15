@@ -4,6 +4,7 @@ import brs.at.AT;
 import brs.db.store.ATStore;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 
 import java.util.Collection;
 import java.util.List;
@@ -55,6 +56,7 @@ public class ATServiceImplTest {
     final AT mockAT = mock(AT.class);
 
     when(mockATStore.getAT(eq(atId))).thenReturn(mockAT);
+    when(mockATStore.getAT(eq(atId), ArgumentMatchers.anyInt())).thenReturn(mockAT);
 
     assertEquals(mockAT, t.getAT(atId));
   }

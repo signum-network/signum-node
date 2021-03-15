@@ -50,7 +50,7 @@ public class APITransactionManagerImpl implements APITransactionManager {
     String referencedTransactionId = Convert.emptyToNull(req.getParameter(REFERENCED_TRANSACTION_PARAMETER));
     String secretPhrase = Convert.emptyToNull(req.getParameter(SECRET_PHRASE_PARAMETER));
     String publicKeyValue = Convert.emptyToNull(req.getParameter(PUBLIC_KEY_PARAMETER));
-    String recipientPublicKeyValue = Convert.emptyToNull(req.getParameter(RECIPIENT_PUBLIC_KEY_PARAMETER));
+    String recipientPublicKeyValue = Convert.emptyToNull(ParameterParser.getRecipientPublicKey(req));
     boolean broadcast = !Parameters.isFalse(req.getParameter(BROADCAST_PARAMETER));
 
     EncryptedMessage encryptedMessage = null;
@@ -86,9 +86,8 @@ public class APITransactionManagerImpl implements APITransactionManager {
       message = new Message(new byte[0], blockchainHeight);
     }
     PublicKeyAnnouncement publicKeyAnnouncement = null;
-    String recipientPublicKey = Convert.emptyToNull(req.getParameter(RECIPIENT_PUBLIC_KEY_PARAMETER));
-    if (recipientPublicKey != null && Burst.getFluxCapacitor().getValue(FluxValues.DIGITAL_GOODS_STORE, blockchainHeight)) {
-      publicKeyAnnouncement = new PublicKeyAnnouncement(Convert.parseHexString(recipientPublicKey), blockchainHeight);
+    if (recipientPublicKeyValue != null && Burst.getFluxCapacitor().getValue(FluxValues.DIGITAL_GOODS_STORE, blockchainHeight)) {
+      publicKeyAnnouncement = new PublicKeyAnnouncement(Convert.parseHexString(recipientPublicKeyValue), blockchainHeight);
     }
 
     if (secretPhrase == null && publicKeyValue == null) {

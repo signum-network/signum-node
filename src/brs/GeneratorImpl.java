@@ -1,16 +1,22 @@
 package brs;
 
+import brs.Attachment.CommitmentAdd;
+import brs.Attachment.CommitmentRemove;
 import brs.crypto.Crypto;
 import brs.fluxcapacitor.FluxCapacitor;
 import brs.fluxcapacitor.FluxValues;
 import brs.props.PropertyService;
 import brs.props.Props;
+import brs.services.AccountService;
 import brs.services.TimeService;
 import brs.util.Convert;
+import brs.util.DownloadCacheImpl;
 import brs.util.Listener;
 import brs.util.Listeners;
 import brs.util.ThreadPool;
 import burst.kit.crypto.BurstCrypto;
+import burst.kit.entity.BurstID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,13 +36,18 @@ public class GeneratorImpl implements Generator {
   private final ConcurrentMap<Long, GeneratorStateImpl> generators = new ConcurrentHashMap<>();
   private final BurstCrypto burstCrypto = BurstCrypto.getInstance();
   private final Blockchain blockchain;
+  private final DownloadCacheImpl downloadCache;
+  private final AccountService accountService;
   private final TimeService timeService;
   private final FluxCapacitor fluxCapacitor;
   
   private static final double LN_SCALE = ((double) Constants.BURST_BLOCK_TIME) / Math.log((double) Constants.BURST_BLOCK_TIME);
+  // private static final double LN_SCALE = 49d; // value that would keep the legacy network size estimation close to real capacity
 
-  public GeneratorImpl(Blockchain blockchain, TimeService timeService, FluxCapacitor fluxCapacitor) {
+  public GeneratorImpl(Blockchain blockchain, DownloadCacheImpl downloadCache, AccountService accountService, TimeService timeService, FluxCapacitor fluxCapacitor) {
     this.blockchain = blockchain;
+    this.downloadCache = downloadCache;
+    this.accountService = accountService;
     this.timeService = timeService;
     this.fluxCapacitor = fluxCapacitor;
   }
@@ -131,18 +142,41 @@ public class GeneratorImpl implements Generator {
   }
 
   @Override
-  public BigInteger calculateHit(long accountId, long nonce, byte[] genSig, byte[] scoopData) {
-    return burstCrypto.calculateHit(accountId, nonce, genSig, scoopData);
+  public BigInteger calculateHit(byte[] genSig, byte[] scoopData) {
+    return burstCrypto.calculateHit(genSig, scoopData);
+  }
+  
+  @Override
+  public double getCommitmentFactor(long commitment, long averageCommitment, int blockHeight) {
+    if(fluxCapacitor.getValue(FluxValues.POC_PLUS, blockHeight)) {
+      double commitmentFactor = ((double)commitment)/averageCommitment;
+      commitmentFactor = Math.pow(commitmentFactor, 0.4515449935);
+      commitmentFactor = Math.min(8.0, commitmentFactor);
+      commitmentFactor = Math.max(0.125, commitmentFactor);
+
+      return commitmentFactor;
+    }
+    return 1.0;
   }
 
   @Override
-  public BigInteger calculateDeadline(BigInteger hit, long baseTarget, int blockHeight) {
-    BigInteger deadline = hit.divide(BigInteger.valueOf(baseTarget));
-    if(fluxCapacitor.getValue(FluxValues.SODIUM, blockHeight)) {
+  public BigInteger calculateDeadline(BigInteger hit, long capacityBaseTarget, long commitment, long averageCommitment, int blockHeight) {
+    BigInteger deadline = hit.divide(BigInteger.valueOf(capacityBaseTarget));
+    if(fluxCapacitor.getValue(FluxValues.POC_PLUS, blockHeight)) {
+      double commitmentFactor = getCommitmentFactor(commitment, averageCommitment, blockHeight);
+      
+      double nextDeadline = deadline.doubleValue()/commitmentFactor;
+      if(nextDeadline > 0) {
+        // Avoid zero logarithm
+        nextDeadline = Math.log(nextDeadline) * LN_SCALE;
+      }
+      deadline = BigInteger.valueOf((long)(nextDeadline));
+    }
+    else if(fluxCapacitor.getValue(FluxValues.SODIUM, blockHeight)) {
       if(deadline.bitLength() < 100 && deadline.longValue() > 0L) {
     	  // Avoid the double precision limit for extremely large numbers (of no value) and zero logarithm
-    	  double lnDeadline = Math.log(deadline.doubleValue()) * LN_SCALE;
-    	  deadline = BigInteger.valueOf((long)lnDeadline);
+    	  double sodiumDeadline = Math.log(deadline.doubleValue()) * LN_SCALE;
+    	  deadline = BigInteger.valueOf((long)sodiumDeadline);
       }
     }
     return deadline;
@@ -176,9 +210,14 @@ public class GeneratorImpl implements Generator {
 
       int scoopNum = calculateScoop(newGenSig, lastBlock.getHeight() + 1L);
 
-      baseTarget = lastBlock.getBaseTarget();
+      baseTarget = lastBlock.getCapacityBaseTarget();
       hit = calculateHit(accountId, nonce, newGenSig, scoopNum, lastBlock.getHeight() + 1);
-      deadline = calculateDeadline(hit, baseTarget, lastBlock.getHeight() + 1);
+      long commitmment = 0L;
+      if(fluxCapacitor.getValue(FluxValues.POC_PLUS, lastBlock.getHeight() + 1)) {
+        commitmment = estimateCommitment(accountId, lastBlock);
+      }
+      
+      deadline = calculateDeadline(hit, baseTarget, commitmment, lastBlock.getAverageCommitment(), lastBlock.getHeight() + 1);
     }
 
     @Override
@@ -219,7 +258,7 @@ public class GeneratorImpl implements Generator {
   public static class MockGenerator extends GeneratorImpl {
     private final PropertyService propertyService;
     public MockGenerator(PropertyService propertyService, Blockchain blockchain, TimeService timeService, FluxCapacitor fluxCapacitor) {
-      super(blockchain, timeService, fluxCapacitor);
+      super(blockchain, null, null, timeService, fluxCapacitor);
       this.propertyService = propertyService;
     }
 
@@ -229,13 +268,92 @@ public class GeneratorImpl implements Generator {
     }
 
     @Override
-    public BigInteger calculateHit(long accountId, long nonce, byte[] genSig, byte[] scoopData) {
+    public BigInteger calculateHit(byte[] genSig, byte[] scoopData) {
       return BigInteger.valueOf(propertyService.getInt(Props.DEV_MOCK_MINING_DEADLINE));
     }
 
     @Override
-    public BigInteger calculateDeadline(BigInteger hit, long baseTarget, int blockHeight) {
+    public BigInteger calculateDeadline(BigInteger hit, long capacityBaseTarget, long commitment, long averageCommitment, int blockHeight) {
       return BigInteger.valueOf(propertyService.getInt(Props.DEV_MOCK_MINING_DEADLINE));
     }
+  }
+
+  @Override
+  public long estimateCommitment(long generatorId, Block previousBlock) {
+    // Check on the number of blocks mined to estimate the capacity and also the committed balance
+    int nBlocksMined = 0;
+    int nBlocksMinedOnCache = 1; // the present block being mined
+    long committedAmount = 0;
+    long committedAmountOnCache = 0;
+    int capacityEstimationBlocks = Constants.CAPACITY_ESTIMATION_BLOCKS;
+    long capacityBaseTarget = previousBlock.getCapacityBaseTarget();
+    int height = previousBlock.getHeight();
+    int endHeight = height;
+    
+    // Check if there are mined blocks on the download cache or commitment removals
+    Block blockIt = null;
+    if(downloadCache != null) {
+      blockIt = downloadCache.getBlock(previousBlock.getId());
+    }
+    // Get some pending from cache and later from DB directly
+    while(blockIt != null && endHeight >= blockchain.getHeight()) {
+      if(blockIt.getGeneratorId() == generatorId) {
+        nBlocksMinedOnCache++;
+      }
+      for(Transaction tx : blockIt.getTransactions()) {
+        if(tx.getSenderId() == generatorId) {
+          if(blockIt.getHeight() <= height - Constants.COMMITMENT_WAIT && tx.getType() == TransactionType.BurstMining.COMMITMENT_ADD) {
+            CommitmentAdd txAttachment = (CommitmentAdd) tx.getAttachment();
+            committedAmountOnCache += txAttachment.getAmountNQT();
+          }
+          if(tx.getType() == TransactionType.BurstMining.COMMITMENT_REMOVE) {
+            CommitmentRemove txAttachment = (CommitmentRemove) tx.getAttachment();
+            committedAmountOnCache -= txAttachment.getAmountNQT();
+          }
+        }
+      }
+
+      endHeight--;
+      blockIt = downloadCache.getBlock(blockIt.getPreviousBlockId());
+    }
+    
+    Account account = accountService.getAccount(generatorId);
+    if (account != null) {
+      // FIXME: also use the endHeight variable here
+      committedAmount = blockchain.getCommittedAmount(account, height, endHeight);
+      committedAmount += committedAmountOnCache;
+      if(committedAmount <= 0L) {
+        logger.info("Block {}, ID {}, no commitment", height, BurstID.fromLong(generatorId).getID());
+        return 0L;
+      }
+      
+      // First we try to estimate the capacity using more recent blocks only
+      nBlocksMined = blockchain.getBlocksCount(account, height - capacityEstimationBlocks, endHeight);
+      if(nBlocksMined + nBlocksMinedOnCache < 3) {
+        // Use more blocks in the past to make the estimation if that is necessary
+        capacityEstimationBlocks = Constants.CAPACITY_ESTIMATION_BLOCKS_MAX;
+        nBlocksMined = blockchain.getBlocksCount(account, height - capacityEstimationBlocks,
+            endHeight);
+      }
+    }
+    nBlocksMined += nBlocksMinedOnCache;
+    
+    long genesisTarget = Constants.INITIAL_BASE_TARGET;
+    genesisTarget = (long)(genesisTarget / 1.83d); // account for Sodium deadlines
+    long estimatedCapacityGb = genesisTarget*nBlocksMined*1000L/(capacityBaseTarget * capacityEstimationBlocks);
+    if(estimatedCapacityGb < 1000L) {
+      estimatedCapacityGb = 1000L;
+    }
+    // Commitment being the committed balance per TiB
+    long commitment = (committedAmount/estimatedCapacityGb) * 1000L;
+    
+    logger.info("Block {}, Network {} TiB, ID {}, forged {}/{} blocks, {} TiB, commitmentNQT {}",
+        height,
+        (double)genesisTarget/capacityBaseTarget,
+        BurstID.fromLong(generatorId).getID(),
+        nBlocksMined, capacityEstimationBlocks, estimatedCapacityGb/1000D,
+        commitment);
+    
+    return commitment;
   }
 }

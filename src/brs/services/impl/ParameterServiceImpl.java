@@ -10,12 +10,15 @@ import brs.http.common.Parameters;
 import brs.services.*;
 import brs.util.Convert;
 import brs.util.JSON;
+import burst.kit.entity.BurstAddress;
+
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static brs.http.JSONResponses.*;
@@ -52,14 +55,41 @@ public class ParameterServiceImpl implements ParameterService {
   @Override
   public Account getAccount(HttpServletRequest req) throws BurstException {
     String accountId = Convert.emptyToNull(req.getParameter(ACCOUNT_PARAMETER));
+    String heightValue = Convert.emptyToNull(req.getParameter(HEIGHT_PARAMETER));
     if (accountId == null) {
       throw new ParameterException(MISSING_ACCOUNT);
     }
+    int height = -1;
+    if (heightValue != null) {
+      try {
+        height = Integer.parseInt(heightValue);
+        if (height < 0 || height > blockchain.getHeight())
+          throw new ParameterException(INCORRECT_HEIGHT);
+      } catch (RuntimeException e) {
+        throw new ParameterException(INCORRECT_HEIGHT);
+      }
+    }
+    
     try {
-      Account account = accountService.getAccount(Convert.parseAccountId(accountId));
-      if (account == null) {
+      BurstAddress accountAddress = Convert.parseAddress(accountId);
+      Account account = height >= 0 ? accountService.getAccount(accountAddress.getSignedLongId(), height)
+          : accountService.getAccount(accountAddress.getSignedLongId());
+      
+      if(account == null && accountAddress.getPublicKey() == null) {
         throw new ParameterException(UNKNOWN_ACCOUNT);
       }
+      if(account == null) {
+        account = new Account(accountAddress.getSignedLongId());
+        account.setPublicKey(accountAddress.getPublicKey());
+      }
+      if(account.getPublicKey() == null && accountAddress.getPublicKey() != null) {
+        account.setPublicKey(accountAddress.getPublicKey());
+      }
+      
+      if(accountAddress.getPublicKey() != null && account.getPublicKey() != null && !Arrays.equals(account.getPublicKey(), accountAddress.getPublicKey())) {
+        throw new ParameterException(INCORRECT_ACCOUNT);
+      }
+      
       return account;
     } catch (RuntimeException e) {
       throw new ParameterException(INCORRECT_ACCOUNT);
@@ -330,10 +360,21 @@ public class ParameterServiceImpl implements ParameterService {
     if (atValue == null) {
       throw new ParameterException(MISSING_AT);
     }
+    String heightValue = Convert.emptyToNull(req.getParameter(HEIGHT_PARAMETER));
+    int height = -1;
+    if (heightValue != null) {
+      try {
+        height = Integer.parseInt(heightValue);
+        if (height < 0 || height > blockchain.getHeight())
+          throw new ParameterException(INCORRECT_HEIGHT);
+      } catch (RuntimeException e) {
+        throw new ParameterException(INCORRECT_HEIGHT);
+      }
+    }
     AT at;
     try {
       Long atId = Convert.parseUnsignedLong(atValue);
-      at = atService.getAT(atId);
+      at = atService.getAT(atId, height);
     } catch (RuntimeException e) {
       throw new ParameterException(INCORRECT_AT);
     }
@@ -346,5 +387,10 @@ public class ParameterServiceImpl implements ParameterService {
   @Override
   public boolean getIncludeIndirect(HttpServletRequest req) {
     return Boolean.parseBoolean(req.getParameter(INCLUDE_INDIRECT_PARAMETER));
+  }
+  
+  @Override
+  public boolean getEstimateCommitment(HttpServletRequest req) {
+    return Boolean.parseBoolean(req.getParameter(ESTIMATE_COMMITMENT_PARAMETER));
   }
 }

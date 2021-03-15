@@ -35,14 +35,13 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.LookAndFeel;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.UIManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.github.weisj.darklaf.LafManager;
-import com.github.weisj.darklaf.theme.DarculaTheme;
 
 import brs.props.PropertyService;
 import brs.props.Props;
@@ -78,9 +77,27 @@ public class BurstGUI extends JFrame {
 
     public BurstGUI() {
         System.setSecurityManager(new BurstGUISecurityManager());
-        setTitle("Burst Reference Software version " + Burst.VERSION);
-        
-        LafManager.install(new DarculaTheme());
+        setTitle("BRS " + Burst.VERSION);
+
+        Class<?> lafc = null;
+        try {
+          lafc = Class.forName("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+        }
+        catch (Exception e) {}
+        if(lafc==null) {
+          try {
+            lafc =  Class.forName("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+          }
+          catch (Exception e) {}
+        }
+        if(lafc!=null) {
+          try {
+            LookAndFeel laf = (LookAndFeel) lafc.getConstructor().newInstance();
+            UIManager.setLookAndFeel(laf);                          
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        }
 		IconFontSwing.register(FontAwesome.getIconFont());
 
         JTextArea textArea = new JTextArea() {
@@ -199,19 +216,22 @@ public class BurstGUI extends JFrame {
 //    	JButton openPhoenixButton = new JButton("Open Phoenix Wallet", IconFontSwing.buildIcon(FontAwesome.FIRE, 18, iconColor));
     	JButton openWebUiButton = new JButton(openWebUiItem.getLabel(), IconFontSwing.buildIcon(FontAwesome.WINDOW_RESTORE, 18, iconColor));
     	JButton editConfButton = new JButton("Edit conf file", IconFontSwing.buildIcon(FontAwesome.PENCIL, 18, iconColor));
-        JButton popOffButton = new JButton("Pop off 100 blocks", IconFontSwing.buildIcon(FontAwesome.BACKWARD, 18, iconColor));
+        JButton popOff10Button = new JButton("Pop off 10 blocks", IconFontSwing.buildIcon(FontAwesome.STEP_BACKWARD, 18, iconColor));
+        JButton popOff100Button = new JButton("Pop off 100 blocks", IconFontSwing.buildIcon(FontAwesome.BACKWARD, 18, iconColor));
         JButton popOffMaxButton = new JButton("Pop off max", IconFontSwing.buildIcon(FontAwesome.FAST_BACKWARD, 18, iconColor));
     	
     	openWebUiButton.addActionListener(e -> openWebUi());
     	editConfButton.addActionListener(e -> editConf());
-        popOffButton.addActionListener(e -> popOff(100));
+        popOff10Button.addActionListener(e -> popOff(10));
+        popOff100Button.addActionListener(e -> popOff(100));
         popOffMaxButton.addActionListener(e -> popOff(0));
  
 //    	toolBar.add(openPhoenixButton);
     	toolBar.add(openWebUiButton);
     	toolBar.add(editConfButton);
-    	if(Burst.getPropertyService().getBoolean(Props.API_DEBUG)) {
-          toolBar.add(popOffButton);
+    	if(Burst.getPropertyService().getBoolean(Props.API_DEBUG) || Burst.getPropertyService().getBoolean(Props.DEV_TESTNET)) {
+          toolBar.add(popOff10Button);
+          toolBar.add(popOff100Button);
           toolBar.add(popOffMaxButton);
     	}
 
@@ -222,6 +242,8 @@ public class BurstGUI extends JFrame {
     	popupMenu.add(openWebUiItem);
     	popupMenu.add(showItem);
     	popupMenu.add(shutdownItem);
+    	
+    	getContentPane().validate();
 
     	try {
     		TrayIcon newTrayIcon = new TrayIcon(Toolkit.getDefaultToolkit().createImage(BurstGUI.class.getResource(ICON_LOCATION)), "Burst Reference Software", popupMenu);
@@ -231,7 +253,7 @@ public class BurstGUI extends JFrame {
     		SystemTray systemTray = SystemTray.getSystemTray();
     		systemTray.add(newTrayIcon);
     		
-    		newTrayIcon.displayMessage("BRS Running", "BRS is running on backgroud, use this icon to interact with it.", MessageType.INFO);
+    		newTrayIcon.displayMessage("BRS Running", "BRS is running on background, use this icon to interact with it.", MessageType.INFO);
     		
     		return newTrayIcon;
     	} catch (Exception e) {

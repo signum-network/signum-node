@@ -345,6 +345,113 @@ public final class BrsApi {
   }
 
   /**
+   * Protobuf enum {@code CommitmentType}
+   */
+  public enum CommitmentType
+      implements com.google.protobuf.ProtocolMessageEnum {
+    /**
+     * <code>CommitmentType_UNSET = 0;</code>
+     */
+    CommitmentType_UNSET(0),
+    /**
+     * <code>ADD = 1;</code>
+     */
+    ADD(1),
+    /**
+     * <code>REMOVE = 2;</code>
+     */
+    REMOVE(2),
+    UNRECOGNIZED(-1),
+    ;
+
+    /**
+     * <code>CommitmentType_UNSET = 0;</code>
+     */
+    public static final int CommitmentType_UNSET_VALUE = 0;
+    /**
+     * <code>ADD = 1;</code>
+     */
+    public static final int ADD_VALUE = 1;
+    /**
+     * <code>REMOVE = 2;</code>
+     */
+    public static final int REMOVE_VALUE = 2;
+
+
+    public final int getNumber() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalArgumentException(
+            "Can't get the number of an unknown enum value.");
+      }
+      return value;
+    }
+
+    /**
+     * @deprecated Use {@link #forNumber(int)} instead.
+     */
+    @java.lang.Deprecated
+    public static CommitmentType valueOf(int value) {
+      return forNumber(value);
+    }
+
+    public static CommitmentType forNumber(int value) {
+      switch (value) {
+        case 0: return CommitmentType_UNSET;
+        case 1: return ADD;
+        case 2: return REMOVE;
+        default: return null;
+      }
+    }
+
+    public static com.google.protobuf.Internal.EnumLiteMap<CommitmentType>
+        internalGetValueMap() {
+      return internalValueMap;
+    }
+    private static final com.google.protobuf.Internal.EnumLiteMap<
+        CommitmentType> internalValueMap =
+          new com.google.protobuf.Internal.EnumLiteMap<CommitmentType>() {
+            public CommitmentType findValueByNumber(int number) {
+              return CommitmentType.forNumber(number);
+            }
+          };
+
+    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+        getValueDescriptor() {
+      return getDescriptor().getValues().get(ordinal());
+    }
+    public final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptorForType() {
+      return getDescriptor();
+    }
+    public static final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptor() {
+      return brs.grpc.proto.BrsApi.getDescriptor().getEnumTypes().get(3);
+    }
+
+    private static final CommitmentType[] VALUES = values();
+
+    public static CommitmentType valueOf(
+        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+      if (desc.getType() != getDescriptor()) {
+        throw new java.lang.IllegalArgumentException(
+          "EnumValueDescriptor is not for this type.");
+      }
+      if (desc.getIndex() == -1) {
+        return UNRECOGNIZED;
+      }
+      return VALUES[desc.getIndex()];
+    }
+
+    private final int value;
+
+    private CommitmentType(int value) {
+      this.value = value;
+    }
+
+    // @@protoc_insertion_point(enum_scope:CommitmentType)
+  }
+
+  /**
    * Protobuf enum {@code EscrowDecisionType}
    */
   public enum EscrowDecisionType
@@ -443,7 +550,7 @@ public final class BrsApi {
     }
     public static final com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptor() {
-      return brs.grpc.proto.BrsApi.getDescriptor().getEnumTypes().get(3);
+      return brs.grpc.proto.BrsApi.getDescriptor().getEnumTypes().get(4);
     }
 
     private static final EscrowDecisionType[] VALUES = values();
@@ -72129,6 +72236,637 @@ public final class BrsApi {
 
   }
 
+  public interface CommitmentAttachmentOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:CommitmentAttachment)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>uint32 version = 1;</code>
+     */
+    int getVersion();
+
+    /**
+     * <code>uint64 amount = 2;</code>
+     */
+    long getAmount();
+
+    /**
+     * <code>.CommitmentType type = 3;</code>
+     */
+    int getTypeValue();
+    /**
+     * <code>.CommitmentType type = 3;</code>
+     */
+    brs.grpc.proto.BrsApi.CommitmentType getType();
+  }
+  /**
+   * Protobuf type {@code CommitmentAttachment}
+   */
+  public  static final class CommitmentAttachment extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:CommitmentAttachment)
+      CommitmentAttachmentOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use CommitmentAttachment.newBuilder() to construct.
+    private CommitmentAttachment(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private CommitmentAttachment() {
+      type_ = 0;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private CommitmentAttachment(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            case 8: {
+
+              version_ = input.readUInt32();
+              break;
+            }
+            case 16: {
+
+              amount_ = input.readUInt64();
+              break;
+            }
+            case 24: {
+              int rawValue = input.readEnum();
+
+              type_ = rawValue;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return brs.grpc.proto.BrsApi.internal_static_CommitmentAttachment_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return brs.grpc.proto.BrsApi.internal_static_CommitmentAttachment_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              brs.grpc.proto.BrsApi.CommitmentAttachment.class, brs.grpc.proto.BrsApi.CommitmentAttachment.Builder.class);
+    }
+
+    public static final int VERSION_FIELD_NUMBER = 1;
+    private int version_;
+    /**
+     * <code>uint32 version = 1;</code>
+     */
+    public int getVersion() {
+      return version_;
+    }
+
+    public static final int AMOUNT_FIELD_NUMBER = 2;
+    private long amount_;
+    /**
+     * <code>uint64 amount = 2;</code>
+     */
+    public long getAmount() {
+      return amount_;
+    }
+
+    public static final int TYPE_FIELD_NUMBER = 3;
+    private int type_;
+    /**
+     * <code>.CommitmentType type = 3;</code>
+     */
+    public int getTypeValue() {
+      return type_;
+    }
+    /**
+     * <code>.CommitmentType type = 3;</code>
+     */
+    public brs.grpc.proto.BrsApi.CommitmentType getType() {
+      @SuppressWarnings("deprecation")
+      brs.grpc.proto.BrsApi.CommitmentType result = brs.grpc.proto.BrsApi.CommitmentType.valueOf(type_);
+      return result == null ? brs.grpc.proto.BrsApi.CommitmentType.UNRECOGNIZED : result;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (version_ != 0) {
+        output.writeUInt32(1, version_);
+      }
+      if (amount_ != 0L) {
+        output.writeUInt64(2, amount_);
+      }
+      if (type_ != brs.grpc.proto.BrsApi.CommitmentType.CommitmentType_UNSET.getNumber()) {
+        output.writeEnum(3, type_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (version_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(1, version_);
+      }
+      if (amount_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(2, amount_);
+      }
+      if (type_ != brs.grpc.proto.BrsApi.CommitmentType.CommitmentType_UNSET.getNumber()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(3, type_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof brs.grpc.proto.BrsApi.CommitmentAttachment)) {
+        return super.equals(obj);
+      }
+      brs.grpc.proto.BrsApi.CommitmentAttachment other = (brs.grpc.proto.BrsApi.CommitmentAttachment) obj;
+
+      if (getVersion()
+          != other.getVersion()) return false;
+      if (getAmount()
+          != other.getAmount()) return false;
+      if (type_ != other.type_) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + VERSION_FIELD_NUMBER;
+      hash = (53 * hash) + getVersion();
+      hash = (37 * hash) + AMOUNT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getAmount());
+      hash = (37 * hash) + TYPE_FIELD_NUMBER;
+      hash = (53 * hash) + type_;
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static brs.grpc.proto.BrsApi.CommitmentAttachment parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static brs.grpc.proto.BrsApi.CommitmentAttachment parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static brs.grpc.proto.BrsApi.CommitmentAttachment parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static brs.grpc.proto.BrsApi.CommitmentAttachment parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static brs.grpc.proto.BrsApi.CommitmentAttachment parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static brs.grpc.proto.BrsApi.CommitmentAttachment parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static brs.grpc.proto.BrsApi.CommitmentAttachment parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static brs.grpc.proto.BrsApi.CommitmentAttachment parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static brs.grpc.proto.BrsApi.CommitmentAttachment parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static brs.grpc.proto.BrsApi.CommitmentAttachment parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static brs.grpc.proto.BrsApi.CommitmentAttachment parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static brs.grpc.proto.BrsApi.CommitmentAttachment parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(brs.grpc.proto.BrsApi.CommitmentAttachment prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code CommitmentAttachment}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:CommitmentAttachment)
+        brs.grpc.proto.BrsApi.CommitmentAttachmentOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return brs.grpc.proto.BrsApi.internal_static_CommitmentAttachment_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return brs.grpc.proto.BrsApi.internal_static_CommitmentAttachment_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                brs.grpc.proto.BrsApi.CommitmentAttachment.class, brs.grpc.proto.BrsApi.CommitmentAttachment.Builder.class);
+      }
+
+      // Construct using brs.grpc.proto.BrsApi.CommitmentAttachment.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        version_ = 0;
+
+        amount_ = 0L;
+
+        type_ = 0;
+
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return brs.grpc.proto.BrsApi.internal_static_CommitmentAttachment_descriptor;
+      }
+
+      @java.lang.Override
+      public brs.grpc.proto.BrsApi.CommitmentAttachment getDefaultInstanceForType() {
+        return brs.grpc.proto.BrsApi.CommitmentAttachment.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public brs.grpc.proto.BrsApi.CommitmentAttachment build() {
+        brs.grpc.proto.BrsApi.CommitmentAttachment result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public brs.grpc.proto.BrsApi.CommitmentAttachment buildPartial() {
+        brs.grpc.proto.BrsApi.CommitmentAttachment result = new brs.grpc.proto.BrsApi.CommitmentAttachment(this);
+        result.version_ = version_;
+        result.amount_ = amount_;
+        result.type_ = type_;
+        onBuilt();
+        return result;
+      }
+
+      @java.lang.Override
+      public Builder clone() {
+        return super.clone();
+      }
+      @java.lang.Override
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.setField(field, value);
+      }
+      @java.lang.Override
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return super.clearField(field);
+      }
+      @java.lang.Override
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return super.clearOneof(oneof);
+      }
+      @java.lang.Override
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return super.setRepeatedField(field, index, value);
+      }
+      @java.lang.Override
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.addRepeatedField(field, value);
+      }
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof brs.grpc.proto.BrsApi.CommitmentAttachment) {
+          return mergeFrom((brs.grpc.proto.BrsApi.CommitmentAttachment)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(brs.grpc.proto.BrsApi.CommitmentAttachment other) {
+        if (other == brs.grpc.proto.BrsApi.CommitmentAttachment.getDefaultInstance()) return this;
+        if (other.getVersion() != 0) {
+          setVersion(other.getVersion());
+        }
+        if (other.getAmount() != 0L) {
+          setAmount(other.getAmount());
+        }
+        if (other.type_ != 0) {
+          setTypeValue(other.getTypeValue());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        brs.grpc.proto.BrsApi.CommitmentAttachment parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (brs.grpc.proto.BrsApi.CommitmentAttachment) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private int version_ ;
+      /**
+       * <code>uint32 version = 1;</code>
+       */
+      public int getVersion() {
+        return version_;
+      }
+      /**
+       * <code>uint32 version = 1;</code>
+       */
+      public Builder setVersion(int value) {
+        
+        version_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint32 version = 1;</code>
+       */
+      public Builder clearVersion() {
+        
+        version_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private long amount_ ;
+      /**
+       * <code>uint64 amount = 2;</code>
+       */
+      public long getAmount() {
+        return amount_;
+      }
+      /**
+       * <code>uint64 amount = 2;</code>
+       */
+      public Builder setAmount(long value) {
+        
+        amount_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 amount = 2;</code>
+       */
+      public Builder clearAmount() {
+        
+        amount_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private int type_ = 0;
+      /**
+       * <code>.CommitmentType type = 3;</code>
+       */
+      public int getTypeValue() {
+        return type_;
+      }
+      /**
+       * <code>.CommitmentType type = 3;</code>
+       */
+      public Builder setTypeValue(int value) {
+        type_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.CommitmentType type = 3;</code>
+       */
+      public brs.grpc.proto.BrsApi.CommitmentType getType() {
+        @SuppressWarnings("deprecation")
+        brs.grpc.proto.BrsApi.CommitmentType result = brs.grpc.proto.BrsApi.CommitmentType.valueOf(type_);
+        return result == null ? brs.grpc.proto.BrsApi.CommitmentType.UNRECOGNIZED : result;
+      }
+      /**
+       * <code>.CommitmentType type = 3;</code>
+       */
+      public Builder setType(brs.grpc.proto.BrsApi.CommitmentType value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        
+        type_ = value.getNumber();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.CommitmentType type = 3;</code>
+       */
+      public Builder clearType() {
+        
+        type_ = 0;
+        onChanged();
+        return this;
+      }
+      @java.lang.Override
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      @java.lang.Override
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:CommitmentAttachment)
+    }
+
+    // @@protoc_insertion_point(class_scope:CommitmentAttachment)
+    private static final brs.grpc.proto.BrsApi.CommitmentAttachment DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new brs.grpc.proto.BrsApi.CommitmentAttachment();
+    }
+
+    public static brs.grpc.proto.BrsApi.CommitmentAttachment getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<CommitmentAttachment>
+        PARSER = new com.google.protobuf.AbstractParser<CommitmentAttachment>() {
+      @java.lang.Override
+      public CommitmentAttachment parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new CommitmentAttachment(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<CommitmentAttachment> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<CommitmentAttachment> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public brs.grpc.proto.BrsApi.CommitmentAttachment getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface EscrowCreationAttachmentOrBuilder extends
       // @@protoc_insertion_point(interface_extends:EscrowCreationAttachment)
       com.google.protobuf.MessageOrBuilder {
@@ -83524,6 +84262,11 @@ public final class BrsApi {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_RewardRecipientAssignmentAttachment_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_CommitmentAttachment_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_CommitmentAttachment_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_EscrowCreationAttachment_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -83854,112 +84597,115 @@ public final class BrsApi {
       "hase\030\002 \001(\004\022\016\n\006refund\030\003 \001(\004\"D\n!EffectiveB" +
       "alanceLeasingAttachment\022\017\n\007version\030\001 \001(\r" +
       "\022\016\n\006period\030\002 \001(\r\"6\n#RewardRecipientAssig" +
-      "nmentAttachment\022\017\n\007version\030\001 \001(\r\"\244\001\n\030Esc" +
-      "rowCreationAttachment\022\017\n\007version\030\001 \001(\r\022\016" +
-      "\n\006amount\030\002 \001(\004\022\027\n\017requiredSigners\030\003 \001(\r\022" +
-      "\017\n\007signers\030\004 \003(\004\022\020\n\010deadline\030\005 \001(\r\022+\n\016de" +
-      "adlineAction\030\006 \001(\0162\023.EscrowDecisionType\"" +
-      "^\n\024EscrowSignAttachment\022\017\n\007version\030\001 \001(\r" +
-      "\022\016\n\006escrow\030\002 \001(\004\022%\n\010decision\030\003 \001(\0162\023.Esc" +
-      "rowDecisionType\"`\n\026EscrowResultAttachmen" +
-      "t\022\017\n\007version\030\001 \001(\r\022\016\n\006escrow\030\002 \001(\004\022%\n\010de" +
-      "cision\030\003 \001(\0162\023.EscrowDecisionType\"E\n\037Sub" +
-      "scriptionSubscribeAttachment\022\017\n\007version\030" +
-      "\001 \001(\r\022\021\n\tfrequency\030\002 \001(\r\"E\n\034Subscription" +
-      "CancelAttachment\022\017\n\007version\030\001 \001(\r\022\024\n\014sub" +
-      "scription\030\002 \001(\004\"F\n\035SubscriptionPaymentAt" +
-      "tachment\022\017\n\007version\030\001 \001(\r\022\024\n\014subscriptio" +
-      "n\030\002 \001(\004\"a\n\024ATCreationAttachment\022\017\n\007versi" +
-      "on\030\001 \001(\r\022\014\n\004name\030\002 \001(\t\022\023\n\013description\030\003 " +
-      "\001(\t\022\025\n\rcreationBytes\030\004 \001(\014\"3\n\010Accounts\022\013" +
-      "\n\003ids\030\001 \003(\004\022\032\n\010accounts\030\002 \003(\0132\010.Account\"" +
-      "\316\001\n\007Account\022\n\n\002id\030\001 \001(\004\022\021\n\tpublicKey\030\002 \001" +
-      "(\014\022\017\n\007balance\030\003 \001(\004\022\032\n\022unconfirmedBalanc" +
-      "e\030\004 \001(\004\022\025\n\rforgedBalance\030\005 \001(\004\022\014\n\004name\030\006" +
-      " \001(\t\022\023\n\013description\030\007 \001(\t\022\027\n\017rewardRecip" +
-      "ient\030\010 \001(\004\022$\n\rassetBalances\030\t \003(\0132\r.Asse" +
-      "tBalance\"5\n\rAssetBalances\022$\n\rassetBalanc" +
-      "es\030\001 \003(\0132\r.AssetBalance\"[\n\014AssetBalance\022" +
-      "\r\n\005asset\030\001 \001(\004\022\017\n\007account\030\002 \001(\004\022\017\n\007balan" +
-      "ce\030\003 \001(\004\022\032\n\022unconfirmedBalance\030\004 \001(\004\"M\n\n" +
-      "MiningInfo\022\016\n\006height\030\001 \001(\r\022\033\n\023generation" +
-      "Signature\030\002 \001(\014\022\022\n\nbaseTarget\030\003 \001(\004\",\n\020T" +
-      "ransactionBytes\022\030\n\020transactionBytes\030\001 \001(" +
-      "\014\"\033\n\031OrdinaryPaymentAttachment\"\034\n\032Arbitr" +
-      "aryMessageAttachment\"\025\n\023ATPaymentAttachm" +
-      "ent*=\n\016AssetTradeType\022\030\n\024AssetTradeType_" +
-      "UNSET\020\000\022\007\n\003BUY\020\001\022\010\n\004SELL\020\002*T\n\tPeerState\022" +
-      "\023\n\017PeerState_UNSET\020\000\022\021\n\rNON_CONNECTED\020\001\022" +
-      "\r\n\tCONNECTED\020\002\022\020\n\014DISCONNECTED\020\003*2\n\tOrde" +
-      "rType\022\023\n\017OrderType_UNSET\020\000\022\007\n\003ASK\020\001\022\007\n\003B" +
-      "ID\020\002*e\n\022EscrowDecisionType\022\034\n\030EscrowDeci" +
-      "sionType_UNSET\020\000\022\r\n\tUNDECIDED\020\001\022\013\n\007RELEA" +
-      "SE\020\002\022\n\n\006REFUND\020\003\022\t\n\005SPLIT\020\0042\363\023\n\rBrsApiSe" +
-      "rvice\022H\n\024BroadcastTransaction\022\021.BasicTra" +
-      "nsaction\032\033.TransactionBroadcastResult\"\000\022" +
-      "M\n\031BroadcastTransactionBytes\022\021.Transacti" +
-      "onBytes\032\033.TransactionBroadcastResult\"\000\022B" +
-      "\n\030CompleteBasicTransaction\022\021.BasicTransa" +
-      "ction\032\021.BasicTransaction\"\000\022,\n\nGetAccount" +
-      "\022\022.GetAccountRequest\032\010.Account\"\000\0222\n\rGetA" +
-      "ccountATs\022\022.GetAccountRequest\032\013.AccountA" +
-      "Ts\"\000\0227\n\020GetAccountBlocks\022\030.GetAccountBlo" +
-      "cksRequest\032\007.Blocks\"\000\022>\n\027GetAccountCurre" +
-      "ntOrders\022\030.GetAccountOrdersRequest\032\007.Ord" +
-      "ers\"\000\022I\n\034GetAccountEscrowTransactions\022\022." +
-      "GetAccountRequest\032\023.EscrowTransactions\"\000" +
-      "\022/\n\013GetAccounts\022\023.GetAccountsRequest\032\t.A" +
-      "ccounts\"\000\022?\n\027GetAccountSubscriptions\022\022.G" +
-      "etAccountRequest\032\016.Subscriptions\"\000\022I\n\026Ge" +
-      "tAccountTransactions\022\036.GetAccountTransac" +
-      "tionsRequest\032\r.Transactions\"\000\022&\n\010GetAlia" +
-      "s\022\020.GetAliasRequest\032\006.Alias\"\000\022,\n\nGetAlia" +
-      "ses\022\022.GetAliasesRequest\032\010.Aliases\"\000\022%\n\010G" +
-      "etAsset\022\017.GetByIdRequest\032\006.Asset\"\000\022>\n\020Ge" +
-      "tAssetBalances\022\030.GetAssetBalancesRequest" +
-      "\032\016.AssetBalances\"\000\022)\n\tGetAssets\022\021.GetAss" +
-      "etsRequest\032\007.Assets\"\000\0222\n\021GetAssetsByIssu" +
-      "er\022\022.GetAccountRequest\032\007.Assets\"\000\022;\n\016Get" +
-      "AssetTrades\022\031.GetAssetTransfersRequest\032\014" +
-      ".AssetTrades\"\000\022A\n\021GetAssetTransfers\022\031.Ge" +
-      "tAssetTransfersRequest\032\017.AssetTransfers\"" +
-      "\000\022\037\n\005GetAT\022\017.GetByIdRequest\032\003.AT\"\000\022,\n\010Ge" +
-      "tATIds\022\026.google.protobuf.Empty\032\006.ATIds\"\000" +
-      "\022&\n\010GetBlock\022\020.GetBlockRequest\032\006.Block\"\000" +
-      "\022)\n\tGetBlocks\022\021.GetBlocksRequest\032\007.Block" +
-      "s\"\000\0224\n\014GetConstants\022\026.google.protobuf.Em" +
-      "pty\032\n.Constants\"\000\022.\n\tGetCounts\022\026.google." +
-      "protobuf.Empty\032\007.Counts\"\000\0221\n\016GetCurrentT" +
-      "ime\022\026.google.protobuf.Empty\032\005.Time\"\000\022)\n\n" +
-      "GetDgsGood\022\017.GetByIdRequest\032\010.DgsGood\"\000\022" +
-      "/\n\013GetDgsGoods\022\023.GetDgsGoodsRequest\032\t.Dg" +
-      "sGoods\"\000\022I\n\026GetDgsPendingPurchases\022\036.Get" +
-      "DgsPendingPurchasesRequest\032\r.DgsPurchase" +
-      "s\"\000\0221\n\016GetDgsPurchase\022\017.GetByIdRequest\032\014" +
-      ".DgsPurchase\"\000\022;\n\017GetDgsPurchases\022\027.GetD" +
-      "gsPurchasesRequest\032\r.DgsPurchases\"\000\022=\n\024G" +
-      "etEscrowTransaction\022\017.GetByIdRequest\032\022.E" +
-      "scrowTransaction\"\000\0228\n\rGetMiningInfo\022\026.go" +
-      "ogle.protobuf.Empty\032\013.MiningInfo\"\0000\001\022&\n\010" +
-      "GetOrder\022\020.GetOrderRequest\032\006.Order\"\000\022)\n\t" +
-      "GetOrders\022\021.GetOrdersRequest\032\007.Orders\"\000\022" +
-      "#\n\007GetPeer\022\017.GetPeerRequest\032\005.Peer\"\000\022&\n\010" +
-      "GetPeers\022\020.GetPeersRequest\032\006.Peers\"\000\022,\n\010" +
-      "GetState\022\026.google.protobuf.Empty\032\006.State" +
-      "\"\000\0223\n\017GetSubscription\022\017.GetByIdRequest\032\r" +
-      ".Subscription\"\000\022A\n\031GetSubscriptionsToAcc" +
-      "ount\022\022.GetAccountRequest\032\016.Subscriptions" +
-      "\"\000\0228\n\016GetTransaction\022\026.GetTransactionReq" +
-      "uest\032\014.Transaction\"\000\022=\n\023GetTransactionBy" +
-      "tes\022\021.BasicTransaction\032\021.TransactionByte" +
-      "s\"\000\022L\n\032GetUnconfirmedTransactions\022\022.GetA" +
-      "ccountRequest\032\030.UnconfirmedTransactions\"" +
-      "\000\022:\n\020ParseTransaction\022\021.TransactionBytes" +
-      "\032\021.BasicTransaction\"\000\022:\n\013SubmitNonce\022\023.S" +
-      "ubmitNonceRequest\032\024.SubmitNonceResponse\"" +
-      "\000\0226\n\nSuggestFee\022\026.google.protobuf.Empty\032" +
-      "\016.FeeSuggestion\"\000B\020\n\016brs.grpc.protob\006pro" +
-      "to3"
+      "nmentAttachment\022\017\n\007version\030\001 \001(\r\"V\n\024Comm" +
+      "itmentAttachment\022\017\n\007version\030\001 \001(\r\022\016\n\006amo" +
+      "unt\030\002 \001(\004\022\035\n\004type\030\003 \001(\0162\017.CommitmentType" +
+      "\"\244\001\n\030EscrowCreationAttachment\022\017\n\007version" +
+      "\030\001 \001(\r\022\016\n\006amount\030\002 \001(\004\022\027\n\017requiredSigner" +
+      "s\030\003 \001(\r\022\017\n\007signers\030\004 \003(\004\022\020\n\010deadline\030\005 \001" +
+      "(\r\022+\n\016deadlineAction\030\006 \001(\0162\023.EscrowDecis" +
+      "ionType\"^\n\024EscrowSignAttachment\022\017\n\007versi" +
+      "on\030\001 \001(\r\022\016\n\006escrow\030\002 \001(\004\022%\n\010decision\030\003 \001" +
+      "(\0162\023.EscrowDecisionType\"`\n\026EscrowResultA" +
+      "ttachment\022\017\n\007version\030\001 \001(\r\022\016\n\006escrow\030\002 \001" +
+      "(\004\022%\n\010decision\030\003 \001(\0162\023.EscrowDecisionTyp" +
+      "e\"E\n\037SubscriptionSubscribeAttachment\022\017\n\007" +
+      "version\030\001 \001(\r\022\021\n\tfrequency\030\002 \001(\r\"E\n\034Subs" +
+      "criptionCancelAttachment\022\017\n\007version\030\001 \001(" +
+      "\r\022\024\n\014subscription\030\002 \001(\004\"F\n\035SubscriptionP" +
+      "aymentAttachment\022\017\n\007version\030\001 \001(\r\022\024\n\014sub" +
+      "scription\030\002 \001(\004\"a\n\024ATCreationAttachment\022" +
+      "\017\n\007version\030\001 \001(\r\022\014\n\004name\030\002 \001(\t\022\023\n\013descri" +
+      "ption\030\003 \001(\t\022\025\n\rcreationBytes\030\004 \001(\014\"3\n\010Ac" +
+      "counts\022\013\n\003ids\030\001 \003(\004\022\032\n\010accounts\030\002 \003(\0132\010." +
+      "Account\"\316\001\n\007Account\022\n\n\002id\030\001 \001(\004\022\021\n\tpubli" +
+      "cKey\030\002 \001(\014\022\017\n\007balance\030\003 \001(\004\022\032\n\022unconfirm" +
+      "edBalance\030\004 \001(\004\022\025\n\rforgedBalance\030\005 \001(\004\022\014" +
+      "\n\004name\030\006 \001(\t\022\023\n\013description\030\007 \001(\t\022\027\n\017rew" +
+      "ardRecipient\030\010 \001(\004\022$\n\rassetBalances\030\t \003(" +
+      "\0132\r.AssetBalance\"5\n\rAssetBalances\022$\n\rass" +
+      "etBalances\030\001 \003(\0132\r.AssetBalance\"[\n\014Asset" +
+      "Balance\022\r\n\005asset\030\001 \001(\004\022\017\n\007account\030\002 \001(\004\022" +
+      "\017\n\007balance\030\003 \001(\004\022\032\n\022unconfirmedBalance\030\004" +
+      " \001(\004\"M\n\nMiningInfo\022\016\n\006height\030\001 \001(\r\022\033\n\023ge" +
+      "nerationSignature\030\002 \001(\014\022\022\n\nbaseTarget\030\003 " +
+      "\001(\004\",\n\020TransactionBytes\022\030\n\020transactionBy" +
+      "tes\030\001 \001(\014\"\033\n\031OrdinaryPaymentAttachment\"\034" +
+      "\n\032ArbitraryMessageAttachment\"\025\n\023ATPaymen" +
+      "tAttachment*=\n\016AssetTradeType\022\030\n\024AssetTr" +
+      "adeType_UNSET\020\000\022\007\n\003BUY\020\001\022\010\n\004SELL\020\002*T\n\tPe" +
+      "erState\022\023\n\017PeerState_UNSET\020\000\022\021\n\rNON_CONN" +
+      "ECTED\020\001\022\r\n\tCONNECTED\020\002\022\020\n\014DISCONNECTED\020\003" +
+      "*2\n\tOrderType\022\023\n\017OrderType_UNSET\020\000\022\007\n\003AS" +
+      "K\020\001\022\007\n\003BID\020\002*?\n\016CommitmentType\022\030\n\024Commit" +
+      "mentType_UNSET\020\000\022\007\n\003ADD\020\001\022\n\n\006REMOVE\020\002*e\n" +
+      "\022EscrowDecisionType\022\034\n\030EscrowDecisionTyp" +
+      "e_UNSET\020\000\022\r\n\tUNDECIDED\020\001\022\013\n\007RELEASE\020\002\022\n\n" +
+      "\006REFUND\020\003\022\t\n\005SPLIT\020\0042\363\023\n\rBrsApiService\022H" +
+      "\n\024BroadcastTransaction\022\021.BasicTransactio" +
+      "n\032\033.TransactionBroadcastResult\"\000\022M\n\031Broa" +
+      "dcastTransactionBytes\022\021.TransactionBytes" +
+      "\032\033.TransactionBroadcastResult\"\000\022B\n\030Compl" +
+      "eteBasicTransaction\022\021.BasicTransaction\032\021" +
+      ".BasicTransaction\"\000\022,\n\nGetAccount\022\022.GetA" +
+      "ccountRequest\032\010.Account\"\000\0222\n\rGetAccountA" +
+      "Ts\022\022.GetAccountRequest\032\013.AccountATs\"\000\0227\n" +
+      "\020GetAccountBlocks\022\030.GetAccountBlocksRequ" +
+      "est\032\007.Blocks\"\000\022>\n\027GetAccountCurrentOrder" +
+      "s\022\030.GetAccountOrdersRequest\032\007.Orders\"\000\022I" +
+      "\n\034GetAccountEscrowTransactions\022\022.GetAcco" +
+      "untRequest\032\023.EscrowTransactions\"\000\022/\n\013Get" +
+      "Accounts\022\023.GetAccountsRequest\032\t.Accounts" +
+      "\"\000\022?\n\027GetAccountSubscriptions\022\022.GetAccou" +
+      "ntRequest\032\016.Subscriptions\"\000\022I\n\026GetAccoun" +
+      "tTransactions\022\036.GetAccountTransactionsRe" +
+      "quest\032\r.Transactions\"\000\022&\n\010GetAlias\022\020.Get" +
+      "AliasRequest\032\006.Alias\"\000\022,\n\nGetAliases\022\022.G" +
+      "etAliasesRequest\032\010.Aliases\"\000\022%\n\010GetAsset" +
+      "\022\017.GetByIdRequest\032\006.Asset\"\000\022>\n\020GetAssetB" +
+      "alances\022\030.GetAssetBalancesRequest\032\016.Asse" +
+      "tBalances\"\000\022)\n\tGetAssets\022\021.GetAssetsRequ" +
+      "est\032\007.Assets\"\000\0222\n\021GetAssetsByIssuer\022\022.Ge" +
+      "tAccountRequest\032\007.Assets\"\000\022;\n\016GetAssetTr" +
+      "ades\022\031.GetAssetTransfersRequest\032\014.AssetT" +
+      "rades\"\000\022A\n\021GetAssetTransfers\022\031.GetAssetT" +
+      "ransfersRequest\032\017.AssetTransfers\"\000\022\037\n\005Ge" +
+      "tAT\022\017.GetByIdRequest\032\003.AT\"\000\022,\n\010GetATIds\022" +
+      "\026.google.protobuf.Empty\032\006.ATIds\"\000\022&\n\010Get" +
+      "Block\022\020.GetBlockRequest\032\006.Block\"\000\022)\n\tGet" +
+      "Blocks\022\021.GetBlocksRequest\032\007.Blocks\"\000\0224\n\014" +
+      "GetConstants\022\026.google.protobuf.Empty\032\n.C" +
+      "onstants\"\000\022.\n\tGetCounts\022\026.google.protobu" +
+      "f.Empty\032\007.Counts\"\000\0221\n\016GetCurrentTime\022\026.g" +
+      "oogle.protobuf.Empty\032\005.Time\"\000\022)\n\nGetDgsG" +
+      "ood\022\017.GetByIdRequest\032\010.DgsGood\"\000\022/\n\013GetD" +
+      "gsGoods\022\023.GetDgsGoodsRequest\032\t.DgsGoods\"" +
+      "\000\022I\n\026GetDgsPendingPurchases\022\036.GetDgsPend" +
+      "ingPurchasesRequest\032\r.DgsPurchases\"\000\0221\n\016" +
+      "GetDgsPurchase\022\017.GetByIdRequest\032\014.DgsPur" +
+      "chase\"\000\022;\n\017GetDgsPurchases\022\027.GetDgsPurch" +
+      "asesRequest\032\r.DgsPurchases\"\000\022=\n\024GetEscro" +
+      "wTransaction\022\017.GetByIdRequest\032\022.EscrowTr" +
+      "ansaction\"\000\0228\n\rGetMiningInfo\022\026.google.pr" +
+      "otobuf.Empty\032\013.MiningInfo\"\0000\001\022&\n\010GetOrde" +
+      "r\022\020.GetOrderRequest\032\006.Order\"\000\022)\n\tGetOrde" +
+      "rs\022\021.GetOrdersRequest\032\007.Orders\"\000\022#\n\007GetP" +
+      "eer\022\017.GetPeerRequest\032\005.Peer\"\000\022&\n\010GetPeer" +
+      "s\022\020.GetPeersRequest\032\006.Peers\"\000\022,\n\010GetStat" +
+      "e\022\026.google.protobuf.Empty\032\006.State\"\000\0223\n\017G" +
+      "etSubscription\022\017.GetByIdRequest\032\r.Subscr" +
+      "iption\"\000\022A\n\031GetSubscriptionsToAccount\022\022." +
+      "GetAccountRequest\032\016.Subscriptions\"\000\0228\n\016G" +
+      "etTransaction\022\026.GetTransactionRequest\032\014." +
+      "Transaction\"\000\022=\n\023GetTransactionBytes\022\021.B" +
+      "asicTransaction\032\021.TransactionBytes\"\000\022L\n\032" +
+      "GetUnconfirmedTransactions\022\022.GetAccountR" +
+      "equest\032\030.UnconfirmedTransactions\"\000\022:\n\020Pa" +
+      "rseTransaction\022\021.TransactionBytes\032\021.Basi" +
+      "cTransaction\"\000\022:\n\013SubmitNonce\022\023.SubmitNo" +
+      "nceRequest\032\024.SubmitNonceResponse\"\000\0226\n\nSu" +
+      "ggestFee\022\026.google.protobuf.Empty\032\016.FeeSu" +
+      "ggestion\"\000B\020\n\016brs.grpc.protob\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -84497,98 +85243,104 @@ public final class BrsApi {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_RewardRecipientAssignmentAttachment_descriptor,
         new java.lang.String[] { "Version", });
-    internal_static_EscrowCreationAttachment_descriptor =
+    internal_static_CommitmentAttachment_descriptor =
       getDescriptor().getMessageTypes().get(84);
+    internal_static_CommitmentAttachment_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_CommitmentAttachment_descriptor,
+        new java.lang.String[] { "Version", "Amount", "Type", });
+    internal_static_EscrowCreationAttachment_descriptor =
+      getDescriptor().getMessageTypes().get(85);
     internal_static_EscrowCreationAttachment_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_EscrowCreationAttachment_descriptor,
         new java.lang.String[] { "Version", "Amount", "RequiredSigners", "Signers", "Deadline", "DeadlineAction", });
     internal_static_EscrowSignAttachment_descriptor =
-      getDescriptor().getMessageTypes().get(85);
+      getDescriptor().getMessageTypes().get(86);
     internal_static_EscrowSignAttachment_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_EscrowSignAttachment_descriptor,
         new java.lang.String[] { "Version", "Escrow", "Decision", });
     internal_static_EscrowResultAttachment_descriptor =
-      getDescriptor().getMessageTypes().get(86);
+      getDescriptor().getMessageTypes().get(87);
     internal_static_EscrowResultAttachment_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_EscrowResultAttachment_descriptor,
         new java.lang.String[] { "Version", "Escrow", "Decision", });
     internal_static_SubscriptionSubscribeAttachment_descriptor =
-      getDescriptor().getMessageTypes().get(87);
+      getDescriptor().getMessageTypes().get(88);
     internal_static_SubscriptionSubscribeAttachment_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_SubscriptionSubscribeAttachment_descriptor,
         new java.lang.String[] { "Version", "Frequency", });
     internal_static_SubscriptionCancelAttachment_descriptor =
-      getDescriptor().getMessageTypes().get(88);
+      getDescriptor().getMessageTypes().get(89);
     internal_static_SubscriptionCancelAttachment_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_SubscriptionCancelAttachment_descriptor,
         new java.lang.String[] { "Version", "Subscription", });
     internal_static_SubscriptionPaymentAttachment_descriptor =
-      getDescriptor().getMessageTypes().get(89);
+      getDescriptor().getMessageTypes().get(90);
     internal_static_SubscriptionPaymentAttachment_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_SubscriptionPaymentAttachment_descriptor,
         new java.lang.String[] { "Version", "Subscription", });
     internal_static_ATCreationAttachment_descriptor =
-      getDescriptor().getMessageTypes().get(90);
+      getDescriptor().getMessageTypes().get(91);
     internal_static_ATCreationAttachment_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_ATCreationAttachment_descriptor,
         new java.lang.String[] { "Version", "Name", "Description", "CreationBytes", });
     internal_static_Accounts_descriptor =
-      getDescriptor().getMessageTypes().get(91);
+      getDescriptor().getMessageTypes().get(92);
     internal_static_Accounts_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_Accounts_descriptor,
         new java.lang.String[] { "Ids", "Accounts", });
     internal_static_Account_descriptor =
-      getDescriptor().getMessageTypes().get(92);
+      getDescriptor().getMessageTypes().get(93);
     internal_static_Account_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_Account_descriptor,
         new java.lang.String[] { "Id", "PublicKey", "Balance", "UnconfirmedBalance", "ForgedBalance", "Name", "Description", "RewardRecipient", "AssetBalances", });
     internal_static_AssetBalances_descriptor =
-      getDescriptor().getMessageTypes().get(93);
+      getDescriptor().getMessageTypes().get(94);
     internal_static_AssetBalances_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_AssetBalances_descriptor,
         new java.lang.String[] { "AssetBalances", });
     internal_static_AssetBalance_descriptor =
-      getDescriptor().getMessageTypes().get(94);
+      getDescriptor().getMessageTypes().get(95);
     internal_static_AssetBalance_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_AssetBalance_descriptor,
         new java.lang.String[] { "Asset", "Account", "Balance", "UnconfirmedBalance", });
     internal_static_MiningInfo_descriptor =
-      getDescriptor().getMessageTypes().get(95);
+      getDescriptor().getMessageTypes().get(96);
     internal_static_MiningInfo_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_MiningInfo_descriptor,
         new java.lang.String[] { "Height", "GenerationSignature", "BaseTarget", });
     internal_static_TransactionBytes_descriptor =
-      getDescriptor().getMessageTypes().get(96);
+      getDescriptor().getMessageTypes().get(97);
     internal_static_TransactionBytes_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_TransactionBytes_descriptor,
         new java.lang.String[] { "TransactionBytes", });
     internal_static_OrdinaryPaymentAttachment_descriptor =
-      getDescriptor().getMessageTypes().get(97);
+      getDescriptor().getMessageTypes().get(98);
     internal_static_OrdinaryPaymentAttachment_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_OrdinaryPaymentAttachment_descriptor,
         new java.lang.String[] { });
     internal_static_ArbitraryMessageAttachment_descriptor =
-      getDescriptor().getMessageTypes().get(98);
+      getDescriptor().getMessageTypes().get(99);
     internal_static_ArbitraryMessageAttachment_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_ArbitraryMessageAttachment_descriptor,
         new java.lang.String[] { });
     internal_static_ATPaymentAttachment_descriptor =
-      getDescriptor().getMessageTypes().get(99);
+      getDescriptor().getMessageTypes().get(100);
     internal_static_ATPaymentAttachment_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_ATPaymentAttachment_descriptor,

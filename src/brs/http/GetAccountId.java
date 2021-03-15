@@ -1,8 +1,10 @@
 package brs.http;
 
-import brs.Account;
 import brs.crypto.Crypto;
 import brs.util.Convert;
+import burst.kit.crypto.BurstCrypto;
+import burst.kit.entity.BurstAddress;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -25,21 +27,22 @@ public final class GetAccountId extends APIServlet.JsonRequestHandler {
   @Override
   JsonElement processRequest(HttpServletRequest req) {
 
-    long accountId;
+    BurstAddress address;
     String secretPhrase = Convert.emptyToNull(req.getParameter(SECRET_PHRASE_PARAMETER));
     String publicKeyString = Convert.emptyToNull(req.getParameter(PUBLIC_KEY_PARAMETER));
     if (secretPhrase != null) {
       byte[] publicKey = Crypto.getPublicKey(secretPhrase);
-      accountId = Account.getId(publicKey);
+      address = BurstCrypto.getInstance().getBurstAddressFromPublic(publicKey);
       publicKeyString = Convert.toHexString(publicKey);
     } else if (publicKeyString != null) {
-      accountId = Account.getId(Convert.parseHexString(publicKeyString));
+      address = BurstCrypto.getInstance().getBurstAddressFromPublic(Convert.parseHexString(publicKeyString));
     } else {
       return MISSING_SECRET_PHRASE_OR_PUBLIC_KEY;
     }
 
     JsonObject response = new JsonObject();
-    JSONData.putAccount(response, ACCOUNT_RESPONSE, accountId);
+    JSONData.putAccount(response, ACCOUNT_RESPONSE, address.getSignedLongId());
+    response.addProperty(ACCOUNT_RESPONSE + "RSExtended", address.getExtendedAddress());
     response.addProperty(PUBLIC_KEY_RESPONSE, publicKeyString);
 
     return response;

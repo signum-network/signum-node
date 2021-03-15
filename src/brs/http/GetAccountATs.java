@@ -3,7 +3,6 @@ package brs.http;
 import brs.Account;
 import brs.BurstException;
 import brs.services.ATService;
-import brs.services.AccountService;
 import brs.services.ParameterService;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -19,13 +18,11 @@ public final class GetAccountATs extends APIServlet.JsonRequestHandler {
 
   private final ParameterService parameterService;
   private final ATService atService;
-  private final AccountService accountService;
-
-  GetAccountATs(ParameterService parameterService, ATService atService, AccountService accountService) {
+  
+  GetAccountATs(ParameterService parameterService, ATService atService) {
     super(new APITag[] {APITag.AT, APITag.ACCOUNTS}, ACCOUNT_PARAMETER);
     this.parameterService = parameterService;
     this.atService = atService;
-    this.accountService = accountService;
   }
 	
   @Override
@@ -35,7 +32,7 @@ public final class GetAccountATs extends APIServlet.JsonRequestHandler {
     List<Long> atIds = atService.getATsIssuedBy(account.getId());
     JsonArray ats = new JsonArray();
     for(long atId : atIds) {
-      ats.add(JSONData.at(atService.getAT(atId), accountService));
+      ats.add(JSONData.at(atService.getAT(atId)));
     }
 		
     JsonObject response = new JsonObject();

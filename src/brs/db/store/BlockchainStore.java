@@ -21,6 +21,8 @@ public interface BlockchainStore {
 
   Collection<Block> getBlocks(Account account, int timestamp, int from, int to);
 
+  int getBlocksCount(Account account, int from, int to);
+
   Collection<Block> getBlocks(Result<BlockRecord> blockRecords);
 
   Collection<Long> getBlockIdsAfter(long blockId, int limit);
@@ -41,4 +43,6 @@ public interface BlockchainStore {
   void addBlock(Block block);
 
   Collection<Block> getLatestBlocks(int amountBlocks);
+
+  long getCommittedAmount(Account account, int height, int endHeight);
 }

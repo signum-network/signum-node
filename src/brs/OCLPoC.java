@@ -13,7 +13,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.Locale;
 
 import static org.jocl.CL.*;
@@ -170,7 +170,7 @@ final class OCLPoC {
     return maxItems;
   }
 
-  public static void validatePoC(Collection<Block> blocks, int pocVersion, BlockService blockService) {
+  public static void validatePoC(HashMap<Block, Block> blocks, int pocVersion, BlockService blockService) {
     try {
       if (logger.isDebugEnabled()) {
         logger.debug("starting ocl verify for: {}", blocks.size());
@@ -192,7 +192,7 @@ final class OCLPoC {
 
       ByteBuffer buffer = ByteBuffer.allocate(16);
       int i = 0;
-      for (Block block : blocks) {
+      for (Block block : blocks.keySet()) {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         buffer.putLong(block.getGeneratorId());
         buffer.putLong(block.getNonce());
@@ -300,10 +300,10 @@ final class OCLPoC {
       ByteBuffer scoopsBuffer = ByteBuffer.wrap(scoopsOut);
       byte[] scoop = new byte[MiningPlot.SCOOP_SIZE];
 
-      blocks.forEach(block -> {
+      blocks.keySet().forEach(block -> {
         try {
           scoopsBuffer.get(scoop);
-          blockService.preVerify(block, scoop);
+          blockService.preVerify(block, blocks.get(block), scoop);
         } catch ( InterruptedException e ) {
           Thread.currentThread().interrupt();
         } catch (BlockchainProcessor.BlockNotAcceptedException e) {

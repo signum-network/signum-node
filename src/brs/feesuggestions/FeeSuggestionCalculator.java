@@ -2,76 +2,63 @@ package brs.feesuggestions;
 
 import brs.Block;
 import brs.BlockchainProcessor;
+import brs.Burst;
 import brs.BlockchainProcessor.Event;
-import brs.db.store.BlockchainStore;
+import brs.unconfirmedtransactions.UnconfirmedTransactionStore;
 
-import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static brs.Constants.FEE_QUANT;
 
 public class FeeSuggestionCalculator {
 
-  // index 0 = oldest, length-1 = newest
-  private final Block[] latestBlocks;
+  private final UnconfirmedTransactionStore unconfirmedTransactionStore;
 
-  private final BlockchainStore blockchainStore;
+  private AtomicReference<FeeSuggestion> feeSuggestion = new AtomicReference<>();
 
-  private FeeSuggestion feeSuggestion = new FeeSuggestion(FEE_QUANT, FEE_QUANT, FEE_QUANT);
-
-  public FeeSuggestionCalculator(BlockchainProcessor blockchainProcessor, BlockchainStore blockchainStore, int historyLength) {
-    latestBlocks = new Block[historyLength];
-    this.blockchainStore = blockchainStore;
+  public FeeSuggestionCalculator(BlockchainProcessor blockchainProcessor, UnconfirmedTransactionStore unconfirmedTransactionStore) {
+    this.unconfirmedTransactionStore = unconfirmedTransactionStore;
     blockchainProcessor.addListener(this::newBlockApplied, Event.AFTER_BLOCK_APPLY);
+    
+    // Just an initial guess until we have the unconfirmed transactions information
+    long cheap = 1;
+    long standard = 1;
+    long priority = 3;
+    if(Burst.getBlockchain() != null) {
+      Block lastBlock = Burst.getBlockchain().getLastBlock();
+      if(lastBlock != null) {
+        standard = Math.max(1, lastBlock.getTransactions().size()-2);
+        priority = lastBlock.getTransactions().size()+2;
+      }
+    }
+    
+    feeSuggestion.set(new FeeSuggestion(cheap * FEE_QUANT, standard * FEE_QUANT, priority * FEE_QUANT));
   }
 
   public FeeSuggestion giveFeeSuggestion() {
-    if (latestBlocksIsEmpty()) {
-      fillInitialHistory();
-      recalculateSuggestion();
-    }
-
-    return feeSuggestion;
+    return feeSuggestion.get();
   }
 
   private void newBlockApplied(Block block) {
-    if (latestBlocksIsEmpty()) {
-      fillInitialHistory();
-    }
-
-    pushNewBlock(block);
     recalculateSuggestion();
   }
 
-  private void fillInitialHistory() {
-    blockchainStore.getLatestBlocks(latestBlocks.length).forEach(this::pushNewBlock);
-  }
-
-  private boolean latestBlocksIsEmpty() {
-    for (Block latestBlock : latestBlocks) {
-      if (latestBlock == null) return true;
-    }
-    return false;
-  }
-
-  private void pushNewBlock(Block block) {
-    if (block == null) return;
-    // Skip index 0 as we want to remove this one
-    if (latestBlocks.length - 1 >= 0) System.arraycopy(latestBlocks, 1, latestBlocks, 0, latestBlocks.length - 1);
-    latestBlocks[latestBlocks.length - 1] = block;
-  }
-
   private void recalculateSuggestion() {
-    try {
-      int lowestAmountTransactionsNearHistory = Arrays.stream(latestBlocks).mapToInt(b -> b.getTransactions().size()).min().orElse(1);
-      int averageAmountTransactionsNearHistory = (int) Math.ceil(Arrays.stream(latestBlocks).mapToInt(b -> b.getTransactions().size()).average().orElse(1));
-      int highestAmountTransactionsNearHistory = Arrays.stream(latestBlocks).mapToInt(b -> b.getTransactions().size()).max().orElse(1);
+    long cheap = unconfirmedTransactionStore.getFreeSlot(15); // should confirm in about 1 hour
+    long standard = unconfirmedTransactionStore.getFreeSlot(3); // should confirm in about 15 min
+    long priority = unconfirmedTransactionStore.getFreeSlot(1) + 2; // should confirm in the next block
 
-      long cheapFee = (1 + lowestAmountTransactionsNearHistory) * FEE_QUANT;
-      long standardFee = (1 + averageAmountTransactionsNearHistory) * FEE_QUANT;
-      long priorityFee = (1 + highestAmountTransactionsNearHistory) * FEE_QUANT;
-
-      feeSuggestion = new FeeSuggestion(cheapFee, standardFee, priorityFee);
-    } catch (NullPointerException ignored) { // Can happen if there are less than latestBlocks.length blocks in the blockchain
+    if(standard <= cheap) {
+      standard = cheap + 1;
     }
+    if(priority <= standard) {
+      priority = standard + 1;
+    }
+
+    long cheapFee = cheap * FEE_QUANT;
+    long standardFee = standard * FEE_QUANT;
+    long priorityFee = priority * FEE_QUANT;
+
+    feeSuggestion.set(new FeeSuggestion(cheapFee, standardFee, priorityFee));
   }
 }

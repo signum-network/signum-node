@@ -42,7 +42,7 @@ public final class API {
   @SuppressWarnings("squid:S1075")
   private static final String API_PATH = "/burst";
   @SuppressWarnings("squid:S1075")
-  private static final String API_TEST_PATH = "/test";
+  public static final String API_TEST_PATH = "/api-doc";
 
   private final Server apiServer;
 

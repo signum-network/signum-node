@@ -2,7 +2,6 @@ package brs.util;
 
 import brs.BurstException;
 import brs.Constants;
-import brs.crypto.Crypto;
 import burst.kit.crypto.BurstCrypto;
 import burst.kit.entity.BurstAddress;
 import org.bouncycastle.util.encoders.DecoderException;
@@ -55,9 +54,13 @@ public final class Convert {
     BurstAddress address = BurstAddress.fromEither(account);
     return address == null ? 0 : address.getBurstID().getSignedLongId();
   }
+  
+  public static BurstAddress parseAddress(String account) {
+    return BurstAddress.fromEither(account);
+  }
 
   public static String rsAccount(long accountId) {
-    return "BURST-" + Crypto.rsEncode(accountId);
+    return BurstAddress.fromId(accountId).getFullAddress();
   }
 
   public static long fullHashToId(byte[] hash) {

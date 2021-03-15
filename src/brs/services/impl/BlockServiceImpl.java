@@ -17,7 +17,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class BlockServiceImpl implements BlockService {
 
@@ -26,6 +28,8 @@ public class BlockServiceImpl implements BlockService {
   private final Blockchain blockchain;
   private final DownloadCacheImpl downloadCache;
   private final Generator generator;
+  
+  private final List<Block> watchedBlocks = new ArrayList<>();
 
   private static final Logger logger = LoggerFactory.getLogger(BlockServiceImpl.class);
 
@@ -50,18 +54,11 @@ public class BlockServiceImpl implements BlockService {
       byte[] data2 = new byte[data.length - 64];
       System.arraycopy(data, 0, data2, 0, data2.length);
 
-      byte[] publicKey;
-      Account genAccount = accountService.getAccount(block.getGeneratorPublicKey());
-      Account.RewardRecipientAssignment rewardAssignment;
-      rewardAssignment = genAccount == null ? null : accountService.getRewardRecipientAssignment(genAccount);
-      if (genAccount == null || rewardAssignment == null || !Burst.getFluxCapacitor().getValue(FluxValues.REWARD_RECIPIENT_ENABLE)) {
-        publicKey = block.getGeneratorPublicKey();
-      } else {
-        if (previousBlock.getHeight() + 1 >= rewardAssignment.getFromHeight()) {
-          publicKey = accountService.getAccount(rewardAssignment.getRecipientId()).getPublicKey();
-        } else {
-          publicKey = accountService.getAccount(rewardAssignment.getPrevRecipientId()).getPublicKey();
-        }
+      byte[] publicKey = block.getGeneratorPublicKey();
+      if(accountService.getAccount(publicKey) != null) {
+        // only if the account exists
+        Account rewardAccount = getRewardAccount(block);
+        publicKey = rewardAccount.getPublicKey();
       }
 
       return Crypto.verify(block.getBlockSignature(), data2, publicKey, block.getVersion() >= 3);
@@ -72,7 +69,6 @@ public class BlockServiceImpl implements BlockService {
       return false;
 
     }
-
   }
 
   @Override
@@ -92,23 +88,49 @@ public class BlockServiceImpl implements BlockService {
       }
       int elapsedTime = block.getTimestamp() - previousBlock.getTimestamp();
       BigInteger hit = block.getPocTime();
-      BigInteger pTime = generator.calculateDeadline(hit, previousBlock.getBaseTarget(), block.getHeight());
+      BigInteger pTime = generator.calculateDeadline(hit, previousBlock.getCapacityBaseTarget(), block.getCommitment(), previousBlock.getAverageCommitment(), block.getHeight());
+      if(BigInteger.valueOf(elapsedTime).compareTo(pTime) <= 0) {
+        logger.info("Elapsed time {} should be higher than the deadline {}", elapsedTime, pTime);
+      }
       return BigInteger.valueOf(elapsedTime).compareTo(pTime) > 0;
     } catch (RuntimeException e) {
       logger.info("Error verifying block generation signature", e);
       return false;
     }
   }
-
+  
+  private Account getRewardAccount(Block block) {
+	Account rewardAccount = accountService.getAccount(block.getGeneratorPublicKey());
+    Account.RewardRecipientAssignment rewardAssignment = accountService.getRewardRecipientAssignment(rewardAccount);
+    if (rewardAssignment != null) {
+      if (block.getHeight() >= rewardAssignment.getFromHeight()) {
+        rewardAccount = accountService.getAccount(rewardAssignment.getRecipientId());
+      } else {
+        rewardAccount = accountService.getAccount(rewardAssignment.getPrevRecipientId());
+      }
+    }
+    return rewardAccount;
+  }
+  
   @Override
-  public void preVerify(Block block) throws BlockchainProcessor.BlockNotAcceptedException, InterruptedException {
-    preVerify(block, null);
+  public void watchBlock(Block block) {
+	  watchedBlocks.add(block);
   }
 
   @Override
-  public void preVerify(Block block, byte[] scoopData) throws BlockchainProcessor.BlockNotAcceptedException, InterruptedException {
+  public void preVerify(Block block, Block prevBlock) throws BlockchainProcessor.BlockNotAcceptedException, InterruptedException {
+    preVerify(block, prevBlock, null);
+  }
+  
+  @Override
+  public void preVerify(Block block, Block prevBlock, byte[] scoopData) throws BlockchainProcessor.BlockNotAcceptedException, InterruptedException {
     // Just in case its already verified
     if (block.isVerified()) {
+      return;
+    }
+    
+    if(block.getPreviousBlockId() != prevBlock.getId()) {
+      logger.info("Error pre-verifying block, invalid previous block");
       return;
     }
     
@@ -137,7 +159,7 @@ public class BlockServiceImpl implements BlockService {
         if (scoopData == null) {
           block.setPocTime(generator.calculateHit(block.getGeneratorId(), block.getNonce(), block.getGenerationSignature(), getScoopNum(block), block.getHeight()));
         } else {
-          block.setPocTime(generator.calculateHit(block.getGeneratorId(), block.getNonce(), block.getGenerationSignature(), scoopData));
+          block.setPocTime(generator.calculateHit(block.getGenerationSignature(), scoopData));
         }
       }
     } catch (RuntimeException e) {
@@ -167,15 +189,7 @@ public class BlockServiceImpl implements BlockService {
       accountService.addToBalanceAndUnconfirmedBalanceNQT(generatorAccount, block.getTotalFeeNQT() + getBlockReward(block));
       accountService.addToForgedBalanceNQT(generatorAccount, block.getTotalFeeNQT() + getBlockReward(block));
     } else {
-      Account rewardAccount;
-      Account.RewardRecipientAssignment rewardAssignment = accountService.getRewardRecipientAssignment(generatorAccount);
-      if (rewardAssignment == null) {
-        rewardAccount = generatorAccount;
-      } else if (block.getHeight() >= rewardAssignment.getFromHeight()) {
-        rewardAccount = accountService.getAccount(rewardAssignment.getRecipientId());
-      } else {
-        rewardAccount = accountService.getAccount(rewardAssignment.getPrevRecipientId());
-      }
+      Account rewardAccount = getRewardAccount(block);
       accountService.addToBalanceAndUnconfirmedBalanceNQT(rewardAccount, block.getTotalFeeNQT() + getBlockReward(block));
       accountService.addToForgedBalanceNQT(rewardAccount, block.getTotalFeeNQT() + getBlockReward(block));
     }
@@ -228,7 +242,7 @@ public class BlockServiceImpl implements BlockService {
     } else if (block.getHeight() < 4) {
       block.setBaseTarget(Constants.INITIAL_BASE_TARGET);
       block.setCumulativeDifficulty(previousBlock.getCumulativeDifficulty().add(Convert.two64.divide(BigInteger.valueOf(Constants.INITIAL_BASE_TARGET))));
-    } else if (block.getHeight() < Constants.BURST_DIFF_ADJUST_CHANGE_BLOCK) {
+    } else if (block.getHeight() < Constants.BURST_DIFF_ADJUST_CHANGE_BLOCK && !Burst.getFluxCapacitor().getValue(FluxValues.SODIUM)) {
       Block itBlock = previousBlock;
       BigInteger avgBaseTarget = BigInteger.valueOf(itBlock.getBaseTarget());
       do {
@@ -261,7 +275,7 @@ public class BlockServiceImpl implements BlockService {
       block.setCumulativeDifficulty(previousBlock.getCumulativeDifficulty().add(Convert.two64.divide(BigInteger.valueOf(newBaseTarget))));
     } else {
       Block itBlock = previousBlock;
-      BigInteger avgBaseTarget = BigInteger.valueOf(itBlock.getBaseTarget());
+      BigInteger avgBaseTarget = BigInteger.valueOf(itBlock.getCapacityBaseTarget());
       int blockCounter = 1;
       do {
         int previousHeight = itBlock.getHeight();
@@ -271,7 +285,7 @@ public class BlockServiceImpl implements BlockService {
         }
         blockCounter++;
         avgBaseTarget = (avgBaseTarget.multiply(BigInteger.valueOf(blockCounter))
-            .add(BigInteger.valueOf(itBlock.getBaseTarget())))
+            .add(BigInteger.valueOf(itBlock.getCapacityBaseTarget())))
             .divide(BigInteger.valueOf(blockCounter + 1L));
       } while (blockCounter < 24);
       long difTime = (long) block.getTimestamp() - itBlock.getTimestamp();
@@ -285,7 +299,7 @@ public class BlockServiceImpl implements BlockService {
         difTime = targetTimespan * 2;
       }
 
-      long curBaseTarget = previousBlock.getBaseTarget();
+      long curBaseTarget = previousBlock.getCapacityBaseTarget();
       long newBaseTarget = avgBaseTarget.multiply(BigInteger.valueOf(difTime))
           .divide(BigInteger.valueOf(targetTimespan)).longValue();
 
@@ -304,9 +318,45 @@ public class BlockServiceImpl implements BlockService {
       if (newBaseTarget > curBaseTarget * 12 / 10) {
         newBaseTarget = curBaseTarget * 12 / 10;
       }
-
+      
+      long peerBaseTarget = block.getBaseTarget();
       block.setBaseTarget(newBaseTarget);
-      block.setCumulativeDifficulty(previousBlock.getCumulativeDifficulty().add(Convert.two64.divide(BigInteger.valueOf(newBaseTarget))));
+      BigInteger difficulty = Convert.two64.divide(BigInteger.valueOf(newBaseTarget));
+      
+      if(Burst.getFluxCapacitor().getValue(FluxValues.POC_PLUS, block.getHeight())) {
+        block.setCommitment(generator.estimateCommitment(block.getGeneratorId(), previousBlock));
+
+        // update the average commitment based on a moving average filter
+        long curCommitment = previousBlock.getAverageCommitment();
+        
+        long newAvgCommitment = (curCommitment*23L + block.getCommitment())/24L;
+        // avoid changing more than 20% in a single block
+        if (newAvgCommitment < curCommitment * 8 / 10) {
+          newAvgCommitment = curCommitment * 8 / 10;
+        }
+        if (newAvgCommitment > curCommitment * 12 / 10) {
+          newAvgCommitment = curCommitment * 12 / 10;
+        }
+        
+        // assuming a minimum value of 1 BURST
+        newAvgCommitment = Math.max(newAvgCommitment, Constants.ONE_BURST);
+        block.setBaseTarget(newBaseTarget, newAvgCommitment);
+        
+        if(block.getPeer()!=null && peerBaseTarget != 0L && peerBaseTarget != block.getBaseTarget()) {
+          // peer sent the base target and we do not agree with it
+          throw new RuntimeException("Peer base target " + peerBaseTarget + ", expected is " + block.getBaseTarget() + ", peer " +
+              block.getPeer().getAnnouncedAddress());
+        }
+        
+        Block pastBlock = blockchain.getBlockAtHeight(block.getHeight() - Constants.MAX_ROLLBACK);
+        
+        long pastAverageCommitment = pastBlock.getAverageCommitment();
+        double commitmentFactor = generator.getCommitmentFactor(newAvgCommitment, pastAverageCommitment, block.getHeight());
+        
+        difficulty = BigInteger.valueOf((long)(difficulty.doubleValue()*commitmentFactor));
+      }      
+      
+      block.setCumulativeDifficulty(previousBlock.getCumulativeDifficulty().add(difficulty));
     }
   }
 

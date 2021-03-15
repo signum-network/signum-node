@@ -54,7 +54,7 @@ public class AtConstants {
         // constants for AT version 2
         MIN_FEE.put((short) 2, 1000L);
         STEP_FEE.put((short) 2, Constants.FEE_QUANT / 10L);
-        MAX_STEPS.put((short) 2, 100000L);
+        MAX_STEPS.put((short) 2, 100_000L);
         API_STEP_MULTIPLIER.put((short) 2, 10L);
 
         COST_PER_PAGE.put((short) 2, Constants.FEE_QUANT * 10);
@@ -88,6 +88,9 @@ public class AtConstants {
     }
 
     public long maxSteps(int height) {
+        if(Burst.getFluxCapacitor().getValue(FluxValues.PRE_POC_PLUS, height)) {
+            return 1_000_000L;
+        }
         return MAX_STEPS.get(atVersion(height));
     }
 

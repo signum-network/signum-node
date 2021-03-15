@@ -7,7 +7,6 @@ import brs.at.AtApiHelper;
 import brs.crypto.Crypto;
 import brs.crypto.EncryptedData;
 import brs.peer.Peer;
-import brs.services.AccountService;
 import brs.util.Convert;
 import brs.util.JSON;
 import com.google.gson.JsonArray;
@@ -43,14 +42,12 @@ public final class JSONData {
     if (account == null) {
       json.addProperty(BALANCE_NQT_RESPONSE,             "0");
       json.addProperty(UNCONFIRMED_BALANCE_NQT_RESPONSE, "0");
-      json.addProperty(EFFECTIVE_BALANCE_NQT_RESPONSE,   "0");
       json.addProperty(FORGED_BALANCE_NQT_RESPONSE,      "0");
       json.addProperty(GUARANTEED_BALANCE_NQT_RESPONSE,  "0");
     }
     else {
       json.addProperty(BALANCE_NQT_RESPONSE, String.valueOf(account.getBalanceNQT()));
       json.addProperty(UNCONFIRMED_BALANCE_NQT_RESPONSE, String.valueOf(account.getUnconfirmedBalanceNQT()));
-      json.addProperty(EFFECTIVE_BALANCE_NQT_RESPONSE, String.valueOf(account.getBalanceNQT()));
       json.addProperty(FORGED_BALANCE_NQT_RESPONSE, String.valueOf(account.getForgedBalanceNQT()));
       json.addProperty(GUARANTEED_BALANCE_NQT_RESPONSE, String.valueOf(account.getBalanceNQT()));
     }
@@ -118,7 +115,8 @@ public final class JSONData {
     json.addProperty(BLOCK_REWARD_RESPONSE, Convert.toUnsignedLong(blockReward / Constants.ONE_BURST));
     json.addProperty(PAYLOAD_LENGTH_RESPONSE, block.getPayloadLength());
     json.addProperty(VERSION_RESPONSE, block.getVersion());
-    json.addProperty(BASE_TARGET_RESPONSE, Convert.toUnsignedLong(block.getBaseTarget()));
+    json.addProperty(BASE_TARGET_RESPONSE, Convert.toUnsignedLong(block.getCapacityBaseTarget()));
+    json.addProperty(AVERAGE_COMMITMENT_NQT_RESPONSE, Convert.toUnsignedLong(block.getAverageCommitment()));
 
     if (block.getPreviousBlockId() != 0) {
       json.addProperty(PREVIOUS_BLOCK_RESPONSE, Convert.toUnsignedLong(block.getPreviousBlockId()));
@@ -394,8 +392,7 @@ public final class JSONData {
     json.addProperty(name + "RS", Convert.rsAccount(accountId));
   }
 
-  //TODO refactor the accountservice out of this :-)
-  static JsonObject at(AT at, AccountService accountService) {
+  static JsonObject at(AT at) {
     JsonObject json = new JsonObject();
     ByteBuffer bf = ByteBuffer.allocate( 8 );
     bf.order( ByteOrder.LITTLE_ENDIAN );
@@ -415,7 +412,7 @@ public final class JSONData {
     json.addProperty("creatorRS", Convert.rsAccount(AtApiHelper.getLong(at.getCreator())));
     json.addProperty("machineCode", Convert.toHexString(at.getApCodeBytes()));
     json.addProperty("machineData", Convert.toHexString(at.getApDataBytes()));
-    json.addProperty("balanceNQT", Convert.toUnsignedLong(accountService.getAccount(id).getBalanceNQT()));
+    json.addProperty("balanceNQT", Convert.toUnsignedLong(at.getgBalance()));
     json.addProperty("prevBalanceNQT", Convert.toUnsignedLong(at.getpBalance()));
     json.addProperty("nextBlock", at.nextHeight());
     json.addProperty("frozen", at.freezeOnSameBalance());

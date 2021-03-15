@@ -1,0 +1,34 @@
+# http://editorconfig.org
+
+root = true
+
+[*]
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+end_of_line = lf
+charset = utf-8
+
+# Use 2 spaces for frontend files
+[{*.html,*.js,*css}]
+indent_size = 2
+
+[{*.yml,*.yaml}]
+indent_size = 2
+
+# The JSON files contain newlines inconsistently
+[*.json]
+insert_final_newline = false
+indent_size = 2
+
+# Minified JavaScript files shouldn't be changed
+[**.min.js]
+insert_final_newline = false
+
+# Batch files use tabs for indentation
+[*.bat]
+indent_style = tab
+
+[*.md]
+trim_trailing_whitespace = false

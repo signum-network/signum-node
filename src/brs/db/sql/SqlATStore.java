@@ -137,14 +137,25 @@ public class SqlATStore implements ATStore {
       ).fetch().getValues(AT.ID);
     });
   }
-
+  
   @Override
   public brs.at.AT getAT(Long id) {
+    return getAT(id, -1);
+  }
+
+  @Override
+  public brs.at.AT getAT(Long id, int height) {
     return Db.useDSLContext(ctx -> {
-      Record record = ctx.select(AT.fields()).select(AT_STATE.fields()).from(AT.join(AT_STATE).on(AT.ID.eq(AT_STATE.AT_ID))).
-              where(AT.LATEST.isTrue().
-                      and(AT_STATE.LATEST.isTrue()).
-                      and(AT.ID.eq(id))).fetchOne();
+      SelectJoinStep<Record> select = ctx.select(AT.fields()).select(AT_STATE.fields()).from(AT.join(AT_STATE)
+          .on(AT.ID.eq(AT_STATE.AT_ID)));
+      ResultQuery<Record> where = null;
+      if(height > 0) {
+        where = select.where(AT_STATE.HEIGHT.le(height)).and(AT.ID.eq(id)).orderBy(AT_STATE.HEIGHT.desc()).maxRows(1);
+      }
+      else {
+        where = select.where(AT.LATEST.isTrue()).and(AT_STATE.LATEST.isTrue()).and(AT.ID.eq(id));
+      }
+      Record record = where.fetchOne();
       if (record == null) {
         return null;
       }
@@ -152,12 +163,13 @@ public class SqlATStore implements ATStore {
       AtRecord at = record.into(AT);
       AtStateRecord atState = record.into(AT_STATE);
 
-      return createAT(at, atState);
+      return createAT(at, atState, height);
     });
   }
 
-  private brs.at.AT createAT(AtRecord at, AtStateRecord atState) {
+  private brs.at.AT createAT(AtRecord at, AtStateRecord atState, int height) {
     return new AT(AtApiHelper.getByteArray(at.getId()), AtApiHelper.getByteArray(at.getCreatorId()), at.getName(), at.getDescription(), at.getVersion(),
+            height,
             brs.at.AT.decompressState(atState.getState()), at.getCsize(), at.getDsize(), at.getCUserStackBytes(), at.getCCallStackBytes(), at.getCreationHeight(), atState.getSleepBetween(), atState.getNextHeight(),
             atState.getFreezeWhenSameBalance(), atState.getMinActivateAmount(), brs.at.AT.decompressState(at.getApCode()));
   }

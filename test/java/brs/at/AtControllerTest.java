@@ -35,7 +35,7 @@ public class AtControllerTest {
         AtTestHelper.addEchoAT();
         AtTestHelper.addTipThanksAT();
         assertEquals(3, AT.getOrderedATs().size());
-        AtBlock atBlock = AtController.getCurrentBlockATs(Integer.MAX_VALUE, Integer.MAX_VALUE);
+        AtBlock atBlock = AtController.getCurrentBlockATs(Integer.MAX_VALUE, Integer.MAX_VALUE, 0L);
         assertNotNull(atBlock);
         assertNotNull(atBlock.getBytesForBlock());
         assertEquals("010000000000000097c1d1e5b25c1d109f2ba522d1dda248020000000000000014ea12712c274caebc49ccd7fff0b0b703000000000000009f1af5443c8d1e7b492f848e91fccb1f", Convert.toHexString(atBlock.getBytesForBlock()));
@@ -48,7 +48,7 @@ public class AtControllerTest {
         AtTestHelper.addEchoAT();
         AtTestHelper.addTipThanksAT();
         assertEquals(3, AT.getOrderedATs().size());
-        AtBlock atBlock = AtController.validateATs(Convert.parseHexString("010000000000000097c1d1e5b25c1d109f2ba522d1dda248020000000000000014ea12712c274caebc49ccd7fff0b0b703000000000000009f1af5443c8d1e7b492f848e91fccb1f"), Integer.MAX_VALUE);
+        AtBlock atBlock = AtController.validateATs(Convert.parseHexString("010000000000000097c1d1e5b25c1d109f2ba522d1dda248020000000000000014ea12712c274caebc49ccd7fff0b0b703000000000000009f1af5443c8d1e7b492f848e91fccb1f"), Integer.MAX_VALUE, 0L);
         assertNotNull(atBlock);
         assertEquals(0, atBlock.getTotalAmount());
         assertEquals(5439000, atBlock.getTotalFees());

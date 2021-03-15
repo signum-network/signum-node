@@ -93,6 +93,15 @@ public class AtTestHelper {
             }
             return null;
         }).when(mockAtStore).getAT(ArgumentMatchers.anyLong());
+        doAnswer(invoke -> {
+          Long atId = invoke.getArgument(0);
+          for (AT addedAt : addedAts) {
+            if (AtApiHelper.getLong(addedAt.getId()) == atId) {
+              return addedAt;
+            }
+          }
+          return null;
+        }).when(mockAtStore).getAT(ArgumentMatchers.anyLong(), ArgumentMatchers.anyInt());
         when(mockAtTable.getAll(ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt())).thenReturn(addedAts);
         when(Account.getOrAddAccount(ArgumentMatchers.anyLong())).thenReturn(mockAccount);
         when(Account.getAccount(ArgumentMatchers.anyLong())).thenReturn(mockAccount);

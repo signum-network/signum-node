@@ -100,6 +100,11 @@ public class BlockchainImpl implements Blockchain {
   public Collection<Block> getBlocks(Account account, int timestamp, int from, int to) {
     return blockchainStore.getBlocks(account, timestamp, from, to);
   }
+  
+  @Override
+  public int getBlocksCount(Account account, int from, int to) {
+    return blockchainStore.getBlocksCount(account, from, to);
+  }
 
   @Override
   public Collection<Long> getBlockIdsAfter(long blockId, int limit) {
@@ -179,5 +184,10 @@ public class BlockchainImpl implements Blockchain {
   public Collection<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
                                                  int blockTimestamp, int from, int to, boolean includeIndirectIncoming) {
     return blockchainStore.getTransactions(account, numberOfConfirmations, type, subtype, blockTimestamp, from, to, includeIndirectIncoming);
+  }
+  
+  @Override
+  public long getCommittedAmount(Account account, int height, int endHeight) {
+    return blockchainStore.getCommittedAmount(account, height, endHeight);
   }
 }

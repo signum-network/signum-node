@@ -354,4 +354,21 @@ public class UnconfirmedTransactionStoreImpl implements UnconfirmedTransactionSt
     }
   }
 
+  @Override
+  public long getFreeSlot(int numberOfBlocks) {
+    long previousSlot = 0;
+    long slotsAvailable = 0;
+    long freeSlot = 1;
+    for (Long currentSlot : internalStore.keySet()) {
+      List<Transaction> txInSlot = internalStore.get(currentSlot);
+      
+      slotsAvailable += numberOfBlocks*(currentSlot - previousSlot) - txInSlot.size();
+      
+      if(slotsAvailable < 0) {
+        freeSlot = currentSlot + 1;
+      }
+    }
+    return freeSlot;
+  }
+
 }

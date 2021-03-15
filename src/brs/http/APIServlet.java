@@ -62,7 +62,7 @@ public final class APIServlet extends HttpServlet {
     map.put("dgsRefund", new DGSRefund(parameterService, blockchain, accountService, apiTransactionManager));
     map.put("encryptTo", new EncryptTo(parameterService, accountService));
     map.put("generateToken", new GenerateToken(timeService));
-    map.put("getAccount", new GetAccount(parameterService, accountService));
+    map.put("getAccount", new GetAccount(parameterService, blockchain, generator));
     map.put("getAccountsWithName", new GetAccountsWithName(accountService));
     map.put("getAccountBlockIds", new GetAccountBlockIds(parameterService, blockchain));
     map.put("getAccountBlocks", new GetAccountBlocks(blockchain, parameterService, blockService));
@@ -70,7 +70,6 @@ public final class APIServlet extends HttpServlet {
     map.put("getAccountPublicKey", new GetAccountPublicKey(parameterService));
     map.put("getAccountTransactionIds", new GetAccountTransactionIds(parameterService, blockchain));
     map.put("getAccountTransactions", new GetAccountTransactions(parameterService, blockchain));
-    map.put("getAccountLessors", new GetAccountLessors(parameterService, blockchain));
     map.put("getAccountAssets", new GetAccountAssets(parameterService, accountService));
     map.put("sellAlias", new SellAlias(parameterService, blockchain, apiTransactionManager));
     map.put("buyAlias", new BuyAlias(parameterService, blockchain, aliasService, apiTransactionManager));
@@ -135,10 +134,12 @@ public final class APIServlet extends HttpServlet {
     map.put("setAlias", new SetAlias(parameterService, blockchain, aliasService, apiTransactionManager));
     map.put("signTransaction", new SignTransaction(parameterService, transactionService));
     map.put("transferAsset", new TransferAsset(parameterService, blockchain, apiTransactionManager, accountService));
-    map.put("getMiningInfo", new GetMiningInfo(blockchain, generator));
+    map.put("getMiningInfo", new GetMiningInfo(blockchain, blockService, generator));
     map.put("submitNonce", new SubmitNonce(propertyService, accountService, blockchain, generator));
     map.put("getRewardRecipient", new GetRewardRecipient(parameterService, blockchain, accountService));
     map.put("setRewardRecipient", new SetRewardRecipient(parameterService, blockchain, accountService, apiTransactionManager));
+    map.put("addCommitment", new AddCommitment(parameterService, blockchain, accountService, apiTransactionManager));
+    map.put("removeCommitment", new RemoveCommitment(parameterService, blockchain, accountService, apiTransactionManager));
     map.put("getAccountsWithRewardRecipient", new GetAccountsWithRewardRecipient(parameterService, accountService));
     map.put("sendMoneyEscrow", new SendMoneyEscrow(parameterService, blockchain, apiTransactionManager));
     map.put("escrowSign", new EscrowSign(parameterService, blockchain, escrowService, apiTransactionManager));
@@ -150,17 +151,16 @@ public final class APIServlet extends HttpServlet {
     map.put("getAccountSubscriptions", new GetAccountSubscriptions(parameterService, subscriptionService));
     map.put("getSubscriptionsToAccount", new GetSubscriptionsToAccount(parameterService, subscriptionService));
     map.put("createATProgram", new CreateATProgram(parameterService, blockchain, apiTransactionManager));
-    map.put("getAT", new GetAT(parameterService, accountService));
-    map.put("getATDetails", new GetATDetails(parameterService, accountService));
+    map.put("getAT", new GetAT(parameterService));
+    map.put("getATDetails", new GetATDetails(parameterService));
     map.put("getATIds", new GetATIds(atService));
     map.put("getATLong", GetATLong.instance);
-    map.put("getAccountATs", new GetAccountATs(parameterService, atService, accountService));
-    map.put("getGuaranteedBalance", new GetGuaranteedBalance(parameterService));
+    map.put("getAccountATs", new GetAccountATs(parameterService, atService));
     map.put("generateSendTransactionQRCode", new GenerateDeeplinkQRCode(deeplinkQRCodeGenerator));
     map.put("generateDeeplink", GenerateDeeplink.instance);
     map.put("generateDeeplinkQRCode", GenerateDeeplinkQR.instance);
 
-    if (propertyService.getBoolean(Props.API_DEBUG)) {
+    if (propertyService.getBoolean(Props.API_DEBUG) || propertyService.getBoolean(Props.DEV_TESTNET)) {
       map.put("clearUnconfirmedTransactions", new ClearUnconfirmedTransactions(transactionProcessor));
       map.put("fullReset", new FullReset(blockchainProcessor));
       map.put("popOff", new PopOff(blockchainProcessor, blockchain, blockService));

@@ -1,6 +1,6 @@
 /*.iml
 /dist
-/.idea
+.idea
 burst.jar
 brs.log
 brs.log.*
@@ -8,7 +8,10 @@ brs.log.*
 /conf/brs.properties
 _config.yml
 /html/ui/doc/*
+/html/ui/phoenix/*
 target
 *.prefs
 .project
 .classpath
+/burst_db/*
+/conf-tests/

@@ -26,6 +26,11 @@ public class ATServiceImpl implements ATService {
   }
 
   @Override
+  public AT getAT(Long id, int height) {
+    return atStore.getAT(id, height);
+  }
+
+  @Override
   public AT getAT(Long id) {
     return atStore.getAT(id);
   }

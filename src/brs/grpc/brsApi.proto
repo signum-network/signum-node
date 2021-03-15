@@ -733,6 +733,18 @@ message RewardRecipientAssignmentAttachment {
     uint32 version = 1;
 }
 
+enum CommitmentType {
+    CommitmentType_UNSET = 0;
+    ADD = 1;
+    REMOVE = 2;
+}
+
+message CommitmentAttachment {
+    uint32 version = 1;
+    uint64 amount = 2;
+    CommitmentType type = 3;
+}
+
 message EscrowCreationAttachment {
     uint32 version = 1;
     uint64 amount = 2;

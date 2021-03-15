@@ -8,8 +8,6 @@ Explorer: https://explore.burst.cryptoguru.org
 
 Forum1: https://burstforum.net/
 
-Forum2: https://forums.getburst.net/
-
 
 ### Bitcointalk
 

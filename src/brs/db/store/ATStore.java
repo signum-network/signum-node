@@ -15,6 +15,8 @@ public interface ATStore {
 
   AT getAT(Long id);
 
+  AT getAT(Long id, int height);
+
   List<Long> getATsIssuedBy(Long accountId);
 
   Collection<Long> getAllATIds();

@@ -4,8 +4,11 @@ import brs.Constants;
 import brs.crypto.EncryptedData;
 import brs.http.common.Parameters;
 import brs.util.Convert;
+import burst.kit.entity.BurstAddress;
 
 import javax.servlet.http.HttpServletRequest;
+
+import org.bouncycastle.util.encoders.Hex;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -145,6 +148,19 @@ final class ParameterParser {
       throw new ParameterException(INCORRECT_RECIPIENT);
     }
     return recipientId;
+  }
+  
+  static String getRecipientPublicKey(HttpServletRequest req) throws ParameterException {
+    String recipientPublicKeyValue = Convert.emptyToNull(req.getParameter(RECIPIENT_PUBLIC_KEY_PARAMETER));
+    if(recipientPublicKeyValue == null) {
+      // check for extended addresses
+      String recipientValue = Convert.emptyToNull(req.getParameter(RECIPIENT_PARAMETER));
+      BurstAddress address = BurstAddress.fromEither(recipientValue);
+      if(address!=null && address.getPublicKey() != null) {
+        recipientPublicKeyValue = Hex.toHexString(address.getPublicKey());
+      }
+    }
+    return recipientPublicKeyValue;
   }
 
   static long getSellerId(HttpServletRequest req) throws ParameterException {

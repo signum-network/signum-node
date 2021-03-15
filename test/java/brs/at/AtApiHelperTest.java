@@ -14,7 +14,7 @@ import static org.junit.Assert.assertEquals;
 public class AtApiHelperTest {
     @Test
     public void testGetLong() {
-        assertEquals(0x0000000000000000L, AtApiHelper.getLong(new byte[0]));
+        assertEquals(0x0000000000000000L, AtApiHelper.getLong(new byte[8]));
         assertEquals(0x0000000000000001L, AtApiHelper.getLong(Convert.parseHexString("0100000000000000")));
         assertEquals(0x0000000000002301L, AtApiHelper.getLong(Convert.parseHexString("0123000000000000")));
         assertEquals(0x0000000000452301L, AtApiHelper.getLong(Convert.parseHexString("0123450000000000")));

@@ -43,7 +43,6 @@ var BRS = (function(BRS, $, undefined) {
 		}
 	    };
 
-	    $("#burstforum_news").rss("https://forums.getburst.net/c/burst-community-announcements", settings, BRS.newsLoaded);
 	    $("#burstforum2_news").rss("https://burstforum.net/category/1/announcements", settings, BRS.newsLoaded);		
 	    $("#reddit_news").rss("http://www.reddit.com/r/burstcoin/.rss", settingsReddit, BRS.newsLoaded);
 	    $("#burstcoinist_news").rss("https://www.burstcoin.ist/category/articles/", settings, BRS.newsLoaded);

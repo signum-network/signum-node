@@ -29,8 +29,8 @@ import java.util.zip.GZIPOutputStream;
 
 public class AT extends AtMachineState {
 
-    private static final LinkedHashMap<Long, Long> pendingFees = new LinkedHashMap<>();
-    private static final List<AtTransaction> pendingTransactions = new ArrayList<>();
+    private static final LinkedHashMap<Long, LinkedHashMap<Long, Long>> pendingFeesMap = new LinkedHashMap<>();
+    private static final LinkedHashMap<Long, List<AtTransaction>> pendingTransactionsMap = new LinkedHashMap<>();
     public final BurstKey dbKey;
     private final String name;
     private final String description;
@@ -45,10 +45,12 @@ public class AT extends AtMachineState {
     }
 
     public AT(byte[] atId, byte[] creator, String name, String description, short version,
+              int height,
               byte[] stateBytes, int csize, int dsize, int cUserStackBytes, int cCallStackBytes,
               int creationBlockHeight, int sleepBetween, int nextHeight,
               boolean freezeWhenSameBalance, long minActivationAmount, byte[] apCode) {
         super(atId, creator, version,
+                height,
                 stateBytes, csize, dsize, cUserStackBytes, cCallStackBytes,
                 creationBlockHeight, sleepBetween,
                 freezeWhenSameBalance, minActivationAmount, apCode);
@@ -58,28 +60,45 @@ public class AT extends AtMachineState {
         this.nextHeight = nextHeight;
     }
 
-    public static void clearPendingFees() {
-        pendingFees.clear();
+    public static void clearPendingFees(int blockHeight, long generatorId) {
+        // using height+id as hash
+        pendingFeesMap.remove(blockHeight + generatorId);
     }
 
-    public static void clearPendingTransactions() {
-        pendingTransactions.clear();
+    public static void clearPendingTransactions(int blockHeight, long generatorId) {
+        pendingTransactionsMap.remove(blockHeight + generatorId);
     }
 
-    public static void addPendingFee(long id, long fee) {
+    public static void addPendingFee(long id, long fee, int blockHeight, long generatorId) {
+        long hash = blockHeight + generatorId;
+        LinkedHashMap<Long, Long> pendingFees = pendingFeesMap.get(hash);
+        if(pendingFees == null) {
+          pendingFees = new LinkedHashMap<>();
+          pendingFeesMap.put(hash, pendingFees);
+        }
         pendingFees.put(id, fee);
     }
 
-    public static void addPendingFee(byte[] id, long fee) {
-        addPendingFee(AtApiHelper.getLong(id), fee);
+    public static void addPendingFee(byte[] id, long fee, int blockHeight, long generatorId) {
+        addPendingFee(AtApiHelper.getLong(id), fee, blockHeight, generatorId);
     }
 
-    public static void addPendingTransaction(AtTransaction atTransaction) {
+    public static void addPendingTransaction(AtTransaction atTransaction, int blockHeight, long generatorId) {
+        long hash = blockHeight + generatorId;
+        List<AtTransaction> pendingTransactions = pendingTransactionsMap.get(hash);
+        if(pendingTransactions == null) {
+          pendingTransactions = new ArrayList<>();
+          pendingTransactionsMap.put(hash, pendingTransactions);
+        }
         pendingTransactions.add(atTransaction);
     }
 
-    public static boolean findPendingTransaction(byte[] recipientId, long assetId) {
-        for (AtTransaction tx : pendingTransactions) {
+    public static boolean findPendingTransaction(byte[] recipientId, long assetId, int blockHeight, long generatorId) {
+        long hash = blockHeight + generatorId;
+        if(pendingTransactionsMap.get(hash) == null) {
+          return false;
+        }
+        for (AtTransaction tx : pendingTransactionsMap.get(hash)) {
             if (assetId == tx.getAssetId() && Arrays.equals(recipientId, tx.getRecipientId())) {
                 return true;
             }
@@ -108,7 +127,7 @@ public class AT extends AtMachineState {
     }
 
     public static AT getAT(Long id) {
-        return Burst.getStores().getAtStore().getAT(id);
+        return Burst.getStores().getAtStore().getAT(id, -1);
     }
 
     public static void addAT(Long atId, Long senderAccountId, String name, String description, byte[] creationBytes, int height) {
@@ -223,13 +242,20 @@ public class AT extends AtMachineState {
 
         @Override
         public void notify(Block block) {
-            pendingFees.forEach((key, value) -> {
+            long hash = block.getHeight() + block.getGeneratorId();
+            LinkedHashMap<Long, Long> pendingFees = pendingFeesMap.get(hash);
+            if(pendingFees != null) {
+              pendingFees.forEach((key, value) -> {
                 Account atAccount = accountService.getAccount(key);
                 accountService.addToBalanceAndUnconfirmedBalanceNQT(atAccount, -value);
-            });
+              });
+            }
+            pendingFeesMap.remove(hash);
 
             List<Transaction> transactions = new ArrayList<>();
-            for (AtTransaction atTransaction : pendingTransactions) {
+            List<AtTransaction> pendingTransactions = pendingTransactionsMap.get(hash);
+            if(pendingTransactions != null) {
+              for (AtTransaction atTransaction : pendingTransactions) {
                 accountService.addToBalanceAndUnconfirmedBalanceNQT(accountService.getAccount(AtApiHelper.getLong(atTransaction.getSenderId())), -atTransaction.getAmount());
                 accountService.addToBalanceAndUnconfirmedBalanceNQT(accountService.getOrAddAccount(AtApiHelper.getLong(atTransaction.getRecipientId())), atTransaction.getAmount());
 
@@ -301,6 +327,8 @@ public class AT extends AtMachineState {
                 } catch (BurstException.NotValidException e) {
                     throw new RuntimeException("Failed to construct AT transaction", e);
                 }
+              }
+              pendingTransactionsMap.remove(hash);
             }
 
             if (!transactions.isEmpty()) {

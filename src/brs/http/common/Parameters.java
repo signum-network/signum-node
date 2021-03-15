@@ -123,6 +123,7 @@ public final class Parameters {
   public static final String IMMUTABLE_PARAMETER = "immutable";
   public static final String FEE_SUGGESTION_RESPONSE = "feeSuggestion";
   public static final String INCLUDE_INDIRECT_PARAMETER = "includeIndirect";
+  public static final String ESTIMATE_COMMITMENT_PARAMETER = "estimateCommitment";
   public static final String DOMAIN_PARAMETER = "domain";
   public static final String ACTION_PARAMETER = "action";
   public static final String PAYLOAD_PARAMETER = "payload";

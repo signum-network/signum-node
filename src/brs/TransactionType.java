@@ -2745,8 +2745,7 @@ public abstract class TransactionType {
           throw new BurstException.NotValidException("Invalid asset transfer amount or comment: " + JSON.toJsonString(attachment.getJsonObject()));
         }
         if (transaction.getVersion() > 0 && attachment.getComment() != null) {
-          throw new BurstException.NotValidException("Asset transfer comments no longer allowed, use message " +
-                  "or encrypted message appendix instead");
+          throw new BurstException.NotValidException("Asset transfer comments no longer allowed, use message appendix instead");
         }
         Asset asset = assetExchange.getAsset(attachment.getAssetId());
         if (attachment.getQuantityQNT() <= 0 || (asset != null && attachment.getQuantityQNT() > asset.getCapabilityQNT())) {

@@ -74,8 +74,6 @@ public abstract class TransactionType {
   private static final byte SUBTYPE_AT_ASSET_ISSUANCE = 2;
   private static final byte SUBTYPE_AT_ASSET_TRANSFER = 3;
 
-  private static final byte SUBTYPE_ACCOUNT_CONTROL_EFFECTIVE_BALANCE_LEASING = 0;
-
   public static final byte SUBTYPE_BURST_MINING_REWARD_RECIPIENT_ASSIGNMENT = 0;
 
   public static final byte SUBTYPE_BURST_MINING_COMMITMENT_ADD = 1;

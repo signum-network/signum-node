@@ -135,9 +135,9 @@ class AtApiController {
                 atApi.bToAddressOfCreator(state);
                 break;
             case 780:  
-                return atApi.GetAssetIdForTxInA(state);  //0x030c get the asset id in a asset transfer transaction
+                return atApi.getAssetIdForTxInA(state);  //0x030c get the asset id in a asset transfer transaction
             case 781:  
-                return atApi.GetAssetAmountForTxInA(state);  //0x030d get the asset amount in a asset transfer transaction
+                return atApi.getAssetAmountForTxInA(state);  //0x030d get the asset amount in a asset transfer transaction
             case 1024:
                 return atApi.getCurrentBalance(state);
             case 1025:
@@ -152,10 +152,10 @@ class AtApiController {
                 atApi.sendAToAddressInB(state);
                 break;
             case 1031:
-                atApi.Mold(state);    //0x0407  if Mold is done successfully set A to the asset id, asset information in  B1(assetDecimals) B2(assetQuantity) A1~4(assetDesc) B3-4(assetName)
+                atApi.mold(state);    //0x0407  if Mold is done successfully set A to the asset id, asset information in  B1(assetDecimals) B2(assetQuantity) A1~4(assetDesc) B3-4(assetName)
                 break;
             case 1032:
-                atApi.Mint(state);    //0x0408  if B1 is a valid address then send it the amount, asset and msg.  B1(address) B2(asset amount) A1~4(message) B3(asset id) B4(amount)
+                atApi.mint(state);    //0x0408  if B1 is a valid address then send it the amount, asset and msg.  B1(address) B2(asset amount) A1~4(message) B3(asset id) B4(amount)
                 break;
             case 1033:
                 return atApi.getAssetMintableBalance(state);  //0x0409  if B1 is a valid asset id and the asset is issued by the AT then return its mintable amount, 

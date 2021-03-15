@@ -132,7 +132,7 @@ public class AtApiPlatformImpl extends AtApiImpl {
     }
 
     @Override
-    public long GetAssetIdForTxInA(AtMachineState state) {
+    public long getAssetIdForTxInA(AtMachineState state) {
         long txId = AtApiHelper.getLong(state.getA1());
 
         Transaction tx = Burst.getBlockchain().getTransaction(txId);
@@ -150,7 +150,7 @@ public class AtApiPlatformImpl extends AtApiImpl {
     }
 
     @Override
-    public long GetAssetAmountForTxInA(AtMachineState state) {
+    public long getAssetAmountForTxInA(AtMachineState state) {
         long txId = AtApiHelper.getLong(state.getA1());
 
         Transaction tx = Burst.getBlockchain().getTransaction(txId);
@@ -168,7 +168,7 @@ public class AtApiPlatformImpl extends AtApiImpl {
     }
 
     @Override
-    public long Mold(AtMachineState state) {
+    public long mold(AtMachineState state) {
 
         //if Mold is done successfully set A to the asset id, asset information in  B1(assetDecimals) B2(assetQuantity) A1~4(assetDesc) B3-4(assetName)
 
@@ -212,7 +212,7 @@ public class AtApiPlatformImpl extends AtApiImpl {
     }
 
     @Override
-    public long Mint(AtMachineState state) {
+    public long mint(AtMachineState state) {
 
         //if B1 is a valid address then send it the amount, asset and msg.  B1(address) B2(asset amount) A1~4(message) B3(asset id) B4(amount)
 

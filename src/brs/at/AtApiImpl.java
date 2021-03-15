@@ -683,23 +683,23 @@ public class AtApiImpl implements AtApi {
     }
 
     @Override
-    public long GetAssetIdForTxInA(AtMachineState state) {
-        return platform.GetAssetIdForTxInA(state);
+    public long getAssetIdForTxInA(AtMachineState state) {
+        return platform.getAssetIdForTxInA(state);
     }
  
     @Override
-    public long GetAssetAmountForTxInA(AtMachineState state) {
-        return platform.GetAssetAmountForTxInA(state);
+    public long getAssetAmountForTxInA(AtMachineState state) {
+        return platform.getAssetAmountForTxInA(state);
     }
 
     @Override
-    public long Mold(AtMachineState state) {
-        return platform.Mold(state);
+    public long mold(AtMachineState state) {
+        return platform.mold(state);
     }
 
     @Override
-    public long Mint(AtMachineState state) {
-        return platform.Mint(state);
+    public long mint(AtMachineState state) {
+        return platform.mint(state);
     }
 
     @Override

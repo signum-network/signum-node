@@ -15,7 +15,9 @@ public enum HistoricalMoments {
     SODIUM(765_000, 160_620, Props.DEV_SODIUM_BLOCK_HEIGHT),
     PRE_POC_PLUS(Integer.MAX_VALUE, 269_100, Props.DEV_PRE_POC_PLUS),
     POC_PLUS(Integer.MAX_VALUE, 269_700, Props.DEV_POC_PLUS),
-    NEXT_FORK(Integer.MAX_VALUE, Integer.MAX_VALUE, Props.DEV_NEXT_FORK_BLOCK_HEIGHT);
+    NEXT_FORK(Integer.MAX_VALUE, Integer.MAX_VALUE, Props.DEV_NEXT_FORK_BLOCK_HEIGHT),
+    AT_SUPPORT_ASSETS_ENABLE(Integer.MAX_VALUE, Integer.MAX_VALUE, Props.DEV_AT_SUPPORT_ASSETS_ENABLE_BLOCK_HEIGHT);
+    
 
     private final int mainnetHeight;
     private final int testnetHeight;

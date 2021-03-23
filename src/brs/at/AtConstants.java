@@ -83,6 +83,11 @@ public class AtConstants {
         return Burst.getFluxCapacitor().getValue(FluxValues.AT_VERSION, blockHeight);
     }
 
+    //version 3 is the first AT version to support assets 
+    public boolean supportAssetsEnabled(int blockHeight) {
+        return Burst.getFluxCapacitor().getValue(FluxValues.AT_VERSION, blockHeight) > 2;
+    }
+
     public long stepFee(int height) {
         return STEP_FEE.get(atVersion(height));
     }

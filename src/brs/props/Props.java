@@ -33,6 +33,7 @@ public class Props {
   public static final Prop<Integer> DEV_PRE_POC_PLUS = new Prop<>("DEV.prePocPlus.startBlock", -1);
   public static final Prop<Integer> DEV_POC_PLUS = new Prop<>("DEV.pocPlus.startBlock", -1);
   public static final Prop<Integer> DEV_NEXT_FORK_BLOCK_HEIGHT = new Prop<>("DEV.nextFork.startBlock", -1);
+  public static final Prop<Integer> DEV_AT_SUPPORT_ASSETS_ENABLE_BLOCK_HEIGHT = new Prop<>("DEV.atSupportAssetsBlock.startBlock", -1);
 
   public static final Prop<Boolean> BRS_DEBUG_TRACE_ENABLED = new Prop<>("brs.debugTraceEnable", false);
   public static final Prop<String> BRS_DEBUG_TRACE_QUOTE = new Prop<>("brs.debugTraceQuote", "\"");

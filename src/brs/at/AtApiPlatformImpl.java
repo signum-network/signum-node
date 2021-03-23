@@ -137,7 +137,7 @@ public class AtApiPlatformImpl extends AtApiImpl {
 
         Transaction tx = Burst.getBlockchain().getTransaction(txId);
 
-        if (tx == null || (tx.getHeight() >= state.getHeight())) {
+        if (tx == null || tx.getHeight() >= state.getHeight() || AtConstants.getInstance().supportAssetsEnabled(state.getHeight()) ) {
             return -1;
         }
 
@@ -155,7 +155,7 @@ public class AtApiPlatformImpl extends AtApiImpl {
 
         Transaction tx = Burst.getBlockchain().getTransaction(txId);
 
-        if (tx == null || (tx.getHeight() >= state.getHeight())) {
+        if (tx == null || tx.getHeight() >= state.getHeight() || AtConstants.getInstance().supportAssetsEnabled(state.getHeight())) {
             return -1;
         }
 
@@ -169,6 +169,11 @@ public class AtApiPlatformImpl extends AtApiImpl {
 
     @Override
     public long mold(AtMachineState state) {
+
+        if(AtConstants.getInstance().supportAssetsEnabled(state.getHeight())) {
+            state.setA1(AtApiHelper.getByteArray(-1));
+            return -1;
+        }
 
         //if Mold is done successfully set A to the asset id, asset information in  B1(assetDecimals) B2(assetQuantity) A1~4(assetDesc) B3-4(assetName)
 
@@ -213,6 +218,10 @@ public class AtApiPlatformImpl extends AtApiImpl {
 
     @Override
     public long mint(AtMachineState state) {
+
+        if(AtConstants.getInstance().supportAssetsEnabled(state.getHeight())) {
+            return 0;
+        }
 
         //if B1 is a valid address then send it the amount, asset and msg.  B1(address) B2(asset amount) A1~4(message) B3(asset id) B4(amount)
 
@@ -400,7 +409,7 @@ public class AtApiPlatformImpl extends AtApiImpl {
     @Override
     public long getAssetMintableBalance(AtMachineState state) {
 
-        if (!Burst.getFluxCapacitor().getValue(FluxValues.AT_FIX_BLOCK_2, state.getHeight())) {
+        if (!AtConstants.getInstance().supportAssetsEnabled(state.getHeight())) {
             return 0;
         }
 

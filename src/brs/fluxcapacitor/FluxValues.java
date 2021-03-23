@@ -19,7 +19,9 @@ public class FluxValues {
     public static final FluxEnable POC_PLUS = new FluxEnable(HistoricalMoments.POC_PLUS);
     public static final FluxEnable NEXT_FORK = new FluxEnable(HistoricalMoments.NEXT_FORK);
 
-    public static final FluxValue<Short> AT_VERSION = new FluxValue<>((short) 1, new FluxValue.ValueChange<>(HistoricalMoments.SODIUM, (short) 2));
+    public static final FluxValue<Short> AT_VERSION = new FluxValue<>((short) 1, 
+                                                                      new FluxValue.ValueChange<>(HistoricalMoments.SODIUM, (short) 2), 
+                                                                      new FluxValue.ValueChange<>(HistoricalMoments.AT_SUPPORT_ASSETS_ENABLE, (short) 3));
 
     public static final FluxValue<Integer> MAX_NUMBER_TRANSACTIONS = new FluxValue<>(255, new FluxValue.ValueChange<>(HistoricalMoments.PRE_POC2, 1020));
     public static final FluxValue<Integer> MAX_PAYLOAD_LENGTH = new FluxValue<>(255 * 176, new FluxValue.ValueChange<>(HistoricalMoments.PRE_POC2, 1020 * 176));

@@ -137,7 +137,7 @@ public class AtApiPlatformImpl extends AtApiImpl {
 
         Transaction tx = Burst.getBlockchain().getTransaction(txId);
 
-        if (tx == null || tx.getHeight() >= state.getHeight() || AtConstants.getInstance().supportAssetsEnabled(state.getHeight()) ) {
+        if (tx == null || tx.getHeight() >= state.getHeight() || !AtConstants.getInstance().supportAssetsEnabled(state.getHeight()) ) {
             return -1;
         }
 
@@ -155,7 +155,7 @@ public class AtApiPlatformImpl extends AtApiImpl {
 
         Transaction tx = Burst.getBlockchain().getTransaction(txId);
 
-        if (tx == null || tx.getHeight() >= state.getHeight() || AtConstants.getInstance().supportAssetsEnabled(state.getHeight())) {
+        if (tx == null || tx.getHeight() >= state.getHeight() || !AtConstants.getInstance().supportAssetsEnabled(state.getHeight())) {
             return -1;
         }
 
@@ -170,7 +170,7 @@ public class AtApiPlatformImpl extends AtApiImpl {
     @Override
     public long mold(AtMachineState state) {
 
-        if(AtConstants.getInstance().supportAssetsEnabled(state.getHeight())) {
+        if(!AtConstants.getInstance().supportAssetsEnabled(state.getHeight())) {
             state.setA1(AtApiHelper.getByteArray(-1));
             return -1;
         }
@@ -219,7 +219,7 @@ public class AtApiPlatformImpl extends AtApiImpl {
     @Override
     public long mint(AtMachineState state) {
 
-        if(AtConstants.getInstance().supportAssetsEnabled(state.getHeight())) {
+        if(!AtConstants.getInstance().supportAssetsEnabled(state.getHeight())) {
             return 0;
         }
 

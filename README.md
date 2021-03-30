@@ -153,6 +153,26 @@ Your packaged release will now be available in `dist/burstcoin-3.0.0.zip`.
 
 **Please note that development builds will refuse to run outside of testnet or a private chain**
 
+# Updating the Phoenix Wallet
+
+Since V3.0 the Phoenix Wallet is available as built-in alternative to the classic wallet. As the Phoenix Wallet is a project apart from this repository one need to update it from time to time.
+The update process is semi-automated, i.e. one needs to trigger the update script which sites in `./ci`.
+
+**Inside** `./ci` run `./updatePhoenix.sh`
+
+> This script requires NodeJS V14+ runtime environment installed on your machine. The bash script is tested on Linux only, and may not work on other OSes.
+
+# Releasing
+
+To cut a new (pre)-release just create a tag of the following format `vD.D.D[-suffix]`. Githubs actions automatically creates
+a pre-release with entirely build executable as zip.
+
+```bash
+git tag v3.0.1-beta
+git push --tags
+```
+
+
 # Developers
 
 Main Developer: [Harry1453](https://github.com/harry1453). Donation address: [BURST-W5YR-ZZQC-KUBJ-G78KB](https://explore.burstcoin.network/?action=account&account=16484518239061020631)

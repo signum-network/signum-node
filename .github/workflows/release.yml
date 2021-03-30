@@ -1,0 +1,53 @@
+# This workflow will build a Java project with Maven
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+
+name: Release BRS
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{github.ref}}
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '14.x'
+      - name: Update Phoenix Wallet
+        run: |
+          cd ./ci
+          ./updatePhoenix.sh
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+      - name: Cache Maven packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml -U
+      - name: Cut Pre-Release with Assets
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: dist/*.zip
+          file_glob: true
+          asset_name: Burstcoin ${{github.ref}}
+          tag: ${{ github.ref }}
+          overwrite: true
+          prerelease: true
+          body: |
+            This is BRS version ${{github.ref}}
+
+            SHA-256: `${{hashFiles('dist/*.zip')}}`
+
+            New features: <Add here>

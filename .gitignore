@@ -1,6 +1,6 @@
 /*.iml
 /dist
-/.idea
+.idea
 burst.jar
 brs.log
 brs.log.*

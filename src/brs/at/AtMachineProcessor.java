@@ -402,11 +402,15 @@ class AtMachineProcessor {
                                                            String.format("%8s", fun.addr2).replace(' ', '0'),
                                                            String.format("%8s", fun.addr3).replace(' ', '0'));
                 } else {
-                        int addr = (int) ( machineData.getApData().getLong(fun.addr2 * 8)
-                                         + machineData.getApData().getLong(fun.addr3 * 8) );
+                    int addr = (int) ( machineData.getApData().getLong(fun.addr2 * 8)
+                                     + machineData.getApData().getLong(fun.addr3 * 8) );
+                    if (validAddr(addr, false)) {
                         machineData.getApData().putLong(fun.addr1 * 8, machineData.getApData().getLong(addr * 8));
                         machineData.getMachineState().pc += rc;
                         machineData.getApData().clear();
+                    } else {
+                        rc = -1;
+                    }
                 }
             }
           }
@@ -551,11 +555,15 @@ class AtMachineProcessor {
                                                            String.format("%8s", fun.addr2).replace(' ', '0'),
                                                            String.format("%8s", fun.addr3).replace(' ', '0'));
                 } else {
-                        int addr = (int) (machineData.getApData().getLong(fun.addr1 * 8)
-                                        + machineData.getApData().getLong(fun.addr2 * 8));
+                    int addr = (int) (machineData.getApData().getLong(fun.addr1 * 8)
+                                    + machineData.getApData().getLong(fun.addr2 * 8));
+                    if (validAddr(addr, false)) {
                         machineData.getApData().putLong(addr * 8, machineData.getApData().getLong( fun.addr3 * 8));
                         machineData.getMachineState().pc += rc;
                         machineData.getApData().clear();
+                    } else {
+                        rc = -1;
+                    }
                 }
             }
           }

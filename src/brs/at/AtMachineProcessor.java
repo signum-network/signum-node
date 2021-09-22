@@ -815,8 +815,8 @@ class AtMachineProcessor {
                 }
             } else {
                 machineData.getMachineState().pc += rc;
+                machineData.setWaitForNumberOfBlocks(0);
                 machineData.getMachineState().stopped = true;
-                machineData.setFreeze(true);
             }
 
         } else if (op == OpCode.E_OP_CODE_SET_PCS) {

@@ -29,6 +29,7 @@ COPY --from=builder /app/dist/tmp/signum-node.jar .
 COPY --from=docbuilder /app/html html
 VOLUME ["/conf", "/burst_db"]
 RUN ln -s /conf /app/conf
+RUN ln -s /burst_db /app/burst_db
 COPY conf/brs.properties.h2 /app/conf/brs.properties
 COPY conf/brs-default.properties /app/conf/brs-default.properties
 COPY conf/logging-default.properties /app/conf/logging-default.properties

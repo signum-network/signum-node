@@ -27,7 +27,7 @@ RUN apk update && apk upgrade && apk add --no-cache bash curl wget unzip
 WORKDIR /app
 COPY --from=builder /app/dist/tmp/signum-node.jar .
 COPY --from=docbuilder /app/html html
-VOLUME ["/conf", "/db"]
+VOLUME ["/conf", "/burst_db"]
 RUN ln -s /conf /app/conf
 COPY conf/brs.properties.h2 /app/conf/brs.properties
 COPY conf/brs-default.properties /app/conf/brs-default.properties

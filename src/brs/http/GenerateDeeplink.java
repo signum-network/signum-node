@@ -21,17 +21,12 @@ public class GenerateDeeplink extends APIServlet.JsonRequestHandler {
 
 
   private GenerateDeeplink() {
-    super(new APITag[]{APITag.UTILS}, DOMAIN_PARAMETER, ACTION_PARAMETER, PAYLOAD_PARAMETER);
+    super(new APITag[]{APITag.UTILS}, ACTION_PARAMETER, PAYLOAD_PARAMETER);
   }
 
   @Override
   public JsonElement processRequest(HttpServletRequest req) {
     try {
-
-      final String domain = Convert.emptyToNull(req.getParameter(DOMAIN_PARAMETER));
-      if (StringUtils.isEmpty(domain)) {
-        return MISSING_DOMAIN;
-      }
 
       final String action = Convert.emptyToNull(req.getParameter(ACTION_PARAMETER));
       final String payload = Convert.emptyToNull(req.getParameter(PAYLOAD_PARAMETER));
@@ -41,7 +36,7 @@ public class GenerateDeeplink extends APIServlet.JsonRequestHandler {
       }
 
       DeeplinkGenerator deeplinkGenerator = new DeeplinkGenerator();
-      String deepLink = deeplinkGenerator.generateDeepLink(domain, action, payload);
+      String deepLink = deeplinkGenerator.generateDeepLink(action, payload);
       JsonObject response = new JsonObject();
       response.addProperty("link", deepLink);
       return response;

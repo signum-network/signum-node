@@ -31,8 +31,7 @@ public class FluxValues {
         new FluxValue.ValueChange<>(HistoricalMoments.PRE_POC2, 255 * 176 * 4));
 
     public static final FluxValue<Long> MIN_CAPACITY = new FluxValue<>(
-        1000L,
-        new FluxValue.ValueChange<>(HistoricalMoments.SPEEDWAY, 8000L));
+        1000L);
     public static final FluxValue<Integer> COMMITMENT_WAIT = new FluxValue<>(
         Constants.COMMITMENT_WAIT,
         new FluxValue.ValueChange<>(HistoricalMoments.SPEEDWAY, Constants.MAX_ROLLBACK));
@@ -42,6 +41,6 @@ public class FluxValues {
 
     public static final FluxValue<Version> MIN_PEER_VERSION = new FluxValue<>(
         Version.parse("2.9.9"),
-        new FluxValue.ValueChange<>(HistoricalMoments.SPEEDWAY, Version.parse("3.1.9"))
+        new FluxValue.ValueChange<>(HistoricalMoments.SPEEDWAY, Version.parse("3.2.1"))
         );
 }

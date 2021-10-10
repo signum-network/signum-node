@@ -104,6 +104,7 @@ public final class APIServlet extends HttpServlet {
     map.put("getAssetTransfers", new GetAssetTransfers(parameterService, accountService, assetExchange));
     map.put("getTransaction", new GetTransaction(transactionProcessor, blockchain));
     map.put("getTransactionBytes", new GetTransactionBytes(blockchain, transactionProcessor));
+    map.put("getTransactionIds", new GetTransactionIds(parameterService, blockchain));
     map.put("getUnconfirmedTransactionIds", new GetUnconfirmedTransactionIds(transactionProcessor, indirectIncomingService, parameterService));
     map.put("getUnconfirmedTransactions", new GetUnconfirmedTransactions(transactionProcessor, indirectIncomingService, parameterService));
     map.put("getAccountCurrentAskOrderIds", new GetAccountCurrentAskOrderIds(parameterService, assetExchange));

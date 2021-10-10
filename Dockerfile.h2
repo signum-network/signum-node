@@ -25,7 +25,7 @@ RUN mkdir -p html/ui/doc && mvn javadoc:javadoc-no-fork && cp -r target/site/api
 FROM openjdk:8-jre-alpine
 RUN apk update && apk upgrade && apk add --no-cache bash curl wget unzip
 WORKDIR /app
-COPY --from=builder /app/dist/tmp/burst.jar .
+COPY --from=builder /app/dist/tmp/signum-node.jar .
 COPY --from=docbuilder /app/html html
 VOLUME ["/conf", "/db"]
 RUN ln -s /conf /app/conf

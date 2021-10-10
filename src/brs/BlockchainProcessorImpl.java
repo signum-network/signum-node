@@ -324,7 +324,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                   return;
                 } catch (RuntimeException | BurstException.ValidationException e) {
                   logger.info("Failed to parse block: {}", e.getMessage());
-                  logger.info("Failed to parse block trace: {}", Arrays.toString(e.getStackTrace()));
+                  if(logger.isDebugEnabled()) {
+                    logger.debug("Failed to parse block trace: {}", Arrays.toString(e.getStackTrace()));
+                  }
                   peer.blacklist(e, "pulled invalid data using getCumulativeDifficulty");
                   return;
                 } catch (Exception e) {

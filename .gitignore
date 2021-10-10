@@ -1,7 +1,7 @@
 /*.iml
 /dist
 .idea
-burst.jar
+*.jar
 brs.log
 brs.log.*
 /conf/logging.properties

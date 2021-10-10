@@ -38,6 +38,9 @@ public interface BlockchainStore {
   Collection<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
                                                  int blockTimestamp, int from, int to, boolean includeIndirectIncoming);
 
+  Collection<Long> getTransactionIds(Long sender, Long recipient, int numberOfConfirmations, byte type, byte subtype,
+      int blockTimestamp, int from, int to, boolean includeIndirectIncoming);
+
   Collection<Transaction> getTransactions(DSLContext ctx, Result<TransactionRecord> rs);
 
   void addBlock(Block block);

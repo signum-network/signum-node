@@ -125,7 +125,7 @@ public class UnconfirmedTransactionStoreImpl implements UnconfirmedTransactionSt
   @Override
   public Transaction get(Long transactionId) {
     synchronized (internalStore) {
-      return getTransactionInChache(transactionId);
+      return getTransactionInCache(transactionId);
     }
   }
 
@@ -230,10 +230,10 @@ public class UnconfirmedTransactionStoreImpl implements UnconfirmedTransactionSt
   }
 
   private boolean transactionIsCurrentlyInCache(Transaction transaction) {
-    return getTransactionInChache(transaction.getId()) != null;
+    return getTransactionInCache(transaction.getId()) != null;
   }
   
-  private Transaction getTransactionInChache(Long transactionId) {
+  private Transaction getTransactionInCache(Long transactionId) {
     for (List<Transaction> amountSlot : internalStore.values()) {
       for (Transaction t : amountSlot) {
         if (t.getId() == transactionId) {

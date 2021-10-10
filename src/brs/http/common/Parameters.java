@@ -31,6 +31,7 @@ public final class Parameters {
   public static final String ACCOUNT_PARAMETER = "account";
   public static final String TIMESTAMP_PARAMETER = "timestamp";
   public static final String RECIPIENT_PARAMETER = "recipient";
+  public static final String SENDER_PARAMETER = "sender";
   public static final String RECIPIENTS_PARAMETER = "recipients";
   public static final String SELLER_PARAMETER = "seller";
   public static final String BUYER_PARAMETER = "buyer";
@@ -128,7 +129,6 @@ public final class Parameters {
   public static final String INCLUDE_INDIRECT_PARAMETER = "includeIndirect";
   public static final String GET_COMMITTED_AMOUNT_PARAMETER = "getCommittedAmount";
   public static final String ESTIMATE_COMMITMENT_PARAMETER = "estimateCommitment";
-  public static final String DOMAIN_PARAMETER = "domain";
   public static final String ACTION_PARAMETER = "action";
   public static final String PAYLOAD_PARAMETER = "payload";
   public static final String API_KEY_PARAMETER = "apiKey";

@@ -211,6 +211,12 @@ public class BlockchainImpl implements Blockchain {
   }
   
   @Override
+  public Collection<Long> getTransactionIds(Long sender, Long recipient, int numberOfConfirmations, byte type,
+      byte subtype, int blockTimestamp, int from, int to, boolean includeIndirectIncoming) {
+    return blockchainStore.getTransactionIds(sender, recipient, numberOfConfirmations, type, subtype, blockTimestamp, from, to, includeIndirectIncoming);
+  }
+  
+  @Override
   public long getCommittedAmount(Account account, int height, int endHeight, Transaction skipTransaction) {
     return blockchainStore.getCommittedAmount(account, height, endHeight, skipTransaction);
   }

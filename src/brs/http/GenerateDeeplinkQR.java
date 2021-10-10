@@ -24,18 +24,12 @@ public class GenerateDeeplinkQR extends HttpRequestHandler {
   public static final GenerateDeeplinkQR instance = new GenerateDeeplinkQR();
 
   private GenerateDeeplinkQR() {
-    super(new APITag[]{APITag.UTILS}, DOMAIN_PARAMETER, ACTION_PARAMETER, PAYLOAD_PARAMETER);
+    super(new APITag[]{APITag.UTILS}, ACTION_PARAMETER, PAYLOAD_PARAMETER);
   }
 
   @Override
   public void processRequest(HttpServletRequest req, HttpServletResponse resp) {
     try {
-
-      final String domain = Convert.emptyToNull(req.getParameter(DOMAIN_PARAMETER));
-      if (StringUtils.isEmpty(domain)) {
-        addErrorMessage(resp, MISSING_DOMAIN);
-        return;
-      }
 
       final String action = Convert.emptyToNull(req.getParameter(ACTION_PARAMETER));
       final String payload = Convert.emptyToNull(req.getParameter(PAYLOAD_PARAMETER));
@@ -47,7 +41,7 @@ public class GenerateDeeplinkQR extends HttpRequestHandler {
 
       DeeplinkGenerator deeplinkGenerator = new DeeplinkGenerator();
       try {
-        final BufferedImage qrImage = deeplinkGenerator.generateDeepLinkQrCode(domain, action, payload);
+        final BufferedImage qrImage = deeplinkGenerator.generateDeepLinkQrCode(action, payload);
         resp.setContentType("image/jpeg");
         ImageIO.write(qrImage, "jpg", resp.getOutputStream());
         resp.getOutputStream().close();

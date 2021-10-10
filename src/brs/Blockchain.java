@@ -52,5 +52,7 @@ public interface Blockchain {
 
   Collection<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype, int blockImplTimestamp, int from, int to, boolean includeIndirectIncoming);
   
+  Collection<Long> getTransactionIds(Long sender, Long recipient, int numberOfConfirmations, byte type, byte subtype, int blockTimestamp, int from, int to, boolean includeIndirectIncoming);
+  
   long getCommittedAmount(Account account, int height, int endHeight, Transaction skipTransaction);
 }

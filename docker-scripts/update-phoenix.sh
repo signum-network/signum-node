@@ -46,4 +46,4 @@ echo "✅ Phoenix Wallet has been updated."
 
 echo "🚀 Launching the node..."
 
-java -classpath /app/burst.jar brs.Burst
+java -jar /app/signum-node.jar

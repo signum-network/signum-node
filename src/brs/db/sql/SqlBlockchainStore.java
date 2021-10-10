@@ -265,4 +265,52 @@ public class SqlBlockchainStore implements BlockchainStore {
     }
     return amountCommitted.longValue();
   }
+
+  @Override
+  public Collection<Long> getTransactionIds(Long sender, Long recipient, int numberOfConfirmations, byte type,
+      byte subtype, int blockTimestamp, int from, int to, boolean includeIndirectIncoming) {
+
+    int height = numberOfConfirmations > 0 ? Burst.getBlockchain().getHeight() - numberOfConfirmations : Integer.MAX_VALUE;
+    if (height < 0) {
+      throw new IllegalArgumentException("Number of confirmations required " + numberOfConfirmations + " exceeds current blockchain height " + Burst.getBlockchain().getHeight());
+    }
+    return Db.useDSLContext(ctx -> {
+      ArrayList<Condition> conditions = new ArrayList<>();
+      if (blockTimestamp > 0) {
+        conditions.add(TRANSACTION.BLOCK_TIMESTAMP.ge(blockTimestamp));
+      }
+      if (type >= 0) {
+        conditions.add(TRANSACTION.TYPE.eq(type));
+        if (subtype >= 0) {
+          conditions.add(TRANSACTION.SUBTYPE.eq(subtype));
+        }
+      }
+      if (height < Integer.MAX_VALUE) {
+        conditions.add(TRANSACTION.HEIGHT.le(height));
+      }
+
+      SelectConditionStep<TransactionRecord> select = ctx.selectFrom(TRANSACTION).where(conditions);
+      
+      if (recipient != null) {
+        select = select.and(TRANSACTION.RECIPIENT_ID.eq(recipient));
+      }
+      if (sender != null) {
+        select = select.and(TRANSACTION.SENDER_ID.eq(sender));
+      }
+
+      SelectOrderByStep<TransactionRecord> selectOrder = select;
+      
+      if (includeIndirectIncoming && recipient != null) {
+        selectOrder = selectOrder.unionAll(ctx.selectFrom(TRANSACTION)
+                .where(conditions)
+                .and(TRANSACTION.ID.in(indirectIncomingStore.getIndirectIncomings(recipient, -1, -1))));
+      }
+
+      SelectQuery<TransactionRecord> selectQuery = selectOrder
+              .orderBy(TRANSACTION.BLOCK_TIMESTAMP.desc(), TRANSACTION.ID.desc())
+              .getQuery();
+
+      return selectQuery.fetch(TRANSACTION.ID, Long.class);
+    });
+  }
 }

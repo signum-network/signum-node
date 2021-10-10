@@ -20,9 +20,10 @@ import java.util.regex.Pattern;
 
 public class DeeplinkGenerator {
 
+    private static final String Protocol = "signum://";
     private static final String Version = "v1";
     private static final Charset DefaultCharset = StandardCharsets.UTF_8;
-    private static final Integer MaxPayloadLength = 2048;
+    private static final Integer MaxPayloadLength = 8192;
 
     private final Map<EncodeHintType, ErrorCorrectionLevel> hints = new EnumMap<>(EncodeHintType.class);
 
@@ -30,15 +31,9 @@ public class DeeplinkGenerator {
         hints.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.L);
     }
 
-    public String generateDeepLink(String domain, String action, String base64Payload) throws UnsupportedEncodingException, IllegalArgumentException {
+    public String generateDeepLink(String action, String base64Payload) throws UnsupportedEncodingException, IllegalArgumentException {
 
-        if(!Pattern.matches("^\\w+$", domain)){
-            throw new IllegalArgumentException("Invalid Domain. Must be alphanumeric with optional underscore");
-        }
-
-        final StringBuilder deeplinkBuilder = new StringBuilder("burst.");
-        deeplinkBuilder.append(domain);
-        deeplinkBuilder.append("://");
+        final StringBuilder deeplinkBuilder = new StringBuilder(DeeplinkGenerator.Protocol);
         deeplinkBuilder.append(DeeplinkGenerator.Version);
         if (action != null) {
             deeplinkBuilder.append("?action=");
@@ -55,8 +50,8 @@ public class DeeplinkGenerator {
         return deeplinkBuilder.toString();
     }
 
-    public BufferedImage generateDeepLinkQrCode(String domain, String action, String base64Payload) throws UnsupportedEncodingException, IllegalArgumentException, WriterException {
-        return generateQRCode(this.generateDeepLink(domain, action, base64Payload));
+    public BufferedImage generateDeepLinkQrCode(String action, String base64Payload) throws UnsupportedEncodingException, IllegalArgumentException, WriterException {
+        return generateQRCode(this.generateDeepLink(action, base64Payload));
     }
 
     private BufferedImage generateQRCode(String url) throws WriterException {

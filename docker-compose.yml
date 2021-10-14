@@ -11,4 +11,5 @@ services:
       - "8125:8125"
     volumes:
       - "./conf:/conf"
+      - "./db:/db"
 

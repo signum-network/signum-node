@@ -52,6 +52,7 @@ If you do not have Java installed:
  - Linux: install the `openjdk-11-jre` package
  - Others: download Java 11 or better from [Oracle's Website](https://www.oracle.com/java/technologies/downloads/#java11)
  - A Windows 10 guide is [available here](https://www.shaileshjha.com/download-and-install-latest-java-jdk-on-windows-10/)
+ - Download here [Java 11 SE JDK](https://www.techspot.com/downloads/5553-java-jdk.html) without a need for an Oracle account
 
 ### MariaDB (Optional)
 

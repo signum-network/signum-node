@@ -160,6 +160,9 @@ public abstract class AtController {
             b.getLong();
 
             int codeLen = getLength(codePages, b);
+            if (codeLen == 0 && codePages == 1 && version >= 2) {
+                codeLen = 256;
+            }
             if (codeLen < minCodePages || codeLen > codePages * 256) {
                 throw new AtException(AtError.INCORRECT_CODE_LENGTH.getDescription());
             }
@@ -167,6 +170,9 @@ public abstract class AtController {
             b.get(code, 0, codeLen);
 
             int dataLen = getLength(dataPages, b);
+            if (dataLen == 0 && dataPages == 1 && b.capacity() - b.position() == 256 && version >= 2) {
+                dataLen = 256;
+            }
             if (dataLen < 0 || dataLen > dataPages * 256) {
                 throw new AtException(AtError.INCORRECT_DATA_LENGTH.getDescription());
             }

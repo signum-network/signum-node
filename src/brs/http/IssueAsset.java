@@ -66,7 +66,7 @@ public final class IssueAsset extends CreateTransaction {
       }
     }
 
-    long quantityQNT = ParameterParser.getQuantityQNT(req);
+    long quantityQNT = mintable ? ParameterParser.getZeroableQuantityQNT(req) : ParameterParser.getQuantityQNT(req);
     Account account = parameterService.getSenderAccount(req);
     Attachment attachment = new Attachment.ColoredCoinsAssetIssuance(name, description, quantityQNT, decimals, blockchain.getHeight(), mintable);
     return createTransaction(req, account, attachment);

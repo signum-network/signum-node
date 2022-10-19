@@ -972,7 +972,7 @@ public abstract class TransactionType {
                 || attachment.getName().length() > Constants.MAX_ASSET_NAME_LENGTH
                 || attachment.getDescription().length() > Constants.MAX_ASSET_DESCRIPTION_LENGTH
                 || attachment.getDecimals() < 0 || attachment.getDecimals() > 8
-                || attachment.getQuantityQNT() <= 0
+                || (attachment.getMintable() ? attachment.getQuantityQNT() < 0 : attachment.getQuantityQNT() <= 0)
                 || attachment.getQuantityQNT() > Constants.MAX_ASSET_QUANTITY_QNT
                 || (attachment.getVersion()>1 && !Burst.getFluxCapacitor().getValue(FluxValues.SMART_TOKEN))
                 || (attachment.getMintable() && !Burst.getFluxCapacitor().getValue(FluxValues.SMART_TOKEN))

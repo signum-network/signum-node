@@ -55,6 +55,23 @@ public final class ParameterParser {
   }
 
   static long getQuantityQNT(HttpServletRequest req) throws ParameterException {
+    long quantityQNT = parseQuantityQNT(req);
+    if (quantityQNT <= 0 || quantityQNT > Constants.MAX_ASSET_QUANTITY_QNT) {
+      throw new ParameterException(INCORRECT_ASSET_QUANTITY);
+    }
+    return quantityQNT;
+  }
+
+  static long getZeroableQuantityQNT(HttpServletRequest req) throws ParameterException {
+    long quantityQNT = parseQuantityQNT(req);
+    if (quantityQNT < 0 || quantityQNT > Constants.MAX_ASSET_QUANTITY_QNT) {
+      throw new ParameterException(INCORRECT_ASSET_QUANTITY);
+    }
+    return quantityQNT;
+  }
+
+
+  private static long parseQuantityQNT(HttpServletRequest req) throws ParameterException {
     String quantityValueQNT = Convert.emptyToNull(req.getParameter(QUANTITY_QNT_PARAMETER));
     if (quantityValueQNT == null) {
       throw new ParameterException(MISSING_QUANTITY);
@@ -64,9 +81,6 @@ public final class ParameterParser {
       quantityQNT = Long.parseLong(quantityValueQNT);
     } catch (RuntimeException e) {
       throw new ParameterException(INCORRECT_QUANTITY);
-    }
-    if (quantityQNT <= 0 || quantityQNT > Constants.MAX_ASSET_QUANTITY_QNT) {
-      throw new ParameterException(INCORRECT_ASSET_QUANTITY);
     }
     return quantityQNT;
   }

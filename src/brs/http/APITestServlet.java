@@ -26,7 +26,9 @@ public class APITestServlet extends HttpServlet {
       + "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">";
 
   private static final String HEADER_1_b =
-      "    <link href=\"/css/bootstrap.min.css\" rel=\"stylesheet\" type=\"text/css\" />"
+      "    <link href=\"/legacy_api_doc_assets/bootstrap.min.css\" rel=\"stylesheet\" type=\"text/css\" />"
+      + "    <script src=\"/legacy_api_doc_assets/jquery.min.js\" integrity=\"sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT\"></script>"
+      + "    <script src=\"/legacy_api_doc_assets/bootstrap.min.js\" integrity=\"sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa\" type=\"text/javascript\"></script>"
       + "    <style type=\"text/css\">\n"
       + "        table {border-collapse: collapse;}\n"
       + "        td {padding: 10px;}\n"
@@ -118,8 +120,6 @@ public class APITestServlet extends HttpServlet {
       + "  </div> "
       + "</div> "
       + "</div> "
-      + "<script src=\"/js/3rdparty/jquery.min.js\" integrity=\"sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT\"></script>"
-      + "<script src=\"/js/3rdparty/bootstrap.min.js\" integrity=\"sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa\" type=\"text/javascript\"></script>"
       + "<script>"
       + "  $(document).ready(function() {"
       + "    apiCalls = [];\n";

@@ -8,9 +8,12 @@ import brs.schema.tables.records.TradeRecord;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.SelectQuery;
+import org.jooq.SortField;
 import org.jooq.impl.DSL;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import static brs.schema.Tables.TRADE;
 
@@ -49,7 +52,10 @@ public class SqlTradeStore implements TradeStore {
 
   @Override
   public Collection<Trade> getAssetTrades(long assetId, int from, int to) {
-    return tradeTable.getManyBy(TRADE.ASSET_ID.eq(assetId), from, to);
+    List<SortField<?>> sort = new ArrayList<>();
+    sort.add(TRADE.ASK_ORDER_HEIGHT.desc());
+    sort.add(TRADE.BID_ORDER_HEIGHT.desc());
+    return tradeTable.getManyBy(TRADE.ASSET_ID.eq(assetId), from, to, sort);
   }
 
   @Override

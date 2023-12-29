@@ -38,6 +38,8 @@ public interface BlockchainStore {
   Collection<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
                                                  int blockTimestamp, int from, int to, boolean includeIndirectIncoming);
 
+  Collection<Transaction> getTransactions(Long senderId, Long recipientId, int numberOfConfirmations, byte type, byte subtype,
+                                          int blockTimestamp, int from, int to, boolean includeIndirectIncoming, boolean bidirectional);
   Collection<Transaction> getTransactions(long senderId, byte type, byte subtypeStart, byte subtypeEnd, int from, int to);
 
   int countTransactions(byte type, byte subtypeStart, byte subtypeEnd);

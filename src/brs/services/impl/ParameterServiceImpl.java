@@ -56,7 +56,7 @@ public class ParameterServiceImpl implements ParameterService {
   public Account getAccount(HttpServletRequest req) throws BurstException {
     return getAccount(req, true);
   }
-  
+
   @Override
   public Account getAccount(HttpServletRequest req, boolean checkPresent) throws BurstException {
     String accountId = Convert.emptyToNull(req.getParameter(ACCOUNT_PARAMETER));
@@ -77,12 +77,12 @@ public class ParameterServiceImpl implements ParameterService {
         throw new ParameterException(INCORRECT_HEIGHT);
       }
     }
-    
+
     try {
       SignumAddress accountAddress = Convert.parseAddress(accountId);
       Account account = height >= 0 ? accountService.getAccount(accountAddress.getSignedLongId(), height)
           : accountService.getAccount(accountAddress.getSignedLongId());
-      
+
       if(account == null && accountAddress.getPublicKey() == null) {
         throw new ParameterException(UNKNOWN_ACCOUNT);
       }
@@ -93,11 +93,11 @@ public class ParameterServiceImpl implements ParameterService {
       if(account.getPublicKey() == null && accountAddress.getPublicKey() != null) {
         account.setPublicKey(accountAddress.getPublicKey());
       }
-      
+
       if(accountAddress.getPublicKey() != null && account.getPublicKey() != null && !Arrays.equals(account.getPublicKey(), accountAddress.getPublicKey())) {
         throw new ParameterException(INCORRECT_ACCOUNT);
       }
-      
+
       return account;
     } catch (RuntimeException e) {
       throw new ParameterException(INCORRECT_ACCOUNT);
@@ -407,12 +407,17 @@ public class ParameterServiceImpl implements ParameterService {
   public boolean getIncludeIndirect(HttpServletRequest req) {
     return Boolean.parseBoolean(req.getParameter(INCLUDE_INDIRECT_PARAMETER));
   }
-  
+
+  @Override
+  public boolean getBidirectional(HttpServletRequest req) {
+    return Boolean.parseBoolean(req.getParameter(BIDIRECTIONAL_PARAMETER));
+  }
+
   @Override
   public boolean getAmountCommitted(HttpServletRequest req) {
     return Boolean.parseBoolean(req.getParameter(GET_COMMITTED_AMOUNT_PARAMETER));
   }
-  
+
   @Override
   public boolean getEstimateCommitment(HttpServletRequest req) {
     return Boolean.parseBoolean(req.getParameter(ESTIMATE_COMMITMENT_PARAMETER));

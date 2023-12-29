@@ -44,9 +44,9 @@ public class SqlBlockchainStore implements BlockchainStore {
       int blockchainHeight = Burst.getBlockchain().getHeight();
       return
         getBlocks(ctx.selectFrom(BLOCK)
-                .where(BLOCK.HEIGHT.between(blockchainHeight - Math.max(to, 0)).and(blockchainHeight - Math.max(from, 0)))
-                .orderBy(BLOCK.HEIGHT.desc())
-                .fetch());
+          .where(BLOCK.HEIGHT.between(blockchainHeight - Math.max(to, 0)).and(blockchainHeight - Math.max(from, 0)))
+          .orderBy(BLOCK.HEIGHT.desc())
+          .fetch());
     });
   }
 
@@ -66,12 +66,12 @@ public class SqlBlockchainStore implements BlockchainStore {
 
   @Override
   public int getBlocksCount(long accountId, int from, int to) {
-    if(from >  to) {
+    if (from > to) {
       return 0;
     }
     return Db.useDSLContext(ctx -> {
       SelectConditionStep<BlockRecord> query = ctx.selectFrom(BLOCK).where(BLOCK.GENERATOR_ID.eq(accountId))
-    		  .and(BLOCK.HEIGHT.between(from).and(to));
+        .and(BLOCK.HEIGHT.between(from).and(to));
 
       return ctx.fetchCount(query);
     });
@@ -97,7 +97,7 @@ public class SqlBlockchainStore implements BlockchainStore {
     return Db.useDSLContext(ctx -> {
       return
         ctx.selectFrom(BLOCK).where(
-          BLOCK.HEIGHT.gt( ctx.select(BLOCK.HEIGHT).from(BLOCK).where(BLOCK.ID.eq(blockId) ) )
+          BLOCK.HEIGHT.gt(ctx.select(BLOCK.HEIGHT).from(BLOCK).where(BLOCK.ID.eq(blockId)))
         ).orderBy(BLOCK.HEIGHT.asc()).limit(limit).fetch(BLOCK.ID, Long.class);
     });
   }
@@ -109,18 +109,18 @@ public class SqlBlockchainStore implements BlockchainStore {
     }
     return Db.useDSLContext(ctx -> {
       return ctx.selectFrom(BLOCK)
-              .where(BLOCK.HEIGHT.gt(ctx.select(BLOCK.HEIGHT)
-                      .from(BLOCK)
-                      .where(BLOCK.ID.eq(blockId))))
-              .orderBy(BLOCK.HEIGHT.asc())
-              .limit(limit)
-              .fetch(result -> {
-                try {
-                  return blockDb.loadBlock(result);
-                } catch (BurstException.ValidationException e) {
-                  throw new RuntimeException(e.toString(), e);
-                }
-              });
+        .where(BLOCK.HEIGHT.gt(ctx.select(BLOCK.HEIGHT)
+          .from(BLOCK)
+          .where(BLOCK.ID.eq(blockId))))
+        .orderBy(BLOCK.HEIGHT.asc())
+        .limit(limit)
+        .fetch(result -> {
+          try {
+            return blockDb.loadBlock(result);
+          } catch (BurstException.ValidationException e) {
+            throw new RuntimeException(e.toString(), e);
+          }
+        });
     });
   }
 
@@ -142,20 +142,17 @@ public class SqlBlockchainStore implements BlockchainStore {
   public long getAtBurnTotal() {
     return Db.useDSLContext(ctx -> {
       return ctx.select(DSL.sum(TRANSACTION.AMOUNT)).from(TRANSACTION)
-          .where(TRANSACTION.RECIPIENT_ID.isNull())
-          .and(TRANSACTION.AMOUNT.gt(0L))
-          .and(TRANSACTION.TYPE.equal(TransactionType.TYPE_AUTOMATED_TRANSACTIONS.getType()))
-          .fetchOneInto(long.class);
+        .where(TRANSACTION.RECIPIENT_ID.isNull())
+        .and(TRANSACTION.AMOUNT.gt(0L))
+        .and(TRANSACTION.TYPE.equal(TransactionType.TYPE_AUTOMATED_TRANSACTIONS.getType()))
+        .fetchOneInto(long.class);
     });
   }
 
 
   @Override
   public Collection<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype, int blockTimestamp, int from, int to, boolean includeIndirectIncoming) {
-    int height = numberOfConfirmations > 0 ? Burst.getBlockchain().getHeight() - numberOfConfirmations : Integer.MAX_VALUE;
-    if (height < 0) {
-      throw new IllegalArgumentException("Number of confirmations required " + numberOfConfirmations + " exceeds current blockchain height " + Burst.getBlockchain().getHeight());
-    }
+    int height = getHeightForNumberOfConfirmations(numberOfConfirmations);
     return Db.useDSLContext(ctx -> {
       ArrayList<Condition> conditions = new ArrayList<>();
       if (blockTimestamp > 0) {
@@ -172,27 +169,100 @@ public class SqlBlockchainStore implements BlockchainStore {
       }
 
       SelectOrderByStep<TransactionRecord> select = ctx.selectFrom(TRANSACTION).where(conditions).and(
-          account == null ? TRANSACTION.RECIPIENT_ID.isNull() :
-            TRANSACTION.RECIPIENT_ID.eq(account.getId()).and(
-                      TRANSACTION.SENDER_ID.ne(account.getId())
-              )
+        account == null ? TRANSACTION.RECIPIENT_ID.isNull() :
+          TRANSACTION.RECIPIENT_ID.eq(account.getId()).and(
+            TRANSACTION.SENDER_ID.ne(account.getId())
+          )
       ).unionAll(
-          account == null ? null :
-              ctx.selectFrom(TRANSACTION).where(conditions).and(
-                      TRANSACTION.SENDER_ID.eq(account.getId())
-              )
+        account == null ? null :
+          ctx.selectFrom(TRANSACTION).where(conditions).and(
+            TRANSACTION.SENDER_ID.eq(account.getId())
+          )
       );
 
       if (includeIndirectIncoming) {
         select = select.unionAll(ctx.selectFrom(TRANSACTION)
-                .where(conditions)
-                .and(TRANSACTION.ID.in(ctx.select(INDIRECT_INCOMING.TRANSACTION_ID).from(INDIRECT_INCOMING)
-                        .where(INDIRECT_INCOMING.ACCOUNT_ID.eq(account.getId())))));
+          .where(conditions)
+          .and(TRANSACTION.ID.in(ctx.select(INDIRECT_INCOMING.TRANSACTION_ID).from(INDIRECT_INCOMING)
+            .where(INDIRECT_INCOMING.ACCOUNT_ID.eq(account.getId())))));
       }
 
       SelectQuery<TransactionRecord> selectQuery = select
-              .orderBy(TRANSACTION.BLOCK_TIMESTAMP.desc(), TRANSACTION.ID.desc())
-              .getQuery();
+        .orderBy(TRANSACTION.BLOCK_TIMESTAMP.desc(), TRANSACTION.ID.desc())
+        .getQuery();
+
+      DbUtils.applyLimits(selectQuery, from, to);
+
+      return getTransactions(ctx, selectQuery.fetch());
+    });
+  }
+
+  private static int getHeightForNumberOfConfirmations(int numberOfConfirmations) {
+    int height = numberOfConfirmations > 0 ? Burst.getBlockchain().getHeight() - numberOfConfirmations : Integer.MAX_VALUE;
+    if (height < 0) {
+      throw new IllegalArgumentException("Number of confirmations required " + numberOfConfirmations + " exceeds current blockchain height " + Burst.getBlockchain().getHeight());
+    }
+    return height;
+  }
+
+  @Override
+  public Collection<Transaction> getTransactions(Long senderId, Long recipientId, int numberOfConfirmations, byte type, byte subtype, int blockTimestamp, int from, int to, boolean includeIndirectIncoming, boolean bidirectional) {
+    int height = getHeightForNumberOfConfirmations(numberOfConfirmations);
+    return Db.useDSLContext(ctx -> {
+      ArrayList<Condition> conditions = new ArrayList<>();
+
+      boolean hasSender = senderId != null;
+      boolean hasRecipient = recipientId != null; // consider burn address also
+
+      if (blockTimestamp > 0) {
+        conditions.add(TRANSACTION.BLOCK_TIMESTAMP.ge(blockTimestamp));
+      }
+      if (type >= 0) {
+        conditions.add(TRANSACTION.TYPE.eq(type));
+        if (subtype >= 0) {
+          conditions.add(TRANSACTION.SUBTYPE.eq(subtype));
+        }
+      }
+      if (height < Integer.MAX_VALUE) {
+        conditions.add(TRANSACTION.HEIGHT.le(height));
+      }
+
+      SelectOrderByStep<TransactionRecord> select = ctx
+        .selectFrom(TRANSACTION)
+        .where(conditions)
+        .and(hasSender ? TRANSACTION.SENDER_ID.eq(senderId) : null)
+        .and(hasRecipient ? TRANSACTION.RECIPIENT_ID.eq(recipientId) : null);
+
+      if (bidirectional) {
+        select = select.unionAll(ctx
+          .selectFrom(TRANSACTION)
+          .where(conditions)
+          .and(hasSender ? TRANSACTION.RECIPIENT_ID.eq(senderId) : null)
+          .and(hasRecipient ? TRANSACTION.SENDER_ID.eq(recipientId) : null)
+        );
+      }
+
+
+      if (includeIndirectIncoming) {
+        // FIXME: This is not working properly for non-birectional
+        // it must consider sender and recipient separately
+        // i.e. when sender S made a multi out, then only the multi out for that sender needs to be returned. Sender must not be recipient here (unless it's bidirectional)
+        select = select.unionAll(ctx
+          .selectFrom(TRANSACTION)
+          .where(conditions)
+          .and(TRANSACTION.ID.in(ctx
+              .select(INDIRECT_INCOMING.TRANSACTION_ID)
+              .from(INDIRECT_INCOMING)
+              .where(hasSender ? INDIRECT_INCOMING.ACCOUNT_ID.eq(senderId) : null)
+              .or(hasRecipient ? INDIRECT_INCOMING.ACCOUNT_ID.eq(recipientId) : null)
+            )
+          )
+        );
+      }
+
+      SelectQuery<TransactionRecord> selectQuery = select
+        .orderBy(TRANSACTION.BLOCK_TIMESTAMP.desc(), TRANSACTION.ID.desc())
+        .getQuery();
 
       DbUtils.applyLimits(selectQuery, from, to);
 
@@ -215,11 +285,11 @@ public class SqlBlockchainStore implements BlockchainStore {
       }
 
       SelectOrderByStep<TransactionRecord> select = ctx.selectFrom(TRANSACTION).where(conditions).and(
-          TRANSACTION.SENDER_ID.eq(senderId));
+        TRANSACTION.SENDER_ID.eq(senderId));
 
       SelectQuery<TransactionRecord> selectQuery = select
-              .orderBy(TRANSACTION.BLOCK_TIMESTAMP.desc(), TRANSACTION.ID.desc())
-              .getQuery();
+        .orderBy(TRANSACTION.BLOCK_TIMESTAMP.desc(), TRANSACTION.ID.desc())
+        .getQuery();
 
       DbUtils.applyLimits(selectQuery, from, to);
 
@@ -266,11 +336,11 @@ public class SqlBlockchainStore implements BlockchainStore {
       }
 
       SelectOrderByStep<TransactionRecord> select = ctx.selectFrom(TRANSACTION).where(conditions).and(
-          TRANSACTION.REFERENCED_TRANSACTION_FULLHASH.eq(Convert.parseHexString(fullHash)));
+        TRANSACTION.REFERENCED_TRANSACTION_FULLHASH.eq(Convert.parseHexString(fullHash)));
 
       SelectQuery<TransactionRecord> selectQuery = select
-              .orderBy(TRANSACTION.BLOCK_TIMESTAMP.desc(), TRANSACTION.ID.desc())
-              .getQuery();
+        .orderBy(TRANSACTION.BLOCK_TIMESTAMP.desc(), TRANSACTION.ID.desc())
+        .getQuery();
 
       DbUtils.applyLimits(selectQuery, from, to);
 
@@ -304,9 +374,9 @@ public class SqlBlockchainStore implements BlockchainStore {
 
     return Db.useDSLContext(ctx -> {
       return getBlocks(ctx.selectFrom(BLOCK)
-                      .where(BLOCK.HEIGHT.between(firstLatestBlockHeight).and(latestBlockHeight))
-                      .orderBy(BLOCK.HEIGHT.asc())
-                      .fetch());
+        .where(BLOCK.HEIGHT.between(firstLatestBlockHeight).and(latestBlockHeight))
+        .orderBy(BLOCK.HEIGHT.asc())
+        .fetch());
     });
   }
 
@@ -317,47 +387,45 @@ public class SqlBlockchainStore implements BlockchainStore {
 
     Collection<byte[]> commitmmentAddBytes = Db.useDSLContext(ctx -> {
       SelectConditionStep<Record1<byte[]>> select = ctx.select(TRANSACTION.ATTACHMENT_BYTES).from(TRANSACTION).where(TRANSACTION.TYPE.eq(TransactionType.TYPE_BURST_MINING.getType()))
-          .and(TRANSACTION.SUBTYPE.eq(TransactionType.SUBTYPE_BURST_MINING_COMMITMENT_ADD))
-          .and(TRANSACTION.HEIGHT.le(commitmentHeight));
-      if(accountId != 0L)
+        .and(TRANSACTION.SUBTYPE.eq(TransactionType.SUBTYPE_BURST_MINING_COMMITMENT_ADD))
+        .and(TRANSACTION.HEIGHT.le(commitmentHeight));
+      if (accountId != 0L)
         select = select.and(TRANSACTION.SENDER_ID.equal(accountId));
       return select.fetch().getValues(TRANSACTION.ATTACHMENT_BYTES);
     });
     Collection<byte[]> commitmmentRemoveBytes = Db.useDSLContext(ctx -> {
       SelectConditionStep<Record1<byte[]>> select = ctx.select(TRANSACTION.ATTACHMENT_BYTES).from(TRANSACTION).where(TRANSACTION.TYPE.eq(TransactionType.TYPE_BURST_MINING.getType()))
-          .and(TRANSACTION.SUBTYPE.eq(TransactionType.SUBTYPE_BURST_MINING_COMMITMENT_REMOVE))
-          .and(TRANSACTION.HEIGHT.le(endHeight));
-      if(accountId != 0L)
+        .and(TRANSACTION.SUBTYPE.eq(TransactionType.SUBTYPE_BURST_MINING_COMMITMENT_REMOVE))
+        .and(TRANSACTION.HEIGHT.le(endHeight));
+      if (accountId != 0L)
         select = select.and(TRANSACTION.SENDER_ID.equal(accountId));
-      if(skipTransaction != null)
+      if (skipTransaction != null)
         select = select.and(TRANSACTION.ID.ne(skipTransaction.getId()));
       return select.fetch().getValues(TRANSACTION.ATTACHMENT_BYTES);
     });
 
     BigInteger amountCommitted = BigInteger.ZERO;
-    for(byte[] bytes : commitmmentAddBytes) {
+    for (byte[] bytes : commitmmentAddBytes) {
       try {
         ByteBuffer buffer = ByteBuffer.wrap(bytes);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
-        CommitmentAdd txAttachment = (CommitmentAdd)TransactionType.BurstMining.COMMITMENT_ADD.parseAttachment(buffer, (byte)1);
+        CommitmentAdd txAttachment = (CommitmentAdd) TransactionType.BurstMining.COMMITMENT_ADD.parseAttachment(buffer, (byte) 1);
         amountCommitted = amountCommitted.add(BigInteger.valueOf(txAttachment.getAmountNQT()));
-      }
-      catch (Exception e) {
+      } catch (Exception e) {
         logger.error(e.getMessage());
       }
     }
-    for(byte[] bytes : commitmmentRemoveBytes) {
+    for (byte[] bytes : commitmmentRemoveBytes) {
       try {
         ByteBuffer buffer = ByteBuffer.wrap(bytes);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
-        CommitmentRemove txAttachment = (CommitmentRemove)TransactionType.BurstMining.COMMITMENT_REMOVE.parseAttachment(buffer, (byte)1);
+        CommitmentRemove txAttachment = (CommitmentRemove) TransactionType.BurstMining.COMMITMENT_REMOVE.parseAttachment(buffer, (byte) 1);
         amountCommitted = amountCommitted.subtract(BigInteger.valueOf(txAttachment.getAmountNQT()));
-      }
-      catch (Exception e) {
+      } catch (Exception e) {
         logger.error(e.getMessage());
       }
     }
-    if(amountCommitted.compareTo(BigInteger.ZERO) < 0) {
+    if (amountCommitted.compareTo(BigInteger.ZERO) < 0) {
       // should never happen
       amountCommitted = BigInteger.ZERO;
     }
@@ -366,12 +434,9 @@ public class SqlBlockchainStore implements BlockchainStore {
 
   @Override
   public Collection<Long> getTransactionIds(Long sender, Long recipient, int numberOfConfirmations, byte type,
-      byte subtype, int blockTimestamp, int from, int to, boolean includeIndirectIncoming) {
+                                            byte subtype, int blockTimestamp, int from, int to, boolean includeIndirectIncoming) {
 
-    int height = numberOfConfirmations > 0 ? Burst.getBlockchain().getHeight() - numberOfConfirmations : Integer.MAX_VALUE;
-    if (height < 0) {
-      throw new IllegalArgumentException("Number of confirmations required " + numberOfConfirmations + " exceeds current blockchain height " + Burst.getBlockchain().getHeight());
-    }
+    int height = getHeightForNumberOfConfirmations(numberOfConfirmations);
     return Db.useDSLContext(ctx -> {
       ArrayList<Condition> conditions = new ArrayList<>();
       if (blockTimestamp > 0) {
@@ -400,14 +465,14 @@ public class SqlBlockchainStore implements BlockchainStore {
 
       if (includeIndirectIncoming && recipient != null) {
         selectOrder = selectOrder.unionAll(ctx.selectFrom(TRANSACTION)
-                .where(conditions)
-                .and(TRANSACTION.ID.in(ctx.select(INDIRECT_INCOMING.TRANSACTION_ID).from(INDIRECT_INCOMING)
-                        .where(INDIRECT_INCOMING.ACCOUNT_ID.eq(recipient)))));
+          .where(conditions)
+          .and(TRANSACTION.ID.in(ctx.select(INDIRECT_INCOMING.TRANSACTION_ID).from(INDIRECT_INCOMING)
+            .where(INDIRECT_INCOMING.ACCOUNT_ID.eq(recipient)))));
       }
 
       SelectQuery<TransactionRecord> selectQuery = selectOrder
-              .orderBy(TRANSACTION.BLOCK_TIMESTAMP.desc(), TRANSACTION.ID.desc())
-              .getQuery();
+        .orderBy(TRANSACTION.BLOCK_TIMESTAMP.desc(), TRANSACTION.ID.desc())
+        .getQuery();
 
       DbUtils.applyLimits(selectQuery, from, to);
 

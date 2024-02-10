@@ -8,12 +8,12 @@ import java.util.Properties;
  * Courtesy Jim Yingst
  * https://coderanch.com/t/277128/java/Properties-ignoring-case
  */
-public class CaselessProperties extends Properties {
-    public CaselessProperties() {
+public class CaseInsensitiveProperties extends Properties {
+    public CaseInsensitiveProperties() {
         super();
     }
 
-    public CaselessProperties(CaselessProperties properties) {
+    public CaseInsensitiveProperties(CaseInsensitiveProperties properties) {
         super(properties);
     }
 

@@ -13,12 +13,12 @@ public class PropertyServiceImpl implements PropertyService {
     private final Logger logger = LoggerFactory.getLogger(Signum.class);
     private static final String LOG_UNDEF_NAME_DEFAULT = "{} using default: >{}<";
 
-    private final CaselessProperties properties;
+    private final CaseInsensitiveProperties properties;
 
     private final List<String> alreadyLoggedProperties = new ArrayList<>();
     private NetworkParameters networkParameters;
 
-    public PropertyServiceImpl(CaselessProperties properties) {
+    public PropertyServiceImpl(CaseInsensitiveProperties properties) {
         this.properties = properties;
     }
 

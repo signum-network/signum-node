@@ -87,3 +87,13 @@ DB.Url=jdbc:mariadb://localhost:3306/signum_testnet
 DB.Username=signumnode
 DB.Password=s1gn00m_n0d3
 ```
+
+# Faster Sync time
+
+Do reduce I/O times and though causing significant speedup while syncing, one may run the following command:   
+
+```sql
+SET GLOBAL innodb_flush_log_at_trx_commit = 0;
+```
+
+See more details [here](https://mariadb.com/docs/server/ref/mdb/system-variables/innodb_flush_log_at_trx_commit/). 

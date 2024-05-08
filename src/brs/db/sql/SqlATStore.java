@@ -1,13 +1,9 @@
 package brs.db.sql;
 
-import brs.Attachment;
-import brs.Signum;
+import brs.*;
 import brs.Transaction;
-import brs.at.AT;
+import brs.at.*;
 import brs.at.AT.AtMapEntry;
-import brs.at.AtApiHelper;
-import brs.at.AtConstants;
-import brs.at.AtMachineState;
 import brs.db.SignumKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.ATStore;
@@ -19,35 +15,38 @@ import brs.util.CollectionWithIndex;
 import org.jooq.*;
 import org.jooq.Record;
 import org.jooq.exception.DataAccessException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static brs.schema.Tables.*;
 
 public class SqlATStore implements ATStore {
+  private static final Logger logger = LoggerFactory.getLogger(SqlATStore.class);
 
   private final SignumKey.LongKeyFactory<brs.at.AT> atDbKeyFactory = new DbKey.LongKeyFactory<brs.at.AT>(AT.ID) {
-      @Override
-      public SignumKey newKey(brs.at.AT at) {
-        return at.dbKey;
-      }
-    };
+    @Override
+    public SignumKey newKey(brs.at.AT at) {
+      return at.dbKey;
+    }
+  };
   private final VersionedEntityTable<brs.at.AT> atTable;
 
   private final SignumKey.LongKeyFactory<brs.at.AT.ATState> atStateDbKeyFactory = new DbKey.LongKeyFactory<brs.at.AT.ATState>(AT_STATE.AT_ID) {
-      @Override
-      public SignumKey newKey(brs.at.AT.ATState atState) {
-        return atState.dbKey;
-      }
-    };
+    @Override
+    public SignumKey newKey(brs.at.AT.ATState atState) {
+      return atState.dbKey;
+    }
+  };
 
   private final VersionedEntityTable<brs.at.AT.ATState> atStateTable;
 
 
-  private final DbKey.LinkKey3Factory<brs.at.AT.AtMapEntry> atMapKeyFactory = new DbKey.LinkKey3Factory<brs.at.AT.AtMapEntry>("at_id", "key1", "key2"){
+  private final DbKey.LinkKey3Factory<brs.at.AT.AtMapEntry> atMapKeyFactory = new DbKey.LinkKey3Factory<brs.at.AT.AtMapEntry>("at_id", "key1", "key2") {
     @Override
     public SignumKey newKey(brs.at.AT.AtMapEntry atDb) {
       return newKey(atDb.getAtId(), atDb.getKey1(), atDb.getKey2());
@@ -55,6 +54,7 @@ public class SqlATStore implements ATStore {
   };
 
   private final VersionedEntityTable<brs.at.AT.AtMapEntry> atMapTable;
+
 
   public SqlATStore(DerivedTableManager derivedTableManager) {
     atTable = new VersionedEntitySqlTable<brs.at.AT>("at", brs.schema.Tables.AT, atDbKeyFactory, derivedTableManager) {
@@ -121,15 +121,15 @@ public class SqlATStore implements ATStore {
 
   private void saveATState(DSLContext ctx, brs.at.AT.ATState atState) {
     ctx.insertInto(
-      AT_STATE, AT_STATE.AT_ID, AT_STATE.STATE, AT_STATE.PREV_HEIGHT, AT_STATE.NEXT_HEIGHT, AT_STATE.SLEEP_BETWEEN, AT_STATE.PREV_BALANCE, AT_STATE.FREEZE_WHEN_SAME_BALANCE, AT_STATE.MIN_ACTIVATE_AMOUNT, AT_STATE.HEIGHT, AT_STATE.LATEST)
-            .values(atState.getATId(), brs.at.AT.compressState(atState.getState()), atState.getPrevHeight(), atState.getNextHeight(), atState.getSleepBetween(), atState.getPrevBalance(), atState.getFreezeWhenSameBalance(), atState.getMinActivationAmount(), Signum.getBlockchain().getHeight(), true)
-            .execute();
+        AT_STATE, AT_STATE.AT_ID, AT_STATE.STATE, AT_STATE.PREV_HEIGHT, AT_STATE.NEXT_HEIGHT, AT_STATE.SLEEP_BETWEEN, AT_STATE.PREV_BALANCE, AT_STATE.FREEZE_WHEN_SAME_BALANCE, AT_STATE.MIN_ACTIVATE_AMOUNT, AT_STATE.HEIGHT, AT_STATE.LATEST)
+      .values(atState.getATId(), brs.at.AT.compressState(atState.getState()), atState.getPrevHeight(), atState.getNextHeight(), atState.getSleepBetween(), atState.getPrevBalance(), atState.getFreezeWhenSameBalance(), atState.getMinActivationAmount(), Signum.getBlockchain().getHeight(), true)
+      .execute();
   }
 
   private void saveATMapEntry(DSLContext ctx, brs.at.AT.AtMapEntry atEntry) {
     ctx.insertInto(AT_MAP, AT_MAP.AT_ID, AT_MAP.KEY1, AT_MAP.KEY2, AT_MAP.VALUE, AT_STATE.HEIGHT, AT_STATE.LATEST)
-            .values(atEntry.getAtId(), atEntry.getKey1(), atEntry.getKey2(), atEntry.getValue(), Signum.getBlockchain().getHeight(), true)
-            .execute();
+      .values(atEntry.getAtId(), atEntry.getKey1(), atEntry.getKey2(), atEntry.getValue(), Signum.getBlockchain().getHeight(), true)
+      .execute();
   }
 
   private void saveAT(DSLContext ctx, brs.at.AT at) {
@@ -159,26 +159,26 @@ public class SqlATStore implements ATStore {
     return Db.useDSLContext(ctx -> {
       AtConstants atConstants = AtConstants.getInstance();
       return ctx.selectFrom(
-              AT.join(AT_STATE).on(AT.ID.eq(AT_STATE.AT_ID)).join(ACCOUNT_BALANCE).on(AT.ID.eq(ACCOUNT_BALANCE.ID))
+        AT.join(AT_STATE).on(AT.ID.eq(AT_STATE.AT_ID)).join(ACCOUNT_BALANCE).on(AT.ID.eq(ACCOUNT_BALANCE.ID))
       ).where(
-              AT.LATEST.isTrue()
+        AT.LATEST.isTrue()
       ).and(
-              AT_STATE.LATEST.isTrue()
+        AT_STATE.LATEST.isTrue()
       ).and(
-              ACCOUNT_BALANCE.LATEST.isTrue()
+        ACCOUNT_BALANCE.LATEST.isTrue()
       ).and(
-              AT_STATE.NEXT_HEIGHT.lessOrEqual(Signum.getBlockchain().getHeight() + 1)
+        AT_STATE.NEXT_HEIGHT.lessOrEqual(Signum.getBlockchain().getHeight() + 1)
       ).and(
         ACCOUNT_BALANCE.BALANCE.greaterOrEqual(
-                atConstants.stepFee(atConstants.atVersion(Signum.getBlockchain().getHeight()))
-                              * atConstants.apiStepMultiplier(atConstants.atVersion(Signum.getBlockchain().getHeight()))
-              )
+          atConstants.stepFee(atConstants.atVersion(Signum.getBlockchain().getHeight()))
+            * atConstants.apiStepMultiplier(atConstants.atVersion(Signum.getBlockchain().getHeight()))
+        )
       ).and(
-              AT_STATE.FREEZE_WHEN_SAME_BALANCE.isFalse().or(
-                      "account_balance.balance - at_state.prev_balance >= at_state.min_activate_amount"
-              )
+        AT_STATE.FREEZE_WHEN_SAME_BALANCE.isFalse().or(
+          "account_balance.balance - at_state.prev_balance >= at_state.min_activate_amount"
+        )
       ).orderBy(
-              AT_STATE.PREV_HEIGHT.asc(), AT_STATE.NEXT_HEIGHT.asc(), AT.ID.asc()
+        AT_STATE.PREV_HEIGHT.asc(), AT_STATE.NEXT_HEIGHT.asc(), AT.ID.asc()
       ).fetch().getValues(AT.ID);
     });
   }
@@ -192,12 +192,11 @@ public class SqlATStore implements ATStore {
   public brs.at.AT getAT(Long id, int height) {
     return Db.useDSLContext(ctx -> {
       SelectJoinStep<Record> select = ctx.select(AT.fields()).select(AT_STATE.fields()).from(AT.join(AT_STATE)
-          .on(AT.ID.eq(AT_STATE.AT_ID)));
+        .on(AT.ID.eq(AT_STATE.AT_ID)));
       ResultQuery<Record> where = null;
-      if(height > 0) {
+      if (height > 0) {
         where = select.where(AT_STATE.HEIGHT.le(height)).and(AT.ID.eq(id)).orderBy(AT_STATE.HEIGHT.desc()).maxRows(1);
-      }
-      else {
+      } else {
         where = select.where(AT.LATEST.isTrue()).and(AT_STATE.LATEST.isTrue()).and(AT.ID.eq(id));
       }
       Record record = where.fetchOne();
@@ -213,6 +212,18 @@ public class SqlATStore implements ATStore {
   }
 
   @Override
+  public Collection<brs.at.AT> getATs(Collection<Long> ids) {
+    return Db.useDSLContext(ctx -> {
+      Result<Record> result = ctx.select(AT.fields()).select(AT_STATE.fields())
+        .from(AT.join(AT_STATE).on(AT.ID.eq(AT_STATE.AT_ID)))
+        .where(AT.LATEST.isTrue()).and(AT_STATE.LATEST.isTrue()).and(AT.ID.in(ids))
+        .fetch();
+
+      return result.stream().map(record -> createAT(record.into(AT), record.into(AT_STATE), -1)).collect(Collectors.toList());
+    });
+  }
+
+  @Override
   public AtMapEntry getMapValueEntry(long atId, long key1, long key2) {
     return this.atMapTable.get(this.atMapKeyFactory.newKey(atId, key1, key2));
   }
@@ -220,7 +231,7 @@ public class SqlATStore implements ATStore {
   @Override
   public long getMapValue(long atId, long key1, long key2) {
     AtMapEntry entry = getMapValueEntry(atId, key1, key2);
-    if(entry == null)
+    if (entry == null)
       return 0;
     return entry.getValue();
   }
@@ -229,8 +240,8 @@ public class SqlATStore implements ATStore {
   public CollectionWithIndex<AtMapEntry> getMapValues(long atId, long key1, Long value, int from, int to) {
     Result<Record> result = Db.useDSLContext(ctx -> {
       SelectConditionStep<Record> request = ctx.select(AT_MAP.fields()).from(AT_MAP).where(AT_MAP.LATEST.isTrue()).and(AT_MAP.AT_ID.eq(atId))
-          .and(AT_MAP.KEY1.eq(key1));
-      if(value != null) {
+        .and(AT_MAP.KEY1.eq(key1));
+      if (value != null) {
         request = request.and(AT_MAP.VALUE.eq(value));
       }
       SelectQuery<Record> query = request.orderBy(AT_MAP.HEIGHT.desc()).getQuery();
@@ -238,24 +249,24 @@ public class SqlATStore implements ATStore {
       return query.fetch();
     });
 
-    ArrayList<brs.at.AT.AtMapEntry> list = new ArrayList<AT.AtMapEntry>();
-    for(Record r : result) {
+    ArrayList<brs.at.AT.AtMapEntry> list = new ArrayList<>();
+    for (Record r : result) {
       list.add(new brs.at.AT.AtMapEntry(atId, key1, r.get(AT_MAP.KEY2), r.get(AT_MAP.VALUE)));
     }
 
-    return new CollectionWithIndex<AtMapEntry>(list, from, to) ;
+    return new CollectionWithIndex<>(list, from, to);
   }
 
   private brs.at.AT createAT(AtRecord at, AtStateRecord atState, int height) {
     byte[] code = brs.at.AT.decompressState(at.getApCode());
     long codeHashId = at.getApCodeHashId();
     int codeSize = at.getCsize();
-    if(code == null) {
+    if (code == null) {
       // Check the creation transaction for the reference code
       Transaction atCreationTransaction = Signum.getBlockchain().getTransaction(at.getId());
       Transaction transaction = Signum.getBlockchain().getTransactionByFullHash(atCreationTransaction.getReferencedTransactionFullHash());
-      if(transaction!=null && transaction.getAttachment() instanceof Attachment.AutomatedTransactionsCreation) {
-        Attachment.AutomatedTransactionsCreation atCreationAttachment = (Attachment.AutomatedTransactionsCreation)transaction.getAttachment();
+      if (transaction != null && transaction.getAttachment() instanceof Attachment.AutomatedTransactionsCreation) {
+        Attachment.AutomatedTransactionsCreation atCreationAttachment = (Attachment.AutomatedTransactionsCreation) transaction.getAttachment();
         AtMachineState atCreation = new AtMachineState(null, null, atCreationAttachment.getCreationBytes(), 0);
         code = atCreation.getApCodeBytes();
         codeSize = atCreation.getcSize();
@@ -263,19 +274,19 @@ public class SqlATStore implements ATStore {
       }
     }
     return new AT(AtApiHelper.getByteArray(at.getId()), AtApiHelper.getByteArray(at.getCreatorId()), at.getName(), at.getDescription(), at.getVersion(),
-            height,
-            brs.at.AT.decompressState(atState.getState()), codeSize, at.getDsize(), at.getCUserStackBytes(), at.getCCallStackBytes(), at.getCreationHeight(), atState.getSleepBetween(), atState.getNextHeight(),
-            atState.getFreezeWhenSameBalance(), atState.getMinActivateAmount(), code, codeHashId);
+      height,
+      brs.at.AT.decompressState(atState.getState()), codeSize, at.getDsize(), at.getCUserStackBytes(), at.getCCallStackBytes(), at.getCreationHeight(), atState.getSleepBetween(), atState.getNextHeight(),
+      atState.getFreezeWhenSameBalance(), atState.getMinActivateAmount(), code, codeHashId);
   }
 
   @Override
   public List<Long> getATsIssuedBy(Long accountId, Long codeHashId, int from, int to) {
     return Db.useDSLContext(ctx -> {
       SelectConditionStep<Record1<Long>> request = ctx.select(AT.ID).from(AT).where(AT.LATEST.isTrue());
-      if(accountId != null) {
+      if (accountId != null) {
         request = request.and(AT.CREATOR_ID.eq(accountId));
       }
-      if(codeHashId != null){
+      if (codeHashId != null) {
         request = request.and(AT.AP_CODE_HASH_ID.eq(codeHashId));
       }
       SelectQuery<Record1<Long>> query = request.orderBy(AT.CREATION_HEIGHT.desc(), AT.ID.asc()).getQuery();
@@ -289,7 +300,7 @@ public class SqlATStore implements ATStore {
   public Collection<Long> getAllATIds(Long codeHashId) {
     return Db.useDSLContext(ctx -> {
       SelectConditionStep<AtRecord> request = ctx.selectFrom(AT).where(AT.LATEST.isTrue());
-      if(codeHashId != null)
+      if (codeHashId != null)
         request = request.and(AT.AP_CODE_HASH_ID.eq(codeHashId));
       return request.fetch().getValues(AT.ID);
     });
@@ -320,20 +331,24 @@ public class SqlATStore implements ATStore {
     return atStateTable;
   }
 
+
   @Override
   public Long findTransaction(int startHeight, int endHeight, Long atID, int numOfTx, long minActivationAmount) {
     return Db.useDSLContext(ctx -> {
-      SelectQuery<Record1<Long>> query = ctx.select(TRANSACTION.ID).from(TRANSACTION).where(
-        TRANSACTION.HEIGHT.between(startHeight, endHeight - 1)
-      ).and(
-        TRANSACTION.RECIPIENT_ID.eq(atID)
-      ).and(
-        TRANSACTION.AMOUNT.greaterOrEqual(minActivationAmount)
-      ).orderBy(
-        TRANSACTION.HEIGHT, TRANSACTION.ID
-      ).getQuery();
+      long startTime = System.nanoTime();
+
+      SelectQuery<Record1<Long>> query = ctx.select(TRANSACTION.ID)
+        .from(TRANSACTION)
+        .where(TRANSACTION.HEIGHT.between(startHeight, endHeight - 1))
+        .and(TRANSACTION.RECIPIENT_ID.eq(atID))
+        .and(TRANSACTION.AMOUNT.greaterOrEqual(minActivationAmount))
+        .orderBy(TRANSACTION.HEIGHT, TRANSACTION.ID)
+        .getQuery();
       DbUtils.applyLimits(query, numOfTx, numOfTx + 1);
       Result<Record1<Long>> result = query.fetch();
+
+      long executionTime = (System.nanoTime() - startTime) / 1000000;
+      logger.debug("Find Duration: {} milliseconds", executionTime);
       return result.isEmpty() ? 0L : result.get(0).value1();
     });
   }
@@ -341,21 +356,25 @@ public class SqlATStore implements ATStore {
   @Override
   public int findTransactionHeight(Long transactionId, int height, Long atID, long minActivationAmount) {
     return Db.useDSLContext(ctx -> {
+      long startTime = System.nanoTime();
       try {
-        Iterator<Record1<Long>> fetch = ctx.select(TRANSACTION.ID)
-                .from(TRANSACTION)
-                .where(TRANSACTION.HEIGHT.eq(height))
-                .and(TRANSACTION.RECIPIENT_ID.eq(atID))
-                .and(TRANSACTION.AMOUNT.greaterOrEqual(minActivationAmount))
-                .orderBy(TRANSACTION.HEIGHT, TRANSACTION.ID)
-                .fetch()
-                .iterator();
+        List<Long> transactionIds = ctx.select(TRANSACTION.ID)
+          .from(TRANSACTION)
+          .where(TRANSACTION.HEIGHT.eq(height))
+          .and(TRANSACTION.RECIPIENT_ID.eq(atID))
+          .and(TRANSACTION.AMOUNT.greaterOrEqual(minActivationAmount))
+          .orderBy(TRANSACTION.HEIGHT, TRANSACTION.ID)
+          .fetchInto(Long.class);
+
         int counter = 0;
-        while (fetch.hasNext()) {
+        for (Long currentTransactionId : transactionIds) {
           counter++;
-          long currentTransactionId = fetch.next().value1();
-          if (currentTransactionId == transactionId) break;
+          if (currentTransactionId.equals(transactionId)) {
+            break;
+          }
         }
+        long executionTime = (System.nanoTime() - startTime) / 1000000;
+        logger.debug("Find Duration: {} milliseconds", executionTime);
         return counter;
       } catch (DataAccessException e) {
         throw new RuntimeException(e.toString(), e);
@@ -363,17 +382,44 @@ public class SqlATStore implements ATStore {
     });
   }
 
+
+//  Previous version
+//  @Override
+//  public int findTransactionHeight(Long transactionId, int height, Long atID, long minActivationAmount) {
+//    return Db.useDSLContext(ctx -> {
+//      try {
+//        Iterator<Record1<Long>> fetch = ctx.select(TRANSACTION.ID)
+//                .from(TRANSACTION)
+//                .where(TRANSACTION.HEIGHT.eq(height))
+//                .and(TRANSACTION.RECIPIENT_ID.eq(atID))
+//                .and(TRANSACTION.AMOUNT.greaterOrEqual(minActivationAmount))
+//                .orderBy(TRANSACTION.HEIGHT, TRANSACTION.ID)
+//                .fetch()
+//                .iterator();
+//        int counter = 0;
+//        while (fetch.hasNext()) {
+//          counter++;
+//          long currentTransactionId = fetch.next().value1();
+//          if (currentTransactionId == transactionId) break;
+//        }
+//        return counter;
+//      } catch (DataAccessException e) {
+//        throw new RuntimeException(e.toString(), e);
+//      }
+//    });
+//  }
+
   class SqlATState extends brs.at.AT.ATState {
     private SqlATState(Record record) {
       super(
-            record.get(AT_STATE.AT_ID),
-            record.get(AT_STATE.STATE),
-            record.get(AT_STATE.NEXT_HEIGHT),
-            record.get(AT_STATE.SLEEP_BETWEEN),
-            record.get(AT_STATE.PREV_BALANCE),
-            record.get(AT_STATE.FREEZE_WHEN_SAME_BALANCE),
-            record.get(AT_STATE.MIN_ACTIVATE_AMOUNT)
-            );
+        record.get(AT_STATE.AT_ID),
+        record.get(AT_STATE.STATE),
+        record.get(AT_STATE.NEXT_HEIGHT),
+        record.get(AT_STATE.SLEEP_BETWEEN),
+        record.get(AT_STATE.PREV_BALANCE),
+        record.get(AT_STATE.FREEZE_WHEN_SAME_BALANCE),
+        record.get(AT_STATE.MIN_ACTIVATE_AMOUNT)
+      );
     }
   }
 

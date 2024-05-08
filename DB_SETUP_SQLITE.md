@@ -55,6 +55,8 @@ Occasionally, `SQL_BUSY` or `SQL_BUSY_SNAPSHOT` exceptions may occur due to SQLi
 
 Running the `VACUUM` command periodically is advisable to defragment the database and reduce file size. Ensure the node is shut down before running `VACUUM`. This process can take several minutes to complete.
 
+> When setting properties value `DB.Optimize=on`, this command will be executed on each node start.
+
 ## WAL Journal
 
 The default journaling mode, "Write-Ahead-Logging" (WAL), creates an additional `.wal` file. During shutdown, a checkpoint is created to ensure data integrity. If using WAL mode, ensure both the `.db` and `.wal` files are copied together. Other journaling modes may be preferable if disk space is limited, though they may impact performance during syncing. The  `MEMORY` mode is not supported to prevent database corruption issues.

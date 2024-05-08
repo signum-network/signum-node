@@ -4,14 +4,13 @@ import brs.IndirectIncoming;
 import brs.db.SignumKey;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.IndirectIncomingStore;
-import org.jooq.BatchBindStep;
-import org.jooq.DSLContext;
-import org.jooq.Query;
-import org.jooq.Record;
+import org.jooq.*;
 import org.jooq.exception.DataAccessException;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static brs.schema.Tables.INDIRECT_INCOMING;
@@ -58,30 +57,32 @@ public class SqlIndirectIncomingStore implements IndirectIncomingStore {
       @Override
       void save(DSLContext ctx, Collection<IndirectIncoming> indirectIncomings) {
         Iterator<IndirectIncoming> iterator = indirectIncomings.iterator();
-        Query insertStatement = ctx.insertInto(
-            INDIRECT_INCOMING,
-            INDIRECT_INCOMING.ACCOUNT_ID,
-            INDIRECT_INCOMING.TRANSACTION_ID,
-            INDIRECT_INCOMING.AMOUNT,
-            INDIRECT_INCOMING.QUANTITY,
-            INDIRECT_INCOMING.HEIGHT)
-          .values(0L, 0L, 0L, 0L, 0);
         while (iterator.hasNext()) {
-          BatchBindStep bindStep = ctx.batch(insertStatement);
-          // break into batches of 50k queries max
-          for (int i = 0; i < 50000 && iterator.hasNext(); i++) {
+          List<Record5<Long, Long, Long, Long, Integer>> rows = new ArrayList<>();
+          // break into batches
+          for (int i = 0; i < 250000 && iterator.hasNext(); i++) {
             IndirectIncoming indirectIncoming = iterator.next();
-            bindStep.bind(
+            rows.add(ctx.newRecord(INDIRECT_INCOMING.ACCOUNT_ID,
+              INDIRECT_INCOMING.TRANSACTION_ID,
+              INDIRECT_INCOMING.AMOUNT,
+              INDIRECT_INCOMING.QUANTITY,
+              INDIRECT_INCOMING.HEIGHT).values(
               indirectIncoming.getAccountId(),
               indirectIncoming.getTransactionId(),
               indirectIncoming.getAmount(),
               indirectIncoming.getQuantity(),
               indirectIncoming.getHeight()
-            );
+            ));
           }
           try {
-            bindStep.execute();
-          } catch (DataAccessException e) {
+            ctx.insertInto(INDIRECT_INCOMING, INDIRECT_INCOMING.ACCOUNT_ID,
+                INDIRECT_INCOMING.TRANSACTION_ID,
+                INDIRECT_INCOMING.AMOUNT,
+                INDIRECT_INCOMING.QUANTITY,
+                INDIRECT_INCOMING.HEIGHT)
+              .valuesOfRecords(rows)
+              .execute();
+          } catch (Exception e) {
             // TODO: remove this catch after better handling of indirects and forks
           }
         }

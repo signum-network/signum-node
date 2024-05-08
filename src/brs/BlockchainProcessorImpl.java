@@ -3,10 +3,7 @@ package brs;
 import static brs.Constants.FEE_QUANT_SIP3;
 import static brs.Constants.ONE_SIGNA;
 
-import brs.at.AT;
-import brs.at.AtBlock;
-import brs.at.AtController;
-import brs.at.AtException;
+import brs.at.*;
 import brs.crypto.Crypto;
 import brs.db.BlockDb;
 import brs.db.DerivedTable;
@@ -124,6 +121,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   private final boolean autoPopOffEnabled;
   private int autoPopOffLastStuckHeight = 0;
   private int autoPopOffNumberOfBlocks = 0;
+  private ATProcessorCache atProcessorCache = ATProcessorCache.getInstance();
 
   public final void setOclVerify(Boolean b) {
     oclVerify = b;
@@ -1170,6 +1168,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         stores.rollbackTransaction();
         blockchain.setLastBlock(previousLastBlock);
         downloadCache.resetCache();
+        atProcessorCache.reset();
         throw e;
       } finally {
         stores.endTransaction();
@@ -1301,6 +1300,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           dbCacheManager.flushCache();
           stores.commitTransaction();
           downloadCache.resetCache();
+          atProcessorCache.reset();;
         } catch (RuntimeException e) {
           stores.rollbackTransaction();
           logger.debug("Error popping off to {}", commonBlock.getHeight(), e);

@@ -79,10 +79,6 @@ public class AT extends AtMachineState {
         pendingFees.put(id, fee);
     }
 
-    public static void addPendingFee(byte[] id, long fee, int blockHeight, long generatorId) {
-        addPendingFee(AtApiHelper.getLong(id), fee, blockHeight, generatorId);
-    }
-
     public static void addPendingTransaction(AtTransaction atTransaction, int blockHeight, long generatorId) {
         long hash = blockHeight + generatorId;
         List<AtTransaction> pendingTransactions = pendingTransactionsMap.get(hash);

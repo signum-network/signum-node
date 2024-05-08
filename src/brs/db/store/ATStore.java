@@ -19,6 +19,8 @@ public interface ATStore {
 
   AT getAT(Long id, int height);
 
+  Collection<AT> getATs(Collection<Long> ids);
+
   List<Long> getATsIssuedBy(Long accountId, Long codeHashId, int from, int to);
 
   Collection<Long> getAllATIds(Long codeHashId);
@@ -37,7 +39,7 @@ public interface ATStore {
 
   int findTransactionHeight(Long transactionId, int height, Long atID, long minAmount);
 
-  public AtMapEntry getMapValueEntry(long atId, long key1, long key2);
+  AtMapEntry getMapValueEntry(long atId, long key1, long key2);
 
   long getMapValue(long atId, long key1, long key2);
 

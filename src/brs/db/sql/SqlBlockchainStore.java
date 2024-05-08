@@ -183,14 +183,13 @@ public class SqlBlockchainStore implements BlockchainStore {
 
       if (includeIndirectIncoming) {
 
-        // FIXME: this needs to be reviewed, as it does not deliver 100% correct results.
         int blockTimeStampHeight = getHeightForBlockTimeStamp(blockTimestamp);
         SelectLimitPercentStep<Record1<Long>> indirectIncomings = ctx
           .select(INDIRECT_INCOMING.TRANSACTION_ID)
           .from(INDIRECT_INCOMING)
           .where(INDIRECT_INCOMING.ACCOUNT_ID.eq(account.getId()))
           .and(INDIRECT_INCOMING.HEIGHT.le(Math.max(blockTimeStampHeight, height)))
-          .orderBy(INDIRECT_INCOMING.HEIGHT.desc())
+          .orderBy(INDIRECT_INCOMING.DB_ID.desc())
           .limit(Constants.MAX_API_RETURNED_ITEMS * 2); // cap this to keep the query scalable
 
         select = select.unionAll(ctx.selectFrom(TRANSACTION)
@@ -222,9 +221,12 @@ public class SqlBlockchainStore implements BlockchainStore {
         return ctx.select(TRANSACTION.HEIGHT)
             .from(TRANSACTION)
             .where(TRANSACTION.BLOCK_TIMESTAMP.le(blockTimestamp))
-            .orderBy(TRANSACTION.HEIGHT.desc()).fetchOne();
+            .orderBy(TRANSACTION.BLOCK_TIMESTAMP.desc())
+            .limit(1)
+            .fetchOne();
         }
       );
+
       return height != null ? height.value1(): 0;
     }
     return 0;
@@ -270,15 +272,13 @@ public class SqlBlockchainStore implements BlockchainStore {
       if (includeIndirectIncoming) {
         // makes only sense if for recipient. Sender is implicitely included.
         if (!bidirectional && hasRecipient) {
-
-          // FIXME: this needs to be reviewed, as it does not deliver 100% correct results.
           int blockTimeStampHeight = getHeightForBlockTimeStamp(blockTimestamp);
           SelectLimitPercentStep<Record1<Long>> indirectIncomingsForRecipient = ctx
             .select(INDIRECT_INCOMING.TRANSACTION_ID)
             .from(INDIRECT_INCOMING)
             .where(INDIRECT_INCOMING.ACCOUNT_ID.eq(recipientId))
             .and(INDIRECT_INCOMING.HEIGHT.le(Math.max(blockTimeStampHeight, height)))
-            .orderBy(INDIRECT_INCOMING.HEIGHT.desc())
+            .orderBy(INDIRECT_INCOMING.DB_ID.desc())
             .limit(Constants.MAX_API_RETURNED_ITEMS * 2); // cap this to keep the query scalable
 
 
@@ -290,7 +290,6 @@ public class SqlBlockchainStore implements BlockchainStore {
         }
 
         if (bidirectional) {
-          // FIXME: this needs to be reviewed, as it does not deliver 100% correct results.
           int blockTimeStampHeight = getHeightForBlockTimeStamp(blockTimestamp);
           SelectLimitPercentStep<Record1<Long>> indirectIncomingsForBidirectional = ctx
             .select(INDIRECT_INCOMING.TRANSACTION_ID)
@@ -298,7 +297,7 @@ public class SqlBlockchainStore implements BlockchainStore {
             .where(hasRecipient ? INDIRECT_INCOMING.ACCOUNT_ID.eq(recipientId) : null)
             .or(hasSender ? INDIRECT_INCOMING.ACCOUNT_ID.eq(senderId) : null)
             .and(INDIRECT_INCOMING.HEIGHT.le(Math.max(blockTimeStampHeight, height)))
-            .orderBy(INDIRECT_INCOMING.HEIGHT.desc())
+            .orderBy(INDIRECT_INCOMING.DB_ID.desc())
             .limit(Constants.MAX_API_RETURNED_ITEMS * 2); // cap this to keep the query scalable
 
           select = select.unionAll(ctx

@@ -13,6 +13,7 @@ import brs.db.store.AccountStore;
 import brs.db.store.DerivedTableManager;
 import brs.fluxcapacitor.FluxValues;
 import brs.props.Props;
+import brs.schema.tables.records.AccountBalanceRecord;
 import brs.util.Convert;
 import signumj.crypto.SignumCrypto;
 
@@ -169,19 +170,39 @@ public class SqlAccountStore implements AccountStore {
 
       @Override
       protected void bulkInsert(DSLContext ctx, Collection<Account.Balance> accounts) {
-        List<Query> accountQueries = new ArrayList<>();
         int height = Signum.getBlockchain().getHeight();
-        for (Account.Balance account : accounts) {
-          if (account == null) continue;
-          accountQueries.add(
-            ctx.insertInto(
-                ACCOUNT_BALANCE, ACCOUNT_BALANCE.ID, ACCOUNT_BALANCE.HEIGHT,
-                ACCOUNT_BALANCE.BALANCE, ACCOUNT_BALANCE.UNCONFIRMED_BALANCE, ACCOUNT_BALANCE.FORGED_BALANCE, ACCOUNT.LATEST)
-              .values(account.getId(), height,
-                account.getBalanceNqt(), account.getUnconfirmedBalanceNqt(), account.getForgedBalanceNqt(), true)
-          );
+        Iterator<Account.Balance> iterator = accounts.iterator();
+        List<Record6<Long, Integer, Long, Long, Long, Boolean>> rows = new ArrayList<>();
+        while (iterator.hasNext()) {
+          Account.Balance balance = iterator.next();
+          if(balance == null) {
+            continue;
+          }
+
+          rows.add(ctx.newRecord(ACCOUNT_BALANCE.ID, ACCOUNT_BALANCE.HEIGHT,
+              ACCOUNT_BALANCE.BALANCE, ACCOUNT_BALANCE.UNCONFIRMED_BALANCE,
+              ACCOUNT_BALANCE.FORGED_BALANCE, ACCOUNT.LATEST)
+            .values(balance.getId(), height,
+              balance.getBalanceNqt(), balance.getUnconfirmedBalanceNqt(),
+              balance.getForgedBalanceNqt(), true));
+
+          if(rows.size() >= 250000){
+            ctx.insertInto(ACCOUNT_BALANCE, ACCOUNT_BALANCE.ID, ACCOUNT_BALANCE.HEIGHT,
+                ACCOUNT_BALANCE.BALANCE, ACCOUNT_BALANCE.UNCONFIRMED_BALANCE,
+                ACCOUNT_BALANCE.FORGED_BALANCE, ACCOUNT.LATEST)
+              .valuesOfRecords(rows)
+              .execute();
+            rows.clear();
+          }
         }
-        ctx.batch(accountQueries).execute();
+
+        if(!rows.isEmpty()){
+          ctx.insertInto(ACCOUNT_BALANCE, ACCOUNT_BALANCE.ID, ACCOUNT_BALANCE.HEIGHT,
+              ACCOUNT_BALANCE.BALANCE, ACCOUNT_BALANCE.UNCONFIRMED_BALANCE,
+              ACCOUNT_BALANCE.FORGED_BALANCE, ACCOUNT.LATEST)
+            .valuesOfRecords(rows)
+            .execute();
+        }
       }
     };
   }

@@ -3,9 +3,7 @@
 /tmp
 /temp
 .idea
-brs.log
-brs.log.*
-node.log*
+*.log
 /conf/logging.properties
 /conf/brs.properties
 /conf/node.properties

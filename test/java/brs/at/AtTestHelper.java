@@ -53,6 +53,7 @@ public class AtTestHelper {
     static void setupMocks() {
         Stores mockStores = mock(Stores.class);
         ATStore mockAtStore = mock(ATStore.class);
+
         FluxCapacitor mockFluxCapacitor = QuickMocker.latestValueFluxCapacitor();
         //noinspection unchecked
         SignumKey.LongKeyFactory<AT> atLongKeyFactory = mock(SignumKey.LongKeyFactory.class);
@@ -110,6 +111,7 @@ public class AtTestHelper {
           }
           return null;
         }).when(mockAtStore).getAT(ArgumentMatchers.anyLong(), ArgumentMatchers.anyInt());
+        when(mockAtStore.getATs(ArgumentMatchers.anyCollection())).thenReturn(addedAts);
         when(mockAtTable.getAll(ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt())).thenReturn(addedAts);
         when(Account.getOrAddAccount(ArgumentMatchers.anyLong())).thenReturn(mockAccount);
         when(Account.getAccount(ArgumentMatchers.anyLong())).thenReturn(mockAccount);
@@ -119,6 +121,7 @@ public class AtTestHelper {
         when(mockAccountStore.getAccountKeyFactory()).thenReturn(mockAccountKeyFactory);
         when(mockAtStore.getAtStateTable()).thenReturn(mockAtStateTable);
         when(mockPropertyService.getBoolean(ArgumentMatchers.eq(Props.ENABLE_AT_DEBUG_LOG))).thenReturn(true);
+        when(mockPropertyService.getInt(ArgumentMatchers.eq(Props.BRS_AT_PROCESSOR_CACHE_BLOCK_COUNT))).thenReturn(-1);
         when(mockAtStore.getAtTable()).thenReturn(mockAtTable);
         when(Signum.getPropertyService()).thenReturn(mockPropertyService);
         when(Signum.getBlockchain()).thenReturn(mockBlockchain);

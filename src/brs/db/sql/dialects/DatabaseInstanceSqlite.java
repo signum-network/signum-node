@@ -29,10 +29,15 @@ public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
 
   private String getSynchronousMode(){
     String synchronous = propertyService.getString(Props.DB_SQLITE_SYNCHRONOUS).toUpperCase();
-    if (synchronous.equals("OFF")) {
-      logger.warn("SQLite synchronous mode set to: OFF. This could result in a database corruption, when the operating system crashes or the computer loses power!");
+    switch (synchronous) {
+      case "FULL":
+        return "FULL";
+      case "OFF":
+        logger.warn("SQLite synchronous mode set to: OFF. This could result in a database corruption, when the operating system crashes or the computer loses power!");
+        return "OFF";
+      default:
+        return "NORMAL";
     }
-    return synchronous;
   }
 
   private int getCacheSize(){

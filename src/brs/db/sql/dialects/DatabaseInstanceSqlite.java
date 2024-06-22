@@ -27,6 +27,23 @@ public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
     return "WAL";
   }
 
+  private String getSynchronousMode(){
+    String synchronous = propertyService.getString(Props.DB_SQLITE_SYNCHRONOUS).toUpperCase();
+    switch (synchronous) {
+      case "FULL":
+        return "FULL";
+      case "OFF":
+        logger.warn("SQLite synchronous mode set to: OFF. This could result in a database corruption, when the operating system crashes or the computer loses power!");
+        return "OFF";
+      default:
+        return "NORMAL";
+    }
+  }
+
+  private int getCacheSize(){
+    return propertyService.getInt(Props.DB_SQLITE_CACHE_SIZE);
+  }
+
   @Override
   protected HikariConfig configureImpl(HikariConfig config) {
     config.setMaximumPoolSize(10);
@@ -35,6 +52,8 @@ public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
     config.addDataSourceProperty("busy_timeout", "30000");
     config.addDataSourceProperty("wal_autocheckpoint", "500");
     config.addDataSourceProperty("journal_mode", getJournalMode());
+    config.addDataSourceProperty("synchronous", getSynchronousMode());
+    config.addDataSourceProperty("cache_size", getCacheSize());
     return config;
   }
 

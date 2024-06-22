@@ -279,7 +279,6 @@ public final class ATProcessorCache {
       throw new CacheMissException();
     }
 
-    // TODO: there must be another way how this works. This is very fragile
     int count = 0;
     Collection<Transaction> transactions = atContext.transactions;
     for (Transaction t : transactions) {

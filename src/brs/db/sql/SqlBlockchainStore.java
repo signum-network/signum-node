@@ -2,7 +2,6 @@ package brs.db.sql;
 
 import brs.*;
 import brs.Block;
-import brs.Constants;
 import brs.Transaction;
 import brs.Attachment.CommitmentAdd;
 import brs.Attachment.CommitmentRemove;
@@ -182,19 +181,10 @@ public class SqlBlockchainStore implements BlockchainStore {
       );
 
       if (includeIndirectIncoming) {
-
-        int blockTimeStampHeight = getHeightForBlockTimeStamp(blockTimestamp);
-        SelectLimitPercentStep<Record1<Long>> indirectIncomings = ctx
-          .select(INDIRECT_INCOMING.TRANSACTION_ID)
-          .from(INDIRECT_INCOMING)
-          .where(INDIRECT_INCOMING.ACCOUNT_ID.eq(account.getId()))
-          .and(INDIRECT_INCOMING.HEIGHT.le(Math.max(blockTimeStampHeight, height)))
-          .orderBy(INDIRECT_INCOMING.DB_ID.desc())
-          .limit(Constants.MAX_API_RETURNED_ITEMS * 2); // cap this to keep the query scalable
-
         select = select.unionAll(ctx.selectFrom(TRANSACTION)
           .where(conditions)
-          .and(TRANSACTION.ID.in(indirectIncomings)));
+          .and(TRANSACTION.ID.in(ctx.select(INDIRECT_INCOMING.TRANSACTION_ID).from(INDIRECT_INCOMING)
+            .where(INDIRECT_INCOMING.ACCOUNT_ID.eq(account.getId())))));
       }
 
       SelectQuery<TransactionRecord> selectQuery = select
@@ -213,23 +203,6 @@ public class SqlBlockchainStore implements BlockchainStore {
       throw new IllegalArgumentException("Number of confirmations required " + numberOfConfirmations + " exceeds current blockchain height " + Signum.getBlockchain().getHeight());
     }
     return height;
-  }
-
-  private static int getHeightForBlockTimeStamp(int blockTimestamp) {
-    if(blockTimestamp > 0){
-      Record1<Integer> height = Db.useDSLContext(ctx -> {
-        return ctx.select(TRANSACTION.HEIGHT)
-            .from(TRANSACTION)
-            .where(TRANSACTION.BLOCK_TIMESTAMP.le(blockTimestamp))
-            .orderBy(TRANSACTION.BLOCK_TIMESTAMP.desc())
-            .limit(1)
-            .fetchOne();
-        }
-      );
-
-      return height != null ? height.value1(): 0;
-    }
-    return 0;
   }
 
   @Override
@@ -272,38 +245,27 @@ public class SqlBlockchainStore implements BlockchainStore {
       if (includeIndirectIncoming) {
         // makes only sense if for recipient. Sender is implicitely included.
         if (!bidirectional && hasRecipient) {
-          int blockTimeStampHeight = getHeightForBlockTimeStamp(blockTimestamp);
-          SelectLimitPercentStep<Record1<Long>> indirectIncomingsForRecipient = ctx
-            .select(INDIRECT_INCOMING.TRANSACTION_ID)
-            .from(INDIRECT_INCOMING)
-            .where(INDIRECT_INCOMING.ACCOUNT_ID.eq(recipientId))
-            .and(INDIRECT_INCOMING.HEIGHT.le(Math.max(blockTimeStampHeight, height)))
-            .orderBy(INDIRECT_INCOMING.DB_ID.desc())
-            .limit(Constants.MAX_API_RETURNED_ITEMS * 2); // cap this to keep the query scalable
-
-
           select = select.unionAll(ctx
             .selectFrom(TRANSACTION)
             .where(conditions)
-            .and(TRANSACTION.ID.in(indirectIncomingsForRecipient))
-          );
+            .and(TRANSACTION.ID.in(ctx
+                .select(INDIRECT_INCOMING.TRANSACTION_ID)
+                .from(INDIRECT_INCOMING)
+                .where(INDIRECT_INCOMING.ACCOUNT_ID.eq(recipientId))
+              )
+            ));
         }
 
         if (bidirectional) {
-          int blockTimeStampHeight = getHeightForBlockTimeStamp(blockTimestamp);
-          SelectLimitPercentStep<Record1<Long>> indirectIncomingsForBidirectional = ctx
-            .select(INDIRECT_INCOMING.TRANSACTION_ID)
-            .from(INDIRECT_INCOMING)
-            .where(hasRecipient ? INDIRECT_INCOMING.ACCOUNT_ID.eq(recipientId) : null)
-            .or(hasSender ? INDIRECT_INCOMING.ACCOUNT_ID.eq(senderId) : null)
-            .and(INDIRECT_INCOMING.HEIGHT.le(Math.max(blockTimeStampHeight, height)))
-            .orderBy(INDIRECT_INCOMING.DB_ID.desc())
-            .limit(Constants.MAX_API_RETURNED_ITEMS * 2); // cap this to keep the query scalable
-
           select = select.unionAll(ctx
             .selectFrom(TRANSACTION)
             .where(conditions)
-            .and(TRANSACTION.ID.in(indirectIncomingsForBidirectional)
+            .and(TRANSACTION.ID.in(ctx
+                .select(INDIRECT_INCOMING.TRANSACTION_ID)
+                .from(INDIRECT_INCOMING)
+                .where(hasRecipient ? INDIRECT_INCOMING.ACCOUNT_ID.eq(recipientId) : null)
+                .or(hasSender ? INDIRECT_INCOMING.ACCOUNT_ID.eq(senderId) : null)
+              )
             )
           );
         }

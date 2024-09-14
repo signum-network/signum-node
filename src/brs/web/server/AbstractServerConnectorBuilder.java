@@ -28,9 +28,7 @@ public abstract class AbstractServerConnectorBuilder {
     this.context = context;
   }
 
-
   abstract ServerConnector build(Server server);
-
 
   protected ServerConnector createSSLConnector(Server server) {
     logger.info("Creating SSL Connector");
@@ -43,10 +41,11 @@ public abstract class AbstractServerConnectorBuilder {
     sslContextFactory.setKeyStorePath(context.getPropertyService().getString(Props.API_SSL_KEY_STORE_PATH));
     sslContextFactory.setKeyStorePassword(context.getPropertyService().getString(Props.API_SSL_KEY_STORE_PASSWORD));
 
+    // Handle optional Let's Encrypt Certificates...
     String letsencryptPath = context.getPropertyService().getString(Props.API_SSL_LETSENCRYPT_PATH);
     if (letsencryptPath != null && !letsencryptPath.isEmpty()) {
       try {
-        letsencryptToPkcs12(letsencryptPath, context.getPropertyService().getString(Props.API_SSL_KEY_STORE_PATH), context.getPropertyService().getString(Props.API_SSL_KEY_STORE_PASSWORD));
+        loadLetsEncryptCertsAsPkcs12(letsencryptPath, context.getPropertyService().getString(Props.API_SSL_KEY_STORE_PATH), context.getPropertyService().getString(Props.API_SSL_KEY_STORE_PASSWORD));
       } catch (Exception e) {
         logger.error(e.getMessage());
       }
@@ -55,7 +54,7 @@ public abstract class AbstractServerConnectorBuilder {
       ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
       Runnable reloadCert = () -> {
         try {
-          letsencryptToPkcs12(letsencryptPath, context.getPropertyService().getString(Props.API_SSL_KEY_STORE_PATH), context.getPropertyService().getString(Props.API_SSL_KEY_STORE_PASSWORD));
+          loadLetsEncryptCertsAsPkcs12(letsencryptPath, context.getPropertyService().getString(Props.API_SSL_KEY_STORE_PATH), context.getPropertyService().getString(Props.API_SSL_KEY_STORE_PASSWORD));
           sslContextFactory.reload(consumer -> logger.info("SSL keystore from letsencrypt reloaded."));
         } catch (Exception e) {
           logger.error(e.getMessage());
@@ -64,7 +63,6 @@ public abstract class AbstractServerConnectorBuilder {
       scheduler.scheduleWithFixedDelay(reloadCert, 7, 7, TimeUnit.DAYS);
     }
 
-    // Set the ciphers to use
     String[] strongCiphers = {
       "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
       "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
@@ -77,7 +75,7 @@ public abstract class AbstractServerConnectorBuilder {
       new HttpConnectionFactory(httpsConfig));
   }
 
-  public void letsencryptToPkcs12(String letsencryptPath, String p12File, String password) throws Exception {
+  public void loadLetsEncryptCertsAsPkcs12(String letsencryptPath, String p12Filename, String password) throws Exception {
 
     logger.info("Converting Let's Encrypt Certificate to PKCS12...");
     Security.addProvider(new BouncyCastleProvider());
@@ -94,7 +92,6 @@ public abstract class AbstractServerConnectorBuilder {
       KeyFactory keyFactory = KeyFactory.getInstance("RSA", "BC");
       PrivateKey privateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(privateKeyInfo.getEncoded()));
 
-
       X509CertificateHolder certObj = (X509CertificateHolder) certParser.readObject();
       JcaX509CertificateConverter certConverter = new JcaX509CertificateConverter();
       certConverter.setProvider("BC");
@@ -102,14 +99,14 @@ public abstract class AbstractServerConnectorBuilder {
       X509Certificate[] certificates = new X509Certificate[]{certificate};
 
       // Add the private key and certificates to the keystore
-      // Convert PEM to PKCS12
       KeyStore keyStore = KeyStore.getInstance("PKCS12");
       keyStore.load(null, null);
       keyStore.setKeyEntry("SIGNUM_NODE_CERT", privateKey, password.toCharArray(), certificates);
 
-      // Save PKCS12 file
-      try (OutputStream out = new FileOutputStream(p12File)) {
+      // Finally, save as PKCS12 file...
+      try (OutputStream out = new FileOutputStream(p12Filename)) {
         keyStore.store(out, password.toCharArray());
+        logger.info("Let's Encrypt Certificate successfully converted to PKCS12 and saved under: {}", p12Filename);
       }
     }
   }

@@ -12,7 +12,8 @@ Ensure you have `openssl` installed on your system. You can verify this by runni
 openssl version
 ```
 
-If not installed, you can install it using your package manager (e.g., `brew install openssl` on macOS, `sudo apt install openssl` on Ubuntu).
+If not installed, you can install it using your package manager (e.g., `brew install openssl` on macOS,
+`sudo apt install openssl` on Ubuntu).
 
 ### Steps to Generate SSL Certificates
 
@@ -32,7 +33,8 @@ If not installed, you can install it using your package manager (e.g., `brew ins
    openssl req -x509 -new -key localhost.pem -out localhost_chain.pem -days 365
    ```
 
-   You will be prompted to fill in some details like Country, State, and Common Name. For local development, you can use `localhost` as the Common Name (CN).
+   You will be prompted to fill in some details like Country, State, and Common Name. For local development, you can use
+   `localhost` as the Common Name (CN).
 
 3. **Generate a keystore**
 
@@ -46,7 +48,8 @@ If not installed, you can install it using your package manager (e.g., `brew ins
 
 ### Update `node.properties`
 
-In your `node.properties` file, enable SSL for the API and point to the newly created keystore. Add or update the following lines:
+In your `node.properties` file, enable SSL for the API and point to the newly created keystore. Add or update the
+following lines:
 
 ```properties
 API.SSL=on
@@ -59,12 +62,14 @@ API.SSL_keyStorePassword=development
 1. Restart the Signum Node to apply the changes.
 2. Your Signum Node should now be running locally with SSL enabled.
 
-You can access it using `https://localhost:<your_port>` and/or `wss://localhost:<your_port>/events` with the port number configured for your node.
-
+You can access it using `https://localhost:<your_port>` and/or `wss://localhost:<your_port>/events` with the port number
+configured for your node.
 
 ## Using Certbot to Generate SSL Certificates for a Signum Node for your custom domain
 
-Certbot is a tool used to automate the process of obtaining and renewing SSL certificates from Let's Encrypt or other Certificate Authorities. This guide explains how to use Certbot to generate SSL certificates for running a Signum Node locally.
+Certbot is a tool used to automate the process of obtaining and renewing SSL certificates from Let's Encrypt or other
+Certificate Authorities. This guide explains how to use Certbot to generate SSL certificates for running a Signum Node
+locally.
 
 ### Prerequisites
 
@@ -74,51 +79,48 @@ Certbot is a tool used to automate the process of obtaining and renewing SSL cer
    certbot --version
    ```
 
-   If it's not installed, follow the [official installation guide](https://certbot.eff.org/instructions) for your system.
+   If it's not installed, follow the [official installation guide](https://certbot.eff.org/instructions) for your
+   system.
 
-2. **Domain name**: To use Certbot, you need a publicly accessible domain (Certbot won't work for pure localhost setups). If you are running a local node accessible from the internet (e.g., via a reverse proxy like Nginx), you'll need a registered domain name pointing to your local machine.
+2. **Domain name**: To use Certbot, you need a publicly accessible domain (Certbot won't work for pure localhost
+   setups). If you are running a local node accessible from the internet (e.g., via a reverse proxy like Nginx), you'll
+   need a registered domain name pointing to your local machine.
 
-3. **Port forwarding (optional)**: If your node is not publicly accessible, you may need to set up port forwarding to allow Certbot to perform HTTP-01 or DNS-01 validation.
+3. **Port forwarding (optional)**: If your node is not publicly accessible, you may need to set up port forwarding to
+   allow Certbot to perform HTTP-01 or DNS-01 validation.
 
-### Steps to Generate SSL Certificates with Certbot
+### Request a certificate
 
-1. **Request a certificate**
+Run Certbot to obtain a certificate for your domain. Replace `yourdomain.com` with your actual domain name.
 
-   Run Certbot to obtain a certificate for your domain. Replace `yourdomain.com` with your actual domain name.
+```bash
+sudo certbot certonly --standalone -d yourdomain.com
+```
 
-   ```bash
-   sudo certbot certonly --standalone -d yourdomain.com
-   ```
+Certbot will generate the necessary files, including the certificate (`.crt`) and private key (`.key`).
 
-   Certbot will generate the necessary files, including the certificate (`.crt`) and private key (`.key`).
+By default, these will be stored in `/etc/letsencrypt/live/yourdomain.com/`.
 
-   By default, these will be stored in `/etc/letsencrypt/live/yourdomain.com/`.
-
-2. **Generate a PKCS#12 Keystore**
-
-   To use the Certbot-generated certificate with the Signum Node, create a PKCS#12 keystore by bundling the certificate and private key:
-
-   ```bash
-   openssl pkcs12 -export -inkey /etc/letsencrypt/live/yourdomain.com/privkey.pem \
-   -in /etc/letsencrypt/live/yourdomain.com/fullchain.pem \
-   -out keystore.p12 -name <somename> -password pass:<your_password>
-   ```
-
-   This will generate the `keystore.p12` file, which is needed by the Signum Node.
+> The Signum Node looks into the "letsencryptpath" and converts it to the necesary keystore file. No further action necessary here.
 
 ### Update `node.properties`
 
 In your `node.properties` file, enable SSL for the API and configure the path to the Certbot-generated keystore:
 
 ```properties
-API.SSL = on
-API.SSL_keyStorePath     = keystore.p12
-API.SSL_keyStorePassword = <your_password>
+API.SSL=on
+# the file name of your keystore file. Let's Encrypt Cert will be automatically converted and stored under this path.
+API.SSL_keyStorePath=./keystore.p12
+API.SSL_keyStorePassword=<your_password>
+# your path of letsencrypt certs. The Node looks for "privkey.pem" and "fullchain.pem" files
+API.SSL_letsencryptPath=/etc/letsencrypt/live/<yourdomain>.com
 ```
 
 ### Automating Certificate Renewal
 
 Certbot certificates expire every 90 days. You can automate the renewal process using Certbot's cron job feature.
+
+> Signum Nodes reloads the certificate on startup and/or every 7 days while running
 
 1. Set up a cron job to automatically renew certificates:
 
@@ -131,8 +133,6 @@ Certbot certificates expire every 90 days. You can automate the renewal process 
    ```bash
    0 0 * * * certbot renew --quiet
    ```
-
-After renewal, you may need to recreate the PKCS#12 keystore and restart the Signum Node for the changes to take effect.
 
 ### Final Steps
 

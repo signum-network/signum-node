@@ -42,7 +42,8 @@ dependencies {
   implementation 'com.github.signum-network:signumj:v1.3.1'
 
   implementation 'io.reactivex.rxjava2:rxjava:2.2.15'
-  implementation 'org.bouncycastle:bcprov-jdk18on:1.75'
+  implementation 'org.bouncycastle:bcprov-jdk18on:1.78.1'
+  implementation 'org.bouncycastle:bcpkix-jdk18on:1.78.1'
   implementation 'org.ehcache:ehcache:3.9.9'
   implementation 'com.google.code.gson:gson:2.8.9'
   implementation 'commons-cli:commons-cli:1.4'
@@ -74,11 +75,11 @@ dependencies {
   implementation 'org.slf4j:slf4j-api:1.7.35'
   implementation 'org.slf4j:slf4j-jdk14:1.7.35'
 
-  implementation 'org.eclipse.jetty:jetty-server:10.0.19'
-  implementation 'org.eclipse.jetty:jetty-servlet:10.0.19'
-  implementation 'org.eclipse.jetty:jetty-servlets:10.0.19'
-  implementation 'org.eclipse.jetty:jetty-rewrite:10.0.19'
-  implementation 'org.eclipse.jetty.websocket:websocket-jetty-server:10.0.19'
+  implementation 'org.eclipse.jetty:jetty-server:10.0.24'
+  implementation 'org.eclipse.jetty:jetty-servlet:10.0.24'
+  implementation 'org.eclipse.jetty:jetty-servlets:10.0.24'
+  implementation 'org.eclipse.jetty:jetty-rewrite:10.0.24'
+  implementation 'org.eclipse.jetty.websocket:websocket-jetty-server:10.0.24'
 
   implementation 'javax.annotation:javax.annotation-api:1.3.2'
 

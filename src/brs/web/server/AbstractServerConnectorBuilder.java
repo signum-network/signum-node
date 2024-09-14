@@ -1,11 +1,20 @@
 package brs.web.server;
 
 import brs.props.Props;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMParser;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.*;
+import java.security.*;
+import java.security.cert.X509Certificate;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -55,26 +64,53 @@ public abstract class AbstractServerConnectorBuilder {
       scheduler.scheduleWithFixedDelay(reloadCert, 7, 7, TimeUnit.DAYS);
     }
 
-    sslContextFactory.setExcludeCipherSuites("SSL_RSA_WITH_DES_CBC_SHA",
-      "SSL_DHE_RSA_WITH_DES_CBC_SHA",
-      "SSL_DHE_DSS_WITH_DES_CBC_SHA",
-      "SSL_RSA_EXPORT_WITH_RC4_40_MD5",
-      "SSL_RSA_EXPORT_WITH_DES40_CBC_SHA",
-      "SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA",
-      "SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA");
+    // Set the ciphers to use
+    String[] strongCiphers = {
+      "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+      "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+      // Add more strong ciphers as needed
+    };
+    sslContextFactory.setIncludeCipherSuites(strongCiphers);
+    sslContextFactory.setIncludeProtocols("TLSv1.2", "TLSv1.3");
     sslContextFactory.setExcludeProtocols("SSLv3");
     return new ServerConnector(server, new SslConnectionFactory(sslContextFactory, "http/1.1"),
       new HttpConnectionFactory(httpsConfig));
   }
 
+  public void letsencryptToPkcs12(String letsencryptPath, String p12File, String password) throws Exception {
 
-  private void letsencryptToPkcs12(String letsencryptPath, String p12File, String password) throws Exception {
-    // TODO: check if there is a way for us to use directly the PEM files and not need to convert this way
-    logger.info("Generating {} from {}", p12File, letsencryptPath);
-    String cmd = "openssl pkcs12 -export -in " + letsencryptPath + "/fullchain.pem "
-      + "-inkey " + letsencryptPath + "/privkey.pem -out " + p12File + " -password pass:" + password;
+    logger.info("Converting Let's Encrypt Certificate to PKCS12...");
+    Security.addProvider(new BouncyCastleProvider());
 
-    Process process = Runtime.getRuntime().exec(cmd);
-    process.waitFor();
+    try (InputStream keyIn = new FileInputStream(letsencryptPath + "/privkey.pem");
+         InputStream certIn = new FileInputStream(letsencryptPath + "/fullchain.pem")) {
+
+      // Load PEM files
+      PEMParser keyParser = new PEMParser(new InputStreamReader(keyIn));
+      PEMParser certParser = new PEMParser(new InputStreamReader(certIn));
+
+      // make keys compatible with java.security.keystore
+      PrivateKeyInfo privateKeyInfo = (PrivateKeyInfo) keyParser.readObject();
+      KeyFactory keyFactory = KeyFactory.getInstance("RSA", "BC");
+      PrivateKey privateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(privateKeyInfo.getEncoded()));
+
+
+      X509CertificateHolder certObj = (X509CertificateHolder) certParser.readObject();
+      JcaX509CertificateConverter certConverter = new JcaX509CertificateConverter();
+      certConverter.setProvider("BC");
+      X509Certificate certificate = certConverter.getCertificate(certObj);
+      X509Certificate[] certificates = new X509Certificate[]{certificate};
+
+      // Add the private key and certificates to the keystore
+      // Convert PEM to PKCS12
+      KeyStore keyStore = KeyStore.getInstance("PKCS12");
+      keyStore.load(null, null);
+      keyStore.setKeyEntry("SIGNUM_NODE_CERT", privateKey, password.toCharArray(), certificates);
+
+      // Save PKCS12 file
+      try (OutputStream out = new FileOutputStream(p12File)) {
+        keyStore.store(out, password.toCharArray());
+      }
+    }
   }
 }

@@ -24,7 +24,6 @@ public class ServerConnectorWebsocketBuilderImpl extends AbstractServerConnector
   @Override
   public ServerConnector build(Server server) {
     PropertyService propertyService = context.getPropertyService();
-    // TODO: WSS Support
     ServerConnector connector = propertyService.getBoolean(Props.API_SSL) ? this.createSSLConnector(server) : new ServerConnector(server);
     connector.setHost(propertyService.getString(Props.API_LISTEN));
     connector.setPort(propertyService.getInt(Props.API_WEBSOCKET_PORT));

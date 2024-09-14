@@ -12,21 +12,20 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 
-public class ServerConnectorWebsocketBuilderImpl implements ServerConnectorBuilder {
+public class ServerConnectorWebsocketBuilderImpl extends AbstractServerConnectorBuilder {
 
   private static final Logger logger = LoggerFactory.getLogger(ServerConnectorWebsocketBuilderImpl.class);
-  private final WebServerContext context;
   private final ServletContextHandler servletContextHandler;
 
   public ServerConnectorWebsocketBuilderImpl(WebServerContext context, ServletContextHandler servletContextHandler) {
-    this.context = context;
+    super(context);
     this.servletContextHandler = servletContextHandler;
   }
   @Override
   public ServerConnector build(Server server) {
     PropertyService propertyService = context.getPropertyService();
     // TODO: WSS Support
-    ServerConnector connector =  new ServerConnector(server);
+    ServerConnector connector = propertyService.getBoolean(Props.API_SSL) ? this.createSSLConnector(server) : new ServerConnector(server);
     connector.setHost(propertyService.getString(Props.API_LISTEN));
     connector.setPort(propertyService.getInt(Props.API_WEBSOCKET_PORT));
     connector.setReuseAddress(true);

@@ -29,4 +29,5 @@ target
 /build/
 /bin/
 launch.json
-
+*.pem
+*.p12

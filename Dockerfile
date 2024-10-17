@@ -1,9 +1,25 @@
 # Build the node software
-#FROM gradle:7.3.3-jdk11 as builder
-FROM amazoncorretto:11-alpine-jdk as builder
+ARG NODE_VERSION=16.20.2
+FROM node:${NODE_VERSION}-alpine as builder
+
+# Add the latest alpine repositories
+RUN echo "http://dl-3.alpinelinux.org/alpine/latest-stable/main" > /etc/apk/repositories \
+  && echo "http://dl-3.alpinelinux.org/alpine/latest-stable/community" >> /etc/apk/repositories \
+  && apk update && apk upgrade --available --no-cache
+
 RUN  apk update && apk upgrade \
-  && apk add --no-cache --update coreutils bind-tools git unzip wget curl nodejs npm \
+  && apk add --no-cache --update --upgrade --virtual .build-deps-full \
+    coreutils \
+    bind-tools \
+    git \
+    unzip \
+    wget \
+    curl \
+    gcompat \
+    openjdk11-jdk \
   && rm -rf /var/cache/apk/*
+
+ENV JAVA_HOME="/usr/lib/jvm/java-11-openjdk"
 
 WORKDIR /signum-node
 
@@ -11,6 +27,9 @@ COPY . .
 
 RUN node -v
 RUN npm -v
+
+# Not needed as node is contained in the base image
+RUN sed -i 's/download = true/download = false/g' /signum-node/build.gradle
 
 # Build Signum Node Jar
 RUN chmod +x /signum-node/gradlew \
@@ -44,6 +63,7 @@ RUN $JAVA_HOME/bin/jlink \
   --compress=2 \
   --output /jre
 
+# Copy the required libraries
 RUN mkdir -p /requirements \
   && ldd /jre/bin/java | awk 'NF == 4 { system("cp --parents " $3 " /requirements") }'
 

@@ -18,6 +18,7 @@ on:
 jobs:
   publish-image:
     name: Push Docker image to Docker Hub
+    environment: dockerhub-publish
     runs-on: ubuntu-latest
     steps:
       - name: Set up Docker Buildx

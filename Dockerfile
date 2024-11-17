@@ -1,6 +1,6 @@
 # Build the node software
 ARG NODE_VERSION=16.20.2
-FROM node:${NODE_VERSION}-alpine as builder
+FROM node:${NODE_VERSION}-alpine AS builder
 
 # Add the latest alpine repositories
 RUN echo "http://dl-3.alpinelinux.org/alpine/latest-stable/main" > /etc/apk/repositories \
@@ -68,7 +68,7 @@ RUN mkdir -p /requirements \
   && ldd /jre/bin/java | awk 'NF == 4 { system("cp --parents " $3 " /requirements") }'
 
 # Prepare final image
-FROM alpine:3.18
+FROM alpine:3.20
 LABEL name="Signum Node"
 LABEL description="This is the official Signum Node image"
 LABEL credits="gittrekt,damccull,ohager"
@@ -87,8 +87,7 @@ COPY --from=builder /requirements/ /
 WORKDIR /signum
 
 VOLUME ["/conf", "/db"]
-RUN ln -s /conf /signum/conf
-RUN ln -s /db /signum/db
+RUN ln -s /conf /signum/conf && ln -s /db /signum/db
 
 # We use the bootstrap folder to copy the config files to the host machine in the start-node.sh script
 # use one of [h2,mariadb,postgres]
@@ -107,10 +106,6 @@ COPY conf/${network}/node.${database}.properties ./bootstrap/node.properties
 
 COPY docker/scripts/start-node.sh ./start-node.sh
 RUN chmod +x start-node.sh
-
-# Clean up
-RUN rm signum-node.exe 2> /dev/null || true
-RUN rm signum-node.zip 2> /dev/null || true
 
 EXPOSE $port_ws $port_http $port_p2p
 

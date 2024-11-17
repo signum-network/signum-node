@@ -1,6 +1,6 @@
 # Build the node software
 ARG NODE_VERSION=16.20.2
-FROM node:${NODE_VERSION}-alpine as builder
+FROM node:${NODE_VERSION}-alpine AS builder
 
 # Add the latest alpine repositories
 RUN echo "http://dl-3.alpinelinux.org/alpine/latest-stable/main" > /etc/apk/repositories \

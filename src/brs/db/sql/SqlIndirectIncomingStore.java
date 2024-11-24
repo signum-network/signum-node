@@ -1,9 +1,11 @@
 package brs.db.sql;
 
+import brs.Signum;
 import brs.IndirectIncoming;
 import brs.db.SignumKey;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.IndirectIncomingStore;
+import brs.props.Props;
 import org.jooq.*;
 import org.jooq.exception.DataAccessException;
 
@@ -60,7 +62,7 @@ public class SqlIndirectIncomingStore implements IndirectIncomingStore {
         while (iterator.hasNext()) {
           List<Record5<Long, Long, Long, Long, Integer>> rows = new ArrayList<>();
           // break into batches
-          for (int i = 0; i < 250000 && iterator.hasNext(); i++) {
+          for (int i = 0; i < Signum.getPropertyService().getInt(Props.DB_INSERT_BATCH_MAX_SIZE) && iterator.hasNext(); i++) {
             IndirectIncoming indirectIncoming = iterator.next();
             rows.add(ctx.newRecord(INDIRECT_INCOMING.ACCOUNT_ID,
               INDIRECT_INCOMING.TRANSACTION_ID,

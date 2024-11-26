@@ -6,6 +6,15 @@
 # Add the dockerhub repo path in a secret named:
 #    DOCKERHUB_REPO
 # This workflow will use them automatically.
+## Notes:
+# - The workflow_dispatch event will be named latest only on dockerhub.
+# - The push event is used to automatically trigger the workflow when a new tag is pushed to the repository.
+# - The metadata action is used to extract the version from the tag and generate the appropriate Docker tags.
+# - The build-push-action is used to build and push the Docker image to Docker Hub.
+# - The cache-from and cache-to actions are used to cache the Docker image layers between builds.
+# -- If you don't want to have a build cache image, you can remove the cache-from and cache-to actions,
+# -- or you can set it to another dockerhub repo (e.g. user/different-dockerhub-repo)
+# - The sbom action is used to generate a Software Bill of Materials (SBOM) for the Docker image.
 
 name: Publish Docker images
 
@@ -39,10 +48,9 @@ jobs:
         with:
           images: ${{ secrets.DOCKERHUB_REPO }}
           tags: |
-            type=ref,event=branch
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=develop,enable=${{ github.ref == 'refs/heads/develop' }}
+            type=pep440,pattern={{version}},event=push,enable=${{ github.ref == 'refs/heads/main' }}
 
       - name: Build and push
         uses: docker/build-push-action@v5

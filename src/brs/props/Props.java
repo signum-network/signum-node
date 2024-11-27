@@ -128,7 +128,7 @@ public class Props {
   public static final Prop<Integer> BRS_BLOCK_CACHE_MB = new Prop<>("node.blockCacheMB", 40);
   public static final Prop<Integer> BRS_AT_PROCESSOR_CACHE_BLOCK_COUNT = new Prop<>("node.atProcessorCacheBlockCount", 1000);
 
-  public static final Prop<Integer> DB_INSERT_BATCH_MAX_SIZE = new Prop<>("DB.InsertBatchMaxSize", 1000);
+  public static final Prop<Integer> DB_INSERT_BATCH_MAX_SIZE = new Prop<>("DB.InsertBatchMaxSize", 10000);
 
   // P2P options
   public static final Prop<Integer> P2P_PORT = new Prop<>("P2P.Port", 8123);

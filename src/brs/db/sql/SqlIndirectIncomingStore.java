@@ -22,6 +22,8 @@ public class SqlIndirectIncomingStore implements IndirectIncomingStore {
   private final EntitySqlTable<IndirectIncoming> indirectIncomingTable;
   private final SignumKey.LinkKeyFactory<IndirectIncoming> indirectIncomingDbKeyFactory;
 
+  private static final Integer InsertMaxBatchSize = Signum.getPropertyService().getInt(Props.DB_INSERT_BATCH_MAX_SIZE);
+
   public SqlIndirectIncomingStore(DerivedTableManager derivedTableManager) {
     indirectIncomingDbKeyFactory = new DbKey.LinkKeyFactory<IndirectIncoming>("account_id", "transaction_id") {
       @Override
@@ -62,7 +64,7 @@ public class SqlIndirectIncomingStore implements IndirectIncomingStore {
         while (iterator.hasNext()) {
           List<Record5<Long, Long, Long, Long, Integer>> rows = new ArrayList<>();
           // break into batches
-          for (int i = 0; i < Signum.getPropertyService().getInt(Props.DB_INSERT_BATCH_MAX_SIZE) && iterator.hasNext(); i++) {
+          for (int i = 0; i < InsertMaxBatchSize && iterator.hasNext(); i++) {
             IndirectIncoming indirectIncoming = iterator.next();
             rows.add(ctx.newRecord(INDIRECT_INCOMING.ACCOUNT_ID,
               INDIRECT_INCOMING.TRANSACTION_ID,

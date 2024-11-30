@@ -150,11 +150,60 @@ public class SqlBlockchainStore implements BlockchainStore {
   }
 
 
+//  @Override
+//  public Collection<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype, int blockTimestamp, int from, int to, boolean includeIndirectIncoming) {
+//    int height = getHeightForNumberOfConfirmations(numberOfConfirmations);
+//    return Db.useDSLContext(ctx -> {
+//      ArrayList<Condition> conditions = new ArrayList<>();
+//      if (blockTimestamp > 0) {
+//        conditions.add(TRANSACTION.BLOCK_TIMESTAMP.ge(blockTimestamp));
+//      }
+//      if (type >= 0) {
+//        conditions.add(TRANSACTION.TYPE.eq(type));
+//        if (subtype >= 0) {
+//          conditions.add(TRANSACTION.SUBTYPE.eq(subtype));
+//        }
+//      }
+//      if (height < Integer.MAX_VALUE) {
+//        conditions.add(TRANSACTION.HEIGHT.le(height));
+//      }
+//
+//      SelectOrderByStep<TransactionRecord> select = ctx.selectFrom(TRANSACTION).where(conditions).and(
+//        account == null ? TRANSACTION.RECIPIENT_ID.isNull() :
+//          TRANSACTION.RECIPIENT_ID.eq(account.getId()).and(
+//            TRANSACTION.SENDER_ID.ne(account.getId())
+//          )
+//      ).unionAll(
+//        account == null ? null :
+//          ctx.selectFrom(TRANSACTION).where(conditions).and(
+//            TRANSACTION.SENDER_ID.eq(account.getId())
+//          )
+//      );
+//
+//      if (includeIndirectIncoming) {
+//        select = select.unionAll(ctx.selectFrom(TRANSACTION)
+//          .where(conditions)
+//          .and(TRANSACTION.ID.in(ctx.select(INDIRECT_INCOMING.TRANSACTION_ID).from(INDIRECT_INCOMING)
+//            .where(INDIRECT_INCOMING.ACCOUNT_ID.eq(account.getId())))));
+//      }
+//
+//      SelectQuery<TransactionRecord> selectQuery = select
+//        .orderBy(TRANSACTION.BLOCK_TIMESTAMP.desc(), TRANSACTION.ID.desc())
+//        .getQuery();
+//
+//      DbUtils.applyLimits(selectQuery, from, to);
+//
+//      return getTransactions(ctx, selectQuery.fetch());
+//    });
+//  }
+
   @Override
   public Collection<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype, int blockTimestamp, int from, int to, boolean includeIndirectIncoming) {
     int height = getHeightForNumberOfConfirmations(numberOfConfirmations);
     return Db.useDSLContext(ctx -> {
       ArrayList<Condition> conditions = new ArrayList<>();
+
+      // Common conditions
       if (blockTimestamp > 0) {
         conditions.add(TRANSACTION.BLOCK_TIMESTAMP.ge(blockTimestamp));
       }
@@ -168,26 +217,27 @@ public class SqlBlockchainStore implements BlockchainStore {
         conditions.add(TRANSACTION.HEIGHT.le(height));
       }
 
-      SelectOrderByStep<TransactionRecord> select = ctx.selectFrom(TRANSACTION).where(conditions).and(
-        account == null ? TRANSACTION.RECIPIENT_ID.isNull() :
-          TRANSACTION.RECIPIENT_ID.eq(account.getId()).and(
-            TRANSACTION.SENDER_ID.ne(account.getId())
-          )
-      ).unionAll(
-        account == null ? null :
-          ctx.selectFrom(TRANSACTION).where(conditions).and(
-            TRANSACTION.SENDER_ID.eq(account.getId())
-          )
-      );
+      // Single query with comprehensive conditions
+      Condition accountCondition = DSL.trueCondition();
+      if (account != null) {
+        accountCondition = TRANSACTION.RECIPIENT_ID.eq(account.getId())
+          .and(TRANSACTION.SENDER_ID.ne(account.getId()))
+          .or(TRANSACTION.SENDER_ID.eq(account.getId()));
 
-      if (includeIndirectIncoming) {
-        select = select.unionAll(ctx.selectFrom(TRANSACTION)
-          .where(conditions)
-          .and(TRANSACTION.ID.in(ctx.select(INDIRECT_INCOMING.TRANSACTION_ID).from(INDIRECT_INCOMING)
-            .where(INDIRECT_INCOMING.ACCOUNT_ID.eq(account.getId())))));
+        if (includeIndirectIncoming) {
+          accountCondition = accountCondition.or(
+            TRANSACTION.ID.in(
+              DSL.select(INDIRECT_INCOMING.TRANSACTION_ID)
+                .from(INDIRECT_INCOMING)
+                .where(INDIRECT_INCOMING.ACCOUNT_ID.eq(account.getId()))
+            )
+          );
+        }
       }
 
-      SelectQuery<TransactionRecord> selectQuery = select
+      SelectQuery<TransactionRecord> selectQuery = ctx.selectFrom(TRANSACTION)
+        .where(conditions)
+        .and(accountCondition)
         .orderBy(TRANSACTION.BLOCK_TIMESTAMP.desc(), TRANSACTION.ID.desc())
         .getQuery();
 

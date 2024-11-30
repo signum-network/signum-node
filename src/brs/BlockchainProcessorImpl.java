@@ -704,7 +704,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           }
         } catch (Exception exception) {
           if (exception.toString().contains("[SQLITE_BUSY]") || exception.toString().contains("[SQLITE_BUSY_SNAPSHOT]")) {
-            logger.warn("SQLite deadlock, trying again later");
+            logger.warn("SQLite busy, trying again later...");
           } else {
             exception.printStackTrace();
             logger.error("Uncaught exception in blockImporterThread", exception);

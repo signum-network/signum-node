@@ -94,6 +94,9 @@ public final class GetAccountTransactions extends ApiServlet.JsonRequestHandler 
     int timestamp = ParameterParser.getTimestamp(req);
     int numberOfConfirmations = parameterService.getNumberOfConfirmations(req);
     boolean includeIndirect = parameterService.getIncludeIndirect(req);
+
+    long start = System.nanoTime();
+
     CollectionWithIndex<Transaction> accountTransactions = account != null
       ? blockchain.getTransactions(
       account,
@@ -116,7 +119,7 @@ public final class GetAccountTransactions extends ApiServlet.JsonRequestHandler 
       includeIndirect,
       parameterService.getBidirectional(req));
 
-
+    System.out.println("getAccountTransactions: Elapsed:" + (System.nanoTime() - start));
     JsonArray transactions = new JsonArray();
     for (Transaction transaction : accountTransactions) {
       transactions.add(JSONData.transaction(transaction, blockchain.getHeight()));

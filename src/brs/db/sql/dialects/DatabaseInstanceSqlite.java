@@ -89,7 +89,6 @@ public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
     String dbUrl = propertyService.getString(Props.DB_URL);
     String folderPath = extractSqliteFolderPath(dbUrl);
     if (folderPath != null) {
-      // get the folder from url!
       File dbFolder = new File(folderPath);
       if (!dbFolder.exists()) {
         logger.info("Creating SQLite DB folder(s): " + folderPath);

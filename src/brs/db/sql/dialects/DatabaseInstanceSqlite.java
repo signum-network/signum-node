@@ -7,6 +7,10 @@ import org.jooq.SQLDialect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
   private static final Logger logger = LoggerFactory.getLogger(DatabaseInstanceSqlite.class);
 
@@ -14,20 +18,20 @@ public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
     super(propertyService);
   }
 
-  private String getJournalMode(){
+  private String getJournalMode() {
     String journalMode = propertyService.getString(Props.DB_SQLITE_JOURNAL_MODE).toUpperCase();
-    if(
+    if (
       journalMode.equals("WAL") ||
-      journalMode.equals("TRUNCATE") ||
-      journalMode.equals("DELETE") ||
-      journalMode.equals("PERSIST")
-    ){
+        journalMode.equals("TRUNCATE") ||
+        journalMode.equals("DELETE") ||
+        journalMode.equals("PERSIST")
+    ) {
       return journalMode;
     }
     return "WAL";
   }
 
-  private String getSynchronousMode(){
+  private String getSynchronousMode() {
     String synchronous = propertyService.getString(Props.DB_SQLITE_SYNCHRONOUS).toUpperCase();
     switch (synchronous) {
       case "FULL":
@@ -40,7 +44,7 @@ public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
     }
   }
 
-  private int getCacheSize(){
+  private int getCacheSize() {
     return propertyService.getInt(Props.DB_SQLITE_CACHE_SIZE);
   }
 
@@ -69,9 +73,34 @@ public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
   }
 
 
+  private static String extractSqliteFolderPath(String jdbcUrl) {
+    if (jdbcUrl == null || !jdbcUrl.startsWith("jdbc:sqlite:")) {
+      throw new IllegalArgumentException("Invalid SQLite JDBC URL");
+    }
+    String filePath = jdbcUrl.substring("jdbc:sqlite:".length());
+    Path path = Paths.get(filePath).toAbsolutePath().getParent();
+    return path != null ? path.toString() : null;
+  }
+
   @Override
   protected void onStartupImpl() {
 
+    String dbUrl = propertyService.getString(Props.DB_URL);
+    String folderPath = extractSqliteFolderPath(dbUrl);
+    if (folderPath != null) {
+      // get the folder from url!
+      File dbFolder = new File(folderPath);
+      if (!dbFolder.exists()) {
+        logger.info("Creating SQLite DB folder: " + folderPath);
+        boolean created = dbFolder.mkdirs(); // creates parent directories if needed
+        if (!created) {
+          logger.warn("Failed to create SQLite DB folder: " + folderPath);
+        }
+      } else {
+        logger.warn("SQLite database folder path couldn't be found for " + dbUrl);
+      }
+    }
+    // get the folder from url!
     if (propertyService.getBoolean(Props.DB_OPTIMIZE)) {
       logger.info("SQLite optimization started...");
       executeSQL("PRAGMA optimize");

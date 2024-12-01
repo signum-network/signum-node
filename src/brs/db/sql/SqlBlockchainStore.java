@@ -153,7 +153,6 @@ public class SqlBlockchainStore implements BlockchainStore {
   @Override
   public Collection<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype, int blockTimestamp, int from, int to, boolean includeIndirectIncoming) {
 
-    System.out.println("Modified getTransactions....");
     int height = getHeightForNumberOfConfirmations(numberOfConfirmations);
     return Db.useDSLContext(ctx -> {
       ArrayList<Condition> conditions = new ArrayList<>();

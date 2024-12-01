@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -50,6 +51,9 @@ public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
 
   @Override
   protected HikariConfig configureImpl(HikariConfig config) {
+
+    ensureSqliteFolder();
+
     config.setMaximumPoolSize(10);
     config.setConnectionTestQuery("SELECT 1;");
     config.addDataSourceProperty("foreign_keys", "off");
@@ -72,35 +76,38 @@ public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
     return SQLDialect.SQLITE;
   }
 
-
   private static String extractSqliteFolderPath(String jdbcUrl) {
     if (jdbcUrl == null || !jdbcUrl.startsWith("jdbc:sqlite:")) {
       throw new IllegalArgumentException("Invalid SQLite JDBC URL");
     }
-    String filePath = jdbcUrl.substring("jdbc:sqlite:".length());
+    String filePath = jdbcUrl.substring("jdbc:sqlite:file:".length());
     Path path = Paths.get(filePath).toAbsolutePath().getParent();
     return path != null ? path.toString() : null;
   }
 
-  @Override
-  protected void onStartupImpl() {
-
+  private void ensureSqliteFolder() {
     String dbUrl = propertyService.getString(Props.DB_URL);
     String folderPath = extractSqliteFolderPath(dbUrl);
     if (folderPath != null) {
       // get the folder from url!
       File dbFolder = new File(folderPath);
       if (!dbFolder.exists()) {
-        logger.info("Creating SQLite DB folder: " + folderPath);
-        boolean created = dbFolder.mkdirs(); // creates parent directories if needed
-        if (!created) {
-          logger.warn("Failed to create SQLite DB folder: " + folderPath);
+        logger.info("Creating SQLite DB folder(s): " + folderPath);
+        try{
+          Files.createDirectories(Paths.get(folderPath));
+        }catch(Exception e){
+          logger.error("Failed to create SQLite DB folder: " + folderPath);
+          throw new RuntimeException(e);
         }
       } else {
         logger.warn("SQLite database folder path couldn't be found for " + dbUrl);
       }
     }
-    // get the folder from url!
+  }
+
+  @Override
+  protected void onStartupImpl() {
+
     if (propertyService.getBoolean(Props.DB_OPTIMIZE)) {
       logger.info("SQLite optimization started...");
       executeSQL("PRAGMA optimize");

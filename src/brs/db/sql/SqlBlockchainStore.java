@@ -157,7 +157,6 @@ public class SqlBlockchainStore implements BlockchainStore {
     return Db.useDSLContext(ctx -> {
       ArrayList<Condition> conditions = new ArrayList<>();
 
-      // Common conditions
       if (blockTimestamp > 0) {
         conditions.add(TRANSACTION.BLOCK_TIMESTAMP.ge(blockTimestamp));
       }
@@ -171,7 +170,6 @@ public class SqlBlockchainStore implements BlockchainStore {
         conditions.add(TRANSACTION.HEIGHT.le(height));
       }
 
-      // Single query with comprehensive conditions
       Condition accountCondition = DSL.trueCondition();
       if (account != null) {
         accountCondition = TRANSACTION.RECIPIENT_ID.eq(account.getId())

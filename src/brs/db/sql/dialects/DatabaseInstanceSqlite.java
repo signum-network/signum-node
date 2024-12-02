@@ -76,31 +76,30 @@ public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
     return SQLDialect.SQLITE;
   }
 
-  private static String extractSqliteFolderPath(String jdbcUrl) {
+  private static Path extractSqliteFolderPath(String jdbcUrl) {
     if (jdbcUrl == null || !jdbcUrl.startsWith("jdbc:sqlite:")) {
       throw new IllegalArgumentException("Invalid SQLite JDBC URL");
     }
     String filePath = jdbcUrl.substring("jdbc:sqlite:file:".length());
-    Path path = Paths.get(filePath).toAbsolutePath().getParent();
-    return path != null ? path.toString() : null;
+    return Paths.get(filePath).toAbsolutePath().getParent();
   }
 
   private void ensureSqliteFolder() {
     String dbUrl = propertyService.getString(Props.DB_URL);
-    String folderPath = extractSqliteFolderPath(dbUrl);
-    if (folderPath != null) {
-      File dbFolder = new File(folderPath);
-      if (!dbFolder.exists()) {
-        logger.info("Creating SQLite DB folder(s): " + folderPath);
-        try{
-          Files.createDirectories(Paths.get(folderPath));
-        }catch(Exception e){
-          logger.error("Failed to create SQLite DB folder: " + folderPath);
-          throw new RuntimeException(e);
-        }
-      } else {
-        logger.warn("SQLite database folder path couldn't be found for " + dbUrl);
-      }
+    Path folderPath = extractSqliteFolderPath(dbUrl);
+    if (folderPath == null) {
+      logger.error("SQLite database folder path couldn't be found for " + dbUrl);
+      return;
+    }
+    if (new File(folderPath.toString()).exists()) {
+      return;
+    }
+    logger.info("Creating SQLite DB folder(s): " + folderPath);
+    try {
+      Files.createDirectories(Paths.get(folderPath.toString()));
+    } catch (Exception e) {
+      logger.error("Failed to create SQLite DB folder: " + folderPath);
+      throw new RuntimeException(e);
     }
   }
 

@@ -25,6 +25,7 @@ public abstract class AbstractServerConnectorBuilder {
 
   private static final Logger logger = LoggerFactory.getLogger(AbstractServerConnectorBuilder.class);
   protected final WebServerContext context;
+  private static SslContextFactory.Server sslContextFactory;
 
   public AbstractServerConnectorBuilder(WebServerContext context) {
     this.context = context;
@@ -32,52 +33,58 @@ public abstract class AbstractServerConnectorBuilder {
 
   abstract ServerConnector build(Server server);
 
+  private SslContextFactory.Server getSslContextFactory() {
+    if (sslContextFactory == null) {
+      sslContextFactory = new SslContextFactory.Server();
+      sslContextFactory.setKeyStorePath(context.getPropertyService().getString(Props.API_SSL_KEY_STORE_PATH));
+      sslContextFactory.setKeyStorePassword(context.getPropertyService().getString(Props.API_SSL_KEY_STORE_PASSWORD));
+
+      // Handle optional Let's Encrypt Certificates...
+      String letsencryptPath = context.getPropertyService().getString(Props.API_SSL_LETSENCRYPT_PATH);
+      if (letsencryptPath != null && !letsencryptPath.isEmpty()) {
+        try {
+          loadLetsEncryptCertsAsPkcs12(letsencryptPath, context.getPropertyService().getString(Props.API_SSL_KEY_STORE_PATH), context.getPropertyService().getString(Props.API_SSL_KEY_STORE_PASSWORD));
+        } catch (Exception e) {
+          logger.error(e.getMessage());
+        }
+
+        // Reload the certificate every week, in case it was renewed
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+        Runnable reloadCert = () -> {
+          try {
+            loadLetsEncryptCertsAsPkcs12(letsencryptPath, context.getPropertyService().getString(Props.API_SSL_KEY_STORE_PATH), context.getPropertyService().getString(Props.API_SSL_KEY_STORE_PASSWORD));
+            sslContextFactory.reload(consumer -> logger.info("SSL keystore from letsencrypt reloaded."));
+          } catch (Exception e) {
+            logger.error(e.getMessage());
+          }
+        };
+        scheduler.scheduleWithFixedDelay(reloadCert, 7, 7, TimeUnit.DAYS);
+      }
+
+      String[] strongCiphers = {
+        "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+        "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+        // Add more strong ciphers as needed
+      };
+      sslContextFactory.setIncludeCipherSuites(strongCiphers);
+      sslContextFactory.setIncludeProtocols("TLSv1.2", "TLSv1.3");
+      sslContextFactory.setExcludeProtocols("SSLv3");
+    }
+    return sslContextFactory;
+  }
+
   protected ServerConnector createSSLConnector(Server server) {
     logger.info("Creating SSL Connector");
     HttpConfiguration httpsConfig = new HttpConfiguration();
     httpsConfig.setSecureScheme("https");
     httpsConfig.setSecurePort(context.getPropertyService().getInt(Props.API_PORT));
     httpsConfig.addCustomizer(new SecureRequestCustomizer());
-    SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
 
-    sslContextFactory.setKeyStorePath(context.getPropertyService().getString(Props.API_SSL_KEY_STORE_PATH));
-    sslContextFactory.setKeyStorePassword(context.getPropertyService().getString(Props.API_SSL_KEY_STORE_PASSWORD));
-
-    // Handle optional Let's Encrypt Certificates...
-    String letsencryptPath = context.getPropertyService().getString(Props.API_SSL_LETSENCRYPT_PATH);
-    if (letsencryptPath != null && !letsencryptPath.isEmpty()) {
-      try {
-        loadLetsEncryptCertsAsPkcs12(letsencryptPath, context.getPropertyService().getString(Props.API_SSL_KEY_STORE_PATH), context.getPropertyService().getString(Props.API_SSL_KEY_STORE_PASSWORD));
-      } catch (Exception e) {
-        logger.error(e.getMessage());
-      }
-
-      // Reload the certificate every week, in case it was renewed
-      ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-      Runnable reloadCert = () -> {
-        try {
-          loadLetsEncryptCertsAsPkcs12(letsencryptPath, context.getPropertyService().getString(Props.API_SSL_KEY_STORE_PATH), context.getPropertyService().getString(Props.API_SSL_KEY_STORE_PASSWORD));
-          sslContextFactory.reload(consumer -> logger.info("SSL keystore from letsencrypt reloaded."));
-        } catch (Exception e) {
-          logger.error(e.getMessage());
-        }
-      };
-      scheduler.scheduleWithFixedDelay(reloadCert, 7, 7, TimeUnit.DAYS);
-    }
-
-    String[] strongCiphers = {
-      "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
-      "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
-      // Add more strong ciphers as needed
-    };
-    sslContextFactory.setIncludeCipherSuites(strongCiphers);
-    sslContextFactory.setIncludeProtocols("TLSv1.2", "TLSv1.3");
-    sslContextFactory.setExcludeProtocols("SSLv3");
-    return new ServerConnector(server, new SslConnectionFactory(sslContextFactory, "http/1.1"),
+    return new ServerConnector(server, new SslConnectionFactory(getSslContextFactory(), "http/1.1"),
       new HttpConnectionFactory(httpsConfig));
   }
 
-  public void loadLetsEncryptCertsAsPkcs12(String letsencryptPath, String p12Filename, String password) throws Exception {
+  public static void loadLetsEncryptCertsAsPkcs12(String letsencryptPath, String p12Filename, String password) throws Exception {
 
     logger.info("Converting Let's Encrypt Certificate to PKCS12...");
     Security.addProvider(new BouncyCastleProvider());

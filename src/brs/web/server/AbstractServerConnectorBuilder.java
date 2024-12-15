@@ -15,6 +15,8 @@ import java.io.*;
 import java.security.*;
 import java.security.cert.X509Certificate;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -92,16 +94,21 @@ public abstract class AbstractServerConnectorBuilder {
       KeyFactory keyFactory = KeyFactory.getInstance("RSA", "BC");
       PrivateKey privateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(privateKeyInfo.getEncoded()));
 
-      X509CertificateHolder certObj = (X509CertificateHolder) certParser.readObject();
-      JcaX509CertificateConverter certConverter = new JcaX509CertificateConverter();
-      certConverter.setProvider("BC");
-      X509Certificate certificate = certConverter.getCertificate(certObj);
-      X509Certificate[] certificates = new X509Certificate[]{certificate};
+      // Convert all certificates in fullchain.pem
+      JcaX509CertificateConverter certConverter = new JcaX509CertificateConverter().setProvider("BC");
+      List<X509Certificate> certList = new ArrayList<>();
+      Object certObj;
+      while ((certObj = certParser.readObject()) != null) {
+        if (certObj instanceof X509CertificateHolder) {
+          certList.add(certConverter.getCertificate((X509CertificateHolder) certObj));
+        }
+      }
+      X509Certificate[] certificates = certList.toArray(new X509Certificate[0]);
 
       // Add the private key and certificates to the keystore
       KeyStore keyStore = KeyStore.getInstance("PKCS12");
       keyStore.load(null, null);
-      keyStore.setKeyEntry("SIGNUM_NODE_CERT", privateKey, password.toCharArray(), certificates);
+      keyStore.setKeyEntry("lets-encrypt", privateKey, password.toCharArray(), certificates);
 
       // Finally, save as PKCS12 file...
       try (OutputStream out = new FileOutputStream(p12Filename)) {

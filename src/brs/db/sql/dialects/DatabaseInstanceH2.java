@@ -48,16 +48,13 @@ public class DatabaseInstanceH2 extends DatabaseInstanceBaseImpl {
     logger.warn("H2 shows certain instabilities and is not recommended for use in production, i.e. public nodes anymore.");
     logger.warn("We recommend to use SQLite as a stable alternative");
     logger.warn("--------------------------");
+    logger.warn("### H2 SUPPORT WILL BE REMOVED IN VERSION 3.9 ###");
+    logger.warn("--------------------------");
   }
 
   @Override
   public SQLDialect getDialect() {
     return SQLDialect.H2;
-  }
-
-
-  @Override
-  public void onStartup() {
   }
 
   @Override

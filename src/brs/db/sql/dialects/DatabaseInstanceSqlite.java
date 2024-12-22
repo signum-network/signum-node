@@ -115,7 +115,6 @@ public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
 
   }
 
-
   @Override
   public String getMigrationSqlScriptPath() {
     return "classpath:/db/migration_sqlite";
@@ -127,7 +126,7 @@ public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
   }
 
   @Override
-  public boolean isStable() {
-    return false;
+  public SupportStatus getSupportStatus() {
+    return SupportStatus.STABlE;
   }
 }

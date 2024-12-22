@@ -4,7 +4,14 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.jooq.SQLDialect;
 
+
+
 public interface DatabaseInstance {
+  enum SupportStatus {
+    STABlE,
+    DEPRECATED,
+    EXPERIMENTAL
+  }
   void onStartup();
   void onShutdown();
   HikariConfig getConfig();
@@ -13,5 +20,5 @@ public interface DatabaseInstance {
   String getMigrationClassPath();
   String getDatabaseVersionSQLScript();
   SQLDialect getDialect();
-  boolean isStable();
+  SupportStatus getSupportStatus();
 }

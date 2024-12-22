@@ -251,7 +251,7 @@ public final class Db {
       Record record = queryVersion.fetchOne();
       if (record != null) {
         version = record.get(0, String.class);
-        if (databaseInstance.getSupportStatus() != DatabaseInstance.SupportStatus.STABlE) {
+        if (databaseInstance.getSupportStatus() != DatabaseInstance.SupportStatus.STABLE) {
           version += " (" + databaseInstance.getSupportStatus().toString() + ")";
         }
       }

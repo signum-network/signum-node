@@ -55,6 +55,6 @@ public class DatabaseInstanceMariaDb extends DatabaseInstanceBaseImpl {
 
   @Override
   public SupportStatus getSupportStatus() {
-    return SupportStatus.STABlE;
+    return SupportStatus.STABLE;
   }
 }

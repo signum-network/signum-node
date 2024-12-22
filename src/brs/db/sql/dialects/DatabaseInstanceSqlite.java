@@ -127,6 +127,6 @@ public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
 
   @Override
   public SupportStatus getSupportStatus() {
-    return SupportStatus.STABlE;
+    return SupportStatus.STABLE;
   }
 }

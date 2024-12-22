@@ -8,7 +8,7 @@ import org.jooq.SQLDialect;
 
 public interface DatabaseInstance {
   enum SupportStatus {
-    STABlE,
+    STABLE,
     DEPRECATED,
     EXPERIMENTAL
   }

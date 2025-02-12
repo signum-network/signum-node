@@ -106,7 +106,7 @@ public abstract class AbstractServerConnectorBuilder {
           PEMKeyPair pemKeyPair = (PEMKeyPair) keyObject;
           privateKeyInfo = pemKeyPair.getPrivateKeyInfo();
       } else {
-          throw new IllegalArgumentException("Unexpected key object type: " + keyObject.getClass().getName());
+          throw new IllegalArgumentException("PEMParser: unexpected Private key object type: " + keyObject.getClass().getName());
       }
 
       KeyFactory keyFactory = KeyFactory.getInstance("RSA", "BC");

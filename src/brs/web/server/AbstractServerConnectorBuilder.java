@@ -5,6 +5,7 @@ import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
@@ -97,7 +98,17 @@ public abstract class AbstractServerConnectorBuilder {
       PEMParser certParser = new PEMParser(new InputStreamReader(certIn));
 
       // make keys compatible with java.security.keystore
-      PrivateKeyInfo privateKeyInfo = (PrivateKeyInfo) keyParser.readObject();
+      Object keyObject = keyParser.readObject();
+      PrivateKeyInfo privateKeyInfo;
+      if (keyObject instanceof PrivateKeyInfo) {
+          privateKeyInfo = (PrivateKeyInfo) keyObject;
+      } else if (keyObject instanceof PEMKeyPair) {
+          PEMKeyPair pemKeyPair = (PEMKeyPair) keyObject;
+          privateKeyInfo = pemKeyPair.getPrivateKeyInfo();
+      } else {
+          throw new IllegalArgumentException("Unexpected key object type: " + keyObject.getClass().getName());
+      }
+
       KeyFactory keyFactory = KeyFactory.getInstance("RSA", "BC");
       PrivateKey privateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(privateKeyInfo.getEncoded()));
 

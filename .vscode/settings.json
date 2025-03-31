@@ -7,5 +7,6 @@
     "java.format.enabled": true,
     "editor.detectIndentation": false,
     "java.import.projectSelection": "automatic",
-    "workbench.colorTheme": "Default Dark Modern"
+    "workbench.colorTheme": "Default Dark Modern",
+    "java.server.launchMode": "Standard"
 }

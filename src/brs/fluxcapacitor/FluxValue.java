@@ -3,6 +3,9 @@ package brs.fluxcapacitor;
 import java.util.Arrays;
 import java.util.List;
 
+//TODO: Create JavaDocs and remove this
+@SuppressWarnings({ "checkstyle:MissingJavadocTypeCheck", "checkstyle:MissingJavadocMethodCheck" })
+
 public class FluxValue<T> {
     private T defaultValue;
     private List<ValueChange<T>> valueChanges;
@@ -12,7 +15,7 @@ public class FluxValue<T> {
         this.defaultValue = defaultValue;
         this.valueChanges = Arrays.asList(valueChanges);
     }
-    
+
     public void updateValueChanges(List<ValueChange<T>> valueChanges) {
         this.valueChanges = valueChanges;
         this.defaultValue = valueChanges.get(0).getNewValue();

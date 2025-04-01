@@ -3,11 +3,11 @@ package brs.fluxcapacitor;
 import brs.props.Prop;
 import brs.props.Props;
 
-//TODO: Create JavaDocs and remove this
-@SuppressWarnings({
-    "checkstyle:MissingJavadocTypeCheck",
-    "checkstyle:MissingJavadocMethodCheck",
-    "checkstyle:LineLengthCheck" })
+/**
+ * All historical moments in the Signum blockchain, representing the blocks at
+ * which various features were enabled. These are hard fork points.
+ */
+@SuppressWarnings({ "checkstyle:LineLengthCheck" })
 
 public class HistoricalMoments {
     public static HistoricalMoments GENESIS = new HistoricalMoments(0, null);

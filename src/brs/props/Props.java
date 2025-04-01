@@ -5,12 +5,10 @@ import brs.Genesis;
 import brs.Signum;
 import brs.util.Convert;
 
-//TODO: Create JavaDocs and remove this
-@SuppressWarnings({
-    "checkstyle:MissingJavadocTypeCheck",
-    "checkstyle:MissingJavadocMethodCheck",
-    "checkstyle:LineLengthCheck" })
-
+/**
+ * The properties from the configuration files, and any defaults.
+ */
+@SuppressWarnings({ "checkstyle:LineLengthCheck" })
 public class Props {
 
     public static final Prop<String> APPLICATION = new Prop<>("node.application", Signum.APPLICATION);

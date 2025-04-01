@@ -3,15 +3,15 @@ package brs.fluxcapacitor;
 import brs.Constants;
 import brs.Version;
 
-//TODO: Create JavaDocs and remove this
-@SuppressWarnings({
-    "checkstyle:MissingJavadocTypeCheck",
-    "checkstyle:MissingJavadocMethodCheck",
-    "checkstyle:LineLengthCheck" })
-
+/**
+ * All the FluxValues needed for the Signum chain.
+ */
+@SuppressWarnings({ "checkstyle:LineLengthCheck" })
 public class FluxValues {
     private FluxValues() {
     }
+    // FluxEnable values are all booleans that become true at the height of the
+    // provided HistoricalMoment.
 
     public static final FluxEnable REWARD_RECIPIENT_ENABLE = new FluxEnable(HistoricalMoments.REWARD_RECIPIENT_ENABLE);
     public static final FluxEnable DIGITAL_GOODS_STORE = new FluxEnable(HistoricalMoments.DIGITAL_GOODS_STORE_BLOCK);
@@ -35,6 +35,10 @@ public class FluxValues {
     public static final FluxEnable PK_FREEZE2 = new FluxEnable(HistoricalMoments.PK_FREEZE2);
     public static final FluxEnable SMART_ALIASES = new FluxEnable(HistoricalMoments.SMART_ALIASES);
     public static final FluxEnable NEXT_FORK = new FluxEnable(HistoricalMoments.NEXT_FORK);
+
+    // FluxValue values are various data types whose values change at provided
+    // HistoricalMoments and
+    // may change multiple times in the history of the chain.
 
     public static final FluxValue<Integer> BLOCK_TIME = new FluxValue<>(240);
     public static final FluxValue<Long> FEE_QUANT = new FluxValue<>(

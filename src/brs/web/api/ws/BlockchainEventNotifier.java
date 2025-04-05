@@ -50,8 +50,11 @@ public class BlockchainEventNotifier {
 
   private void withHeartbeatPaused(Runnable fn) {
     heartbeat.pause();
-    fn.run();
-    heartbeat.resume();
+    try {
+        fn.run();
+    } finally {
+        heartbeat.resume();
+    }
   }
 
   private void sendToAll(Consumer<WebSocketConnection> fn) {

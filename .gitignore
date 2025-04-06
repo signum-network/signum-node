@@ -31,3 +31,4 @@ target
 launch.json
 *.pem
 *.p12
+*.log.lck

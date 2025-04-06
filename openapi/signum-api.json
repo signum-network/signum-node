@@ -296,6 +296,9 @@
     },
     "/api?requestType=getAliasesOnSale": {
       "$ref": "./paths/getters/getAliasesOnSale.json"
+    },
+    "/api?requestType=getAccountKeys": {
+      "$ref": "./paths/admin/getAccountKeys.json"
     }
   },
   "components": {

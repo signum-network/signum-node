@@ -19,6 +19,7 @@ public final class JSONResponses {
   public static final JsonElement INCORRECT_ALIAS_NOTFORSALE = incorrect(ALIAS_PARAMETER, "(alias is not for sale at the moment)");
   public static final JsonElement INCORRECT_URI_LENGTH = incorrect(URI_PARAMETER, "(length must be not longer than " + Constants.MAX_ALIAS_URI_LENGTH + " characters)");
   public static final JsonElement MISSING_SECRET_PHRASE = missing(SECRET_PHRASE_PARAMETER);
+  public static final JsonElement WEAK_SECRET_PHRASE = incorrect(SECRET_PHRASE_PARAMETER, "(secret phrase must be at least " + Constants.MIN_SECRET_PHRASE_LENGTH + " characters long)");
   public static final JsonElement INCORRECT_PUBLIC_KEY = incorrect(PUBLIC_KEY_PARAMETER);
   public static final JsonElement MISSING_ALIAS_NAME = missing(ALIAS_NAME_PARAMETER);
   public static final JsonElement MISSING_ALIAS_OR_ALIAS_NAME = missing(ALIAS_PARAMETER, "aliasName");

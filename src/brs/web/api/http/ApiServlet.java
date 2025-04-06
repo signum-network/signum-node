@@ -211,6 +211,8 @@ public final class ApiServlet extends HttpServlet {
     map.put("fullReset", new FullReset(blockchainProcessor, propertyService));
     map.put("popOff", new PopOff(blockchainProcessor, blockchain, blockService, propertyService));
     map.put("backupDB", new BackupDB(propertyService));
+    map.put("getAccountKeys", new GetAccountKeys(propertyService, parameterService));
+
 
 
     NetworkParameters networkParameters = context.getNetworkParameters();

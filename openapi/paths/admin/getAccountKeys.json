@@ -1,0 +1,50 @@
+{
+  "post": {
+    "summary": "⚠️ Get Account Keys",
+    "description": "This gets you the accounts public __and__ private key by a given secret phrase.",
+    "tags": [
+      "admin"
+    ],
+    "parameters": [
+      {
+        "name": "secretPhrase",
+        "description": "The secret phrase you want the keys for.",
+        "in": "query",
+        "schema" : {
+          "type": "string",
+          "minLength": 32
+        }
+      },
+      {
+        "$ref": "../../parameters/apiKey.json"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "The keys for the given secret",
+        "content": {
+          "application/json": {
+              "schema" : {
+                "type": "object",
+                "example": {
+                  "publicKey": "998f500297b0e7ef9e4e1c18ac7921c74d76a1aabded8c36972896f8d444a2b5",
+                  "privateKey": "a645cb3cc93176dda1b9bc172c53449dc42b2c27100b5754f70c1eb84b491230"
+                },
+                "properties": {
+                  "publicKey": {
+                    "$ref": "../../schemas/hexString.json"
+                  },
+                  "privateKey": {
+                    "$ref": "../../schemas/hexString.json"
+                  }
+                }
+              }
+          }
+        }
+      },
+      "500" : {
+        "$ref": "../../responses/error.json"
+      }
+    }
+  }
+}

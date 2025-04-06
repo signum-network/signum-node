@@ -32,6 +32,7 @@ public class ResultFields {
   public static final String VERIFY_RESPONSE = "verify";
   public static final String VALIDATE_RESPONSE = "validate";
   public static final String PUBLIC_KEY_RESPONSE = "publicKey";
+  public static final String PRIVATE_KEY_RESPONSE = "privateKey";
   public static final String NAME_RESPONSE = "name";
   public static final String DESCRIPTION_RESPONSE = "description";
   public static final String COMMITMENT_NQT_RESPONSE = "commitmentNQT";

@@ -69,7 +69,6 @@ public final class Constants {
   public static final int MAX_AUTOMATED_TRANSACTION_NAME_LENGTH = 30;
   public static final int MAX_AUTOMATED_TRANSACTION_DESCRIPTION_LENGTH = 1000;
 
-
   /**
    * Must be 1 or greater.
    */
@@ -112,6 +111,9 @@ public final class Constants {
   public static final int BLOCK_PROCESS_THREAD_DELAY = 500; // Milliseconds
 
   public static final byte[] AT_PUBLIC_KEY_BYTES = new byte[32];;
+
+  public static final int MIN_SECRET_PHRASE_LENGTH = 32;
+
 
   private Constants() {
   } // never

@@ -1,0 +1,72 @@
+{
+  "get": {
+    "summary": "Get Account Identifiers",
+    "description": "Gets account identifiers, like Reed Solomon-Adddress, Numeric Id, extended Address based on given public key or secret.",
+    "tags": [
+      "account"
+    ],
+    "parameters": [
+      {
+        "name": "publicKey",
+        "in": "query",
+        "description": "An accounts public key",
+        "schema": {
+          "$ref": "../../schemas/hash.json"
+        }
+      },
+      {
+        "name": "secretPhrase",
+        "in": "query",
+        "description": "The secret phrase",
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Account response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "publicKey",
+                "account",
+                "accountRS",
+                "accountRSExtended"
+              ],
+              "example": {
+                "account": "2402520554221019656",
+                "accountRS": "S-QAJA-QW5Y-SWVP-4RVP4",
+                "accountRSExtended": "S-QAJA-QW5Y-SWVP-4RVP4-4U4ZCOBGZ9UPEQZQH4TSPXADMT7VHPPI53ZTWNUK9NZLXSDRNU",
+                "publicKey": "c213e4144ba84af94aae2458308fae1f0cb083870c8f3012eea58147f3b09d4a"
+              },
+              "properties": {
+                "account": {
+                  "$ref": "../../schemas/numericId.json"
+                },
+                "accountRS": {
+                  "$ref": "../../schemas/rsAddress.json"
+                },
+                "accountRSExtended": {
+                  "description": "The extended address carries the public key base36 encoded",
+                  "type": "string",
+                  "example": [
+                    "TS-QAJA-QW5Y-SWVP-4RVP4-4U4ZCOBGZ9UPEQZQH4TSPXADMT7VHPPI53ZTWNUK9NZLXSDRNU"
+                  ]
+                },
+                "publicKey": {
+                  "$ref": "../../schemas/hash.json"
+                }
+              }
+            }
+          }
+        }
+      },
+      "500": {
+        "$ref": "../../responses/error.json"
+      }
+    }
+  }
+}

@@ -108,6 +108,9 @@
     "/api?requestType=getAccount": {
       "$ref": "./paths/getters/getAccount.json"
     },
+    "/api?requestType=getAccountId": {
+      "$ref": "./paths/getters/getAccountId.json"
+    },
     "/api?requestType=getAccountsWithRewardRecipient": {
       "$ref": "./paths/getters/getAccountsWithRewardRecipient.json"
     },

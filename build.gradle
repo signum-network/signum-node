@@ -217,7 +217,7 @@ tasks.register('dist', Zip) {
   into('html') { from "html" }
   from "LICENSE.txt"
   from "README.md"
-  archiveName "${baseNodeFileName}.zip"
+  archiveFileName = "${baseNodeFileName}.zip"
 }
 
 def jdkVersion = 'zulu21.32.17-ca-jre21.0.1'
@@ -251,7 +251,7 @@ tasks.register('windowsZip', Zip) {
   into('jre') {
     from "build/distributions/${jdkVersion}-win_x64/"
   }
-  archiveName "${baseNodeFileName}-win_x64.zip"
+  archiveFileName = "${baseNodeFileName}-win_x64.zip"
 }
 
 import org.gradle.crypto.checksum.Checksum

@@ -157,7 +157,6 @@ node {
 }
 
 tasks.register('dist', Zip) {
-    dependsOn buildOpenApi
     from(project.tasks.shadowJar.outputs.files) {
         include "${baseNodeFileName}-all.jar"
         rename { "${baseNodeFileName}.jar" }
@@ -245,6 +244,7 @@ tasks.register('release', Checksum) {
         "build/libs/${baseNodeFileName}-javadoc.jar"
     ])
 }
+dist.mustRunAfter(buildOpenApi)
 
 tasks.register('sourcesJar', Jar) {
     archiveClassifier = 'sources'

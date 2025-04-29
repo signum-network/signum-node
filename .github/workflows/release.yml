@@ -7,14 +7,43 @@ on:
       - 'v*'
 
 jobs:
-  build:
-    name: Create Release Draft
-    runs-on: windows-latest
+  build-openapi:
+    name: Build OpenAPI on Linux
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.VERSION }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Get version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 16
+
+      - name: Build OpenAPI
+        run: ./gradlew buildOpenApi
+
+      - name: Upload OpenAPI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi-html
+          path: html/ui/phoenix/
+
+  build-node:
+    name: Build and Package on Windows
+    needs: build-openapi
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
       - name: Update Wallets
         shell: bash
         run: |
@@ -22,10 +51,11 @@ jobs:
           ./updatePhoenix.sh
           ./updateClassic.sh
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Download OpenAPI artifact
+        uses: actions/download-artifact@v4
         with:
-          node-version: 16
+          name: openapi-html
+          path: html/ui/phoenix/
 
       - name: Set up Java 21 (Zulu)
         uses: actions/setup-java@v4
@@ -33,7 +63,7 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
 
-      - name: Build all artifacts
+      - name: Build artifacts
         run: ./gradlew shadowJar jpackageWin zipWinExe sourcesJar javadocJar release
 
       - name: Get version from tag

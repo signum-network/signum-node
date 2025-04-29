@@ -219,18 +219,29 @@ tasks.register('jpackageWin', Exec) {
 
 tasks.register('zipWinExe', Zip) {
     dependsOn jpackageWin
-    archiveFileName = "${baseNodeFileName}-win_x64.zip"
-    destinationDirectory = file("$buildDir/distributions")
+    dependsOn unzipWindowsJDK
 
-    from("build/jpackage/SignumNode/SignumNode.exe")
-
-    into('conf') {
-        from "conf/node-default.properties"
-        from "conf/logging-default.properties"
+    from("${project.buildDir}/jpackage/SignumNode/") {
+        include "SignumNode.exe"
+        rename { "${baseNodeFileName}.exe" }
     }
 
+    from(project.tasks.shadowJar.outputs.files) {
+        include "${baseNodeFileName}-all.jar"
+        rename { "${baseNodeFileName}.jar" }
+    }
+
+    into('conf') { from "conf/node-default.properties" }
+    into('conf') { from "conf/logging-default.properties" }
+    into('html') { from "html" }
     from "LICENSE.txt"
     from "README.md"
+
+    into('jre') {
+        from "build/distributions/${jdkVersion}-win_x64/"
+    }
+
+    archiveFileName = "${baseNodeFileName}-win_x64.zip"
 }
 
 import org.gradle.crypto.checksum.Checksum

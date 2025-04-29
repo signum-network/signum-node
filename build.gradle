@@ -190,7 +190,8 @@ createExe {
 
   dontWrapJar = true
   mainClassName = project.mainClassName
-  copyConfigurable = project.tasks.shadowJar.outputs.files
+  //copyConfigurable = project.tasks.shadowJar.outputs.files
+  copyConfigurable = tasks.named("shadowJar").get().outputs.files
   jar = "${baseNodeFileName}.jar"
 }
 

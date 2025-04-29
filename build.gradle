@@ -217,7 +217,7 @@ tasks.register('jpackageWin', Exec) {
     ]
 }
 
-def jdkVersion = 'zulu21.32.17-ca-jre21.0.1'
+def jdkVersion = 'zulu21.32.19-ca-jre21.0.3'
 
 import de.undercouch.gradle.tasks.download.Download
 

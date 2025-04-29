@@ -19,12 +19,16 @@ echo
 echo "======================================="
 echo "⬇️ Downloading latest Phoenix Web Release..."
 echo "---------------------------------------"
-curl -s "https://api.github.com/repos/signum-network/phoenix/releases/latest" \
+
+DOWNLOAD_URL=$(curl -s "https://api.github.com/repos/signum-network/phoenix/releases/latest" \
+    | grep "browser_download_url" \
     | grep "web-phoenix-signum-wallet.*.zip" \
     | cut -d : -f 2,3 \
     | tr -d \" \
-    | grep "https" \
-    | wget -i -
+    | tr -d ' ')
+
+curl -L -o phoenix.zip "$DOWNLOAD_URL"
+
 echo
 echo "======================================="
 echo "📦 Unpacking..."
@@ -45,11 +49,9 @@ rm -rf ../../../html/ui/phoenix/*
 cp -R * ../../../html/ui/phoenix
 echo "✅ Copied wallet sources"
 
-#./dist
+popd > /dev/null
 popd > /dev/null
 
-#./tmp
-popd > /dev/null
 echo
 echo "======================================="
 echo "🛀 Cleaning up..."
@@ -58,7 +60,4 @@ rm -rf ./tmp
 echo "✅ Removed temp data"
 echo
 echo "🎉 Yay. Successfully updated Phoenix Web Wallet"
-
-
-
 

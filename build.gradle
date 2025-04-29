@@ -137,8 +137,12 @@ sourceSets {
 }
 
 // Define the main class for the application
-mainClass.set('signum.Launcher')
-description = 'Signum Node.'
+application {
+    mainClass.set('signum.Launcher')
+    description = 'Signum Node.'
+}
+// mainClass.set('signum.Launcher')
+// description = 'Signum Node.'
 
 jar {
   // Needed by the logging library

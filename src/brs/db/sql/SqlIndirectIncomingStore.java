@@ -34,7 +34,7 @@ public class SqlIndirectIncomingStore implements IndirectIncomingStore {
 
     this.indirectIncomingTable = new EntitySqlTable<IndirectIncoming>("indirect_incoming", INDIRECT_INCOMING, indirectIncomingDbKeyFactory, derivedTableManager) {
       @Override
-      protected IndirectIncoming load(DSLContext ctx, Record rs) {
+      protected IndirectIncoming load(DSLContext ctx, org.jooq.Record rs) {
         return new IndirectIncoming(
           rs.get(INDIRECT_INCOMING.ACCOUNT_ID),
           rs.get(INDIRECT_INCOMING.TRANSACTION_ID),

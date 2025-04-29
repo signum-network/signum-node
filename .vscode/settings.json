@@ -8,5 +8,5 @@
     "editor.detectIndentation": false,
     "java.import.projectSelection": "automatic",
     "workbench.colorTheme": "Default Dark Modern",
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.configuration.updateBuildConfiguration": "automatic"
 }

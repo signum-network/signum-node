@@ -173,6 +173,7 @@ tasks.register('dist', Zip) {
 tasks.register('jpackageWin', Exec) {
     group = 'distribution'
     description = 'Builds a Windows EXE using jpackage'
+    dependsOn shadowJar
 
     def appName = 'SignumNode'
     def version = details.lastTag ?: "1.0.0"

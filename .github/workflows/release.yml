@@ -9,32 +9,38 @@ on:
 jobs:
   build:
     name: Create Release Draft
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Update Wallets
+        shell: bash
         run: |
           cd ./ci
           ./updatePhoenix.sh
           ./updateClassic.sh
 
-      - name: Setup NodeJS
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 16
 
-      - name: Set up JDK 21
+      - name: Set up Java 21 (Zulu)
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '21'
 
-      - name: Build All
-        run: ./gradlew release
+      - name: Build all artifacts
+        run: ./gradlew shadowJar jpackageWin zipWinExe sourcesJar javadocJar release
 
-      - name: Create Release
+      - name: Get version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Create GitHub Release Draft
         id: create_release
         uses: actions/create-release@v1.0.0
         env:
@@ -45,12 +51,7 @@ jobs:
           draft: true
           prerelease: false
 
-      - name: Get the version
-        id: get_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
-      - name: Upload Release Asset - Zip
-        id: upload-release-asset-zip
+      - name: Upload - signum-node.zip
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -60,19 +61,7 @@ jobs:
           asset_name: signum-node-${{ env.VERSION }}.zip
           asset_content_type: application/zip
 
-      - name: Upload Release Asset - Zip checksum
-        id: upload-release-asset-zip-checksum
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/checksums/signum-node.zip.sha256
-          asset_name: signum-node-${{ env.VERSION }}.zip.sha256
-          asset_content_type: text/plain
-
-      - name: Upload Release Asset - WindowsZip
-        id: upload-release-asset-windows-zip
+      - name: Upload - signum-node-win_x64.zip
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -82,14 +71,22 @@ jobs:
           asset_name: signum-node-${{ env.VERSION }}-win_x64.zip
           asset_content_type: application/zip
 
-      - name: Upload Release Asset - WindowsZip checksum
-        id: upload-release-asset-windows-zip-checksum
+      - name: Upload - Sources JAR
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/checksums/signum-node-win_x64.zip.sha256
-          asset_name: signum-node-${{ env.VERSION }}-win_x64.zip.sha256
-          asset_content_type: text/plain
+          asset_path: ./build/libs/signum-node-sources.jar
+          asset_name: signum-node-${{ env.VERSION }}-sources.jar
+          asset_content_type: application/java-archive
 
+      - name: Upload - Javadoc JAR
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./build/libs/signum-node-javadoc.jar
+          asset_name: signum-node-${{ env.VERSION }}-javadoc.jar
+          asset_content_type: application/java-archive

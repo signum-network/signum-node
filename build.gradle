@@ -192,7 +192,7 @@ tasks.register('jpackageWin', Exec) {
         '--dest', outputDir,
         '--name', appName,
         '--main-jar', "${baseNodeFileName}-all.jar",
-        '--main-class', project.mainClassName,
+        '--main-class', application.mainClass.get(),
         '--app-version', version,
         '--icon', "${projectDir}/resources/images/signum_overlay_logo.ico"
     ]

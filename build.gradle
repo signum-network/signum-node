@@ -176,7 +176,8 @@ tasks.register('jpackageWin', Exec) {
     dependsOn shadowJar
 
     def appName = 'SignumNode'
-    def version = details.lastTag ?: "1.0.0"
+    def rawVersion = details.lastTag ?: "1.0.0"
+    def version = rawVersion.replaceAll("[^0-9.]", "")
     def outputDir = "$buildDir/jpackage"
 
     inputs.file("$buildDir/libs/${baseNodeFileName}-all.jar")

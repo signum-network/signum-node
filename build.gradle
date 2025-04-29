@@ -177,10 +177,25 @@ tasks.register('jpackageWin', Exec) {
 
     def appName = 'SignumNode'
     def rawVersion = details.lastTag ?: "1.0.0"
+
+    // Nur Ziffern und Punkte, z. B. "v600" → "600"
     def version = rawVersion.replaceAll("[^0-9.]", "")
+
+    // Wenn nur eine Zahl da ist → .0 anhängen (z. B. 600 → 600.0)
     if (!version.contains(".")) {
-    version = "${version}.0" // z. B. "60" → "60.0"
+        version = "${version}.0"
     }
+
+    // Jetzt in Teile splitten und begrenzen
+    def parts = version.tokenize('.').collect { it as int }
+    while (parts.size() < 2) parts << 0
+    while (parts.size() > 4) parts = parts[0..3]
+
+    // Major darf max. 255 sein
+    if (parts[0] > 255) parts[0] = 1 // Fallback auf gültig
+
+    version = parts.join('.')
+
     def outputDir = "$buildDir/jpackage"
 
     inputs.file("$buildDir/libs/${baseNodeFileName}-all.jar")

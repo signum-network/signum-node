@@ -178,6 +178,9 @@ tasks.register('jpackageWin', Exec) {
     def appName = 'SignumNode'
     def rawVersion = details.lastTag ?: "1.0.0"
     def version = rawVersion.replaceAll("[^0-9.]", "")
+    if (!version.contains(".")) {
+    version = "${version}.0" // z. B. "60" → "60.0"
+    }
     def outputDir = "$buildDir/jpackage"
 
     inputs.file("$buildDir/libs/${baseNodeFileName}-all.jar")

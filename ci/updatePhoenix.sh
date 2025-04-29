@@ -33,7 +33,7 @@ echo
 echo "======================================="
 echo "📦 Unpacking..."
 echo "---------------------------------------"
-unzip web-phoenix-signum-wallet.*.zip
+unzip phoenix.zip
 echo "✅ Extracted newest wallet sources successfully"
 echo
 echo "======================================="

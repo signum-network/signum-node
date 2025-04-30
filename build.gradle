@@ -307,7 +307,7 @@ tasks.register('zipWinExe', Zip) {
     into('html') { from "html" }
     from "LICENSE.txt"
     from "README.md"
-    into('jre') {from "jre"}
+    into('jre') { from "build/distributions/jre" }
 
     archiveFileName = "${baseNodeFileName}-win_x64.zip"
 }

@@ -250,6 +250,7 @@ def jdkVersion = 'zulu21.42.19-ca-jre21.0.7'
 def jdkZip = "build/distributions/${jdkVersion}-win_x64.zip"
 def jdkZipName = "${jdkVersion}-win_x64.zip"
 
+
 tasks.register('downloadWindowsJDK', de.undercouch.gradle.tasks.download.Download) {
     src "https://cdn.azul.com/zulu/bin/${jdkVersion}-win_x64.zip"
     dest jdkZip
@@ -270,7 +271,7 @@ tasks.register('unzipWindowsJDK', Copy) {
     into "build/distributions/jre"
 
     def zipRoot = zipTree(jdkZip)
-    def rootDirName = jdkVersion
+    def rootDirName = "${jdkVersion}-win_x64"
 
     from(zipRoot.matching {
         eachFile { f ->
@@ -295,7 +296,7 @@ tasks.register('zipWinExe', Zip) {
     dependsOn unzipWindowsJDK
 
     from("${project.buildDir}/jpackage/SignumNode/") {
-        include "SignumNode.exe"
+        include "signum-node.exe"
         rename { "${baseNodeFileName}.exe" }
     }
 

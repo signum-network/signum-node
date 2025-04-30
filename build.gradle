@@ -215,6 +215,12 @@ tasks.register('jpackageWin', Exec) {
         '--app-version', version,
         '--icon', "${projectDir}/resources/images/signum_overlay_logo.ico"
     ]
+    doLast {
+    println "Contents of jpackage output dir:"
+    fileTree(dir: "$buildDir/jpackage/SignumNode", includes: ["**/*.exe"]).files.each {
+        println it
+    }
+}
 }
 
 import de.undercouch.gradle.tasks.download.Download
@@ -236,13 +242,14 @@ tasks.register('downloadWindowsJDK', de.undercouch.gradle.tasks.download.Downloa
 
 
 tasks.register('unzipWindowsJDK', Copy) {
-    dependsOn downloadWindowsJDK
+    dependsOn 
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from {
-        // ZIP entpacken und das oberste Verzeichnis entfernen
-        zipTree("build/distributions/${jdkVersion}-win_x64.zip").matching {
-            // Entfernt z. B. "zulu21.32.17-ca-jre21.0.2-win_x64/bin/java.exe" → "bin/java.exe"
+        def zipRoot = zipTree("build/distributions/${jdkVersion}-win_x64.zip")
+        def rootFolder = zipRoot.files.first().parentFile.name // Holt den Versionsordnernamen
+        zipRoot.matching {
             eachFile { f ->
+                // Entfernt genau den ersten Ordner z. B. zulu21.32.17-ca-jre21.0.2-win_x64
                 def segments = f.relativePath.segments
                 if (segments.length > 1) {
                     f.relativePath = new RelativePath(f.relativePath.isFile(), *segments.drop(1))
@@ -251,7 +258,6 @@ tasks.register('unzipWindowsJDK', Copy) {
             includeEmptyDirs = false
         }
     }
-
     into "build/distributions/jre"
 }
 

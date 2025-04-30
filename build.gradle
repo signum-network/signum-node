@@ -264,20 +264,26 @@ tasks.register('downloadWindowsJDK', de.undercouch.gradle.tasks.download.Downloa
 tasks.register('unzipWindowsJDK', Copy) {
     dependsOn downloadWindowsJDK
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    from {
-        def zipRoot = zipTree("build/distributions/${jdkVersion}-win_x64.zip")
-        def rootDirName = zipRoot.files.first().toPath().getName(0).toString()
+    into "build/distributions/jre"
 
-        zipRoot.matching {
+    doFirst {
+        def zipFile = file(jdkZip)
+        if (!zipFile.exists()) {
+            throw new GradleException("Expected JDK zip not found: ${zipFile}")
+        }
+
+        def zipRoot = zipTree(zipFile)
+        def rootDirName = zipRoot.files.find { it.isDirectory() }?.toPath()?.getName(0)?.toString()
+
+        from(zipRoot.matching {
             eachFile { f ->
                 def segments = f.relativePath.segments
                 if (segments[0] == rootDirName) {
                     f.relativePath = new RelativePath(f.relativePath.isFile(), *segments.drop(1))
                 }
             }
-        }
+        })
     }
-    into "build/distributions/jre"
 }
 
 tasks.register('zipWinExe', Zip) {

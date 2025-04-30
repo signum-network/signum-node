@@ -202,7 +202,7 @@ tasks.register('jpackageWin', Exec) {
 
     commandLine = [
         "${System.getenv('JAVA_HOME')}/bin/jpackage",
-        '--type', 'exe',
+        '--type', 'app-image',
         '--input', "$buildDir/libs",
         '--dest', outputDir,
         '--name', appName,

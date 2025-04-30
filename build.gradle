@@ -169,7 +169,7 @@ tasks.register('dist', Zip) {
     archiveFileName = "${baseNodeFileName}.zip"
 }
 
-asks.register('jpackageWin', Exec) {
+tasks.register('jpackageWin', Exec) {
     group = 'distribution'
     description = 'Builds a Windows EXE using jpackage'
     dependsOn shadowJar

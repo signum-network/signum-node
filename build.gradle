@@ -210,16 +210,19 @@ tasks.register('jpackageWin', Exec) {
         '--icon', "${projectDir}/resources/images/signum_overlay_logo.ico"
     ]
 
-    doLast {
-        println "==> jpackage output listing:"
-        fileTree(dir: outputDir, include: "**/*").files.each {
-            println "  - ${it}"
-        }
+        def exeName = "${appName}-${version}.exe"
+        def exePath2 = file("$outputDir/${exeName}")
 
-        if (!exePath.exists()) {
-            throw new GradleException("jpackage did not produce expected EXE file: ${exePath}")
+        doLast {
+            println "==> jpackage output listing:"
+            fileTree(dir: outputDir, include: "**/*.exe").files.each {
+                println "  - ${it}"
+            }
+
+            if (!exePath2.exists()) {
+                throw new GradleException("jpackage did not produce expected EXE file: ${exePath2}")
+            }
         }
-    }
 }
 
 tasks.register("printExeInfo") {
@@ -299,7 +302,7 @@ tasks.register('zipWinExe', Zip) {
     dependsOn unzipWindowsJDK
 
     from("${project.buildDir}/jpackage") {
-        include "SignumNode.exe"
+        include "${appName}-${version}.exe"
         rename { "${baseNodeFileName}.exe" }
     }
 

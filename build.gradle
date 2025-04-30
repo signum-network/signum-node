@@ -218,7 +218,7 @@ tasks.register('jpackageWin', Exec) {
 }
 
 import de.undercouch.gradle.tasks.download.Download
-def jdkVersion = 'zulu21.32.17-ca-jre21.0.2'
+def jdkVersion = 'zulu21.42.19-ca-jre21.0.7'
 def jdkZip = "build/distributions/${jdkVersion}-win_x64.zip"
 
 tasks.register('downloadWindowsJDK', de.undercouch.gradle.tasks.download.Download) {

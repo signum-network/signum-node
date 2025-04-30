@@ -266,16 +266,15 @@ tasks.register('unzipWindowsJDK', Copy) {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from {
         def zipRoot = zipTree("build/distributions/${jdkVersion}-win_x64.zip")
-        def rootFolder = zipRoot.files.first().parentFile.name // Holt den Versionsordnernamen
+        def rootDirName = zipRoot.files.first().toPath().getName(0).toString()
+
         zipRoot.matching {
             eachFile { f ->
-                // Entfernt genau den ersten Ordner z. B. zulu21.32.17-ca-jre21.0.2-win_x64
                 def segments = f.relativePath.segments
-                if (segments.length > 1) {
+                if (segments[0] == rootDirName) {
                     f.relativePath = new RelativePath(f.relativePath.isFile(), *segments.drop(1))
                 }
             }
-            includeEmptyDirs = false
         }
     }
     into "build/distributions/jre"

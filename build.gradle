@@ -79,6 +79,8 @@ dependencies {
     implementation 'org.apache.logging.log4j:log4j-core:2.17.1'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
     implementation 'org.eclipse.jgit:org.eclipse.jgit:6.5.0.202303070854-r'
+    implementation 'jakarta.xml.bind:jakarta.xml.bind-api:3.0.1'
+
 
     testImplementation("org.junit.platform:junit-platform-engine:1.5.1")
     testImplementation("org.junit.platform:junit-platform-launcher:1.5.1")
@@ -264,28 +266,26 @@ tasks.register('downloadWindowsJDK', de.undercouch.gradle.tasks.download.Downloa
 tasks.register('unzipWindowsJDK', Copy) {
     dependsOn downloadWindowsJDK
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    outputs.dir("build/distributions/jre")
     into "build/distributions/jre"
 
-    doFirst {
-        def zipFile = file(jdkZip)
-        if (!zipFile.exists()) {
-            throw new GradleException("Expected JDK zip not found: ${zipFile}")
-        }
-
-        def zipRoot = zipTree(zipFile)
-        def rootDirName = jdkVersion
-
-        // Die eigentliche Quelle des Copy-Tasks
-        from(zipRoot.matching {
-            eachFile { f ->
-                def segments = f.relativePath.segments
-                if (segments[0] == rootDirName) {
-                    f.relativePath = new RelativePath(f.relativePath.isFile(), *segments.drop(1))
-                }
-            }
-            includeEmptyDirs = false
-        })
+    def zipFile = file(jdkZip)
+    if (!zipFile.exists()) {
+        throw new GradleException("Expected JDK zip not found: ${zipFile}")
     }
+
+    def zipRoot = zipTree(zipFile)
+    def rootDirName = jdkVersion
+
+    from(zipRoot.matching {
+        eachFile { f ->
+            def segments = f.relativePath.segments
+            if (segments[0] == rootDirName) {
+                f.relativePath = new RelativePath(f.relativePath.isFile(), *segments.drop(1))
+            }
+        }
+        includeEmptyDirs = false
+    })
 }
 
 tasks.register('zipWinExe', Zip) {

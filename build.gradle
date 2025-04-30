@@ -225,17 +225,32 @@ tasks.register('downloadWindowsJDK', de.undercouch.gradle.tasks.download.Downloa
     src "https://cdn.azul.com/zulu/bin/${jdkVersion}-win_x64.zip"
     dest jdkZip
     overwrite true
+    doLast {
+    def file = file("build/distributions/${jdkZipName}")
+    if (!file.exists() || file.length() < 10_000) {
+        throw new GradleException("ZIP file seems invalid or too small: ${file}")
+        }
+    }
 }
+
 
 tasks.register('unzipWindowsJDK', Copy) {
     dependsOn downloadWindowsJDK
+
     from {
+        // ZIP entpacken und das oberste Verzeichnis entfernen
         zipTree("build/distributions/${jdkVersion}-win_x64.zip").matching {
-            // Entfernt den obersten Verzeichnisnamen
-            eachFile { f -> f.relativePath = new RelativePath(true, f.relativePath.segments.drop(1)) }
+            // Entfernt z. B. "zulu21.32.17-ca-jre21.0.2-win_x64/bin/java.exe" → "bin/java.exe"
+            eachFile { f ->
+                def segments = f.relativePath.segments
+                if (segments.length > 1) {
+                    f.relativePath = new RelativePath(f.relativePath.isFile(), *segments.drop(1))
+                }
+            }
             includeEmptyDirs = false
         }
     }
+
     into "build/distributions/jre"
 }
 

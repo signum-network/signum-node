@@ -273,8 +273,9 @@ tasks.register('unzipWindowsJDK', Copy) {
         }
 
         def zipRoot = zipTree(zipFile)
-        def rootDirName = zipRoot.files.find { it.isDirectory() }?.toPath()?.getName(0)?.toString()
+        def rootDirName = jdkVersion
 
+        // Die eigentliche Quelle des Copy-Tasks
         from(zipRoot.matching {
             eachFile { f ->
                 def segments = f.relativePath.segments
@@ -282,6 +283,7 @@ tasks.register('unzipWindowsJDK', Copy) {
                     f.relativePath = new RelativePath(f.relativePath.isFile(), *segments.drop(1))
                 }
             }
+            includeEmptyDirs = false
         })
     }
 }
@@ -305,10 +307,7 @@ tasks.register('zipWinExe', Zip) {
     into('html') { from "html" }
     from "LICENSE.txt"
     from "README.md"
-
-    into('jre') {
-        from "build/distributions/jre"
-    }
+    into('jre') {from "jre"}
 
     archiveFileName = "${baseNodeFileName}-win_x64.zip"
 }

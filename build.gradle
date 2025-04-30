@@ -305,8 +305,8 @@ tasks.register('zipWinExe', Zip) {
     dependsOn jpackageWin
     dependsOn unzipWindowsJDK
 
-    from("${project.buildDir}/jpackage/SignumNode/") {
-        include "signum-node.exe"
+    from("${project.buildDir}/jpackage") {
+        include "SignumNode.exe"
         rename { "${baseNodeFileName}.exe" }
     }
 

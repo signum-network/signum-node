@@ -209,7 +209,8 @@ tasks.register('jpackageWin', Exec) {
         '--main-jar', "${baseNodeFileName}-all.jar",
         '--main-class', application.mainClass.get(),
         '--app-version', version,
-        '--icon', "${projectDir}/resources/images/signum_overlay_logo.ico"
+        '--icon', "${projectDir}/resources/images/signum_overlay_logo.ico",
+        '--win-console'
     ]
 
         def exeName = "${appName}-${version}.exe"

@@ -276,7 +276,7 @@ tasks.register('zipWinExe', Zip) {
     from "README.md"
 
     into('jre') {
-        from "build/distributions/${jdkVersion}-win_x64/"
+        from "build/distributions/jre"
     }
 
     archiveFileName = "${baseNodeFileName}-win_x64.zip"

@@ -169,6 +169,8 @@ tasks.register('dist', Zip) {
     archiveFileName = "${baseNodeFileName}.zip"
 }
 
+def appName = "SignumNode"
+
 tasks.register('jpackageWin', Exec) {
     group = 'distribution'
     description = 'Builds a Windows EXE using jpackage'
@@ -297,7 +299,7 @@ tasks.register('unzipWindowsJDK', Copy) {
     }
 }
 
-def appName = "SignumNode"
+
 
 tasks.register('zipWinExe', Zip) {
     dependsOn jpackageWin

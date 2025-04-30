@@ -169,7 +169,7 @@ tasks.register('dist', Zip) {
     archiveFileName = "${baseNodeFileName}.zip"
 }
 
-tasks.register('jpackageWin', Exec) {
+asks.register('jpackageWin', Exec) {
     group = 'distribution'
     description = 'Builds a Windows EXE using jpackage'
     dependsOn shadowJar
@@ -177,30 +177,24 @@ tasks.register('jpackageWin', Exec) {
     def appName = 'SignumNode'
     def rawVersion = details.lastTag ?: "1.0.0"
 
-    // Nur Ziffern und Punkte, z. B. "v600" → "600"
     def version = rawVersion.replaceAll("[^0-9.]", "")
-
-    // Wenn nur eine Zahl da ist → .0 anhängen (z. B. 600 → 600.0)
-    if (!version.contains(".")) {
-        version = "${version}.0"
-    }
-
-    // Jetzt in Teile splitten und begrenzen
+    if (!version.contains(".")) version = "${version}.0"
     def parts = version.tokenize('.').collect { it as int }
     while (parts.size() < 2) parts << 0
     while (parts.size() > 4) parts = parts[0..3]
-
-    // Major darf max. 255 sein
-    if (parts[0] > 255) parts[0] = 1 // Fallback auf gültig
-
+    if (parts[0] > 255) parts[0] = 1
     version = parts.join('.')
 
     def outputDir = "$buildDir/jpackage"
+    def exePath = file("$outputDir/${appName}.exe")
 
     inputs.file("$buildDir/libs/${baseNodeFileName}-all.jar")
     outputs.dir(outputDir)
 
     doFirst {
+        println "==> Running jpackage with:"
+        println "  outputDir: ${outputDir}"
+        println "  version:   ${version}"
         mkdir(outputDir)
     }
 
@@ -214,15 +208,18 @@ tasks.register('jpackageWin', Exec) {
         '--main-class', application.mainClass.get(),
         '--app-version', version,
         '--icon', "${projectDir}/resources/images/signum_overlay_logo.ico"
-        ]
-        doLast {
-            def exeFile = file("$buildDir/jpackage/SignumNode.exe")
-            if (!exeFile.exists()) {
-                throw new GradleException("jpackage did not produce expected EXE file: $exeFile")
-            } else {
-                println "✅ jpackage produced: ${exeFile.name}"
-            }
+    ]
+
+    doLast {
+        println "==> jpackage output listing:"
+        fileTree(dir: outputDir, include: "**/*").files.each {
+            println "  - ${it}"
         }
+
+        if (!exePath.exists()) {
+            throw new GradleException("jpackage did not produce expected EXE file: ${exePath}")
+        }
+    }
 }
 
 tasks.register("printExeInfo") {

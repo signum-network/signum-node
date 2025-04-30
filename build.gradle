@@ -51,12 +51,10 @@ dependencies {
     implementation 'org.jooq:jooq:3.20.3'
     implementation 'org.flywaydb:flyway-core:8.5.13'
     implementation 'org.flywaydb:flyway-mysql:8.5.13'
-    // implementation 'com.h2database:h2:2.2.224'
     implementation 'org.postgresql:postgresql:42.7.3'
     implementation 'com.kohlschutter.junixsocket:junixsocket-core:2.8.3'
     implementation 'org.mariadb.jdbc:mariadb-java-client:2.4.1'
     implementation 'org.xerial:sqlite-jdbc:3.45.2.0'
-    // jooqGenerator 'com.h2database:h2:2.2.224'
 
     implementation 'org.owasp.encoder:encoder:1.2.3'
     implementation 'org.bitlet:weupnp:0.1.4'
@@ -217,7 +215,18 @@ tasks.register('jpackageWin', Exec) {
         '--app-version', version,
         '--icon', "${projectDir}/resources/images/signum_overlay_logo.ico"
         ]
-  
+        doLast {
+            def exeDir = file("$buildDir/jpackage/SignumNode")
+            if (exeDir.exists()) {
+                println "✅ jpackage output directory exists: ${exeDir}"
+                exeDir.eachFileRecurse {
+                    println "📦 Output: ${it}"
+                }
+            } else {
+                println "❌ jpackage output directory missing: ${exeDir}"
+                throw new GradleException("jpackage did not produce expected EXE directory.")
+            }
+        }
 }
 
 tasks.register("printExeInfo") {

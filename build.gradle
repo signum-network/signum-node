@@ -221,6 +221,7 @@ tasks.register('jpackageWin', Exec) {
 }
 
 tasks.register("printExeInfo") {
+    dependsOn jpackageWin
     doLast {
         def exeDir = file("$buildDir/jpackage/SignumNode")
         if (exeDir.exists()) {

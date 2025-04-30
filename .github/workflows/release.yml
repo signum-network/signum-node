@@ -64,7 +64,7 @@ jobs:
           java-version: '21'
 
       - name: Build artifacts
-        run: ./gradlew shadowJar jpackageWin zipWinExe sourcesJar javadocJar release
+        run: ./gradlew unzipWindowsJDK shadowJar jpackageWin zipWinExe sourcesJar javadocJar release
 
       - name: Get version from tag
         id: get_version

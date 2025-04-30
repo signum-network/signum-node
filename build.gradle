@@ -269,10 +269,12 @@ tasks.register('unzipWindowsJDK', Copy) {
     outputs.dir("build/distributions/jre")
     into "build/distributions/jre"
 
-    def zipFile = file(jdkZip)
-    if (!zipFile.exists()) {
-        throw new GradleException("Expected JDK zip not found: ${zipFile}")
-    }
+    doFirst {
+        def zipFile = file(jdkZip)
+        if (!zipFile.exists()) {
+            throw new GradleException("Expected JDK zip not found: ${zipFile}")
+        }
+
 
     def zipRoot = zipTree(zipFile)
     def rootDirName = jdkVersion

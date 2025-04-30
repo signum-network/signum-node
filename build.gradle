@@ -48,15 +48,15 @@ dependencies {
     implementation 'com.zaxxer:HikariCP:5.0.1'
     implementation 'org.jocl:jocl:2.0.1'
 
-    implementation 'org.jooq:jooq:3.16.23'
+    implementation 'org.jooq:jooq:3.20.06'
     implementation 'org.flywaydb:flyway-core:8.5.13'
     implementation 'org.flywaydb:flyway-mysql:8.5.13'
-    implementation 'com.h2database:h2:2.2.224'
+    // implementation 'com.h2database:h2:2.2.224'
     implementation 'org.postgresql:postgresql:42.7.3'
     implementation 'com.kohlschutter.junixsocket:junixsocket-core:2.8.3'
     implementation 'org.mariadb.jdbc:mariadb-java-client:2.4.1'
     implementation 'org.xerial:sqlite-jdbc:3.45.2.0'
-    jooqGenerator 'com.h2database:h2:2.2.224'
+    // jooqGenerator 'com.h2database:h2:2.2.224'
 
     implementation 'org.owasp.encoder:encoder:1.2.3'
     implementation 'org.bitlet:weupnp:0.1.4'
@@ -228,9 +228,15 @@ tasks.register('downloadWindowsJDK', Download) {
 }
 
 tasks.register('unzipWindowsJDK', Copy) {
-    dependsOn 'downloadWindowsJDK'
-    from(zipTree("build/distributions/${jdkVersion}-win_x64.zip"))
-    into "build/distributions/${jdkVersion}-win_x64/"
+    dependsOn downloadWindowsJDK
+    from {
+        zipTree("build/distributions/${jdkVersion}-win_x64.zip").matching {
+            // Entfernt den obersten Verzeichnisnamen
+            eachFile { f -> f.relativePath = new RelativePath(true, f.relativePath.segments.drop(1)) }
+            includeEmptyDirs = false
+        }
+    }
+    into "build/distributions/jre"
 }
 
 tasks.register('zipWinExe', Zip) {
@@ -292,7 +298,8 @@ artifacts {
 
 // === JOOQ Codegen
 
-def schema_dburl = "jdbc:h2:${project.projectDir}/temp/generated/db/signum_jooq"
+//def schema_dburl = "jdbc:h2:${project.projectDir}/temp/generated/db/signum_jooq"
+def schema_dburl = "jdbc:sqlite:${project.projectDir}/temp/generated/db/signum_jooq.sqlite"
 def schema_dbusername = ""
 def schema_dbpassword = ""
 
@@ -300,13 +307,14 @@ flyway {
     url = "${schema_dburl}"
     user = "${schema_dbusername}"
     password = "${schema_dbpassword}"
-    locations = ["filesystem:" + project.projectDir + "/resources/db/migration_h2_v2"]
+    //locations = ["filesystem:" + project.projectDir + "/resources/db/migration_h2_v2"]
+    locations = ["filesystem:" + project.projectDir + "/resources/db/migration_sqlite"]
 }
 
 import nu.studer.gradle.jooq.JooqEdition
 
 jooq {
-    version = '3.16.23'
+    version = '3.20.6'
     edition = JooqEdition.OSS
 
     configurations {
@@ -315,17 +323,19 @@ jooq {
             generationTool {
                 logging = org.jooq.meta.jaxb.Logging.DEBUG
                 jdbc {
-                    driver = 'org.h2.Driver'
+                    //driver = 'org.h2.Driver'
+                    driver = 'org.sqlite.JDBC'
                     url = "${schema_dburl}"
-                    user = "${schema_dbusername}"
-                    password = "${schema_dbpassword}"
+                    //user = "${schema_dbusername}"
+                    //password = "${schema_dbpassword}"
                 }
                 generator {
                     name = 'org.jooq.codegen.DefaultGenerator'
                     database {
-                        name = 'org.jooq.meta.h2.H2Database'
+                        //name = 'org.jooq.meta.h2.H2Database'
+                        name = 'org.jooq.meta.sqlite.SQLiteDatabase'
                         includes = '.*'
-                        inputSchema = "PUBLIC"
+                        inputSchema = "main"
                         outputSchema = "DB"
                         forcedTypes {
                             forcedType {

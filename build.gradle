@@ -237,7 +237,7 @@ tasks.register('downloadWindowsJDK', de.undercouch.gradle.tasks.download.Downloa
 
 tasks.register('unzipWindowsJDK', Copy) {
     dependsOn downloadWindowsJDK
-
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from {
         // ZIP entpacken und das oberste Verzeichnis entfernen
         zipTree("build/distributions/${jdkVersion}-win_x64.zip").matching {

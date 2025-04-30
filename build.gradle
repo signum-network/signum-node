@@ -213,17 +213,13 @@ tasks.register('jpackageWin', Exec) {
         '--win-console'
     ]
 
-        def exeName = "${appName}-${version}.exe"
-        def exePath2 = file("$outputDir/${exeName}")
+        //def exeName = "${appName}-${version}.exe"
+        //def exePath2 = file("$outputDir/${exeName}")
 
         doLast {
             println "==> jpackage output listing:"
             fileTree(dir: outputDir, include: "**/*.exe").files.each {
                 println "  - ${it}"
-            }
-
-            if (!exePath2.exists()) {
-                throw new GradleException("jpackage did not produce expected EXE file: ${exePath2}")
             }
         }
 }
@@ -301,21 +297,14 @@ tasks.register('unzipWindowsJDK', Copy) {
 }
 
 
-
 tasks.register('zipWinExe', Zip) {
     dependsOn jpackageWin
     dependsOn unzipWindowsJDK
-    
-    def versionJp = project.ext.jpackageVersion
 
-    from("${project.buildDir}/jpackage") {
-        include "${appName}-${versionJp}.exe"
-        rename { "${baseNodeFileName}.exe" }
-    }
+    def appImageDir = "${project.buildDir}/jpackage/${appName}"
 
-    from(project.tasks.shadowJar.outputs.files) {
-        include "${baseNodeFileName}-all.jar"
-        rename { "${baseNodeFileName}.jar" }
+    from(appImageDir) {
+        include "**/*"
     }
 
     into('conf') { from "conf/node-default.properties" }
@@ -326,6 +315,7 @@ tasks.register('zipWinExe', Zip) {
     into('jre') { from "build/distributions/jre" }
 
     archiveFileName = "${baseNodeFileName}-win_x64.zip"
+    destinationDirectory = file("$buildDir/distributions")
 }
 
 import org.gradle.crypto.checksum.Checksum

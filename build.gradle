@@ -269,21 +269,26 @@ tasks.register('unzipWindowsJDK', Copy) {
     outputs.dir("build/distributions/jre")
     into "build/distributions/jre"
 
-    def zipFile = file(jdkZip)
-    def zipRoot = zipTree(zipFile)
-    def rootDirName = jdkVersion
-
-    from(zipRoot.matching {
-        eachFile { f ->
-            def segments = f.relativePath.segments
-            if (segments[0] == rootDirName) {
-                f.relativePath = new RelativePath(f.relativePath.isFile(), *segments.drop(1))
-            }
+    doFirst {
+        def zipFile = file(jdkZip)
+        if (!zipFile.exists()) {
+            throw new GradleException("Expected JDK zip not found: ${zipFile}")
         }
-        includeEmptyDirs = false
-    })
-}
 
+        def zipRoot = zipTree(zipFile)
+        def rootDirName = jdkVersion
+
+        from(zipRoot.matching {
+            eachFile { f ->
+                def segments = f.relativePath.segments
+                if (segments[0] == rootDirName) {
+                    f.relativePath = new RelativePath(f.relativePath.isFile(), *segments.drop(1))
+                }
+            }
+            includeEmptyDirs = false
+        })
+    }
+}
 tasks.register('zipWinExe', Zip) {
     dependsOn jpackageWin
     dependsOn unzipWindowsJDK

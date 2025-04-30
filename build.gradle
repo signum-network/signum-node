@@ -214,13 +214,33 @@ tasks.register('jpackageWin', Exec) {
         '--main-class', application.mainClass.get(),
         '--app-version', version,
         '--icon', "${projectDir}/resources/images/signum_overlay_logo.ico"
-    ]
-    doLast {
-    println "Contents of jpackage output dir:"
-    fileTree(dir: "$buildDir/jpackage/SignumNode", includes: ["**/*.exe"]).files.each {
-        println it
-    }
+        ]
+  
 }
+
+tasks.register("printExeInfo") {
+    doLast {
+        def exeDir = file("$buildDir/jpackage/SignumNode")
+        if (exeDir.exists()) {
+            def exeFiles = []
+            exeDir.eachFileRecurse { f ->
+                if (f.name.endsWith(".exe")) {
+                    exeFiles << f
+                }
+            }
+
+            if (exeFiles) {
+                println "✅ Gefundene EXE-Dateien:"
+                exeFiles.each { f ->
+                    println "  ▶ ${f.name} (${f.absolutePath})"
+                }
+            } else {
+                println "⚠️ Keine .exe-Dateien im Verzeichnis '$exeDir' gefunden."
+            }
+        } else {
+            println "⚠️ Verzeichnis '$exeDir' nicht vorhanden – jpackage hat vermutlich nichts erzeugt."
+        }
+    }
 }
 
 import de.undercouch.gradle.tasks.download.Download

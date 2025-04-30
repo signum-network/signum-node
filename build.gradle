@@ -262,7 +262,7 @@ tasks.register('downloadWindowsJDK', de.undercouch.gradle.tasks.download.Downloa
 
 
 tasks.register('unzipWindowsJDK', Copy) {
-    dependsOn 
+    dependsOn downloadWindowsJDK
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from {
         def zipRoot = zipTree("build/distributions/${jdkVersion}-win_x64.zip")

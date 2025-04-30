@@ -216,15 +216,11 @@ tasks.register('jpackageWin', Exec) {
         '--icon', "${projectDir}/resources/images/signum_overlay_logo.ico"
         ]
         doLast {
-            def exeDir = file("$buildDir/jpackage/SignumNode")
-            if (exeDir.exists()) {
-                println "✅ jpackage output directory exists: ${exeDir}"
-                exeDir.eachFileRecurse {
-                    println "📦 Output: ${it}"
-                }
+            def exeFile = file("$buildDir/jpackage/SignumNode.exe")
+            if (!exeFile.exists()) {
+                throw new GradleException("jpackage did not produce expected EXE file: $exeFile")
             } else {
-                println "❌ jpackage output directory missing: ${exeDir}"
-                throw new GradleException("jpackage did not produce expected EXE directory.")
+                println "✅ jpackage produced: ${exeFile.name}"
             }
         }
 }

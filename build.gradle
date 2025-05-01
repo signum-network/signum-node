@@ -223,32 +223,6 @@ tasks.register('jpackageWin', Exec) {
         }
 }
 
-tasks.register("printExeInfo") {
-    dependsOn jpackageWin
-    doLast {
-        def exeDir = file("$buildDir/jpackage/SignumNode")
-        if (exeDir.exists()) {
-            def exeFiles = []
-            exeDir.eachFileRecurse { f ->
-                if (f.name.endsWith(".exe")) {
-                    exeFiles << f
-                }
-            }
-
-            if (exeFiles) {
-                println "✅ Gefundene EXE-Dateien:"
-                exeFiles.each { f ->
-                    println "  ▶ ${f.name} (${f.absolutePath})"
-                }
-            } else {
-                println "⚠️ Keine .exe-Dateien im Verzeichnis '$exeDir' gefunden."
-            }
-        } else {
-            println "⚠️ Verzeichnis '$exeDir' nicht vorhanden – jpackage hat vermutlich nichts erzeugt."
-        }
-    }
-}
-
 import de.undercouch.gradle.tasks.download.Download
 def jdkVersion = 'zulu21.42.19-ca-jre21.0.7'
 def jdkZip = "build/distributions/${jdkVersion}-win_x64.zip"
@@ -374,16 +348,12 @@ jooq {
             generationTool {
                 logging = org.jooq.meta.jaxb.Logging.DEBUG
                 jdbc {
-                    //driver = 'org.h2.Driver'
                     driver = 'org.sqlite.JDBC'
                     url = "${schema_dburl}"
-                    //user = "${schema_dbusername}"
-                    //password = "${schema_dbpassword}"
                 }
                 generator {
                     name = 'org.jooq.codegen.DefaultGenerator'
                     database {
-                        //name = 'org.jooq.meta.h2.H2Database'
                         name = 'org.jooq.meta.sqlite.SQLiteDatabase'
                         includes = '.*'
                         inputSchema = "main"

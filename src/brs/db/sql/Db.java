@@ -248,7 +248,6 @@ public final class Db {
     try {
       DSLContext ctx = getDSLContext();
       ResultQuery queryVersion = ctx.resultQuery(databaseInstance.getDatabaseVersionSQLScript());
-      // Record record = queryVersion.fetchOne();
       org.jooq.Record record = queryVersion.fetchOne();
 
       if (record != null) {

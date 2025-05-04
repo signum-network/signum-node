@@ -45,8 +45,8 @@ sed -i 's;<base href="/">;<base href="/phoenix/">;g' index.html
 echo "✅ Written base href"
 
 # cleanup old version
-rm -rf ../../../html/ui/phoenix/*
-cp -R * ../../../html/ui/phoenix
+rm -rf ${BASE_CI_DIR}/../html/ui/phoenix/*
+cp -R * ${BASE_CI_DIR}/../html/ui/phoenix/
 echo "✅ Copied wallet sources"
 
 popd > /dev/null

@@ -46,23 +46,32 @@ See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ### Windows
 
-Any recent 64 bit Windows should suffice (a Java 11 is embedded in the windows package).
+Any recent 64-bit Windows should suffice. To install Java 21, follow these steps:
+- Download the latest JDK 21 installer for Windows from the [official Oracle JDK website](https://www.oracle.com/java/technologies/javase/jdk21-archive-downloads.html).
+- Run the installer and follow the setup instructions.
+- Add the JDK `bin` directory (e.g., `C:\Program Files\Java\jdk-21\bin`) to your system's PATH environment variable if it's not added automatically.
 
-### Linux and Mac, Java 64-bit 11 (Recommended) or higher
+### Linux and Mac, Java 64-bit 21
 
-You need Java 64-bit 11 (recommended) or higher installed.
-Install the `openjdk-11-jre` package or similar for your distribution.
-To check your java version, run `java -version`. You should get an output similar to the following:
+You need Java 64-bit 21 installed.
+For Linux: Install the `openjdk-21-jre` or `openjdk-21-jdk` package depending on your distribution:
+- On Debian/Ubuntu: `sudo apt install openjdk-21-jdk`
+- On Fedora: `sudo dnf install java-21-openjdk`
+- On Arch Linux: `sudo pacman -S jdk-openjdk`
+For macOS: Install Java 21 using [Homebrew](https://brew.sh/):
+- Run `brew install openjdk@21`
+- Add the JDK to your shell profile if not done automatically, e.g., `export PATH="/usr/local/opt/openjdk@21/bin:$PATH"` for Bash/Zsh
+To check your Java version, run `java -version`. You should get an output similar to the following:
 
 ```text
-openjdk version "11.0.13" 2021-10-19
-OpenJDK Runtime Environment (build 11.0.13+8-Ubuntu-0ubuntu1.20.04)
-OpenJDK 64-Bit Server VM (build 11.0.13+8-Ubuntu-0ubuntu1.20.04, mixed mode, sharing)
+openjdk version "21.0.1" 2023-09-19
+OpenJDK Runtime Environment (build 21.0.1+12-arch)
+OpenJDK 64-Bit Server VM (build 21.0.1+12-arch, mixed mode, sharing)
 ```
 
-The important part is that the Java version starts with `11.` (Java 11)
+The important part is that the Java version starts with `21.` (Java 21)
 
-> Tipp: Use [SDK!](https://sdkman.io/usage) for easy installation of Java
+> Tipp: Use [SDKMAN!](https://sdkman.io/usage) for easy installation of Java 21
 
 
 ## Using an optional RDBMS (MariaDB, PostgreSQL)
@@ -73,11 +82,14 @@ The minimum required version of MariaDB is 10.6.
 
 ----
 
-### Should I use MariaDB, PostgreSQL or H2?
+### Should I use MariaDB, PostgreSQL or Sqlite?
 
-__H2__ is a very fast file based (embedded) database. Signum Node builds up the entire database out of the box and does not require any further set up. 
-This makes H2 an interesting choice especially for less-technical users who just want to start and/or run a local (not publicly accessible) node. Choose this, if you want to run just a local node without public exposure and/or 
-you don't want to connect to the database while running the node. Furthermore, the resulting database file is easily shareable, such others can use a snapshot and sync from there.
+
+__H2__ ~~is a very fast file based (embedded) database~~ is marked for deprecation due to instability. Signum Node builds up the entire database out of the box and does not require any further set up.
+~~This makes H2 an interesting choice especially for less-technical users who just want to start and/or run a local (not publicly accessible) node.~~ It is strongly recommended to migrate to an alternative like SQLite as H2 will be removed soon.
+~~Choose this, if you want to run just a local node without public exposure and/or~~ 
+~~you don't want to connect to the database while running the node. Furthermore, the resulting database file is easily shareable, such others can use a snapshot and sync from there.~~
+> Update: H2 has proven to be unstable and is officially marked for deprecation. Migration is advised immediately. Refer to supported alternatives like SQLite, MariaDB, or PostgreSQL.
 > Update: H2 has proven to be unstable. We do not recommend the usage of H2 anymore
 
 __Sqlite__ is just like H2 a file based (embedded) database. Signum Node builds up the entire database out of the box and does not require any further set up.

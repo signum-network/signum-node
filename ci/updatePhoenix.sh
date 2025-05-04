@@ -5,6 +5,7 @@ set -e
 echo "======================================="
 echo "🛰 Updating to latest Phoenix Version..."
 echo "---------------------------------------"
+BASE_CI_DIR=$(pwd)
 
 # prepare tmp folder
 TMPDIR=./tmp

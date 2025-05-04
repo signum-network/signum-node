@@ -269,7 +269,6 @@ tasks.register('unzipWindowsJDK', Copy) {
     }
 }
 
-
 tasks.register('zipWinExe', Zip) {
     dependsOn jpackageWin
     dependsOn unzipWindowsJDK
@@ -294,12 +293,10 @@ tasks.register('zipWinExe', Zip) {
 import org.gradle.crypto.checksum.Checksum
 
 tasks.register('release', Checksum) {
-    dependsOn test, dist, zipWinExe, sourcesJar, javadocJar
+    dependsOn test, dist, zipWinExe
     files = files([
         "build/distributions/${baseNodeFileName}.zip",
         "build/distributions/${baseNodeFileName}-win_x64.zip",
-        "build/libs/${baseNodeFileName}-sources.jar",
-        "build/libs/${baseNodeFileName}-javadoc.jar"
     ])
 }
 dist.mustRunAfter(buildOpenApi)

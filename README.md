@@ -283,12 +283,13 @@ Clone the repository as instructed above and run:
 
 ## Updating the Phoenix Wallet and Classic Wallet
 
+> Each Node Distribution has the latest wallet versions (at time of distribution) included automatically. Usually, no further action is required. 
+
 The Phoenix Wallet and Classic Wallet are maintained in separate repositories and must be installed before usage. 
 This approach ensures that both wallets can be updated independently without requiring a full deployment of the node.
 Scripts for installing and updating both wallets are available in the distribution package. 
 Users can execute them as needed to ensure they are using the latest versions.
 
-> Each Node Distribution has the latest wallet versions (at time of distribution) included automatically. 
 
 ## First-Time Wallet Installation
 

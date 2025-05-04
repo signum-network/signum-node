@@ -7,37 +7,8 @@ on:
       - 'v*'
 
 jobs:
-  build-openapi:
-    name: Build OpenAPI on Linux
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.get_version.outputs.VERSION }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Get version from tag
-        id: get_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Build OpenAPI
-        run: ./gradlew buildOpenApi
-
-      - name: Upload OpenAPI artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: openapi-html
-          path: html/api-doc/
-
   build-node:
-    name: Build and Package on Windows
-    needs: build-openapi
+    name: Build and Package
     runs-on: windows-latest
 
     steps:
@@ -50,12 +21,6 @@ jobs:
           cd ./ci
           ./updatePhoenix.sh
           ./updateClassic.sh
-
-      - name: Download OpenAPI artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: openapi-html
-          path: html/api-doc/
 
       - name: Set up Java 21 (Zulu)
         uses: actions/setup-java@v4

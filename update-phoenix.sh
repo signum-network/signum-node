@@ -22,22 +22,29 @@ pushd $TMPDIR > /dev/null
 echo "⬇️  Downloading latest release..."
 
 # Download the latest phoenix release
-curl -s "https://api.github.com/repos/signum-network/phoenix/releases/latest" \
+DOWNLOAD_URL=$(curl -s "https://api.github.com/repos/signum-network/phoenix/releases/latest" \
+    | grep "browser_download_url" \
     | grep "web-phoenix-signum-wallet.*.zip" \
     | cut -d : -f 2,3 \
     | tr -d \" \
-    | grep "https" \
-    | wget -qi -
+    | tr -d ' ')
+
+curl -L -o phoenix.zip "$DOWNLOAD_URL"
 
 echo "📦 Extracting files..."
 # Unzip it
-unzip -qq web-phoenix-signum-wallet.*.zip
+unzip phoenix.zip
 
 echo "🏗  Patching base href..."
 
 # Modify the base href in the index file
-sed -i 's;<base href="/">;<base href="/phoenix/">;g' dist/index.html
-
+if [[ "$(uname)" == "Darwin" ]]; then
+  # macOS (BSD sed)
+  sed -i '' 's;<base href="/">;<base href="/phoenix/">;g' dist/index.html
+else
+  # GNU/Linux (GNU sed)
+  sed -i 's;<base href="/">;<base href="/phoenix/">;g' dist/index.html
+fi
 echo "📝 Copying Phoenix Wallet to node..."
 
 rm -rf ../$PHOENIX_DIR/*

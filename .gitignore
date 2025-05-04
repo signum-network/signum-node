@@ -10,6 +10,7 @@
 _config.yml
 /html/ui/doc/*
 /html/ui/phoenix/*
+/html/ui/classic/*
 target
 *.prefs
 .project

@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.UnknownHostException;
+import java.nio.file.Paths;
 import java.util.*;
 
 public final class WebServerImpl implements WebServer {
@@ -109,7 +110,9 @@ public final class WebServerImpl implements WebServer {
   }
 
   private void configureWebUI(ServletContextHandler servletContextHandler) {
-    String apiResourceBase = context.getPropertyService().getString(Props.API_UI_DIR);
+    String apiResourceBase = Paths.get(
+      context.getPropertyService().getString(Props.API_UI_DIR)
+    ).toAbsolutePath().toString();
     if (!apiResourceBase.isEmpty()) {
       ServletHolder defaultServletHolder = new ServletHolder(new DefaultServlet());
       defaultServletHolder.setInitParameter("resourceBase", apiResourceBase);

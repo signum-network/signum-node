@@ -16,6 +16,7 @@ RUN  apk update && apk upgrade \
     wget \
     curl \
     gcompat \
+    binutils \
     openjdk21-jdk \
   && rm -rf /var/cache/apk/*
 
@@ -60,7 +61,7 @@ RUN $JAVA_HOME/bin/jlink \
   --strip-debug \
   --no-man-pages \
   --no-header-files \
-  --compress=2 \
+  --compress=1 \
   --output /jre
 
 # Copy the required libraries

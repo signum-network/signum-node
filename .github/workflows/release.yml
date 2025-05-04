@@ -15,6 +15,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Get version from tag
+        id: get_version
+        shell: cmd
+        run: |
+          echo "VERSION=${github.ref_name}"
+          echo "VERSION=${github.ref_name}" >> $GITHUB_ENV
+
       - name: Update Wallets
         shell: bash
         run: |
@@ -30,12 +37,6 @@ jobs:
 
       - name: Build artifacts
         run: ./gradlew unzipWindowsJDK shadowJar jpackageWin zipWinExe release
-
-      - name: Get version from tag
-        id: get_version
-        run: |
-          echo "VERSION=${GITHUB_REF#refs/tags/}"
-          echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: Create GitHub Release Draft
         id: create_release

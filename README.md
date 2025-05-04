@@ -281,14 +281,39 @@ Clone the repository as instructed above and run:
 ./gradlew test
 ```
 
-## Updating the Phoenix Wallet
+## Updating the Phoenix Wallet and Classic Wallet
 
-Since V3.0 the Phoenix Wallet is available as built-in alternative to the classic wallet. 
-Within a release of the node software automatically the latest available release of the Phoenix wallet will be applied.
-As the Phoenix Wallet is a project apart from this repository the node and wallet software have different
-release cycles. Therefore, an additional update script (at this moment only for Linux/MacOS) is provided.
+The Phoenix Wallet and Classic Wallet are maintained in separate repositories and must be installed before usage. 
+This approach ensures that both wallets can be updated independently without requiring a full deployment of the node.
+Scripts for installing and updating both wallets are available in the distribution package. 
+Users can execute them as needed to ensure they are using the latest versions.
 
-Just run `./update-phoenix.sh`, which is available in the distribution package 
+> Each Node Distribution has the latest wallet versions (at time of distribution) included automatically. 
+
+## First-Time Wallet Installation
+
+> This is only for users building the node software locally and not using the binary distribution packages
+
+During the first run of the node, both the Classic Wallet and Phoenix Wallet must be installed manually using their respective scripts. 
+ 
+To install the Phoenix Wallet:
+Run `./update-phoenix.sh` (available in the distribution package).
+
+To update or install the Classic Wallet:
+Run `./update-classic.sh` (available in the distribution package).
+
+**Note for Windows users:**
+As the installation scripts are designed for BSD/GNU Linux environments and are not natively supported on Windows, Windows users should use Windows Subsystem for Linux (WSL) to execute these commands.
+
+Steps to install WSL:
+- Open PowerShell as Administrator and run: `wsl --install`
+- Follow the instructions to set up a Linux distribution on your system.
+
+Once WSL is set up, access the distribution and navigate to the folder containing the scripts. Then run:
+```bash
+./update-phoenix.sh
+./update-classic.sh
+```
 
 # Releasing
 

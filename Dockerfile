@@ -16,10 +16,10 @@ RUN  apk update && apk upgrade \
     wget \
     curl \
     gcompat \
-    openjdk11-jdk \
+    openjdk21-jdk \
   && rm -rf /var/cache/apk/*
 
-ENV JAVA_HOME="/usr/lib/jvm/java-11-openjdk"
+ENV JAVA_HOME="/usr/lib/jvm/java-21-openjdk"
 
 WORKDIR /signum-node
 
@@ -90,8 +90,8 @@ VOLUME ["/conf", "/db"]
 RUN ln -s /conf /signum/conf && ln -s /db /signum/db
 
 # We use the bootstrap folder to copy the config files to the host machine in the start-node.sh script
-# use one of [h2,mariadb,postgres]
-ARG database=h2
+# use one of [sqlite,mariadb,postgres]
+ARG database=sqlite
 ARG network=mainnet
 
 # Injectable ports defaulting to mainnet

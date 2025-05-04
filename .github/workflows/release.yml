@@ -19,8 +19,8 @@ jobs:
         id: get_version
         shell: cmd
         run: |
-          echo "VERSION=${{github.ref_name}}"
-          echo "VERSION=${{github.ref_name}}" >> $GITHUB_ENV
+          echo VERSION=${{github.ref_name}}
+          echo VERSION=${{github.ref_name}} >> %GITHUB_ENV%
 
       - name: Update Wallets
         shell: bash

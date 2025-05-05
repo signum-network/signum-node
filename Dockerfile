@@ -1,5 +1,6 @@
-# Build the node software
+# NodeJS we're using
 ARG NODE_VERSION=20
+
 FROM node:${NODE_VERSION}-alpine AS builder
 
 # Add the latest alpine repositories
@@ -26,8 +27,8 @@ WORKDIR /signum-node
 
 COPY . .
 
-RUN node -v
-RUN npm -v
+# fail early if missing either instead of waiting for gradle to use it
+RUN node -v && npm -v
 
 # Not needed as node is contained in the base image
 RUN sed -i 's/download = true/download = false/g' /signum-node/build.gradle
@@ -43,13 +44,23 @@ RUN chmod +x /signum-node/gradlew \
 # Unpack the build to /signum
 RUN unzip -o build/distributions/signum-node.zip -d /signum
 
+# We use the bootstrap folder to copy the config files to the host machine in the start-node.sh script
+ARG database=sqlite
+ARG network=mainnet
+
 # provide needed update scripts
-RUN chmod +x update-phoenix.sh
-RUN chmod +x update-classic.sh
 COPY update-phoenix.sh /signum/update-phoenix.sh
 COPY update-classic.sh /signum/update-classic.sh
+COPY docker/scripts/start-node.sh /signum/start-node.sh
 
 WORKDIR /signum
+RUN mkdir ./bootstrap
+
+COPY conf/logging-default.properties ./bootstrap/logging-default.properties
+COPY conf/node-default.properties ./bootstrap/node-default.properties
+COPY conf/${network}/node.${database}.properties ./bootstrap/node.properties
+
+RUN chmod +x start-node.sh update-phoenix.sh update-classic.sh
 
 # Clean up /signum
 RUN rm -rf /signum/signum-node.exe 2> /dev/null || true \
@@ -90,23 +101,10 @@ WORKDIR /signum
 VOLUME ["/conf", "/db"]
 RUN ln -s /conf /signum/conf && ln -s /db /signum/db
 
-# We use the bootstrap folder to copy the config files to the host machine in the start-node.sh script
-# use one of [h2,mariadb,postgres]
-ARG database=sqlite
-ARG network=mainnet
-
 # Injectable ports defaulting to mainnet
 ARG port_p2p=8123
 ARG port_http=8125
 ARG port_ws=8126
-
-RUN mkdir ./bootstrap
-COPY conf/logging-default.properties ./bootstrap/logging-default.properties
-COPY conf/node-default.properties ./bootstrap/node-default.properties
-COPY conf/${network}/node.${database}.properties ./bootstrap/node.properties
-
-COPY docker/scripts/start-node.sh ./start-node.sh
-RUN chmod +x start-node.sh
 
 EXPOSE $port_ws $port_http $port_p2p
 

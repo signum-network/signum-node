@@ -37,7 +37,7 @@ RUN apt-get update && apt-get upgrade -y \
 RUN ls -la /etc/ssl/certs && \
     curl -V
 # Set Java version (21) and configure the environment variables
-ENV JAVA_HOME="/usr/lib/jvm/temurin-21-jdk-arm64"
+ENV JAVA_HOME="/usr/lib/jvm/temurin-21-jdk"
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 # Set the working directory
 WORKDIR /signum-node

@@ -1,13 +1,5 @@
 #!/bin/bash
 
-# Add these checks at the beginning of the script
-echo "Testing internet connectivity..."
-curl -v --connect-timeout 5 https://google.com
-
-echo "Testing DNS resolution..."
-ping -c 1 api.github.com
-
-
 set -e
 
 echo "🛰 Updating Signum Phoenix Wallet to current release..."
@@ -29,15 +21,8 @@ pushd $TMPDIR > /dev/null
 
 echo "⬇️  Downloading latest release..."
 
-# First, let's see the raw API response
-echo "Getting GitHub API response..."
-GITHUB_RESPONSE=$(curl -k -s "https://api.github.com/repos/signum-network/phoenix/releases/latest")
-echo "Raw API response:"
-echo "$GITHUB_RESPONSE"
-
-
 # Download the latest phoenix release
-DOWNLOAD_URL=$(curl -s "https://api.github.com/repos/signum-network/phoenix/releases/latest" \
+DOWNLOAD_URL=$(curl -s  "https://api.github.com/repos/signum-network/phoenix/releases/latest" \
     | grep "browser_download_url" \
     | grep "web-phoenix-signum-wallet.*.zip" \
     | cut -d : -f 2,3 \

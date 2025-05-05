@@ -101,8 +101,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     bind9-dnsutils \
     git \
     unzip \
-    wget \
     curl \
+    ca-certificates \
+    openssl \
+    && mkdir -p /etc/ssl/certs \
+    && chmod 755 /etc/ssl/certs \
+    && update-ca-certificates --fresh \
+    && chmod -R 644 /etc/ssl/certs/* \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

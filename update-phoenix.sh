@@ -22,12 +22,14 @@ pushd $TMPDIR > /dev/null
 echo "⬇️  Downloading latest release..."
 
 # Download the latest phoenix release
-DOWNLOAD_URL=$(curl -s "https://api.github.com/repos/signum-network/phoenix/releases/latest" \
+DOWNLOAD_URL=$(curl -s  "https://api.github.com/repos/signum-network/phoenix/releases/latest" \
     | grep "browser_download_url" \
     | grep "web-phoenix-signum-wallet.*.zip" \
     | cut -d : -f 2,3 \
     | tr -d \" \
     | tr -d ' ')
+
+echo "Found file: $DOWNLOAD_URL"
 
 curl -L -o phoenix.zip "$DOWNLOAD_URL"
 

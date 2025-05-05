@@ -27,8 +27,20 @@ if [[ ! -e $CONF_LOGGING ]]; then
   cp $BOOT_DIR/logging-default.properties $CONF_LOGGING
 fi
 
+# Add debug information
+echo "📁 Current working directory: $(pwd)"
+echo "📁 Creating required directories..."
+mkdir -p html/ui/phoenix
+mkdir -p html/ui/classic
+ls -la html/ui/
+
+# Run update scripts with debug output
+echo "🔄 Running update-phoenix.sh..."
 ./update-phoenix.sh
+
+echo "🔄 Running update-classic.sh..."
 ./update-classic.sh
+
 
 echo "🚀Starting Signum Node"
 exec java -XX:MaxRAMPercentage=90.0 -jar signum-node.jar --headless -c /conf/

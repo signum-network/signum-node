@@ -36,8 +36,19 @@ RUN apt-get update && apt-get upgrade -y \
 
 RUN ls -la /etc/ssl/certs && \
     curl -V
+
+RUN echo "=== Java Info ===" && \
+    which java && \
+    echo "Java Version:" && \
+    java -version && \
+    echo "Available Java installations:" && \
+    ls -la /usr/lib/jvm/ && \
+    echo "Update alternatives for Java:" && \
+    update-alternatives --display java && \
+    echo "========================="
+
 # Set Java version (21) and configure the environment variables
-ENV JAVA_HOME="/usr/lib/jvm/temurin-21-jdk"
+ENV JAVA_HOME="/usr/lib/jvm/temurin-21-jdk-arm64"
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 # Set the working directory
 WORKDIR /signum-node
@@ -90,8 +101,7 @@ LABEL name="Signum Node"
 LABEL description="This is the official Signum Node image"
 LABEL credits="gittrekt,damccull,ohager"
 
-# Set environment variables
-ENV JAVA_HOME=/jre
+ENV JAVA_HOME="/usr/lib/jvm/temurin-21-jdk-arm64"
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 # Install runtime dependencies

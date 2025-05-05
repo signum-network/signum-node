@@ -27,13 +27,6 @@ if [[ ! -e $CONF_LOGGING ]]; then
   cp $BOOT_DIR/logging-default.properties $CONF_LOGGING
 fi
 
-# Add debug information
-echo "📁 Current working directory: $(pwd)"
-echo "📁 Creating required directories..."
-mkdir -p html/ui/phoenix
-mkdir -p html/ui/classic
-ls -la html/ui/
-
 # Run update scripts with debug output
 echo "🔄 Running update-phoenix.sh..."
 ./update-phoenix.sh

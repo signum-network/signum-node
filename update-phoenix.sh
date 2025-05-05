@@ -29,7 +29,7 @@ DOWNLOAD_URL=$(curl -s  "https://api.github.com/repos/signum-network/phoenix/rel
     | tr -d \" \
     | tr -d ' ')
 
-echo "Found: $DOWNLOAD_URL"
+echo "Found file: $DOWNLOAD_URL"
 
 curl -L -o phoenix.zip "$DOWNLOAD_URL"
 

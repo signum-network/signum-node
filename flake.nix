@@ -4,94 +4,107 @@
       url = "github:nixos/nixpkgs/nixos-unstable";
     };
     flake-parts.url = "github:hercules-ci/flake-parts";
-    # rust-overlay.url = "github:oxalica/rust-overlay";
   };
-  outputs = inputs:
+  outputs =
+    inputs:
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [ "x86_64-linux" ];
-      perSystem = { config, self', pkgs, lib, system, ... }:
+      perSystem =
+        {
+          config,
+          self',
+          pkgs,
+          lib,
+          system,
+          ...
+        }:
         let
           runtimeDeps = with pkgs; [
           ];
           buildDeps = with pkgs; [
-            # clang
-            # lld
-            # lldb
-            # pkg-config
-            # rustPlatform.bindgenHook
+            gradle
+            pkg-config
           ];
           devDeps = with pkgs; [
-            # cargo-msrv
-            # cargo-nextest
-            # cargo-watch
-            # clang
-            # just
-            # gdb
-            # lld
-            # lldb
-            # nushell
-            # surrealdb
-            # panamax
+            jdk
+            just
+            nushell
           ];
 
-          # cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
-          # msrv = cargoToml.package.rust-version;
+          sourceWithGit = lib.sources.cleanSourceWith {
+            name = "source-with-git";
+            src = ./.;
+            filter =
+              path: type:
+              let
+                baseName = baseNameOf path;
+              in
+              (baseName == ".git" && type == "directory") || lib.sources.cleanSourceFilter path type;
+          };
 
-          rustPackage = features:
-            (pkgs.makeRustPlatform {
-              cargo = pkgs.rust-bin.stable.latest.minimal;
-              rustc = pkgs.rust-bin.stable.latest.minimal;
-            }).buildRustPackage {
-              inherit (cargoToml.package) name version;
-              src = ./.;
-              cargoLock.lockFile = ./Cargo.lock;
-              buildFeatures = features;
-              buildInputs = runtimeDeps;
-              nativeBuildInputs = buildDeps;
-              # Uncomment if your cargo tests require networking or otherwise
-              # don't play nicely with the nix build sandbox:
-              # doCheck = false;
+          javaPackage = pkgs.stdenv.mkDerivation (finalAttrs: {
+            pname = "signum-node";
+            version = "3.8.4";
+
+            src = sourceWithGit;
+
+            nativeBuildInputs = buildDeps ++ devDeps;
+
+            mitmCache = pkgs.gradle.fetchDeps {
+              # inherit (finalAttrs) pname;
+              pkg = finalAttrs;
+              data = ./deps.json;
             };
 
-          mkDevShell = rustc:
+            __darwinAllowLocalNetworking = true;
+
+            gradleFlags = [
+              "-Dfile.encoding=utf-8"
+              "-Pversion=${finalAttrs.version}" # Manually give gradle the version
+            ];
+
+            gradleBuildTask = "shadowJar";
+
+            doCheck = true;
+
+            installPhase = ''
+              mkdir -p $out/{bin,share/my-package}
+              cp build/libs/signum-node.jar $out/share/signum-node
+
+              makeWrapper ${lib.getExe pkgs.jre} $out/bin/signum-node \
+                --add-flags "-jar $out/share/signum-node/signum-node-all.jar"
+            '';
+
+            meta.sourceProvenance = with pkgs.lib.sourceTypes; [
+              fromSource
+              binaryBytecode
+            ];
+          });
+
+          mkDevShell =
+            inputs:
             pkgs.mkShell {
-              shellHook = ''
-                export RUST_SRC_PATH=${pkgs.rustPlatform.rustLibSrc}
-              '';
+              shellHook = '''';
               LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
               buildInputs = runtimeDeps;
-              nativeBuildInputs = buildDeps ++ devDeps ++ [ rustc ];
+              nativeBuildInputs = buildDeps ++ devDeps ++ [ inputs ];
             };
         in
         {
-          _module.args.pkgs = import inputs.nixpkgs
-            {
-              inherit system;
-              overlays = [ (import inputs.rust-overlay) ];
-              config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
-                "surrealdb"
+          _module.args.pkgs = import inputs.nixpkgs {
+            inherit system;
+            overlays = [ ];
+            config.allowUnfreePredicate =
+              pkg:
+              builtins.elem (lib.getName pkg) [
               ];
-            };
+          };
 
-          packages.default = self'.packages.base;
-          devShells.default = self'.devShells.stable;
+          packages.default = javaPackage;
+          packages.updateDeps = javaPackage.mitmCache.updateScript;
 
-          packages.example = (rustPackage "foobar");
-          packages.example-base = (rustPackage "");
-          packages.base = (rustPackage "");
-          packages.bunyan = (rustPackage "bunyan");
-          packages.tokio-console = (rustPackage "tokio-console");
+          devShells.default = mkDevShell "";
 
-          devShells.nightly = (mkDevShell (pkgs.rust-bin.selectLatestNightlyWith
-            (toolchain: toolchain.default.override {
-              extensions = [ "rust-analyzer" ];
-            })));
-          devShells.stable = (mkDevShell (pkgs.rust-bin.stable.latest.default.override {
-            extensions = [ "rust-analyzer" ];
-          }));
-          devShells.msrv = (mkDevShell (pkgs.rust-bin.stable.${msrv}.default.override {
-            extensions = [ "rust-analyzer" ];
-          }));
         };
     };
 }

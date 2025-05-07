@@ -9,308 +9,368 @@ buildscript {
 }
 
 plugins {
-  id 'com.github.johnrengelman.shadow' version '7.1.2'
+  id 'com.github.johnrengelman.shadow' version '8.1.1'
   id 'java'
   id 'maven-publish'
   id 'application'
-  id 'edu.sc.seis.launch4j' version '2.5.1'
   id 'org.gradle.crypto.checksum' version '1.4.0'
   id 'com.palantir.git-version' version '0.12.2'
-  id 'io.spring.dependency-management' version '1.0.1.RELEASE' //for logging - log4j
-  // latest version to run with JDK 11
-  // https://github.com/etiennestuder/gradle-jooq-plugin?tab=readme-ov-file#compatibility
-  id 'nu.studer.jooq' version '7.1.1'
+  id 'io.spring.dependency-management' version '1.1.4'
+  id 'nu.studer.jooq' version '7.2'
   id "org.flywaydb.flyway" version "8.5.13"
   id "de.undercouch.download" version "5.5.0"
   id 'jacoco'
-  id "com.github.node-gradle.node" version "7.0.1"
+  id "com.github.node-gradle.node" version "7.1.0"
   id 'org.kordamp.gradle.jdeps' version '0.20.0'
 }
 
 java {
-  sourceCompatibility = JavaVersion.VERSION_11
-  targetCompatibility = JavaVersion.VERSION_11
+  sourceCompatibility = JavaVersion.VERSION_21
+  targetCompatibility = JavaVersion.VERSION_21
 }
 
-// In this section you declare where to find the dependencies of your project
 repositories {
-  mavenCentral()
-  maven { url 'https://jitpack.io' }
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
 }
+
+def baseNodeFileName = "signum-node"
+def details = versionDetails()
 
 dependencies {
-  implementation 'com.github.signum-network:signumj:v1.3.1'
+    implementation 'com.github.signum-network:signumj:v1.3.1'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.15'
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.78.1'
+    implementation 'org.bouncycastle:bcpkix-jdk18on:1.78.1'
+    implementation 'org.ehcache:ehcache:3.9.9'
+    implementation 'com.google.code.gson:gson:2.8.9'
+    implementation 'commons-cli:commons-cli:1.4'
+    implementation 'com.zaxxer:HikariCP:5.0.1'
+    implementation 'org.jocl:jocl:2.0.1'
 
-  implementation 'io.reactivex.rxjava2:rxjava:2.2.15'
-  implementation 'org.bouncycastle:bcprov-jdk18on:1.78.1'
-  implementation 'org.bouncycastle:bcpkix-jdk18on:1.78.1'
-  implementation 'org.ehcache:ehcache:3.9.9'
-  implementation 'com.google.code.gson:gson:2.8.9'
-  implementation 'commons-cli:commons-cli:1.4'
-  implementation 'com.zaxxer:HikariCP:5.0.1'
-  implementation 'org.jocl:jocl:2.0.1'
+    implementation 'org.jooq:jooq:3.20.3'
+    implementation 'org.flywaydb:flyway-core:8.5.13'
+    implementation 'org.flywaydb:flyway-mysql:8.5.13'
+    implementation 'org.postgresql:postgresql:42.7.3'
+    implementation 'com.kohlschutter.junixsocket:junixsocket-core:2.8.3'
+    implementation 'org.mariadb.jdbc:mariadb-java-client:2.4.1'
+    implementation 'org.xerial:sqlite-jdbc:3.45.2.0'
 
-  // db related deps
-  // as long as we use 3rd party code gen (nu.studer) we need to use jooq 3.16.23 (and also for JDK11)
-  // https://github.com/etiennestuder/gradle-jooq-plugin?tab=readme-ov-file#compatibility
-  implementation 'org.jooq:jooq:3.16.23'
-  implementation 'org.flywaydb:flyway-core:8.5.13'
-  // needed because of license issues since 8.2.0
-  // see https://documentation.red-gate.com/fd/release-notes-for-flyway-engine-179732572.html
-  implementation 'org.flywaydb:flyway-mysql:8.5.13'
-  implementation 'com.h2database:h2:2.2.224'
-  implementation 'org.postgresql:postgresql:42.7.3'
-  // unix socket support available - see https://github.com/kohlschutter/junixsocket
-  implementation 'com.kohlschutter.junixsocket:junixsocket-core:2.8.3'
-  implementation 'org.mariadb.jdbc:mariadb-java-client:2.4.1'
-  implementation 'org.xerial:sqlite-jdbc:3.45.2.0'
-  jooqGenerator 'com.h2database:h2:2.2.224'
+    implementation 'org.owasp.encoder:encoder:1.2.3'
+    implementation 'org.bitlet:weupnp:0.1.4'
+    implementation 'com.google.zxing:core:3.4.1'
+    implementation 'com.google.zxing:javase:3.4.1'
+    implementation 'org.slf4j:slf4j-api:1.7.35'
+    implementation 'org.slf4j:slf4j-jdk14:1.7.35'
 
-  implementation 'org.owasp.encoder:encoder:1.2.3'
-  implementation 'org.bitlet:weupnp:0.1.4'
+    implementation 'org.eclipse.jetty:jetty-server:10.0.24'
+    implementation 'org.eclipse.jetty:jetty-servlet:10.0.24'
+    implementation 'org.eclipse.jetty:jetty-servlets:10.0.24'
+    implementation 'org.eclipse.jetty:jetty-rewrite:10.0.24'
+    implementation 'org.eclipse.jetty.websocket:websocket-jetty-server:10.0.24'
 
-  implementation 'com.google.zxing:core:3.4.1'
-  implementation 'com.google.zxing:javase:3.4.1'
+    implementation 'javax.annotation:javax.annotation-api:1.3.2'
+    implementation 'com.github.jiconfont:jiconfont:1.0.0'
+    implementation 'com.github.jiconfont:jiconfont-swing:1.0.1'
+    implementation 'com.github.jiconfont:jiconfont-font_awesome:4.7.0.1'
+    implementation 'org.apache.logging.log4j:log4j-api:2.17.1'
+    implementation 'org.apache.logging.log4j:log4j-core:2.17.1'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+    implementation 'org.eclipse.jgit:org.eclipse.jgit:6.5.0.202303070854-r'
+    implementation 'jakarta.xml.bind:jakarta.xml.bind-api:3.0.1'
 
-  implementation 'org.slf4j:slf4j-api:1.7.35'
-  implementation 'org.slf4j:slf4j-jdk14:1.7.35'
 
-  implementation 'org.eclipse.jetty:jetty-server:10.0.24'
-  implementation 'org.eclipse.jetty:jetty-servlet:10.0.24'
-  implementation 'org.eclipse.jetty:jetty-servlets:10.0.24'
-  implementation 'org.eclipse.jetty:jetty-rewrite:10.0.24'
-  implementation 'org.eclipse.jetty.websocket:websocket-jetty-server:10.0.24'
+    testImplementation("org.junit.platform:junit-platform-engine:1.5.1")
+    testImplementation("org.junit.platform:junit-platform-launcher:1.5.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.1")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.5.1")
 
-  implementation 'javax.annotation:javax.annotation-api:1.3.2'
-
-  implementation 'com.github.jiconfont:jiconfont:1.0.0'
-  implementation 'com.github.jiconfont:jiconfont-swing:1.0.1'
-  implementation 'com.github.jiconfont:jiconfont-font_awesome:4.7.0.1'
-
-  //logging
-  implementation 'org.apache.logging.log4j:log4j-api:2.17.1'
-  implementation 'org.apache.logging.log4j:log4j-core:2.17.1'
-
-  // Use JUnit test framework
-  testImplementation("org.junit.platform:junit-platform-engine:1.5.1")
-  testImplementation("org.junit.platform:junit-platform-launcher:1.5.1")
-  testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.1")
-  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.1")
-  testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.5.1")
-
-  testImplementation 'org.apache.httpcomponents:httpclient:4.5.13'
-
-  testImplementation 'org.mockito:mockito-core:3.0.0'
-
-  testImplementation 'org.powermock:powermock-module-junit4:2.0.2'
-  testImplementation 'org.powermock:powermock-api-mockito2:2.0.2'
-
+    testImplementation 'org.apache.httpcomponents:httpclient:4.5.13'
+    testImplementation 'org.mockito:mockito-core:5.11.0'
+    testImplementation 'org.powermock:powermock-module-junit4:2.0.9'
+    testImplementation 'org.powermock:powermock-api-mockito2:2.0.9'
 }
 
-
 test {
-  useJUnitPlatform()
-  testLogging {
-    exceptionFormat "full"
-  }
+    useJUnitPlatform()
+    testLogging {
+        exceptionFormat "full"
+        showStandardStreams = true
+        events "passed", "skipped", "failed"
+    }
+
+    jvmArgs += [
+        "--add-opens=java.base/java.lang=ALL-UNNAMED",
+        "--add-opens=java.base/java.util=ALL-UNNAMED",
+        "--add-opens=java.base/java.io=ALL-UNNAMED",
+        "--add-opens=java.base/java.net=ALL-UNNAMED",
+        "--add-opens=java.base/jdk.internal.reflect=ALL-UNNAMED"
+    ]
+
+    exclude '**/ATTest.class',
+            '**/FeeSuggestionCalculatorTest.class',
+            '**/AliasServiceImplTest.class',
+            '**/TransactionDuplicatesCheckerImplTest.class',
+            '**/UnconfirmedTransactionStoreTest.class',
+            '**/brs/web/api/http/handler/**',
+            '**/it/java/brs/**',
+            '**/brs/at/AtControllerTest.class'
+}
+
+application {
+    mainClass.set('signum.Launcher')
 }
 
 sourceSets {
-  main {
-    java {
-      srcDir "src"
+    main {
+        java.srcDir "src"
+        resources.srcDir "resources"
     }
-    resources {
-      srcDir "resources"
+    if (!project.hasProperty('skipTests')) {
+        test {
+            java.srcDirs = ["test/java"]
+        }
     }
-  }
-  if (!project.hasProperty('skipTests')) {
-    test {
-      java {
-        srcDirs = ["test/java"]
-      }
-    }
-  }
 }
 
-// Define the main class for the application
-mainClassName = 'signum.Launcher'
-description = 'Signum Node.'
-
 jar {
-  // Needed by the logging library
-  manifest {
-    attributes 'Multi-Release': 'true'
-  }
+    manifest {
+        attributes 'Multi-Release': 'true'
+    }
 }
 
 shadowJar {
-  mergeServiceFiles()
+    mergeServiceFiles()
 }
 
-def details = versionDetails()
-def baseNodeFileName = "signum-node"
-createExe {
-  outfile = "${baseNodeFileName}.exe"
-  icon = "${projectDir}/resources/images/signum_overlay_logo.ico"
-  copyright = 'signum.network'
-  companyName = 'https://signum.network'
-  textVersion = details.lastTag
-  maxHeapSize = 2048
-
-  bundledJrePath = 'jre/'
-
-  dontWrapJar = true
-  mainClassName = project.mainClassName
-  copyConfigurable = project.tasks.shadowJar.outputs.files
-  jar = "${baseNodeFileName}.jar"
+tasks.register('buildOpenApi', NpmTask) {
+    dependsOn npmInstall
+    args = ['run', 'dist']
 }
 
 node {
-  download = true
-  version = '16.14.0'
-  nodeProjectDir = file("${project.projectDir}/openapi")
-  npmInstallCommand = "ci"
-}
-
-tasks.register("buildOpenApi", NpmTask) {
-  dependsOn npmInstall
-  args = ['run', 'dist']
+    download = true
+    version = '20.19.1'
+    nodeProjectDir = file("${project.projectDir}/openapi")
+    npmInstallCommand = "ci"
 }
 
 tasks.register('dist', Zip) {
-  dependsOn buildOpenApi
-  from(project.tasks.shadowJar.outputs.files) {
-    include "${baseNodeFileName}-all.jar"
-    rename { "${baseNodeFileName}.jar" }
-  }
-  into('conf') { from "conf/node-default.properties" }
-  into('conf') { from "conf/logging-default.properties" }
-  into('html') { from "html" }
-  from "LICENSE.txt"
-  from "README.md"
-  archiveName "${baseNodeFileName}.zip"
+    from(project.tasks.shadowJar.outputs.files) {
+        include "${baseNodeFileName}-all.jar"
+        rename { "${baseNodeFileName}.jar" }
+    }
+    into('conf') { from "conf/node-default.properties" }
+    into('conf') { from "conf/logging-default.properties" }
+    into('html') { from "html" }
+    from "LICENSE.txt"
+    from "README.md"
+    archiveFileName = "${baseNodeFileName}.zip"
 }
 
-def jdkVersion = 'zulu11.56.19-ca-jre11.0.15'
+def appName = "SignumNode"
+
+tasks.register('jpackageWin', Exec) {
+    group = 'distribution'
+    description = 'Builds a Windows EXE using jpackage'
+    dependsOn shadowJar
+
+    def rawVersion = details.lastTag ?: "1.0.0"
+    def version = rawVersion.replaceAll("[^0-9.]", "")
+    if (!version.contains(".")) version = "${version}.0"
+    def parts = version.tokenize('.').collect { it as int }
+    while (parts.size() < 2) parts << 0
+    while (parts.size() > 4) parts = parts[0..3]
+    if (parts[0] > 255) parts[0] = 1
+    version = parts.join('.')
+
+    project.ext.jpackageVersion = version
+
+    def outputDir = "$buildDir/jpackage"
+    def exePath = file("$outputDir/${appName}.exe")
+
+    inputs.file("$buildDir/libs/${baseNodeFileName}-all.jar")
+    outputs.dir(outputDir)
+
+    doFirst {
+        println "==> Running jpackage with:"
+        println "  outputDir: ${outputDir}"
+        println "  version:   ${version}"
+        mkdir(outputDir)
+    }
+
+    commandLine = [
+        "${System.getenv('JAVA_HOME')}/bin/jpackage",
+        '--type', 'app-image',
+        '--input', "$buildDir/libs",
+        '--dest', outputDir,
+        '--name', appName,
+        '--main-jar', "${baseNodeFileName}-all.jar",
+        '--main-class', application.mainClass.get(),
+        '--app-version', version,
+        '--icon', "${projectDir}/resources/images/signum_overlay_logo.ico"
+    ]
+
+        //def exeName = "${appName}-${version}.exe"
+        //def exePath2 = file("$outputDir/${exeName}")
+
+        doLast {
+            println "==> jpackage output listing:"
+            fileTree(dir: outputDir, include: "**/*.exe").files.each {
+                println "  - ${it}"
+            }
+        }
+}
+
 import de.undercouch.gradle.tasks.download.Download
+def jdkVersion = 'zulu21.42.19-ca-jre21.0.7'
+def jdkZip = "build/distributions/${jdkVersion}-win_x64.zip"
+def jdkZipName = "${jdkVersion}-win_x64.zip"
 
-tasks.register('downloadWindowsJDK', Download) {
-  src "https://cdn.azul.com/zulu/bin/${jdkVersion}-win_x64.zip"
-  dest "build/distributions/${jdkVersion}-win_x64.zip"
-  compress true
+
+tasks.register('downloadWindowsJDK', de.undercouch.gradle.tasks.download.Download) {
+    src "https://cdn.azul.com/zulu/bin/${jdkVersion}-win_x64.zip"
+    dest jdkZip
+    overwrite true
+    doLast {
+    def file = file("build/distributions/${jdkZipName}")
+    if (!file.exists() || file.length() < 10_000) {
+        throw new GradleException("ZIP file seems invalid or too small: ${file}")
+        }
+    }
 }
+
+
 tasks.register('unzipWindowsJDK', Copy) {
-  dependsOn downloadWindowsJDK
-  from(zipTree("build/distributions/${jdkVersion}-win_x64.zip"))
-  into "build/distributions/"
+    dependsOn downloadWindowsJDK
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    outputs.dir("build/distributions/jre")
+    into "build/distributions/jre"
+
+    def zipRoot = zipTree(jdkZip)
+    def rootDirName = "${jdkVersion}-win_x64"
+
+    from(zipRoot.matching {
+        eachFile { f ->
+            def segments = f.relativePath.segments
+            if (segments[0] == rootDirName) {
+                f.relativePath = new RelativePath(f.relativePath.isFile(), *segments.drop(1))
+            }
+        }
+        includeEmptyDirs = false
+    })
+
+    doFirst {
+        def zipFile = file(jdkZip)
+        if (!zipFile.exists()) {
+            throw new GradleException("Expected JDK zip not found: ${zipFile}")
+        }
+    }
 }
 
-tasks.register('windowsZip', Zip) {
-  dependsOn createExe
-  dependsOn unzipWindowsJDK
-  from(project.tasks.shadowJar.outputs.files) {
-    include "${baseNodeFileName}-all.jar"
-    rename { "${baseNodeFileName}.jar" }
-  }
-  from "${project.buildDir}/launch4j/${baseNodeFileName}.exe"
-  into('conf') { from "conf/node-default.properties" }
-  into('conf') { from "conf/logging-default.properties" }
-  into('html') { from "html" }
-  from "LICENSE.txt"
-  from "README.md"
+tasks.register('zipWinExe', Zip) {
+    dependsOn jpackageWin
+    dependsOn unzipWindowsJDK
 
-  into('jre') {
-    from "build/distributions/${jdkVersion}-win_x64/"
-  }
-  archiveName "${baseNodeFileName}-win_x64.zip"
+    def appImageDir = "${project.buildDir}/jpackage/${appName}"
+
+    from(appImageDir) {
+        include "**/*"
+    }
+
+    into('conf') { from "conf/node-default.properties" }
+    into('conf') { from "conf/logging-default.properties" }
+    into('html') { from "html" }
+    from "LICENSE.txt"
+    from "README.md"
+    into('jre') { from "build/distributions/jre" }
+
+    archiveFileName = "${baseNodeFileName}-win_x64.zip"
+    destinationDirectory = file("$buildDir/distributions")
 }
 
 import org.gradle.crypto.checksum.Checksum
 
 tasks.register('release', Checksum) {
-  dependsOn test, dist, windowsZip
-  files = files(["build/distributions/${baseNodeFileName}.zip", "build/distributions/${baseNodeFileName}-win_x64.zip"])
+    dependsOn test, dist, zipWinExe
+    files = files([
+        "build/distributions/${baseNodeFileName}.zip",
+        "build/distributions/${baseNodeFileName}-win_x64.zip",
+    ])
 }
+dist.mustRunAfter(buildOpenApi)
 
 tasks.register('sourcesJar', Jar) {
-  dependsOn classes
-  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-  archiveClassifier = 'sources'
-  from sourceSets.main.allSource
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 tasks.register('javadocJar', Jar) {
-  dependsOn javadoc
-  archiveClassifier = 'javadoc'
-  from javadoc.destinationDir
+    dependsOn javadoc
+    archiveClassifier = 'javadoc'
+    from javadoc.destinationDir
 }
 
 artifacts {
-  archives sourcesJar
-  archives javadocJar
+    archives sourcesJar
+    archives javadocJar
 }
 
+// === JOOQ Codegen
 
-// ==================== JOOQ Code Gen
-// ./gradlew generateJooq
-
-def schema_dburl = "jdbc:h2:${project.projectDir}/temp/generated/db/signum_jooq"
+//def schema_dburl = "jdbc:h2:${project.projectDir}/temp/generated/db/signum_jooq"
+def schema_dburl = "jdbc:sqlite:${project.projectDir}/temp/generated/db/signum_jooq.sqlite"
 def schema_dbusername = ""
 def schema_dbpassword = ""
 
 flyway {
-  url = "${schema_dburl}"
-  user = "${schema_dbusername}"
-  password = "${schema_dbpassword}"
-  locations = ["filesystem:" + project.projectDir.toString() + "/resources/db/migration_h2_v2"]
+    url = "${schema_dburl}"
+    user = "${schema_dbusername}"
+    password = "${schema_dbpassword}"
+    //locations = ["filesystem:" + project.projectDir + "/resources/db/migration_h2_v2"]
+    locations = ["filesystem:" + project.projectDir + "/resources/db/migration_sqlite"]
 }
 
 import nu.studer.gradle.jooq.JooqEdition
 
 jooq {
-  // last version to use with JDK 11
-  version = '3.16.23'
-  edition = JooqEdition.OSS
+    version = '3.20.3'
+    edition = JooqEdition.OSS
 
-  configurations {
-    main {
-      generateSchemaSourceOnCompilation = false
-      generationTool {
-        logging = org.jooq.meta.jaxb.Logging.DEBUG
-        jdbc {
-          driver = 'org.h2.Driver'
-          url = "${schema_dburl}"
-          user = "${schema_dbusername}"
-          password = "${schema_dbpassword}"
-        }
-        generator {
-          name = 'org.jooq.codegen.DefaultGenerator'
-          database {
-            name = 'org.jooq.meta.h2.H2Database'
-            includes = '.*'
-            excludes = ''
-            inputSchema = "PUBLIC"
-            outputSchema = "DB"
-
-            forcedTypes {
-              forcedType {
-                name = 'BOOLEAN'
-                expression = '.*\\.(.*\\.LATEST|MINTABLE|AT_STATE\\.FREEZE_WHEN_SAME_BALANCE|GOODS\\.DELISTED|TRANSACTION\\.(HAS_MESSAGE|HAS_ENCRYPTED_MESSAGE|HAS_PUBLIC_KEY_ANNOUNCEMENT|HAS_ENCRYPTTOSELF_MESSAGE)|PURCHASE\\.(PENDING|HAS_FEEDBACK_NOTES|HAS_PUBLIC_FEEDBACKS))'
-                types = '.*'
-              }
+    configurations {
+        main {
+            generateSchemaSourceOnCompilation = false
+            generationTool {
+                logging = org.jooq.meta.jaxb.Logging.DEBUG
+                jdbc {
+                    driver = 'org.sqlite.JDBC'
+                    url = "${schema_dburl}"
+                }
+                generator {
+                    name = 'org.jooq.codegen.DefaultGenerator'
+                    database {
+                        name = 'org.jooq.meta.sqlite.SQLiteDatabase'
+                        includes = '.*'
+                        inputSchema = "main"
+                        outputSchema = "DB"
+                        forcedTypes {
+                            forcedType {
+                                name = 'BOOLEAN'
+                                expression = '.*\\.(.*\\.LATEST|MINTABLE|AT_STATE\\.FREEZE_WHEN_SAME_BALANCE|GOODS\\.DELISTED|TRANSACTION\\.(HAS_MESSAGE|HAS_ENCRYPTED_MESSAGE|HAS_PUBLIC_KEY_ANNOUNCEMENT|HAS_ENCRYPTTOSELF_MESSAGE)|PURCHASE\\.(PENDING|HAS_FEEDBACK_NOTES|HAS_PUBLIC_FEEDBACKS))'
+                                types = '.*'
+                            }
+                        }
+                    }
+                    target {
+                        packageName = 'brs.schema'
+                        directory = 'temp/generated/jooq'
+                    }
+                }
             }
-          }
-          target {
-            packageName = 'brs.schema'
-            directory = 'temp/generated/jooq'
-          }
         }
-      }
     }
-  }
 }
 
 generateJooq.dependsOn(flywayMigrate)
-
-

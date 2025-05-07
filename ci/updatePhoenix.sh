@@ -5,6 +5,7 @@ set -e
 echo "======================================="
 echo "🛰 Updating to latest Phoenix Version..."
 echo "---------------------------------------"
+BASE_CI_DIR=$(pwd)
 
 # prepare tmp folder
 TMPDIR=./tmp
@@ -19,17 +20,21 @@ echo
 echo "======================================="
 echo "⬇️ Downloading latest Phoenix Web Release..."
 echo "---------------------------------------"
-curl -s "https://api.github.com/repos/signum-network/phoenix/releases/latest" \
+
+DOWNLOAD_URL=$(curl -s "https://api.github.com/repos/signum-network/phoenix/releases/latest" \
+    | grep "browser_download_url" \
     | grep "web-phoenix-signum-wallet.*.zip" \
     | cut -d : -f 2,3 \
     | tr -d \" \
-    | grep "https" \
-    | wget -i -
+    | tr -d ' ')
+
+curl -L -o phoenix.zip "$DOWNLOAD_URL"
+
 echo
 echo "======================================="
 echo "📦 Unpacking..."
 echo "---------------------------------------"
-unzip web-phoenix-signum-wallet.*.zip
+unzip phoenix.zip
 echo "✅ Extracted newest wallet sources successfully"
 echo
 echo "======================================="
@@ -41,15 +46,13 @@ sed -i 's;<base href="/">;<base href="/phoenix/">;g' index.html
 echo "✅ Written base href"
 
 # cleanup old version
-rm -rf ../../../html/ui/phoenix/*
-cp -R * ../../../html/ui/phoenix
+rm -rf ${BASE_CI_DIR}/../html/ui/phoenix/*
+cp -R * ${BASE_CI_DIR}/../html/ui/phoenix/
 echo "✅ Copied wallet sources"
 
-#./dist
+popd > /dev/null
 popd > /dev/null
 
-#./tmp
-popd > /dev/null
 echo
 echo "======================================="
 echo "🛀 Cleaning up..."
@@ -58,7 +61,4 @@ rm -rf ./tmp
 echo "✅ Removed temp data"
 echo
 echo "🎉 Yay. Successfully updated Phoenix Web Wallet"
-
-
-
 

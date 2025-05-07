@@ -7,6 +7,11 @@ import org.jooq.SQLDialect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
   private static final Logger logger = LoggerFactory.getLogger(DatabaseInstanceSqlite.class);
 
@@ -14,20 +19,20 @@ public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
     super(propertyService);
   }
 
-  private String getJournalMode(){
+  private String getJournalMode() {
     String journalMode = propertyService.getString(Props.DB_SQLITE_JOURNAL_MODE).toUpperCase();
-    if(
+    if (
       journalMode.equals("WAL") ||
-      journalMode.equals("TRUNCATE") ||
-      journalMode.equals("DELETE") ||
-      journalMode.equals("PERSIST")
-    ){
+        journalMode.equals("TRUNCATE") ||
+        journalMode.equals("DELETE") ||
+        journalMode.equals("PERSIST")
+    ) {
       return journalMode;
     }
     return "WAL";
   }
 
-  private String getSynchronousMode(){
+  private String getSynchronousMode() {
     String synchronous = propertyService.getString(Props.DB_SQLITE_SYNCHRONOUS).toUpperCase();
     switch (synchronous) {
       case "FULL":
@@ -40,12 +45,15 @@ public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
     }
   }
 
-  private int getCacheSize(){
+  private int getCacheSize() {
     return propertyService.getInt(Props.DB_SQLITE_CACHE_SIZE);
   }
 
   @Override
   protected HikariConfig configureImpl(HikariConfig config) {
+
+    ensureSqliteFolder();
+
     config.setMaximumPoolSize(10);
     config.setConnectionTestQuery("SELECT 1;");
     config.addDataSourceProperty("foreign_keys", "off");
@@ -68,6 +76,32 @@ public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
     return SQLDialect.SQLITE;
   }
 
+  private static Path extractSqliteFolderPath(String jdbcUrl) {
+    if (jdbcUrl == null || !jdbcUrl.startsWith("jdbc:sqlite:")) {
+      throw new IllegalArgumentException("Invalid SQLite JDBC URL");
+    }
+    String filePath = jdbcUrl.substring("jdbc:sqlite:file:".length());
+    return Paths.get(filePath).toAbsolutePath().getParent();
+  }
+
+  private void ensureSqliteFolder() {
+    String dbUrl = propertyService.getString(Props.DB_URL);
+    Path folderPath = extractSqliteFolderPath(dbUrl);
+    if (folderPath == null) {
+      logger.error("SQLite database folder path couldn't be found for " + dbUrl);
+      return;
+    }
+    if (new File(folderPath.toString()).exists()) {
+      return;
+    }
+    logger.info("Creating SQLite DB folder(s): " + folderPath);
+    try {
+      Files.createDirectories(Paths.get(folderPath.toString()));
+    } catch (Exception e) {
+      logger.error("Failed to create SQLite DB folder: " + folderPath);
+      throw new RuntimeException(e);
+    }
+  }
 
   @Override
   protected void onStartupImpl() {
@@ -81,7 +115,6 @@ public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
 
   }
 
-
   @Override
   public String getMigrationSqlScriptPath() {
     return "classpath:/db/migration_sqlite";
@@ -93,7 +126,7 @@ public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
   }
 
   @Override
-  public boolean isStable() {
-    return false;
+  public SupportStatus getSupportStatus() {
+    return SupportStatus.STABLE;
   }
 }

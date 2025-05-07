@@ -94,6 +94,7 @@ public final class GetAccountTransactions extends ApiServlet.JsonRequestHandler 
     int timestamp = ParameterParser.getTimestamp(req);
     int numberOfConfirmations = parameterService.getNumberOfConfirmations(req);
     boolean includeIndirect = parameterService.getIncludeIndirect(req);
+
     CollectionWithIndex<Transaction> accountTransactions = account != null
       ? blockchain.getTransactions(
       account,
@@ -115,7 +116,6 @@ public final class GetAccountTransactions extends ApiServlet.JsonRequestHandler 
       lastIndex,
       includeIndirect,
       parameterService.getBidirectional(req));
-
 
     JsonArray transactions = new JsonArray();
     for (Transaction transaction : accountTransactions) {

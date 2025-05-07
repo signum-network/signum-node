@@ -29,10 +29,9 @@ public class MockNetwork extends TestnetNetwork {
     setProperty(Props.PK2_BLOCK_HEIGHT, "0");
     setProperty(Props.SMART_ALIASES_HEIGHT, "0");
     setProperty(Props.DEV_NEXT_FORK_BLOCK_HEIGHT, "0");
-    
+
     setProperty(Props.BRS_CHECKPOINT_HEIGHT, "-1");
     setProperty(Props.BRS_CHECKPOINT_HASH, "");
-
-    setProperty(Props.DB_URL, "jdbc:h2:file:./db/signum-mock;DB_CLOSE_ON_EXIT=FALSE");
+    setProperty(Props.DB_URL, "jdbc:sqlite:file:./db/signum.sqlite-mock.db");
   }
 }

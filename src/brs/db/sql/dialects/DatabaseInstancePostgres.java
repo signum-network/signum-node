@@ -41,7 +41,7 @@ public class DatabaseInstancePostgres extends DatabaseInstanceBaseImpl {
   }
 
   @Override
-  public boolean isStable() {
-    return false;
+  public SupportStatus getSupportStatus() {
+    return SupportStatus.EXPERIMENTAL;
   }
 }

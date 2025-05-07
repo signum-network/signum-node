@@ -54,7 +54,7 @@ public class DatabaseInstanceMariaDb extends DatabaseInstanceBaseImpl {
   }
 
   @Override
-  public boolean isStable() {
-    return true;
+  public SupportStatus getSupportStatus() {
+    return SupportStatus.STABLE;
   }
 }

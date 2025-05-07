@@ -57,6 +57,8 @@ public class SqlAccountStore implements AccountStore {
     }
   };
 
+  private static final Integer InsertMaxBatchSize = Signum.getPropertyService().getInt(Props.DB_INSERT_BATCH_MAX_SIZE);
+
   private static final Set<String> PK_CHECKS = Collections
     .unmodifiableSet(new HashSet<>(Signum.getPropertyService().getStringList(Props.BRS_PK_CHECKS)));
 
@@ -186,7 +188,7 @@ public class SqlAccountStore implements AccountStore {
               balance.getBalanceNqt(), balance.getUnconfirmedBalanceNqt(),
               balance.getForgedBalanceNqt(), true));
 
-          if(rows.size() >= 250000){
+          if(rows.size() >= InsertMaxBatchSize){
             ctx.insertInto(ACCOUNT_BALANCE, ACCOUNT_BALANCE.ID, ACCOUNT_BALANCE.HEIGHT,
                 ACCOUNT_BALANCE.BALANCE, ACCOUNT_BALANCE.UNCONFIRMED_BALANCE,
                 ACCOUNT_BALANCE.FORGED_BALANCE, ACCOUNT.LATEST)

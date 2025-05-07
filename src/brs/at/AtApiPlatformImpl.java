@@ -36,14 +36,6 @@ public class AtApiPlatformImpl extends AtApiImpl {
     return instance;
   }
 
-  // Version 1 - ok
-  // Pro Block die letzten 500 blocke der aktuell relevanten ATs in den Mem laden - 40 ms
-
-  // Version 2 - 80% ok
-  // Bei start alle tx der letzen 500 Bloecke in den Speicher laden - und (check)  - 400ms (1x)
-  // Jeden weiteren Block inkrementell die neuesten Tx an den Speicher anhaengen (check) - 2m  (Nx)
-  // --> Entferne alte Bloecke (aelter als 500 Bloecke)
-
 
   private static Long findTransaction(int startHeight, int endHeight, Long atID, int numOfTx, long minAmount) {
     ATProcessorCache cache = ATProcessorCache.getInstance();
@@ -55,21 +47,6 @@ public class AtApiPlatformImpl extends AtApiImpl {
       }
     }
     return Signum.getStores().getAtStore().findTransaction(startHeight, endHeight, atID, numOfTx, minAmount);
-//
-//    long id = 0;
-//    long idOrig = Signum.getStores().getAtStore().findTransaction(startHeight, endHeight, atID, numOfTx, minAmount);
-//    try {
-//      id = ATProcessorCache.getInstance().findTransactionId(startHeight, endHeight, atID, numOfTx, minAmount);
-//    } catch (ATProcessorCache.CacheMissException e) {
-//      logger.debug("Cache miss");
-//      id = Signum.getStores().getAtStore().findTransaction(startHeight, endHeight, atID, numOfTx, minAmount);
-//      // no op
-//    }
-//    if(id != idOrig){
-//      logger.error("Cache mismatch: {} x {}", id, idOrig );
-//    }
-//
-//    return idOrig;
   }
 
   private static int findTransactionHeight(Long transactionId, int height, Long atID, long minAmount) {
@@ -82,20 +59,7 @@ public class AtApiPlatformImpl extends AtApiImpl {
       }
     }
     return Signum.getStores().getAtStore().findTransactionHeight(transactionId, height, atID, minAmount);
-//    int h;
-//    int hOrig =
-//      Signum.getStores().getAtStore().findTransactionHeight(transactionId, height, atID, minAmount);
-//    try {
-//      h = ATProcessorCache.getInstance().findTransactionHeight(transactionId, height, atID, minAmount);
-//    } catch (ATProcessorCache.CacheMissException e) {
-//      logger.debug("Cache miss");
-//      h = Signum.getStores().getAtStore().findTransactionHeight(transactionId, height, atID, minAmount);
-//    }
-//    if(h != hOrig){
-//      logger.error("Cache mismatch: {} - {}", h, hOrig );
-//    }
-//
-//    return hOrig;
+
   }
 
   @Override

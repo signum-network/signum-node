@@ -152,6 +152,8 @@ public class SqlBlockchainStore implements BlockchainStore {
 
   @Override
   public Collection<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype, int blockTimestamp, int from, int to, boolean includeIndirectIncoming) {
+    // note to devs: this method does not scale. as of 12, 2024 some account suffer long loading times here. some unsuccessful trials to refactor the queries failed. So, touch this method only
+    // if you are really understand what you are doing.
     int height = getHeightForNumberOfConfirmations(numberOfConfirmations);
     return Db.useDSLContext(ctx -> {
       ArrayList<Condition> conditions = new ArrayList<>();
@@ -205,6 +207,7 @@ public class SqlBlockchainStore implements BlockchainStore {
     return height;
   }
 
+  // TODO: better introduce a dedicated bySender, byRecipient endpoint to reduce complexity
   @Override
   public Collection<Transaction> getTransactions(Long senderId, Long recipientId, int numberOfConfirmations, byte type, byte subtype, int blockTimestamp, int from, int to, boolean includeIndirectIncoming, boolean bidirectional) {
     int height = getHeightForNumberOfConfirmations(numberOfConfirmations);

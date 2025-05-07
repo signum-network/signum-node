@@ -44,18 +44,17 @@ public class DatabaseInstanceH2 extends DatabaseInstanceBaseImpl {
 
   @Override
   protected void onStartupImpl() {
-    logger.warn("H2 shows certain instabilities and is not recommended for use in production, i.e. public nodes anymore.");
-    logger.warn("We recommend to use MariaDB instead. At the an experimental SQLite alternative is being provided.");
+    logger.warn("### DEPRECATION NOTICE ###");
+    logger.warn("H2 shows instabilities causing database corruptions and is not recommended for use in MainNet anymore.");
+    logger.warn("We recommend to use SQLite as a stable alternative");
+    logger.warn("--------------------------");
+    logger.warn("### H2 SUPPORT WILL BE REMOVED IN VERSION 3.9 ###");
+    logger.warn("--------------------------");
   }
 
   @Override
   public SQLDialect getDialect() {
     return SQLDialect.H2;
-  }
-
-
-  @Override
-  public void onStartup() {
   }
 
   @Override
@@ -69,7 +68,7 @@ public class DatabaseInstanceH2 extends DatabaseInstanceBaseImpl {
   }
 
   @Override
-  public boolean isStable() {
-    return true;
+  public SupportStatus getSupportStatus() {
+    return SupportStatus.DEPRECATED;
   }
 }

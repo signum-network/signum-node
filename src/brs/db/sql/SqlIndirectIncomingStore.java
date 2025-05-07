@@ -1,9 +1,11 @@
 package brs.db.sql;
 
+import brs.Signum;
 import brs.IndirectIncoming;
 import brs.db.SignumKey;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.IndirectIncomingStore;
+import brs.props.Props;
 import org.jooq.*;
 import org.jooq.exception.DataAccessException;
 
@@ -20,6 +22,8 @@ public class SqlIndirectIncomingStore implements IndirectIncomingStore {
   private final EntitySqlTable<IndirectIncoming> indirectIncomingTable;
   private final SignumKey.LinkKeyFactory<IndirectIncoming> indirectIncomingDbKeyFactory;
 
+  private static final Integer InsertMaxBatchSize = Signum.getPropertyService().getInt(Props.DB_INSERT_BATCH_MAX_SIZE);
+
   public SqlIndirectIncomingStore(DerivedTableManager derivedTableManager) {
     indirectIncomingDbKeyFactory = new DbKey.LinkKeyFactory<IndirectIncoming>("account_id", "transaction_id") {
       @Override
@@ -30,7 +34,7 @@ public class SqlIndirectIncomingStore implements IndirectIncomingStore {
 
     this.indirectIncomingTable = new EntitySqlTable<IndirectIncoming>("indirect_incoming", INDIRECT_INCOMING, indirectIncomingDbKeyFactory, derivedTableManager) {
       @Override
-      protected IndirectIncoming load(DSLContext ctx, Record rs) {
+      protected IndirectIncoming load(DSLContext ctx, org.jooq.Record rs) {
         return new IndirectIncoming(
           rs.get(INDIRECT_INCOMING.ACCOUNT_ID),
           rs.get(INDIRECT_INCOMING.TRANSACTION_ID),
@@ -60,7 +64,7 @@ public class SqlIndirectIncomingStore implements IndirectIncomingStore {
         while (iterator.hasNext()) {
           List<Record5<Long, Long, Long, Long, Integer>> rows = new ArrayList<>();
           // break into batches
-          for (int i = 0; i < 250000 && iterator.hasNext(); i++) {
+          for (int i = 0; i < InsertMaxBatchSize && iterator.hasNext(); i++) {
             IndirectIncoming indirectIncoming = iterator.next();
             rows.add(ctx.newRecord(INDIRECT_INCOMING.ACCOUNT_ID,
               INDIRECT_INCOMING.TRANSACTION_ID,

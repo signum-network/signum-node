@@ -136,6 +136,7 @@ public final class Db {
     Connection con = localConnection.get();
     Settings settings = new Settings();
     settings.setRenderSchema(Boolean.FALSE);
+
     SQLDialect dialect = databaseInstance.getDialect();
     if (con == null) {
       return DSL.using(databaseInstance.getDataSource(), dialect, settings);
@@ -247,11 +248,12 @@ public final class Db {
     try {
       DSLContext ctx = getDSLContext();
       ResultQuery queryVersion = ctx.resultQuery(databaseInstance.getDatabaseVersionSQLScript());
-      Record record = queryVersion.fetchOne();
+      org.jooq.Record record = queryVersion.fetchOne();
+
       if (record != null) {
         version = record.get(0, String.class);
-        if (!databaseInstance.isStable()) {
-          version += " (EXPERIMENTAL)";
+        if (databaseInstance.getSupportStatus() != DatabaseInstance.SupportStatus.STABLE) {
+          version += " (" + databaseInstance.getSupportStatus().toString() + ")";
         }
       }
     } catch (Exception e) {

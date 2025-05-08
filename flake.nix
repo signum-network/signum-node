@@ -31,22 +31,11 @@
             nushell
           ];
 
-          sourceWithGit = lib.sources.cleanSourceWith {
-            name = "source-with-git";
-            src = ./.;
-            filter =
-              path: type:
-              let
-                baseName = baseNameOf path;
-              in
-              (baseName == ".git" && type == "directory") || lib.sources.cleanSourceFilter path type;
-          };
-
           javaPackage = pkgs.stdenv.mkDerivation (finalAttrs: {
             pname = "signum-node";
             version = "3.8.4";
 
-            src = sourceWithGit;
+            src = ./.;
 
             nativeBuildInputs = buildDeps ++ devDeps;
 

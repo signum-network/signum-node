@@ -23,7 +23,7 @@ target
 *.zip
 *.jar
 *.hprof
-
+.DS_Store
 #ignore everything in here by default, but settings.json is already committed
 #and so will remain tracked
 **/.vscode

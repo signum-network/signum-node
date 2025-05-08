@@ -23,6 +23,7 @@
           ];
           buildDeps = with pkgs; [
             gradle
+            makeWrapper
             pkg-config
           ];
           devDeps = with pkgs; [
@@ -48,6 +49,7 @@
             __darwinAllowLocalNetworking = true;
 
             gradleFlags = [
+              "-x test"
               "-Dfile.encoding=utf-8"
               "-Pversion=${finalAttrs.version}" # Manually give gradle the version
             ];
@@ -57,11 +59,11 @@
             doCheck = true;
 
             installPhase = ''
-              mkdir -p $out/{bin,share/my-package}
-              cp build/libs/signum-node.jar $out/share/signum-node
+              mkdir -p $out/{bin,share}
+              cp build/libs/signum-node-$version-all.jar $out/share/signum-node
 
               makeWrapper ${lib.getExe pkgs.jre} $out/bin/signum-node \
-                --add-flags "-jar $out/share/signum-node/signum-node-all.jar"
+                --add-flags "-jar $out/share/signum-node"
             '';
 
             meta.sourceProvenance = with pkgs.lib.sourceTypes; [

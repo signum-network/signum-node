@@ -31,7 +31,7 @@ let
     mitmCache = pkgs.gradle.fetchDeps {
       # inherit (finalAttrs) pname;
       pkg = finalAttrs;
-      data = ./deps.json;
+      data = ./nix-deps.json;
     };
 
     __darwinAllowLocalNetworking = true;

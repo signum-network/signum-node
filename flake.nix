@@ -26,7 +26,7 @@
         rec {
           default = signumNode;
           signumNode = signumNodeOutputs.package;
-          updateDeps = signumNodeOutputs.updateDeps.mitmCache.updateScript;
+          updateDeps = signumNodeOutputs.package.mitmCache.updateScript;
         }
       );
 

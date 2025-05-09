@@ -60,7 +60,7 @@ let
       license = lib.licenses.gpl3Only;
       maintainers = with lib.maintainers; [
         "ohager"
-        "frankthetank72"
+        "frankTheTank72"
         "damccull"
       ];
       platforms = [ ] ++ lib.platforms.unix;

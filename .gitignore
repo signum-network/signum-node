@@ -10,6 +10,9 @@
 _config.yml
 /html/ui/doc/*
 /html/ui/phoenix/*
+/html/ui/classic/*
+!/html/ui/phoenix/README.md
+!/html/ui/classic/README.md
 target
 *.prefs
 .project
@@ -20,7 +23,7 @@ target
 *.zip
 *.jar
 *.hprof
-
+.DS_Store
 #ignore everything in here by default, but settings.json is already committed
 #and so will remain tracked
 **/.vscode
@@ -31,3 +34,5 @@ target
 launch.json
 *.pem
 *.p12
+*.log.lck
+

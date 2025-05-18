@@ -78,7 +78,12 @@ public class SignumGUI extends JFrame {
     }
 
     public SignumGUI(String programName, String iconLocation, String version, String []args) {
-        System.setSecurityManager(new SignaGUISecurityManager());
+        try {
+            System.setSecurityManager(new SignaGUISecurityManager());
+        } catch (UnsupportedOperationException e) {
+            // Java 17+ / 21+: Setting a SecurityManager is not supported anymore
+            System.err.println("SecurityManager not supported, skipping setup");
+        }
         SignumGUI.args = args;
         this.programName = programName;
         this.version = version;

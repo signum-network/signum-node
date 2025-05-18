@@ -2,10 +2,11 @@
     "java.format.settings.url": "./eclipse-java-style.xml",
     "java.format.settings.profile": "SignumStyle",
     "java.checkstyle.configuration": "${workspaceFolder}/checkstyle.xml",
-    "java.checkstyle.version": "10.13.0",
+    "java.checkstyle.version": "10.22.0",
     "java.format.onType.enabled": true,
     "java.format.enabled": true,
     "editor.detectIndentation": false,
     "java.import.projectSelection": "automatic",
-    "workbench.colorTheme": "Default Dark Modern"
+    "workbench.colorTheme": "Default Dark Modern",
+    "java.server.launchMode": "Standard"
 }

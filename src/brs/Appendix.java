@@ -103,6 +103,16 @@ public interface Appendix {
             return new Message(attachmentData);
         }
 
+        private static final int MESSAGE_TEXT_FLAG = 1 << 31;
+
+        private static boolean hasTextFlag(int rawLength) {
+            return (rawLength & MESSAGE_TEXT_FLAG) != 0;
+        }
+
+        private static int extractLength(int rawLength) {
+            return rawLength & ~MESSAGE_TEXT_FLAG;
+        }
+
         private final byte[] messageBytes;
         private final boolean isText;
 
@@ -111,11 +121,9 @@ public interface Appendix {
                 byte transactionVersion)
                 throws SignumException.NotValidException {
             super(buffer, transactionVersion);
-            int messageLength = buffer.getInt();
-            this.isText = messageLength < 0; // ugly hack
-            if (messageLength < 0) {
-                messageLength &= Integer.MAX_VALUE;
-            }
+            int rawLength = buffer.getInt();
+            this.isText = hasTextFlag(rawLength);
+            int messageLength = extractLength(rawLength);
             if (messageLength > Constants.MAX_ARBITRARY_MESSAGE_LENGTH) {
                 throw new SignumException.NotValidException(
                         "Invalid arbitrary message length: " + messageLength);
@@ -158,7 +166,7 @@ public interface Appendix {
 
         @Override
         protected void putMyBytes(ByteBuffer buffer) {
-            buffer.putInt(isText ? (messageBytes.length | Integer.MIN_VALUE) : messageBytes.length);
+            buffer.putInt(isText ? (messageBytes.length | MESSAGE_TEXT_FLAG) : messageBytes.length);
             buffer.put(messageBytes);
         }
 

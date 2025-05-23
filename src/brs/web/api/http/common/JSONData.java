@@ -410,7 +410,7 @@ public final class JSONData {
       JSON.addAll(attachmentJSON, appendage.getJsonObject());
     }
     if (attachmentJSON.size() > 0) {
-      modifyAttachmentJSON(attachmentJSON);
+      normalizeAttachmentValues(attachmentJSON);
       json.add(ATTACHMENT_RESPONSE, attachmentJSON);
     }
     byte[] attachmentBytes = SqlTransactionDb.getAttachmentBytes(transaction);
@@ -446,23 +446,27 @@ public final class JSONData {
     return json;
   }
 
-  // ugly, hopefully temporary
-  private static void modifyAttachmentJSON(JsonObject json) {
-    JsonElement quantityQNT = json.remove(QUANTITY_QNT_RESPONSE);
-    if (quantityQNT != null && quantityQNT.isJsonPrimitive()) {
-      json.addProperty(QUANTITY_QNT_RESPONSE, quantityQNT.getAsString());
-    }
-    JsonElement priceNQT = json.remove(PRICE_NQT_RESPONSE);
-    if (priceNQT != null && priceNQT.isJsonPrimitive()) {
-      json.addProperty(PRICE_NQT_RESPONSE, priceNQT.getAsString());
-    }
-    JsonElement discountNQT = json.remove(DISCOUNT_NQT_RESPONSE);
-    if (discountNQT != null && discountNQT.isJsonPrimitive()) {
-      json.addProperty(DISCOUNT_NQT_RESPONSE, discountNQT.getAsString());
-    }
-    JsonElement refundNQT = json.remove(REFUND_NQT_RESPONSE);
-    if (refundNQT != null && refundNQT.isJsonPrimitive()) {
-      json.addProperty(REFUND_NQT_RESPONSE, refundNQT.getAsString());
+  /**
+   * Normalize attachment values so numeric fields are serialized as strings.
+   * This preserves formatting for clients expecting string-based numbers.
+   */
+  private static void normalizeAttachmentValues(JsonObject json) {
+    convertNumbersToStrings(json,
+        QUANTITY_QNT_RESPONSE,
+        PRICE_NQT_RESPONSE,
+        DISCOUNT_NQT_RESPONSE,
+        REFUND_NQT_RESPONSE);
+  }
+
+  private static void convertNumbersToStrings(JsonObject json, String... keys) {
+    for (String key : keys) {
+      JsonElement element = json.get(key);
+      if (element != null && element.isJsonPrimitive()) {
+        JsonPrimitive primitive = element.getAsJsonPrimitive();
+        if (primitive.isNumber()) {
+          json.addProperty(key, primitive.getAsString());
+        }
+      }
     }
   }
 

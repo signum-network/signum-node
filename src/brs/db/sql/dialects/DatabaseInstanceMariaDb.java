@@ -33,7 +33,9 @@ public class DatabaseInstanceMariaDb extends DatabaseInstanceBaseImpl {
   }
 
   @Override
-  protected void onShutdownImpl() {}
+  protected void onShutdownImpl() {
+    optimizeAllTables();
+  }
 
   @Override
   public SQLDialect getDialect() {

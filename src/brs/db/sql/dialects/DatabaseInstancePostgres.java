@@ -20,7 +20,12 @@ public class DatabaseInstancePostgres extends DatabaseInstanceBaseImpl {
   }
 
   @Override
-  protected void onShutdownImpl() {}
+  protected void onShutdownImpl() {
+    if (propertyService.getBoolean(Props.DB_OPTIMIZE)) {
+      logger.info("Running VACUUM ANALYZE on PostgreSQL...");
+      executeSQL("VACUUM (ANALYZE)");
+    }
+  }
 
   @Override
   public SQLDialect getDialect() {

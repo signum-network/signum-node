@@ -96,4 +96,14 @@ Do reduce I/O times and though causing significant speedup while syncing, one ma
 SET GLOBAL innodb_flush_log_at_trx_commit = 0;
 ```
 
-See more details [here](https://mariadb.com/docs/server/ref/mdb/system-variables/innodb_flush_log_at_trx_commit/). 
+See more details [here](https://mariadb.com/docs/server/ref/mdb/system-variables/innodb_flush_log_at_trx_commit/).
+
+## Optimization
+
+To reduce disk usage the node can optimize all MariaDB tables on shutdown. Enable this behaviour in `conf/node.properties`:
+
+```properties
+DB.Optimize = on
+```
+
+With this setting the node issues `OPTIMIZE TABLE` for every table before closing. The process may take a while depending on database size.

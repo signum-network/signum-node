@@ -2,6 +2,10 @@ package brs.db.sql.dialects;
 
 import brs.props.PropertyService;
 import brs.props.Props;
+import brs.schema.Tables;
+import org.jooq.Table;
+import brs.db.sql.Db;
+import java.lang.reflect.Field;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.Logger;
@@ -49,6 +53,27 @@ public abstract class DatabaseInstanceBaseImpl implements DatabaseInstance {
       stmt.execute(sql);
     } catch (SQLException e) {
       logger.error(e.toString(), e);
+    }
+  }
+
+  /**
+   * Iterate over all jOOQ tables and invoke Db.optimizeTable.
+   * Only executed when {@code Props.DB_OPTIMIZE} is enabled.
+   */
+  protected void optimizeAllTables() {
+    if (!propertyService.getBoolean(Props.DB_OPTIMIZE)) {
+      return;
+    }
+    logger.info("Optimizing database tables ...");
+    for (Field field : Tables.class.getFields()) {
+      if (Table.class.isAssignableFrom(field.getType())) {
+        try {
+          Table<?> t = (Table<?>) field.get(null);
+          Db.optimizeTable(t.getName());
+        } catch (Exception e) {
+          logger.debug("Failed to optimize table {}", field.getName(), e);
+        }
+      }
     }
   }
 

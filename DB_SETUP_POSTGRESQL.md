@@ -53,6 +53,16 @@ DB.Username=signumnode
 DB.Password=s1gn00m_n0d3
 ```
 
+## Optimization
+
+When the `DB.Optimize` property is enabled the node performs `VACUUM ANALYZE` on shutdown to reclaim disk space and update statistics. Configure this in `conf/node.properties`:
+
+```properties
+DB.Optimize = on
+```
+
+The optimization step can take several minutes depending on database size.
+
 ## For Test Net
 
 > Testnet is usually only for slightly advanced users. The testnet allows you "play" around without having to buy/get real SIGNA. 

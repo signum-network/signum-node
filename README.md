@@ -172,6 +172,13 @@ DB.Password=
 
 Please modify the `DB.Url` to your own specifications (port 3306 is the standard port from MariaDB) and also set the `DB.Username` and `DB.Password` according your setup for the created database.
 
+Enabling database optimization helps reclaim disk space and keep query statistics up to date. By default this is enabled via:
+
+```properties
+DB.Optimize = on
+```
+You can turn this off if the additional startup or shutdown time is undesirable.
+
 **UPnP-Portforwarding**
 
 By default the UPnP port forwarding is activated. 

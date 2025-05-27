@@ -1,6 +1,7 @@
 package brs.db.sql.dialects;
 
 import brs.props.PropertyService;
+import brs.props.Props;
 import com.zaxxer.hikari.HikariConfig;
 import org.jooq.SQLDialect;
 import org.slf4j.Logger;

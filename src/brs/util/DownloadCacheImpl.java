@@ -214,7 +214,7 @@ public final class DownloadCacheImpl {
         try {
             long blockId = unverified.get(0);
             Block block = blockCache.get(blockId);
-            unverified.remove(blockId);
+            unverified.remove(Long.valueOf(blockId));
             return block;
         } finally {
             dcsl.unlockWrite(stamp);
@@ -224,7 +224,7 @@ public final class DownloadCacheImpl {
     public void removeUnverified(long blockId) {
         long stamp = dcsl.writeLock();
         try {
-            unverified.remove(blockId);
+            unverified.remove(Long.valueOf(blockId));
         } finally {
             dcsl.unlockWrite(stamp);
         }
@@ -234,7 +234,7 @@ public final class DownloadCacheImpl {
         long stamp = dcsl.writeLock();
         try {
             for (Block block : blocks) {
-                unverified.remove(block.getId());
+                unverified.remove(Long.valueOf(block.getId()));
             }
         } finally {
             dcsl.unlockWrite(stamp);
@@ -390,8 +390,10 @@ public final class DownloadCacheImpl {
         if (chkVal) { // make sure there is something to remove
             stamp = dcsl.writeLock();
             try {
-                unverified.remove(block.getId());
-                reverseCache.remove(block.getPreviousBlockId());
+                unverified.remove(Long.valueOf(block.getId()));
+                if (block.getPreviousBlockId() != 0) {
+                    reverseCache.remove(block.getPreviousBlockId());
+                }
                 blockCache.remove(block.getId());
                 blockCacheSize -= block.getByteLength();
             } finally {

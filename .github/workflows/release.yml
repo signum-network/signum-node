@@ -2,9 +2,10 @@ name: Draft release for Signum Node
 
 on:
   workflow_dispatch:
-  push:
-    tags:
-      - 'v*'
+    inputs:
+      release_tag:
+        description: 'Release tag (e.g. v1.8.0)'
+        required: true
 
 jobs:
   build-node:
@@ -19,8 +20,8 @@ jobs:
         id: get_version
         shell: cmd
         run: |
-          echo VERSION=${{github.ref_name}}
-          echo VERSION=${{github.ref_name}} >> %GITHUB_ENV%
+          echo VERSION=${{release_tag}}
+          echo VERSION=${{release_tag}} >> %GITHUB_ENV%
 
       - name: Update Wallets
         shell: bash

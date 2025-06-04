@@ -80,7 +80,7 @@ RUN mkdir -p /requirements \
   && ldd /jre/bin/java | awk 'NF == 4 { system("cp --parents " $3 " /requirements") }'
 
 # Prepare final image
-FROM alpine:3.20
+FROM alpine:3.22
 LABEL name="Signum Node"
 LABEL description="This is the official Signum Node image"
 LABEL credits="gittrekt,damccull,ohager"

@@ -20,8 +20,8 @@ jobs:
         id: get_version
         shell: bash
         run: |
-          echo VERSION=${{release_tag}}
-          echo VERSION=${{release_tag}} >> %GITHUB_ENV%
+          echo "VERSION=${{ github.event.inputs.release_tag }}"
+          echo "VERSION=${{ github.event.inputs.release_tag }}" >> $GITHUB_ENV
 
       - name: Update Wallets
         shell: bash
@@ -45,8 +45,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Signum Node ${{ github.ref }}
+          tag_name: ${{ github.event.inputs.release_tag }}
+          release_name: Signum Node ${{ github.event.inputs.release_tag }}
           draft: true
           prerelease: false
 

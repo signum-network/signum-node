@@ -18,7 +18,7 @@ jobs:
 
       - name: Get version from tag
         id: get_version
-        shell: cmd
+        shell: bash
         run: |
           echo VERSION=${{release_tag}}
           echo VERSION=${{release_tag}} >> %GITHUB_ENV%

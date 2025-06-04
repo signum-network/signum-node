@@ -14,7 +14,7 @@ plugins {
   id 'maven-publish'
   id 'application'
   id 'org.gradle.crypto.checksum' version '1.4.0'
-  id 'com.palantir.git-version' version '3.2.0'
+  id 'com.palantir.git-version' version '0.12.2'
   id 'io.spring.dependency-management' version '1.1.4'
   id 'nu.studer.jooq' version '7.2'
   id "org.flywaydb.flyway" version "8.5.13"
@@ -35,13 +35,7 @@ repositories {
 }
 
 def baseNodeFileName = "signum-node"
-
-// This details is where we get the version for the windows exe.
-// Only use it when version is not sent in via the gradle build arg `Pversion`.
-def details = null
-if (!project.hasProperty('version') || project.property('version') == 'unspecified') {
-    details = versionDetails()
-}
+def details = versionDetails()
 
 dependencies {
     implementation 'com.github.signum-network:signumj:v1.3.1'
@@ -182,21 +176,14 @@ tasks.register('jpackageWin', Exec) {
     description = 'Builds a Windows EXE using jpackage'
     dependsOn shadowJar
 
-    // def version = null;
-    if (!project.hasProperty('version') || project.property('version') == 'unspecified') {
-        // Build a windows exe version from the palantir.git-version details
-        // Only do this if no version is passed via `Pversion` gradle build arg
-        def rawVersion = details.lastTag ?: "1.0.0"
-        version = rawVersion.replaceAll("[^0-9.]", "")
-        if (!version.contains(".")) version = "${version}.0"
-        def parts = version.tokenize('.').collect { it as int }
-        while (parts.size() < 2) parts << 0
-        while (parts.size() > 4) parts = parts[0..3]
-        if (parts[0] > 255) parts[0] = 1
-        version = parts.join('.')
-    } else {
-        version = project.property('version')
-    }
+    def rawVersion = details.lastTag ?: "1.0.0"
+    def version = rawVersion.replaceAll("[^0-9.]", "")
+    if (!version.contains(".")) version = "${version}.0"
+    def parts = version.tokenize('.').collect { it as int }
+    while (parts.size() < 2) parts << 0
+    while (parts.size() > 4) parts = parts[0..3]
+    if (parts[0] > 255) parts[0] = 1
+    version = parts.join('.')
 
     project.ext.jpackageVersion = version
 

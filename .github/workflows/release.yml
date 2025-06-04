@@ -2,10 +2,9 @@ name: Draft release for Signum Node
 
 on:
   workflow_dispatch:
-    inputs:
-      release_tag:
-        description: 'Release tag (e.g. v1.8.0)'
-        required: true
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   build-node:
@@ -18,10 +17,10 @@ jobs:
 
       - name: Get version from tag
         id: get_version
-        shell: bash
+        shell: cmd
         run: |
-          echo "VERSION=${{ github.event.inputs.release_tag }}"
-          echo "VERSION=${{ github.event.inputs.release_tag }}" >> $GITHUB_ENV
+          echo VERSION=${{github.ref_name}}
+          echo VERSION=${{github.ref_name}} >> %GITHUB_ENV%
 
       - name: Update Wallets
         shell: bash
@@ -45,8 +44,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.event.inputs.release_tag }}
-          release_name: Signum Node ${{ github.event.inputs.release_tag }}
+          tag_name: ${{ github.ref }}
+          release_name: Signum Node ${{ github.ref }}
           draft: true
           prerelease: false
 

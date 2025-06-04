@@ -68,4 +68,3 @@ jobs:
           asset_path: ./build/distributions/signum-node-win_x64.zip
           asset_name: signum-node-${{ env.VERSION }}-win_x64.zip
           asset_content_type: application/zip
-          

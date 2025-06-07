@@ -9,6 +9,7 @@ import brs.db.BlockDb;
 import brs.db.DerivedTable;
 import brs.db.TransactionDb;
 import brs.db.cache.DBCacheManagerImpl;
+import brs.db.cache.TransactionCache;
 import brs.db.store.BlockchainStore;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.Stores;
@@ -1326,6 +1327,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     List<Transaction> txs = block.getTransactions();
     blockchain.setLastBlock(block, previousBlock);
     txs.forEach(Transaction::unsetBlock);
+    TransactionCache.getInstance().removeBlockTransactions(block.getId());
     blockDb.deleteBlocksFrom(block.getId());
     blockListeners.notify(block, Event.BLOCK_POPPED);
     return previousBlock;

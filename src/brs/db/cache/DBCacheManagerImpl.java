@@ -61,5 +61,6 @@ public class DBCacheManagerImpl {
       if ( cache != null )
         cache.clear();
     }
+    TransactionCache.getInstance().clear();
   }
 }

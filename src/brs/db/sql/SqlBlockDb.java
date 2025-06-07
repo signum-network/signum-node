@@ -4,6 +4,7 @@ import brs.Block;
 import brs.Signum;
 import brs.SignumException;
 import brs.db.BlockDb;
+import brs.db.cache.TransactionCache;
 import brs.schema.tables.records.BlockRecord;
 import org.jooq.*;
 import org.jooq.Record;
@@ -138,6 +139,7 @@ public class SqlBlockDb implements BlockDb {
       .execute();
 
     Signum.getDbs().getTransactionDb().saveTransactions(block.getTransactions());
+    TransactionCache.getInstance().addBlockTransactions(block.getId(), block.getTransactions());
 
     if (block.getPreviousBlockId() != 0) {
       ctx.update(BLOCK)

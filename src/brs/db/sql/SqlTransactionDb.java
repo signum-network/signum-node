@@ -5,6 +5,7 @@ import brs.SignumException;
 import brs.Transaction;
 import brs.TransactionType;
 import brs.db.TransactionDb;
+import brs.db.cache.TransactionCache;
 import brs.schema.tables.records.TransactionRecord;
 import brs.util.Convert;
 
@@ -22,6 +23,10 @@ public class SqlTransactionDb implements TransactionDb {
 
   @Override
   public Transaction findTransaction(long transactionId) {
+    Transaction cached = TransactionCache.getInstance().getById(transactionId);
+    if (cached != null) {
+      return cached;
+    }
     return Db.useDSLContext(ctx -> {
       try {
         TransactionRecord transactionRecord = ctx.selectFrom(TRANSACTION).where(TRANSACTION.ID.eq(transactionId)).fetchOne();
@@ -34,6 +39,10 @@ public class SqlTransactionDb implements TransactionDb {
 
   @Override
   public Transaction findTransactionByFullHash(String fullHash) {
+    Transaction cached = TransactionCache.getInstance().getByHash(fullHash);
+    if (cached != null) {
+      return cached;
+    }
     return Db.useDSLContext(ctx -> {
       try {
         TransactionRecord transactionRecord = ctx.selectFrom(TRANSACTION).where(TRANSACTION.FULL_HASH.eq(Convert.parseHexString(fullHash))).fetchOne();
@@ -46,6 +55,9 @@ public class SqlTransactionDb implements TransactionDb {
 
   @Override
   public boolean hasTransaction(long transactionId) {
+    if (TransactionCache.getInstance().getById(transactionId) != null) {
+      return true;
+    }
     return Db.useDSLContext(ctx -> {
       return ctx.fetchExists(ctx.selectFrom(TRANSACTION).where(TRANSACTION.ID.eq(transactionId)));
     });
@@ -53,6 +65,9 @@ public class SqlTransactionDb implements TransactionDb {
 
   @Override
   public boolean hasTransactionByFullHash(String fullHash) {
+    if (TransactionCache.getInstance().getByHash(fullHash) != null) {
+      return true;
+    }
     return Db.useDSLContext(ctx -> {
       return ctx.fetchExists(ctx.selectFrom(TRANSACTION).where(TRANSACTION.FULL_HASH.eq(Convert.parseHexString(fullHash))));
     });
@@ -110,6 +125,14 @@ public class SqlTransactionDb implements TransactionDb {
 
   @Override
   public List<Transaction> findBlockTransactions(long blockId, boolean onlySigned) {
+    List<Transaction> cached = TransactionCache.getInstance().getBlockTransactions(blockId);
+    if (cached != null) {
+      if (!onlySigned) {
+        return cached;
+      } else {
+        return cached.stream().filter(t -> t.getSignature() != null).toList();
+      }
+    }
     return Db.useDSLContext(ctx -> {
       SelectConditionStep<TransactionRecord> select = ctx.selectFrom(TRANSACTION)
           .where(TRANSACTION.BLOCK_ID.eq(blockId));

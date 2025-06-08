@@ -31,9 +31,9 @@ public class DBCacheManagerImpl {
     statisticsEnabled = true;
 
     caches.put("account", CacheConfigurationBuilder.newCacheConfigurationBuilder(SignumKey.class, Account.class,
-        ResourcePoolsBuilder.heap(8192*4)).build());
+        ResourcePoolsBuilder.heap(8192*12)).build());
     caches.put("account_balance", CacheConfigurationBuilder.newCacheConfigurationBuilder(SignumKey.class, Account.Balance.class,
-        ResourcePoolsBuilder.heap(8192*4)).build());
+        ResourcePoolsBuilder.heap(8192*12)).build());
 
     CacheManagerBuilder<CacheManager> cacheBuilder = CacheManagerBuilder.newCacheManagerBuilder();
     for (Map.Entry<String, CacheConfiguration<SignumKey, ?>> cache : caches.entrySet()) {

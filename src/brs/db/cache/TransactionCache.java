@@ -26,6 +26,7 @@ public final class TransactionCache {
     private final Map<String, Transaction> byHash = new HashMap<>();
     private final Map<Long, List<Transaction>> byBlock = new HashMap<>();
     private final Deque<Long> blockOrder = new ArrayDeque<>();
+    private long cacheHits;
 
     private TransactionCache(int blocksToCache) {
         this.blocksToCache = blocksToCache;
@@ -57,19 +58,28 @@ public final class TransactionCache {
     }
 
     public synchronized Transaction getById(long id) {
-        return byId.get(id);
+        Transaction t = byId.get(id);
+        if (t != null) {
+            cacheHits++;
+        }
+        return t;
     }
 
     public synchronized Transaction getByHash(String hash) {
-        return byHash.get(hash);
+        Transaction t = byHash.get(hash);
+        if (t != null) {
+            cacheHits++;
+        }
+        return t;
     }
 
     public synchronized List<Transaction> getBlockTransactions(long blockId) {
         List<Transaction> txs = byBlock.get(blockId);
-        if (txs == null) {
-            return null;
+        if (txs != null) {
+            cacheHits++;
+            return Collections.unmodifiableList(txs);
         }
-        return Collections.unmodifiableList(txs);
+        return null;
     }
 
     /**
@@ -94,5 +104,24 @@ public final class TransactionCache {
         byHash.clear();
         byBlock.clear();
         blockOrder.clear();
+        cacheHits = 0;
+    }
+
+    public synchronized int getTransactionCount() {
+        return byId.size();
+    }
+
+    public synchronized long getMinBlockId() {
+        return blockOrder.isEmpty() ? 0 : blockOrder.getFirst();
+    }
+
+    public synchronized long getMaxBlockId() {
+        return blockOrder.isEmpty() ? 0 : blockOrder.getLast();
+    }
+
+    public synchronized long getAndResetCacheHits() {
+        long hits = cacheHits;
+        cacheHits = 0;
+        return hits;
     }
 }

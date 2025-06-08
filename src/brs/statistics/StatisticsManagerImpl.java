@@ -2,6 +2,7 @@ package brs.statistics;
 
 import brs.services.TimeService;
 import brs.db.cache.TransactionCache;
+import brs.db.cache.BlockCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +49,7 @@ public class StatisticsManagerImpl {
 
       if (logger.isInfoEnabled()) {
         final TransactionCache txCache = TransactionCache.getInstance();
+        final BlockCache blockCache = BlockCache.getInstance();
         final String txCacheInfo = String.format(
             " transaction cache holds %d transaction%s from height %d to %d/cache hits %d requests handled",
             txCache.getTransactionCount(),
@@ -56,9 +58,17 @@ public class StatisticsManagerImpl {
             txCache.getMaxTxHeight(),
             txCache.getAndResetCacheHits());
 
+        final String blockCacheInfo = String.format(
+            " block cache holds %d block%s from height %d to %d/cache hits %d requests handled",
+            blockCache.getBlockCount(),
+            blockCache.getBlockCount() == 1 ? "" : "s",
+            blockCache.getMinHeight(),
+            blockCache.getMaxHeight(),
+            blockCache.getAndResetCacheHits());
+
         final String handleText = "handling {} blocks/s" +
             cacheStatistics.values().stream().map(cacheInfo -> " " + cacheInfo.getCacheInfoAndReset()).collect(Collectors.joining()) +
-            txCacheInfo;
+            txCacheInfo + blockCacheInfo;
         logger.info(handleText, String.format("%.2f", blocksPerSecond));
       }
 

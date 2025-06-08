@@ -143,6 +143,9 @@ public class Props {
     // Number of blocks to keep in the transaction cache
     public static final Prop<Integer> TRANSACTION_CACHE_BLOCK_COUNT = new Prop<>("node.transactionCacheBlockCount", 1000);
 
+    // Number of blocks to keep in the block cache
+    public static final Prop<Integer> BLOCK_CACHE_BLOCK_COUNT = new Prop<>("node.blockCacheBlockCount", 1000);
+
     public static final Prop<Integer> DB_INSERT_BATCH_MAX_SIZE = new Prop<>("DB.InsertBatchMaxSize", 10000);
 
     // P2P options

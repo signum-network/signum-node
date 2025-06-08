@@ -2,6 +2,8 @@ package brs.db.cache;
 
 import brs.Account;
 import brs.db.SignumKey;
+import brs.db.cache.BlockCache;
+import brs.db.cache.TransactionCache;
 import brs.statistics.StatisticsManagerImpl;
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
@@ -62,5 +64,6 @@ public class DBCacheManagerImpl {
         cache.clear();
     }
     TransactionCache.getInstance().clear();
+    BlockCache.getInstance().clear();
   }
 }

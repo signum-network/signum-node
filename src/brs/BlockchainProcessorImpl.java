@@ -10,6 +10,7 @@ import brs.db.DerivedTable;
 import brs.db.TransactionDb;
 import brs.db.cache.DBCacheManagerImpl;
 import brs.db.cache.TransactionCache;
+import brs.db.cache.BlockCache;
 import brs.db.store.BlockchainStore;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.Stores;
@@ -1328,6 +1329,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     blockchain.setLastBlock(block, previousBlock);
     txs.forEach(Transaction::unsetBlock);
     TransactionCache.getInstance().removeBlockTransactions(block.getId());
+    BlockCache.getInstance().removeBlock(block.getId());
     blockDb.deleteBlocksFrom(block.getId());
     blockListeners.notify(block, Event.BLOCK_POPPED);
     return previousBlock;

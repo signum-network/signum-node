@@ -49,7 +49,7 @@ public class StatisticsManagerImpl {
       if (logger.isInfoEnabled()) {
         final TransactionCache txCache = TransactionCache.getInstance();
         final String txCacheInfo = String.format(
-            " transaction cache holds %d transaction%s from block %d to %d/cache hits %d requests handled",
+            " transaction cache holds %d transaction%s from height %d to %d/cache hits %d requests handled",
             txCache.getTransactionCount(),
             txCache.getTransactionCount() == 1 ? "" : "s",
             txCache.getMinTxHeight(),

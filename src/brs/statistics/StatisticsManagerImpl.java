@@ -51,7 +51,7 @@ public class StatisticsManagerImpl {
         final TransactionCache txCache = TransactionCache.getInstance();
         final BlockCache blockCache = BlockCache.getInstance();
         final String txCacheInfo = String.format(
-            " transaction cache holds %d transaction%s from height %d to %d/cache hits %d requests handled",
+            " ***** transaction cache holds %d transaction%s from height %d to %d /cache hits %d requests handled",
             txCache.getTransactionCount(),
             txCache.getTransactionCount() == 1 ? "" : "s",
             txCache.getMinTxHeight(),
@@ -59,7 +59,7 @@ public class StatisticsManagerImpl {
             txCache.getAndResetCacheHits());
 
         final String blockCacheInfo = String.format(
-            " block cache holds %d block%s from height %d to %d/cache hits %d requests handled",
+            " ***** block cache holds %d block%s from height %d to %d /cache hits %d requests handled",
             blockCache.getBlockCount(),
             blockCache.getBlockCount() == 1 ? "" : "s",
             blockCache.getMinHeight(),

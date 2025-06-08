@@ -139,7 +139,7 @@ public class SqlBlockDb implements BlockDb {
       .execute();
 
     Signum.getDbs().getTransactionDb().saveTransactions(block.getTransactions());
-    TransactionCache.getInstance().addBlockTransactions(block.getId(), block.getTransactions());
+    TransactionCache.getInstance().addBlockTransactions(block.getId(), block.getHeight(), block.getTransactions());
 
     if (block.getPreviousBlockId() != 0) {
       ctx.update(BLOCK)

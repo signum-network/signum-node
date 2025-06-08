@@ -52,8 +52,8 @@ public class StatisticsManagerImpl {
             " transaction cache holds %d transaction%s from block %d to %d/cache hits %d requests handled",
             txCache.getTransactionCount(),
             txCache.getTransactionCount() == 1 ? "" : "s",
-            txCache.getMinBlockId(),
-            txCache.getMaxBlockId(),
+            txCache.getMinTxHeight(),
+            txCache.getMaxTxHeight(),
             txCache.getAndResetCacheHits());
 
         final String handleText = "handling {} blocks/s" +

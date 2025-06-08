@@ -124,6 +124,14 @@ public final class TransactionCache {
     public synchronized long getMaxBlockId() {
         return blockOrder.isEmpty() ? 0 : blockOrder.getLast();
     }
+    
+    public synchronized int getMinTxHeight() {
+        return heightOrder.isEmpty() ? 0 : heightOrder.getFirst();
+    }
+
+    public synchronized int getMaxTxHeight() {
+        return heightOrder.isEmpty() ? 0 : heightOrder.getLast();
+    }
 
     public synchronized long getAndResetCacheHits() {
         long hits = cacheHits;

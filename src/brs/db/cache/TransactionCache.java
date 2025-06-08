@@ -26,6 +26,9 @@ public final class TransactionCache {
     private final Map<String, Transaction> byHash = new HashMap<>();
     private final Map<Long, List<Transaction>> byBlock = new HashMap<>();
     private final Deque<Long> blockOrder = new ArrayDeque<>();
+    private final Map<Integer, List<Transaction>> byHeight = new HashMap<>();
+    private final Deque<Integer> heightOrder = new ArrayDeque<>();
+    private final Map<Long, Integer> blockHeight = new HashMap<>();
     private long cacheHits;
 
     private TransactionCache(int blocksToCache) {
@@ -104,6 +107,9 @@ public final class TransactionCache {
         byHash.clear();
         byBlock.clear();
         blockOrder.clear();
+        blockHeight.clear();
+        byHeight.clear();
+        heightOrder.clear();
         cacheHits = 0;
     }
 

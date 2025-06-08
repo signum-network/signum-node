@@ -67,9 +67,10 @@ public class StatisticsManagerImpl {
             blockCache.getAndResetCacheHits());
 
         final String handleText = "handling {} blocks/s" +
-            cacheStatistics.values().stream().map(cacheInfo -> " " + cacheInfo.getCacheInfoAndReset()).collect(Collectors.joining()) +
-            txCacheInfo + blockCacheInfo;
+            cacheStatistics.values().stream().map(cacheInfo -> " " + cacheInfo.getCacheInfoAndReset()).collect(Collectors.joining());
         logger.info(handleText, String.format("%.2f", blocksPerSecond));
+        logger.info(txCacheInfo);
+        logger.info(blockCacheInfo);
       }
 
       addedBlockCount = 0;

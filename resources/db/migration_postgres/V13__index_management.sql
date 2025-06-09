@@ -1,15 +1,15 @@
-DROP INDEX IF EXISTS idx_16601_transaction_recipient_id_amount_height_idx ON transaction;
-DROP INDEX IF EXISTS transaction_recipient_id_sender_id_idx ON transaction;
-DROP INDEX IF EXISTS idx_16601_tx_sender_type ON transaction;
-DROP INDEX IF EXISTS idx_16601_tx_block_id_index ON transaction;
-DROP INDEX IF EXISTS idx_16494_block_generator_id_idx ON block;
-DROP INDEX IF EXISTS idx_16588_subscription_time_next_index ON subscription;
-DROP INDEX IF EXISTS idx_16588_subscription_latest_index ON subscription;
-DROP INDEX IF EXISTS idx_16588_subscription_id_latest_idx ON subscription;
-DROP INDEX IF EXISTS idx_16404_account_asset_quantity_idx ON account_asset;
-DROP INDEX IF EXISTS idx_16404_account_asset_assetid_latest_idx ON account_asset;
-DROP INDEX IF EXISTS idx_16459_at_latest_idx ON at;
-DROP INDEX IF EXISTS transaction_recipient_id_sender_id_idx ON transaction;
+DROP INDEX IF EXISTS idx_16601_transaction_recipient_id_amount_height_idx 
+DROP INDEX IF EXISTS transaction_recipient_id_sender_id_idx;
+DROP INDEX IF EXISTS idx_16601_tx_sender_type ;
+DROP INDEX IF EXISTS idx_16601_tx_block_id_index ;
+DROP INDEX IF EXISTS idx_16494_block_generator_id_idx;
+DROP INDEX IF EXISTS idx_16588_subscription_time_next_index;
+DROP INDEX IF EXISTS idx_16588_subscription_latest_index n;
+DROP INDEX IF EXISTS idx_16588_subscription_id_latest_idx ;
+DROP INDEX IF EXISTS idx_16404_account_asset_quantity_idx;
+DROP INDEX IF EXISTS idx_16404_account_asset_assetid_latest_idx;
+DROP INDEX IF EXISTS idx_16459_at_latest_idx ;
+DROP INDEX IF EXISTS transaction_recipient_id_sender_id_idx;
 CREATE INDEX IF NOT EXISTS idx_16581_reward_recip_assign_acc_latest_height_idx ON reward_recip_assign (account_id, latest, height);
 CREATE INDEX IF NOT EXISTS idx_16459_at_id_latest_idx ON at (id, latest);
 CREATE INDEX IF NOT EXISTS idx_16411_account_balance_latest_balance_idx ON account_balance (latest, balance);

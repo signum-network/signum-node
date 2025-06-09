@@ -215,7 +215,7 @@ public class SqlATStore implements ATStore {
   public Collection<brs.at.AT> getATs(Collection<Long> ids) {
     return Db.useDSLContext(ctx -> {
       Result<Record> result = ctx.select(AT.fields()).select(AT_STATE.fields())
-        .from(AT.join(AT_STATE).on(AT.ID.eq(AT_STATE.AT_ID)))
+        .from(AT.join( AT_STATE.forceIndex("at_state_id_latest_idx")).on(AT.ID.eq(AT_STATE.AT_ID)))
         .where(AT.LATEST.isTrue()).and(AT_STATE.LATEST.isTrue()).and(AT.ID.in(ids))
         .fetch();
 

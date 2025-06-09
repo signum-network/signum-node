@@ -13,7 +13,7 @@ DROP INDEX IF EXISTS at_latest_idx ON at;
 CREATE INDEX IF NOT EXISTS reward_recip_assign_acc_latest_height_idx ON reward_recip_assign (account_id, latest, height);
 CREATE INDEX IF NOT EXISTS at_id_latest_idx ON at (id, latest);
 CREATE INDEX IF NOT EXISTS account_balance_latest_balance_idx ON account_balance (latest, balance);
-CREATE INDEX IF NOT EXISTS account_asset_asset_latest_quantity_account_idx  ON account_asset (asset_id, latest, quantity, account_id);
+CREATE INDEX IF NOT EXISTS account_asset_asset_latest_quantity_account_idx  ON account_asset (asset_id, latest, quantity DESC, account_id ASC);
 CREATE INDEX IF NOT EXISTS tx_refhash_type_subtype_height_idx ON transaction (referenced_transaction_fullhash, type, subtype, height);
 CREATE INDEX IF NOT EXISTS tx_height_id_idx ON transaction (height, id);
 CREATE INDEX IF NOT EXISTS tx_sender_type_subtype_height_idx ON transaction (sender_id, type, subtype, height);

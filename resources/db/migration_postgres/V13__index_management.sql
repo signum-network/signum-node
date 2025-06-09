@@ -1,4 +1,3 @@
-DROP INDEX IF EXISTS idx_16601_transaction_height_idx ON transaction;
 DROP INDEX IF EXISTS idx_16601_transaction_recipient_id_amount_height_idx ON transaction;
 DROP INDEX IF EXISTS transaction_recipient_id_sender_id_idx ON transaction;
 DROP INDEX IF EXISTS idx_16601_tx_sender_type ON transaction;

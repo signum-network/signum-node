@@ -11,7 +11,7 @@ DROP INDEX IF EXISTS idx_16404_account_asset_assetid_latest_idx;
 DROP INDEX IF EXISTS idx_16459_at_latest_idx ;
 DROP INDEX IF EXISTS transaction_recipient_id_sender_id_idx;
 DROP INDEX IF EXISTS idx_16404_account_asset_assetid_idx;
-DROP INDEX IF EXISTS account_asset_assetid_latest_idx
+DROP INDEX IF EXISTS account_asset_assetid_latest_idx;
 CREATE INDEX IF NOT EXISTS idx_16581_reward_recip_assign_acc_latest_height_idx ON reward_recip_assign (account_id, latest, height);
 CREATE INDEX IF NOT EXISTS idx_16459_at_id_latest_idx ON at (id, latest);
 CREATE INDEX IF NOT EXISTS idx_16411_account_balance_latest_balance_idx ON account_balance (latest, balance);

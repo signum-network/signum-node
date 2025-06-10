@@ -16,8 +16,8 @@ CREATE INDEX IF NOT EXISTS idx_16581_reward_recip_assign_acc_latest_height_idx O
 CREATE INDEX IF NOT EXISTS idx_16459_at_id_latest_idx ON at (id, latest);
 CREATE INDEX IF NOT EXISTS idx_16411_account_balance_latest_balance_idx ON account_balance (latest, balance);
 CREATE INDEX IF NOT EXISTS idx_16404_account_asset_asset_latest_quantity_account_idx  ON account_asset (asset_id, latest, quantity DESC, account_id ASC);
-CREATE INDEX IF NOT EXISTS idx_16601_tx_refhash_type_subtype_height_idx ON "transaction" (referenced_transaction_fullhash, type, subtype, height);
-CREATE INDEX IF NOT EXISTS idx_16601_tx_height_id_idx ON "transaction" (height, id);
-CREATE INDEX IF NOT EXISTS idx_16601_tx_sender_type_subtype_height_idx ON "transaction" (sender_id, type, subtype, height);
+CREATE INDEX IF NOT EXISTS idx_16601_transaction_refhash_type_subtype_height_idx ON "transaction" (referenced_transaction_fullhash, type, subtype, height);
+CREATE INDEX IF NOT EXISTS idx_16601_transaction_height_id_idx ON "transaction" (height, id);
+CREATE INDEX IF NOT EXISTS idx_16601_transaction_sender_type_subtype_height_idx ON "transaction" (sender_id, type, subtype, height);
 CREATE INDEX IF NOT EXISTS idx_16588_subscription_latest_next_id_idx ON subscription (latest, time_next, id);
 CREATE INDEX IF NOT EXISTS idx_16601_transaction_recipient_id_sender_id_idx ON "transaction" (recipient_id, sender_id);

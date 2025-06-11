@@ -76,7 +76,7 @@ The important part is that the Java version starts with `21.` (Java 21)
 
 ## Using an optional RDBMS (MariaDB, PostgreSQL)
 
-Signum Node uses an embedded file based database (H2) as default. But it's possible to use either MariaDB or PostgreSQL as alternative database.
+Signum Node uses an embedded file based database (SQLite) as default. But it's possible to use either MariaDB or PostgreSQL as alternative database.
 
 The minimum required version of MariaDB is 10.6.
 
@@ -85,33 +85,23 @@ The minimum required version of MariaDB is 10.6.
 ### Should I use MariaDB, PostgreSQL or Sqlite?
 
 
-__H2__ ~~is a very fast file based (embedded) database~~ is marked for deprecation due to instability. Signum Node builds up the entire database out of the box and does not require any further set up.
-~~This makes H2 an interesting choice especially for less-technical users who just want to start and/or run a local (not publicly accessible) node.~~ It is strongly recommended to migrate to an alternative like SQLite as H2 will be removed soon.
-~~Choose this, if you want to run just a local node without public exposure and/or~~ 
-~~you don't want to connect to the database while running the node. Furthermore, the resulting database file is easily shareable, such others can use a snapshot and sync from there.~~
-> Update: H2 has proven to be unstable and is officially marked for deprecation. Migration is advised immediately. Refer to supported alternatives like SQLite, MariaDB, or PostgreSQL.
-> Update: H2 has proven to be unstable. We do not recommend the usage of H2 anymore
-
-__Sqlite__ is just like H2 a file based (embedded) database. Signum Node builds up the entire database out of the box and does not require any further set up.
-This makes Sqlite an interesting choice especially for less-technical users who just want to start and/or run a local (not publicly accessible) node. Choose this, if you want to run just a local node without public exposure. 
+__Sqlite__ is a file based (embedded) database. Signum Node builds up the entire database out of the box and does not require any further set up.
+This makes Sqlite an interesting choice especially for less-technical users who just want to start and/or run a local (not publicly accessible) node. Choose this, if you want to run just a local node without public exposure.
 Furthermore, the resulting database file is easily shareable, such others can use a snapshot and sync from there.
-Sqlite is considered as a replacement for H2.
 
 __MariaDB__ and __PostgreSQL__ on the other hand require an additional set-up. It is the better choice for publicly accessible nodes, 
 as they are considered more stable, especially under higher load. 
 
-MariaDB and PostgreSQL are not as fast as H2, so expect higher re-synchronisation times.
+MariaDB and PostgreSQL are typically slower than file-based databases, so expect higher re-synchronisation times.
 The performance hit for MariaDB and PostgreSQL is related to the TCP/IP connection, which is per se slower than File-IO (especially for SSDs).
-Due to that model concurrent access is possible, i.e. one can run an additional service against the same database, which is not possible with H2, as the file gets locked.
+Due to that model concurrent access is possible, i.e. one can run an additional service against the same database, which is generally not possible with file-based databases as the file gets locked.
 
 |            | Stability | Speed | Setup | Backup | Concurrency | Purpose                          |
 |------------|----------|-------|-------|--------|-------------|----------------------------------|
-| ~~H2~~     | - (1)    | ⭐⭐⭐   | ⭐⭐⭐    | ⭐⭐⭐       | ❌           | Local Node [DEPRECATED]          |  
 | Sqlite     | ⭐⭐   | ⭐⭐*   | ⭐⭐⭐    | ⭐⭐⭐       | ✅ (3)       | Local Node                       |  
 | MariaDB    | ⭐⭐       | ⭐     | ⭐     | ⭐       | ✅           | Public Node, Additional Services |  
 | PostgreSQL | ⭐⭐ (2)   | ⭐     | ⭐     | ⭐       | ✅           | Public Node, Additional Services |  
 
-> (1) DEPRECATED - H2 - even with updated Version 2 - has proven to be unstable and causing database issues - mostly File I/O exceptions, OOM and data inconsistencies. It will be removed with 3.9, so move to sqlite
 
 > (2) PostgreSQL support is still experimental. So, stability needs to be proven over time, but in general Postgres itself is as least stable/reliable as MariaDB.
 
@@ -224,7 +214,7 @@ In order to run a testnet node adjust your `conf/node.properties` to:
 node.network = signum.net.TestnetNetwork
 ```
 
-If no custom DB is set, a H2 file will be created as `db/signum-testnet.mv.db`.
+If no custom DB is set, a SQLite file will be created as `db/signum-testnet.sqlite.db`.
 For a MariaDB setup you need to configure a testnet instance in the config file.
 
 ### Private Chains

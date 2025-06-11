@@ -320,7 +320,6 @@ artifacts {
 
 // === JOOQ Codegen
 
-//def schema_dburl = "jdbc:h2:${project.projectDir}/temp/generated/db/signum_jooq"
 def schema_dburl = "jdbc:sqlite:${project.projectDir}/temp/generated/db/signum_jooq.sqlite"
 def schema_dbusername = ""
 def schema_dbpassword = ""
@@ -329,7 +328,6 @@ flyway {
     url = "${schema_dburl}"
     user = "${schema_dbusername}"
     password = "${schema_dbpassword}"
-    //locations = ["filesystem:" + project.projectDir + "/resources/db/migration_h2_v2"]
     locations = ["filesystem:" + project.projectDir + "/resources/db/migration_sqlite"]
 }
 

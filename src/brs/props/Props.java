@@ -134,6 +134,7 @@ public class Props {
     public static final Prop<String> DB_SQLITE_JOURNAL_MODE = new Prop<>("DB.SqliteJournalMode", "WAL");
     public static final Prop<String> DB_SQLITE_SYNCHRONOUS = new Prop<>("DB.SqliteSynchronous", "NORMAL");
     public static final Prop<Integer> DB_SQLITE_CACHE_SIZE = new Prop<>("DB.SqliteCacheSize", -2000);
+    public static final Prop<Integer> DB_SQLITE_TEMP_STORE = new Prop<>("DB.SqliteTempStore", 0);
 
     public static final Prop<Integer> BRS_BLOCK_CACHE_MB = new Prop<>("node.blockCacheMB", 40);
     public static final Prop<Integer> BRS_AT_PROCESSOR_CACHE_BLOCK_COUNT = new Prop<>("node.atProcessorCacheBlockCount",

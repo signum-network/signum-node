@@ -45,6 +45,17 @@ DB.SqliteJournalMode = WAL
 
 Note: `MEMORY` journal mode is not supported.
 
+## Temp store
+
+SQLite can keep temporary tables either in files or in memory. The property
+`DB.SqliteTempStore` controls the [`temp_store` pragma](https://www.sqlite.org/pragma.html#pragma_temp_store).
+
+```properties
+## Allowed values: 0 = always file (default), 1 = file but memory possible,
+## 2 = memory but file possible
+# DB.SqliteTempStore = 0
+```
+
 # Important Notes
 
 ## SQLITE_BUSY errors while syncing

@@ -49,6 +49,14 @@ public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
     return propertyService.getInt(Props.DB_SQLITE_CACHE_SIZE);
   }
 
+  private int getTempStore() {
+    int tempStore = propertyService.getInt(Props.DB_SQLITE_TEMP_STORE);
+    if (tempStore < 0 || tempStore > 2) {
+      return 0;
+    }
+    return tempStore;
+  }
+
   @Override
   protected HikariConfig configureImpl(HikariConfig config) {
 
@@ -62,6 +70,7 @@ public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
     config.addDataSourceProperty("journal_mode", getJournalMode());
     config.addDataSourceProperty("synchronous", getSynchronousMode());
     config.addDataSourceProperty("cache_size", getCacheSize());
+    config.addDataSourceProperty("temp_store", getTempStore());
     return config;
   }
 

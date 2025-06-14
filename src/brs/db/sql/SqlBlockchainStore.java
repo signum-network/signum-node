@@ -403,7 +403,7 @@ public class SqlBlockchainStore implements BlockchainStore {
     Collection<byte[]> commitmmentAddBytes = Db.useDSLContext(ctx -> {
       Table<TransactionRecord> txTable = TRANSACTION;
       if (ctx.dialect() == SQLDialect.MARIADB || ctx.dialect() == SQLDialect.MYSQL) {
-        txTable = TRANSACTION.forceIndex("tx_sender_type_subtype_height_idx");
+        txTable = TRANSACTION.forceIndex("transaction_sender_type_subtype_height_idx");
       }
 
       SelectConditionStep<Record1<byte[]>> select = ctx.select(TRANSACTION.ATTACHMENT_BYTES).from(txTable).where(TRANSACTION.TYPE.eq(TransactionType.TYPE_SIGNA_MINING.getType()))
@@ -416,7 +416,7 @@ public class SqlBlockchainStore implements BlockchainStore {
     Collection<byte[]> commitmmentRemoveBytes = Db.useDSLContext(ctx -> {
       Table<TransactionRecord> txTable = TRANSACTION;
       if (ctx.dialect() == SQLDialect.MARIADB || ctx.dialect() == SQLDialect.MYSQL) {
-        txTable = TRANSACTION.forceIndex("tx_sender_type_subtype_height_idx");
+        txTable = TRANSACTION.forceIndex("transaction_sender_type_subtype_height_idx");
       }
 
       SelectConditionStep<Record1<byte[]>> select = ctx.select(TRANSACTION.ATTACHMENT_BYTES).from(txTable).where(TRANSACTION.TYPE.eq(TransactionType.TYPE_SIGNA_MINING.getType()))

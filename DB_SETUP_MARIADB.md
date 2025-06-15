@@ -1,10 +1,15 @@
 # Install MariaDB
 
-> The minimum required version is __10.6!__
+> The minimum required version is __10.11!__
+
+__DOWNLOAD FOR WINDOWS__: https://mariadb.com/downloads/?utm_source=header&utm_medium=website
+<br>Downlaod the MariaDB Community(FREE) version 10.11.13-GA for Windows.
+
 
 __WINDOWS__: https://mariadb.com/kb/en/installing-mariadb-msi-packages-on-windows/
+<br>(Tuturial on version 10.6 - please download 10.11)
 
-__LINUX__: https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-20-04
+__LINUX__: https://ubuntushell.com/install-mariadb-on-ubuntu/
 
 The MariaDb installation will ask to set up a password for the root user.
 This password can be anything you like.

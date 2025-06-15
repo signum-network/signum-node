@@ -217,7 +217,7 @@ public class SqlATStore implements ATStore {
     return Db.useDSLContext(ctx -> {
       Table<AtStateRecord> atStateTable = AT_STATE;
       if (ctx.dialect() == SQLDialect.MARIADB || ctx.dialect() == SQLDialect.MYSQL) {
-        atStateTable = AT_STATE.forceIndex("at_state_id_latest_idx");
+        atStateTable = AT_STATE.forceIndex("at_state_latest_at_id_idx");
       }
 
       Result<Record> result = ctx.select(AT.fields()).select(AT_STATE.fields())

@@ -9,8 +9,10 @@ DROP INDEX IF EXISTS subscription_id_latest_idx ON subscription;
 DROP INDEX IF EXISTS account_asset_quantity_idx ON account_asset;
 DROP INDEX IF EXISTS account_asset_assetid_latest_idx ON account_asset;
 DROP INDEX IF EXISTS at_latest_idx ON at;
+DROP INDEX IF EXISTS at_state_id_latest_idx ON at_state;
 CREATE INDEX IF NOT EXISTS reward_recip_assign_acc_latest_height_idx ON reward_recip_assign (account_id, latest, height);
 CREATE INDEX IF NOT EXISTS at_id_latest_idx ON at (id, latest);
+CREATE INDEX IF NOT EXISTS at_state_latest_at_id_idx ON at_state (latest, at_id);
 CREATE INDEX IF NOT EXISTS account_balance_latest_balance_idx ON account_balance (latest, balance);
 CREATE INDEX IF NOT EXISTS account_asset_asset_latest_quantity_account_idx  ON account_asset (asset_id, latest, quantity, account_id);
 CREATE INDEX IF NOT EXISTS account_asset_id_id_latest ON account_asset (account_id, asset_id, latest);
@@ -19,3 +21,4 @@ CREATE INDEX IF NOT EXISTS transaction_refhash_type_subtype_height_idx ON transa
 CREATE INDEX IF NOT EXISTS transaction_height_id_idx ON transaction (height, id);
 CREATE INDEX IF NOT EXISTS transaction_sender_type_subtype_height_idx ON transaction (sender_id, type, subtype, height);
 CREATE INDEX IF NOT EXISTS subscription_latest_next_id_idx ON subscription (latest, time_next, id);
+CREATE INDEX IF NOT EXISTS subscription_id_latest_idx ON subscription (id, latest);

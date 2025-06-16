@@ -1,4 +1,5 @@
 # Install PostgreSQL
+> The minimum required version is __16.9!__
 
 Download [PostgreSQL](https://www.postgresql.org/download/)
 

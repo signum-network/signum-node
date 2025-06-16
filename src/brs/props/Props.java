@@ -133,20 +133,18 @@ public class Props {
     public static final Prop<Boolean> DB_OPTIMIZE = new Prop<>("DB.Optimize", true);
     public static final Prop<String> DB_SQLITE_JOURNAL_MODE = new Prop<>("DB.SqliteJournalMode", "WAL");
     public static final Prop<String> DB_SQLITE_SYNCHRONOUS = new Prop<>("DB.SqliteSynchronous", "NORMAL");
-    public static final Prop<Integer> DB_SQLITE_CACHE_SIZE = new Prop<>("DB.SqliteCacheSize", -126976 );
+    public static final Prop<Integer> DB_SQLITE_CACHE_SIZE = new Prop<>("DB.SqliteCacheSize", -131072 );
     public static final Prop<Integer> DB_SQLITE_TEMP_STORE = new Prop<>("DB.SqliteTempStore", 0);
 
+ 
+    // CACHE Management
+    public static final Prop<Integer> TRANSACTION_CACHE_BLOCK_COUNT = new Prop<>("node.transactionCacheBlockCount", 200);
+    public static final Prop<Integer> BLOCK_CACHE_BLOCK_COUNT = new Prop<>("node.blockCacheBlockCount", 200);
+    public static final Prop<Integer> DB_INSERT_BATCH_MAX_SIZE = new Prop<>("DB.InsertBatchMaxSize", 10000);
     public static final Prop<Integer> BRS_BLOCK_CACHE_MB = new Prop<>("node.blockCacheMB", 40);
     public static final Prop<Integer> BRS_AT_PROCESSOR_CACHE_BLOCK_COUNT = new Prop<>("node.atProcessorCacheBlockCount",
             1000);
 
-    // Number of blocks to keep in the transaction cache
-    public static final Prop<Integer> TRANSACTION_CACHE_BLOCK_COUNT = new Prop<>("node.transactionCacheBlockCount", 400);
-
-    // Number of blocks to keep in the block cache
-    public static final Prop<Integer> BLOCK_CACHE_BLOCK_COUNT = new Prop<>("node.blockCacheBlockCount", 200);
-
-    public static final Prop<Integer> DB_INSERT_BATCH_MAX_SIZE = new Prop<>("DB.InsertBatchMaxSize", 10000);
 
     // P2P options
     public static final Prop<Integer> P2P_PORT = new Prop<>("P2P.Port", 8123);

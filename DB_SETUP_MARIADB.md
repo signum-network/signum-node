@@ -102,3 +102,21 @@ SET GLOBAL innodb_flush_log_at_trx_commit = 0;
 ```
 
 See more details [here](https://mariadb.com/docs/server/ref/mdb/system-variables/innodb_flush_log_at_trx_commit/). 
+
+# Performance Optimisation 
+If you have a server or PC with > 8GB RAM, you should set the following values in the my.cnf or my.ini file of the MySQL Server:
+
+```properties
+innodb_buffer_pool_size=3G
+innodb_flush_log_at_trx_commit=1
+innodb_log_buffer_size=256MB
+```
+
+You need to restart the service after setting the values.
+
+You can check the variables after a restart with:
+
+```sql
+SHOW VARIABLES LIKE 'innodb%buffer%';
+SHOW VARIABLES LIKE 'innodb_flush_log_at_trx_commit';
+```

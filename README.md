@@ -96,16 +96,14 @@ MariaDB and PostgreSQL are typically slower than file-based databases, so expect
 The performance hit for MariaDB and PostgreSQL is related to the TCP/IP connection, which is per se slower than File-IO (especially for SSDs).
 Due to that model concurrent access is possible, i.e. one can run an additional service against the same database, which is generally not possible with file-based databases as the file gets locked.
 
-|            | Stability | Speed | Setup | Backup | Concurrency | Purpose                          |
-|------------|----------|-------|-------|--------|-------------|----------------------------------|
-| Sqlite     | ⭐⭐   | ⭐⭐*   | ⭐⭐⭐    | ⭐⭐⭐       | ✅ (3)       | Local Node                       |  
-| MariaDB    | ⭐⭐       | ⭐     | ⭐     | ⭐       | ✅           | Public Node, Additional Services |  
-| PostgreSQL | ⭐⭐ (2)   | ⭐     | ⭐     | ⭐       | ✅           | Public Node, Additional Services |  
+|            | Min. Version| Stability | Speed | Setup   | Backup | Concurrency | Purpose                          |
+|------------ |------------|----------|--------|---------|--------|-------------|----------------------------------|
+| SQLite      |    3.45.2        | ⭐⭐    | ⭐⭐* | ⭐⭐⭐| ⭐⭐⭐| ✅ (1)       | Local Node                       |  
+| MariaDB     |    10.11       | ⭐⭐    | ⭐     | ⭐     | ⭐     | ✅           | Public Node, Additional Services |  
+| PostgreSQL  |    16.9       | ⭐⭐    | ⭐     | ⭐     | ⭐     | ✅           | Public Node, Additional Services |  
 
 
-> (2) PostgreSQL support is still experimental. So, stability needs to be proven over time, but in general Postgres itself is as least stable/reliable as MariaDB.
-
-> (3) Sqlite supports concurrent reading. Writing is still limited to one writer at a time.
+> (1) Sqlite supports concurrent reading. Writing is still limited to one writer at a time.
 ---- 
 
 See in the following documents how to set up for different database

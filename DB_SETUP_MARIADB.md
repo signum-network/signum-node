@@ -3,7 +3,7 @@
 > The minimum required version is __10.11!__
 
 __DOWNLOAD FOR WINDOWS__: https://mariadb.com/downloads/?utm_source=header&utm_medium=website
-<br>Downlaod the MariaDB Community(FREE) version 10.11.13-GA for Windows.
+<br>Download the MariaDB Community(FREE) version 10.11.13-GA for Windows.
 
 
 __WINDOWS__: https://mariadb.com/kb/en/installing-mariadb-msi-packages-on-windows/

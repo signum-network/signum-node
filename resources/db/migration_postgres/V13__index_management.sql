@@ -14,7 +14,7 @@ DROP INDEX IF EXISTS transaction_recipient_id_sender_id_idx;
 CREATE INDEX IF NOT EXISTS idx_16581_reward_recip_assign_acc_latest_height_idx ON reward_recip_assign (account_id, latest, height);
 CREATE INDEX IF NOT EXISTS idx_16459_at_id_latest_idx ON at (id, latest);
 CREATE INDEX IF NOT EXISTS idx_16477_at_state_latest_at_id_idx ON at_state (latest, at_id);
-CREATE INDEX IF NOT EXISTS idx_16411_account_balance_latest_balance_idx ON account_balance (latest, balance);
+CREATE INDEX IF NOT EXISTS idx_16411_account_balance_latest_true ON account_balance(balance) WHERE latest = true;
 CREATE INDEX IF NOT EXISTS idx_16404_account_asset_asset_latest_quantity_account_idx  ON account_asset (asset_id, latest, quantity DESC, account_id ASC);
 CREATE INDEX IF NOT EXISTS idx_16404_account_asset_id_id_latest ON account_asset (account_id, asset_id, latest);
 CREATE INDEX IF NOT EXISTS idx_16404_transaction_recipient_height_id_amount_idx ON transaction (recipient_id, height, id, amount );

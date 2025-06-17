@@ -77,3 +77,22 @@ DB.Url=jdbc:postgresql://localhost:5432/signum_testnet
 DB.Username=signumnode
 DB.Password=s1gn00m_n0d3
 ```
+
+# Performance Optimisation 
+If you have a server or PC with > 8GB RAM, you should set the following values in the postgresql.conf file of the Postgres Server:
+
+```properties
+shared_buffers = 4GB                
+work_mem = 64MB                    
+maintenance_work_mem = 512MB      
+wal_writer_delay = 200ms           
+wal_buffers = 16MB                 
+checkpoint_timeout = 15min        
+checkpoint_completion_target = 0.9 
+synchronous_commit = off          
+effective_cache_size = 8GB  
+```
+
+`effective_cache_size` should be max 75% of the  RAM
+
+You need to restart the service after setting the values.

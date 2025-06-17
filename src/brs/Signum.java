@@ -550,7 +550,7 @@ public final class Signum {
     /**
      * Cleans up the node prior to shutting down.
      *
-     * @param ignoreDbShutdown if true, shuts down everything but the H2 database.
+     * @param ignoreDbShutdown if true, shuts down everything but the database.
      */
     public static void shutdown(boolean ignoreDbShutdown) {
         if (!shuttingdown.get()) {

@@ -1,8 +1,11 @@
 # Introduction
 
-SQLite, introduced at Version 3.8.1, is being considered as a potential replacement for H2 in the future. Like H2, SQLite is a file-based database. The advantage of SQLite is its minimal setup requirement; no additional installation of a database server or dependencies is necessary. Additionally, SQLite tends to be faster than MariaDB and Postgres, and its backup process is implicit since it involves only a single file.
+SQLite is a lightweight, file-based database engine that requires no separate server installation or external dependencies. 
+Its simplicity makes it especially well-suited for local setups, embedded systems, and applications where minimal configuration is preferred.
 
-However, there are some important considerations when using SQLite.
+SQLite often outperforms heavier systems like MariaDB and Postgres in scenarios with moderate data volume and limited concurrency. Backups are straightforward, as the entire database is stored in a single file.
+
+However, there are important considerations to keep in mind when using SQLite.
 
 # Initial Set Up
 
@@ -44,6 +47,17 @@ DB.SqliteJournalMode = WAL
 ```
 
 Note: `MEMORY` journal mode is not supported.
+
+## Temp store
+
+SQLite can keep temporary tables either in files or in memory. The property
+`DB.SqliteTempStore` controls the [`temp_store` pragma](https://www.sqlite.org/pragma.html#pragma_temp_store).
+
+```properties
+## Allowed values: 0 = always file (default), 1 = file but memory possible,
+## 2 = memory but file possible
+# DB.SqliteTempStore = 0
+```
 
 # Important Notes
 

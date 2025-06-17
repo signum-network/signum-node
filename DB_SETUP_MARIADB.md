@@ -1,10 +1,15 @@
 # Install MariaDB
 
-> The minimum required version is __10.6!__
+> The minimum required version is __10.11!__
+
+__DOWNLOAD FOR WINDOWS__: https://mariadb.com/downloads/?utm_source=header&utm_medium=website
+<br>Download the MariaDB Community(FREE) version 10.11.13-GA for Windows.
+
 
 __WINDOWS__: https://mariadb.com/kb/en/installing-mariadb-msi-packages-on-windows/
+<br>(Tuturial on version 10.6 - please download 10.11)
 
-__LINUX__: https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-20-04
+__LINUX__: https://ubuntushell.com/install-mariadb-on-ubuntu/
 
 The MariaDb installation will ask to set up a password for the root user.
 This password can be anything you like.
@@ -97,3 +102,21 @@ SET GLOBAL innodb_flush_log_at_trx_commit = 0;
 ```
 
 See more details [here](https://mariadb.com/docs/server/ref/mdb/system-variables/innodb_flush_log_at_trx_commit/). 
+
+# Performance Optimisation 
+If you have a server or PC with > 8GB RAM, you should set the following values in the my.cnf or my.ini file of the MySQL Server:
+
+```properties
+innodb_buffer_pool_size=3G
+innodb_flush_log_at_trx_commit=1
+innodb_log_buffer_size=256MB
+```
+
+You need to restart the service after setting the values.
+
+You can check the variables after a restart with:
+
+```sql
+SHOW VARIABLES LIKE 'innodb%buffer%';
+SHOW VARIABLES LIKE 'innodb_flush_log_at_trx_commit';
+```

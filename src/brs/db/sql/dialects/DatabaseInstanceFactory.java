@@ -13,8 +13,6 @@ public class DatabaseInstanceFactory {
     SQLDialect dialect = JDBCUtils.dialect(dbUrl);
 
     switch (dialect){
-      case H2:
-        return new DatabaseInstanceH2(propertyService);
       case MARIADB:
       case MYSQL:
         return new DatabaseInstanceMariaDb(propertyService);

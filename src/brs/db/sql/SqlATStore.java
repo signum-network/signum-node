@@ -13,6 +13,7 @@ import brs.schema.tables.records.AtStateRecord;
 
 import brs.util.CollectionWithIndex;
 import org.jooq.*;
+import org.jooq.SQLDialect;
 import org.jooq.Record;
 import org.jooq.exception.DataAccessException;
 import org.slf4j.Logger;
@@ -214,8 +215,13 @@ public class SqlATStore implements ATStore {
   @Override
   public Collection<brs.at.AT> getATs(Collection<Long> ids) {
     return Db.useDSLContext(ctx -> {
+      Table<AtStateRecord> atStateTable = AT_STATE;
+      if (ctx.dialect() == SQLDialect.MARIADB || ctx.dialect() == SQLDialect.MYSQL) {
+        atStateTable = AT_STATE.forceIndex("at_state_latest_at_id_idx");
+      }
+
       Result<Record> result = ctx.select(AT.fields()).select(AT_STATE.fields())
-        .from(AT.join(AT_STATE).on(AT.ID.eq(AT_STATE.AT_ID)))
+        .from(AT.join(atStateTable).on(AT.ID.eq(AT_STATE.AT_ID)))
         .where(AT.LATEST.isTrue()).and(AT_STATE.LATEST.isTrue()).and(AT.ID.in(ids))
         .fetch();
 

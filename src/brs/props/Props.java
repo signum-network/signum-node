@@ -100,9 +100,9 @@ public class Props {
     public static final Prop<String> ICON_LOCATION = new Prop<>("node.iconLocation", "/images/signum_overlay_logo.png");
 
     // Checkpoint block for faster sync from empty database
-    public static final Prop<Integer> BRS_CHECKPOINT_HEIGHT = new Prop<>("node.checkPointHeight", 1_272_000);
+    public static final Prop<Integer> BRS_CHECKPOINT_HEIGHT = new Prop<>("node.checkPointHeight", 1_418_000);
     public static final Prop<String> BRS_CHECKPOINT_HASH = new Prop<>("node.checkPointPrevHash",
-            "50625a85325c229e6f683866e52bcc39948826cd1d0987a326fd7e3aef27bb53");
+            "8f76beca852b41447ac59fbdf78750e43dde97f9fc09ec8f071eeb03c43420f0");
     public static final Prop<String> BRS_PK_CHECKS = new Prop<>("node.pkChecks",
             "dba639ec3450e0b1;169b3b99ce28a350;a83c47e772a35586;6db77a51a7def19d;c4823aa7028f6735;fb0e32a5bc032257;15a35aa0515e3584;27fcf52c3bc40fba;c4823aa7028f6735;981454e22b5ac976;0cb15471ad76fcd1;");
 
@@ -130,17 +130,21 @@ public class Props {
     public static final Prop<Boolean> BRS_TEST_UNCONFIRMED_TRANSACTIONS = new Prop<>("brs.testUnconfirmedTransactions",
             false);
 
-    public static final Prop<Boolean> DB_H2_DEFRAG_ON_SHUTDOWN = new Prop<>("Db.H2.DefragOnShutdown", true);
     public static final Prop<Boolean> DB_OPTIMIZE = new Prop<>("DB.Optimize", true);
     public static final Prop<String> DB_SQLITE_JOURNAL_MODE = new Prop<>("DB.SqliteJournalMode", "WAL");
     public static final Prop<String> DB_SQLITE_SYNCHRONOUS = new Prop<>("DB.SqliteSynchronous", "NORMAL");
-    public static final Prop<Integer> DB_SQLITE_CACHE_SIZE = new Prop<>("DB.SqliteCacheSize", -2000);
+    public static final Prop<Integer> DB_SQLITE_CACHE_SIZE = new Prop<>("DB.SqliteCacheSize", -131072 );
+    public static final Prop<Integer> DB_SQLITE_TEMP_STORE = new Prop<>("DB.SqliteTempStore", 0);
 
+ 
+    // CACHE Management
+    public static final Prop<Integer> TRANSACTION_CACHE_BLOCK_COUNT = new Prop<>("node.transactionCacheBlockCount", 200);
+    public static final Prop<Integer> BLOCK_CACHE_BLOCK_COUNT = new Prop<>("node.blockCacheBlockCount", 200);
+    public static final Prop<Integer> DB_INSERT_BATCH_MAX_SIZE = new Prop<>("DB.InsertBatchMaxSize", 10000);
     public static final Prop<Integer> BRS_BLOCK_CACHE_MB = new Prop<>("node.blockCacheMB", 40);
     public static final Prop<Integer> BRS_AT_PROCESSOR_CACHE_BLOCK_COUNT = new Prop<>("node.atProcessorCacheBlockCount",
             1000);
 
-    public static final Prop<Integer> DB_INSERT_BATCH_MAX_SIZE = new Prop<>("DB.InsertBatchMaxSize", 10000);
 
     // P2P options
     public static final Prop<Integer> P2P_PORT = new Prop<>("P2P.Port", 8123);

@@ -2,6 +2,8 @@ package brs.db.cache;
 
 import brs.Account;
 import brs.db.SignumKey;
+import brs.db.cache.BlockCache;
+import brs.db.cache.TransactionCache;
 import brs.statistics.StatisticsManagerImpl;
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
@@ -29,9 +31,9 @@ public class DBCacheManagerImpl {
     statisticsEnabled = true;
 
     caches.put("account", CacheConfigurationBuilder.newCacheConfigurationBuilder(SignumKey.class, Account.class,
-        ResourcePoolsBuilder.heap(8192*4)).build());
+        ResourcePoolsBuilder.heap(8192*12)).build());
     caches.put("account_balance", CacheConfigurationBuilder.newCacheConfigurationBuilder(SignumKey.class, Account.Balance.class,
-        ResourcePoolsBuilder.heap(8192*4)).build());
+        ResourcePoolsBuilder.heap(8192*12)).build());
 
     CacheManagerBuilder<CacheManager> cacheBuilder = CacheManagerBuilder.newCacheManagerBuilder();
     for (Map.Entry<String, CacheConfiguration<SignumKey, ?>> cache : caches.entrySet()) {
@@ -61,5 +63,7 @@ public class DBCacheManagerImpl {
       if ( cache != null )
         cache.clear();
     }
+    TransactionCache.getInstance().clear();
+    BlockCache.getInstance().clear();
   }
 }

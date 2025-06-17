@@ -4,6 +4,8 @@ import brs.Block;
 import brs.Signum;
 import brs.SignumException;
 import brs.db.BlockDb;
+import brs.db.cache.TransactionCache;
+import brs.db.cache.BlockCache;
 import brs.schema.tables.records.BlockRecord;
 import org.jooq.*;
 import org.jooq.Record;
@@ -21,6 +23,10 @@ public class SqlBlockDb implements BlockDb {
   private static final Logger logger = LoggerFactory.getLogger(BlockDb.class);
 
   public Block findBlock(long blockId) {
+    Block cached = BlockCache.getInstance().getById(blockId);
+    if (cached != null) {
+      return cached;
+    }
     return Db.useDSLContext(ctx -> {
       try {
         BlockRecord r = ctx.selectFrom(BLOCK).where(BLOCK.ID.eq(blockId)).fetchAny();
@@ -32,12 +38,19 @@ public class SqlBlockDb implements BlockDb {
   }
 
   public boolean hasBlock(long blockId) {
+    if (BlockCache.getInstance().getById(blockId) != null) {
+      return true;
+    }
     return Db.useDSLContext(ctx -> {
       return ctx.fetchExists(ctx.selectOne().from(BLOCK).where(BLOCK.ID.eq(blockId)));
     });
   }
 
   public long findBlockIdAtHeight(int height) {
+    Block cached = BlockCache.getInstance().getByHeight(height);
+    if (cached != null) {
+      return cached.getId();
+    }
     return Db.useDSLContext(ctx -> {
       Long id = ctx.select(BLOCK.ID).from(BLOCK).where(BLOCK.HEIGHT.eq(height)).fetchOne(BLOCK.ID);
       if (id == null) {
@@ -48,6 +61,10 @@ public class SqlBlockDb implements BlockDb {
   }
 
   public Block findBlockAtHeight(int height) {
+    Block cached = BlockCache.getInstance().getByHeight(height);
+    if (cached != null) {
+      return cached;
+    }
     return Db.useDSLContext(ctx -> {
       try {
         Block block = loadBlock(ctx.selectFrom(BLOCK).where(BLOCK.HEIGHT.eq(height)).fetchAny());
@@ -62,9 +79,13 @@ public class SqlBlockDb implements BlockDb {
   }
 
   public Block findLastBlock() {
+    Block cached = BlockCache.getInstance().getLastBlock();
+    if (cached != null) {
+      return cached;
+    }
     return Db.useDSLContext(ctx -> {
       try {
-        
+
         // avoid table scans through ordering - using indexed columns for direct lookups
         SelectConditionStep<BlockRecord> query = ctx.selectFrom(BLOCK)
           .where(BLOCK.DB_ID.eq(
@@ -138,6 +159,8 @@ public class SqlBlockDb implements BlockDb {
       .execute();
 
     Signum.getDbs().getTransactionDb().saveTransactions(block.getTransactions());
+    TransactionCache.getInstance().addBlockTransactions(block.getId(), block.getHeight(), block.getTransactions());
+    BlockCache.getInstance().addBlock(block);
 
     if (block.getPreviousBlockId() != 0) {
       ctx.update(BLOCK)
@@ -171,6 +194,7 @@ public class SqlBlockDb implements BlockDb {
       Integer blockHeight = blockHeightQuery.fetchOne().get(BLOCK.HEIGHT);
 
       if (blockHeight != null) {
+        BlockCache.getInstance().removeBlocksFromHeight(blockHeight);
         DeleteQuery deleteQuery = ctx.deleteQuery(BLOCK);
         deleteQuery.addConditions(BLOCK.HEIGHT.ge(blockHeight));
         deleteQuery.execute();
@@ -192,6 +216,7 @@ public class SqlBlockDb implements BlockDb {
       return;
     }
     logger.info("Deleting blockchain...");
+    BlockCache.getInstance().clear();
     Db.clean();
   }
 

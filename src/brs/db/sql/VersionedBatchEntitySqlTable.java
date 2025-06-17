@@ -1,20 +1,24 @@
 package brs.db.sql;
 
+import brs.Signum;
 import brs.db.SignumKey;
 import brs.db.VersionedBatchEntityTable;
 import brs.db.cache.DBCacheManagerImpl;
 import brs.db.store.DerivedTableManager;
+import brs.props.Props;
 import org.ehcache.Cache;
 import org.jooq.*;
 import org.jooq.Record;
 import org.jooq.impl.TableImpl;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySqlTable<T> implements VersionedBatchEntityTable<T> {
 
   private final DBCacheManagerImpl dbCacheManager;
   private final Class<T> tClass;
+  private static final Integer UpdateMaxBatchSize = Signum.getPropertyService().getInt(Props.DB_INSERT_BATCH_MAX_SIZE);
 
   VersionedBatchEntitySqlTable(String table, TableImpl<?> tableClass, DbKey.Factory<T> dbKeyFactory, DerivedTableManager derivedTableManager, DBCacheManagerImpl dbCacheManager, Class<T> tClass) {
     super(table, tableClass, dbKeyFactory, derivedTableManager);
@@ -77,23 +81,19 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     }
 
     Db.useDSLContext(ctx -> {
-      UpdateQuery updateQuery = ctx.updateQuery(tableClass);
-      updateQuery.addValue(latestField, false);
-      for (String idColumn : dbKeyFactory.getPKColumns()) {
-        updateQuery.addConditions(tableClass.field(idColumn, Long.class).eq(0L));
-      }
-      updateQuery.addConditions(latestField.isTrue());
+      Field<Long> idField = tableClass.field(dbKeyFactory.getPKColumns()[0], Long.class);
+      List<Long> ids = keySet.stream()
+        .map(k -> k.getPKValues()[0])
+        .collect(Collectors.toList());
 
-      BatchBindStep updateBatch = ctx.batch(updateQuery);
-      for (SignumKey dbKey : keySet) {
-        List<Object> bindArgs = new ArrayList<>();
-        bindArgs.add(false);
-        for (long pkValue : dbKey.getPKValues()) {
-          bindArgs.add(pkValue);
-        }
-        updateBatch.bind(bindArgs.toArray());
+      for (int from = 0; from < ids.size(); from += UpdateMaxBatchSize) {
+        int to = Math.min(from + UpdateMaxBatchSize, ids.size());
+        ctx.update(tableClass)
+          .set(latestField, false)
+          .where(latestField.isTrue())
+          .and(idField.in(ids.subList(from, to)))
+          .execute();
       }
-      updateBatch.execute();
 
       bulkInsert(ctx, getBatch().values());
       getBatch().clear();

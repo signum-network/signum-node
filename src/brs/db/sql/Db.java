@@ -72,14 +72,7 @@ public final class Db {
 
 
   public static void analyzeTables() {
-    if (databaseInstance.getDialect() == SQLDialect.H2) {
-      try (Connection con = databaseInstance.getDataSource().getConnection();
-           Statement stmt = con.createStatement()) {
-        stmt.execute("ANALYZE SAMPLE_SIZE 0");
-      } catch (SQLException e) {
-        throw new RuntimeException(e.toString(), e);
-      }
-    }
+    // currently no-op
   }
 
   public static void shutdown() {
@@ -99,13 +92,7 @@ public final class Db {
   }
 
   public static void backup(String filename) {
-    if (databaseInstance.getDialect() == SQLDialect.H2) {
-      logger.info("Database backup to {} started, it might take a while.", filename);
-      executeStatement("BACKUP TO '" + filename + "'");
-      logger.info("Database backup completed, file {}.", filename);
-    } else {
-      logger.error("Backup not yet implemented for {}", databaseInstance.getDialect());
-    }
+    logger.error("Backup not yet implemented for {}", databaseInstance.getDialect());
   }
 
   private static Connection getPooledConnection() throws SQLException {
@@ -141,7 +128,7 @@ public final class Db {
     if (con == null) {
       return DSL.using(databaseInstance.getDataSource(), dialect, settings);
     } else {
-      settings.setStatementType(StatementType.STATIC_STATEMENT);
+      settings.setStatementType(StatementType.PREPARED_STATEMENT);
       return DSL.using(con, dialect, settings);
     }
   }

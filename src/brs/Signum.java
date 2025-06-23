@@ -56,9 +56,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Properties;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -76,7 +76,7 @@ import signumj.util.SignumUtils;
  */
 public final class Signum {
 
-    public static final Version VERSION = Version.parse("v3.9.0");
+    public static final Version VERSION = Version.parse("v3.9.1");
     public static final String APPLICATION = "BRS";
 
     public static final String CONF_FOLDER = "./conf";
@@ -127,20 +127,25 @@ public final class Signum {
         logger.info("Initializing Signum Node version {}", VERSION);
 
         logger.info("Configurations from folder {}", confFolder);
+
         CaselessProperties defaultProperties = new CaselessProperties();
-        try (InputStream is = new FileInputStream(new File(confFolder, DEFAULT_PROPERTIES_NAME))) {
-            defaultProperties.load(is);
+        File defaultPropsFile = new File(confFolder, DEFAULT_PROPERTIES_NAME);
+        try (Reader reader = new InputStreamReader(new FileInputStream(defaultPropsFile), StandardCharsets.UTF_8)) {
+            defaultProperties.load(reader);
         } catch (IOException e) {
             throw new RuntimeException("Error loading " + DEFAULT_PROPERTIES_NAME, e);
         }
 
         CaselessProperties properties = new CaselessProperties(defaultProperties);
-        try (InputStream is = new FileInputStream(new File(confFolder, PROPERTIES_NAME))) {
-            if (is != null) { // parse if brs.properties was loaded
-                properties.load(is);
+        File propsFile = new File(confFolder, PROPERTIES_NAME);
+        if (propsFile.exists()) {
+            try (Reader reader = new InputStreamReader(new FileInputStream(propsFile), StandardCharsets.UTF_8)) {
+                properties.load(reader);
+            } catch (IOException e) {
+                logger.info("Custom user properties file {} not loaded", PROPERTIES_NAME, e);
             }
-        } catch (IOException e) {
-            logger.info("Custom user properties file {} not loaded", PROPERTIES_NAME);
+        } else {
+            logger.info("Custom user properties file {} not found", PROPERTIES_NAME);
         }
 
         return new PropertyServiceImpl(properties);

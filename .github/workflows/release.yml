@@ -1,7 +1,6 @@
 name: Draft release for Signum Node
 
 on:
-  workflow_dispatch:
   push:
     tags:
       - 'v*'
@@ -17,7 +16,7 @@ jobs:
 
       - name: Get version from tag
         id: get_version
-        shell: cmd
+        shell: bash
         run: |
           echo VERSION=${{github.ref_name}}
           echo VERSION=${{github.ref_name}} >> %GITHUB_ENV%

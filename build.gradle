@@ -53,7 +53,7 @@ dependencies {
     implementation 'org.flywaydb:flyway-mysql:8.5.13'
     implementation 'org.postgresql:postgresql:42.7.3'
     implementation 'com.kohlschutter.junixsocket:junixsocket-core:2.8.3'
-    implementation 'org.mariadb.jdbc:mariadb-java-client:2.4.1'
+    implementation 'org.mariadb.jdbc:mariadb-java-client:3.1.4'
     implementation 'org.xerial:sqlite-jdbc:3.45.2.0'
 
     implementation 'org.owasp.encoder:encoder:1.2.3'
@@ -320,7 +320,6 @@ artifacts {
 
 // === JOOQ Codegen
 
-//def schema_dburl = "jdbc:h2:${project.projectDir}/temp/generated/db/signum_jooq"
 def schema_dburl = "jdbc:sqlite:${project.projectDir}/temp/generated/db/signum_jooq.sqlite"
 def schema_dbusername = ""
 def schema_dbpassword = ""
@@ -329,7 +328,6 @@ flyway {
     url = "${schema_dburl}"
     user = "${schema_dbusername}"
     password = "${schema_dbpassword}"
-    //locations = ["filesystem:" + project.projectDir + "/resources/db/migration_h2_v2"]
     locations = ["filesystem:" + project.projectDir + "/resources/db/migration_sqlite"]
 }
 

@@ -666,7 +666,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
       }
     };
-    threadPool.scheduleThread("GetMoreBlocks", getMoreBlocksThread, Constants.BLOCK_PROCESS_THREAD_DELAY,
+    threadPool.scheduleThread("GetMoreBlocks", getMoreBlocksThread, Props.BLOCK_PROCESS_THREAD_DELAY,
       TimeUnit.MILLISECONDS);
     /* this should fetch first block in cache */
     // resetting cache because we have blocks that cannot be processed.
@@ -712,7 +712,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
       }
     };
-    threadPool.scheduleThread("ImportBlocks", blockImporterThread, Constants.BLOCK_PROCESS_THREAD_DELAY,
+    threadPool.scheduleThread("ImportBlocks", blockImporterThread, Props.BLOCK_PROCESS_THREAD_DELAY,
       TimeUnit.MILLISECONDS);
     // Is there anything to verify
     // should we use Ocl?
@@ -791,11 +791,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     };
     if (propertyService.getBoolean(Props.GPU_ACCELERATION)) {
       logger.debug("Starting preverifier thread in Open CL mode.");
-      threadPool.scheduleThread("VerifyPoc", pocVerificationThread, Constants.BLOCK_PROCESS_THREAD_DELAY,
+      threadPool.scheduleThread("VerifyPoc", pocVerificationThread, Props.BLOCK_PROCESS_THREAD_DELAY,
         TimeUnit.MILLISECONDS);
     } else {
       logger.debug("Starting preverifier thread in CPU mode.");
-      threadPool.scheduleThreadCores(pocVerificationThread, Constants.BLOCK_PROCESS_THREAD_DELAY,
+      threadPool.scheduleThreadCores(pocVerificationThread, Props.BLOCK_PROCESS_THREAD_DELAY,
         TimeUnit.MILLISECONDS);
     }
   }

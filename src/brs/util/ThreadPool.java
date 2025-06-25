@@ -94,6 +94,7 @@ public final class ThreadPool {
         cores = Math.max(1, cores);
     }
     logger.info("Using {} cores", cores);
+    logger.info("Using {} msec Thread delay", propertyService.getInt(Props.BLOCK_PROCESS_THREAD_DELAY));
     int totalThreads = backgroundJobs.size() + backgroundJobsCores.size() * cores;
     logger.debug("Starting {} background jobs", totalThreads);
     scheduledThreadPool = Executors.newScheduledThreadPool(totalThreads);

@@ -128,7 +128,7 @@ public final class Db {
     if (con == null) {
       return DSL.using(databaseInstance.getDataSource(), dialect, settings);
     } else {
-      settings.setStatementType(StatementType.STATIC_STATEMENT);
+      settings.setStatementType(StatementType.PREPARED_STATEMENT);
       return DSL.using(con, dialect, settings);
     }
   }

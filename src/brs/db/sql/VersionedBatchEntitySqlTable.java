@@ -82,6 +82,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     // not more than 1000 items should be put in subqueries
     int UpdateMaxBatchSize = 1_000;
     Db.useDSLContext(ctx -> {
+
       Field<Long> idField = tableClass.field(dbKeyFactory.getPKColumns()[0], Long.class);
       List<Long> ids = keySet.stream()
         .map(k -> k.getPKValues()[0])

@@ -109,8 +109,6 @@ public final class Constants {
   public static final String WEBSITE = "website";
   public static final String PROTOCOL = "protocol";
 
-  public static final int BLOCK_PROCESS_THREAD_DELAY = 500; // Milliseconds
-
   public static final byte[] AT_PUBLIC_KEY_BYTES = new byte[32];;
 
   private Constants() {

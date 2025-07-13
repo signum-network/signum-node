@@ -1,14 +1,13 @@
 package brs.db.sql;
 
-import brs.Signum;
 import brs.db.SignumKey;
 import brs.db.VersionedBatchEntityTable;
 import brs.db.cache.DBCacheManagerImpl;
 import brs.db.store.DerivedTableManager;
-import brs.props.Props;
 import org.ehcache.Cache;
 import org.jooq.*;
 import org.jooq.Record;
+import org.jooq.impl.DSL;
 import org.jooq.impl.TableImpl;
 
 import java.util.*;
@@ -18,22 +17,21 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
 
   private final DBCacheManagerImpl dbCacheManager;
   private final Class<T> tClass;
-  private static final Integer UpdateMaxBatchSize = Signum.getPropertyService().getInt(Props.DB_INSERT_BATCH_MAX_SIZE);
 
   VersionedBatchEntitySqlTable(String table, TableImpl<?> tableClass, DbKey.Factory<T> dbKeyFactory, DerivedTableManager derivedTableManager, DBCacheManagerImpl dbCacheManager, Class<T> tClass) {
     super(table, tableClass, dbKeyFactory, derivedTableManager);
     this.dbCacheManager = dbCacheManager;
     this.tClass = tClass;
   }
-  
+
   private void assertInTransaction() {
-    if(Db.isInTransaction()) {
+    if (Db.isInTransaction()) {
       throw new IllegalStateException("Cannot use in batch table transaction");
     }
   }
 
   private void assertNotInTransaction() {
-    if(!Db.isInTransaction()) {
+    if (!Db.isInTransaction()) {
       throw new IllegalStateException("Not in transaction");
     }
   }
@@ -43,7 +41,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
   @Override
   public boolean delete(T t) {
     assertNotInTransaction();
-    DbKey dbKey = (DbKey)dbKeyFactory.newKey(t);
+    DbKey dbKey = (DbKey) dbKeyFactory.newKey(t);
     getCache().remove(dbKey);
     getBatch().remove(dbKey);
     return true;
@@ -53,8 +51,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
   public T get(SignumKey dbKey) {
     if (getCache().containsKey(dbKey)) {
       return getCache().get(dbKey);
-    }
-    else if (Db.isInTransaction() && getBatch().containsKey(dbKey)) {
+    } else if (Db.isInTransaction() && getBatch().containsKey(dbKey)) {
       return getBatch().get(dbKey);
     }
     T item = super.get(dbKey);
@@ -75,28 +72,38 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
   @Override
   public void finish() {
     assertNotInTransaction();
+    // read-only op...good to use getBatch outside transactional scope
     Set<SignumKey> keySet = getBatch().keySet();
     if (keySet.isEmpty()) {
       return;
     }
 
+    // As recommended for databases,
+    // not more than 1000 items should be put in subqueries
+    int UpdateMaxBatchSize = 1_000;
     Db.useDSLContext(ctx -> {
+
       Field<Long> idField = tableClass.field(dbKeyFactory.getPKColumns()[0], Long.class);
       List<Long> ids = keySet.stream()
         .map(k -> k.getPKValues()[0])
         .collect(Collectors.toList());
+      // transactional scope avoids auto-commits, giving us even more performance back
+      ctx.transaction(configuration -> {
+        DSLContext txContext = DSL.using(configuration);
+        int idsListSize = ids.size();
+        for (int from = 0; from < idsListSize; from += UpdateMaxBatchSize) {
+          int to = Math.min(from + UpdateMaxBatchSize, idsListSize);
+          txContext.update(tableClass)
+            .set(latestField, false)
+            .where(latestField.isTrue())
+            .and(idField.in(ids.subList(from, to)))
+            .execute();
+        }
 
-      for (int from = 0; from < ids.size(); from += UpdateMaxBatchSize) {
-        int to = Math.min(from + UpdateMaxBatchSize, ids.size());
-        ctx.update(tableClass)
-          .set(latestField, false)
-          .where(latestField.isTrue())
-          .and(idField.in(ids.subList(from, to)))
-          .execute();
-      }
-
-      bulkInsert(ctx, getBatch().values());
-      getBatch().clear();
+        bulkInsert(txContext, getBatch().values());
+        // mutation, so must be inside the transactional scope
+        getBatch().clear();
+      });
     });
   }
 

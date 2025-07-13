@@ -123,12 +123,10 @@ public final class Db {
     Connection con = localConnection.get();
     Settings settings = new Settings();
     settings.setRenderSchema(Boolean.FALSE);
-
     SQLDialect dialect = databaseInstance.getDialect();
     if (con == null) {
       return DSL.using(databaseInstance.getDataSource(), dialect, settings);
     } else {
-      settings.setStatementType(StatementType.PREPARED_STATEMENT);
       return DSL.using(con, dialect, settings);
     }
   }

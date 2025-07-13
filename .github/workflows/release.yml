@@ -19,7 +19,11 @@ jobs:
         shell: bash
         run: |
           echo VERSION=${{github.ref_name}}
-          echo VERSION=${{github.ref_name}} >> %GITHUB_ENV%
+          echo VERSION=${{github.ref_name}} >> $GITHUB_ENV
+
+      - name: Show version
+        shell: bash
+        run: echo "Version is $VERSION"
 
       - name: Update Wallets
         shell: bash

@@ -81,6 +81,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     // As recommended for databases,
     // not more than 1000 items should be put in subqueries
     int UpdateMaxBatchSize = 1_000;
+    int InsertMaxBatchSize = 100;
     Db.useDSLContext(ctx -> {
 
       Field<Long> idField = tableClass.field(dbKeyFactory.getPKColumns()[0], Long.class);
@@ -99,8 +100,12 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
             .and(idField.in(ids.subList(from, to)))
             .execute();
         }
-
-        bulkInsert(txContext, getBatch().values());
+        List<T> entitiesToInsert = new ArrayList<>(getBatch().values());
+        int entitiesListSize = entitiesToInsert.size();
+        for (int from = 0; from < entitiesListSize; from += InsertMaxBatchSize) {
+          int to = Math.min(from + InsertMaxBatchSize, entitiesListSize);
+          bulkInsert(txContext, entitiesToInsert.subList(from, to));
+        }
         // mutation, so must be inside the transactional scope
         getBatch().clear();
       });

@@ -19,8 +19,9 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.TreeSet;
+import java.util.Arrays;
 
 
 public class AtMachineState {
@@ -29,7 +30,7 @@ public class AtMachineState {
     private final int sleepBetween;
     private final ByteBuffer apCode;
     private long apCodeHashId;
-    private final LinkedHashMap<ByteBuffer, AtTransaction> transactions;
+    private final List<AtTransaction> transactions;
     private final ArrayList<AT.AtMapEntry> mapUpdates;
     private short version;
     private long gBalance;
@@ -78,7 +79,7 @@ public class AtMachineState {
         this.apCode.clear();
         this.apCodeHashId = apCodeHashId;
 
-        transactions = new LinkedHashMap<>();
+        transactions = new ArrayList<>();
         mapUpdates = new ArrayList<>();
     }
 
@@ -162,7 +163,7 @@ public class AtMachineState {
         this.waitForNumberOfBlocks = 0;
         this.sleepBetween = 0;
         this.freezeWhenSameBalance = false;
-        this.transactions = new LinkedHashMap<>();
+        this.transactions = new ArrayList<>();
         this.mapUpdates = new ArrayList<>();
         this.gBalance = 0;
         this.pBalance = 0;
@@ -242,40 +243,50 @@ public class AtMachineState {
     }
 
     void addTransaction(AtTransaction tx) {
-        ByteBuffer txKey = ByteBuffer.allocate(8 + 8);
-        if(tx.getRecipientId() == null){
-          txKey.putLong(((long)tx.getType().getType()) << 4 + tx.getType().getSubtype());
-        }
-        else {
-          txKey.put(tx.getRecipientId());
-        }
-        txKey.putLong(tx.getAssetId());
-        txKey.clear();
-        AtTransaction oldTx = transactions.get(txKey);
-        if (oldTx == null){
-            transactions.put(txKey, tx);
-        } else {
-            // we add the amounts and append the messages
-            byte []message = tx.getMessage() != null ? tx.getMessage() : oldTx.getMessage();
-            if(getVersion() > 2 && tx.getMessage()!=null && (oldTx.getMessage() == null || oldTx.getMessage().length < Constants.MAX_ARBITRARY_MESSAGE_LENGTH - 32)) {
-              // we append the messages now
-              ByteBuffer msg = ByteBuffer.allocate((oldTx.getMessage() == null ? 0 : oldTx.getMessage().length)
-                  + (tx.getMessage() == null ? 0 : tx.getMessage().length));
-              if(oldTx.getMessage() != null)
-                msg.put(oldTx.getMessage());
-              if(tx.getMessage() != null)
-                msg.put(tx.getMessage());
-              msg.clear();
-              message = msg.array();
-            }
+        for (int i = transactions.size() - 1; i >= 0; i--) {
+            AtTransaction oldTx = transactions.get(i);
+            if (isSameTransactionKey(oldTx, tx)) {
+                byte[] message = tx.getMessage() != null ? tx.getMessage() : oldTx.getMessage();
+                if (getVersion() > 2 && tx.getMessage() != null && (oldTx.getMessage() == null ||
+                    oldTx.getMessage().length < Constants.MAX_ARBITRARY_MESSAGE_LENGTH - 32)) {
+                    ByteBuffer msg = ByteBuffer.allocate((oldTx.getMessage() == null ? 0 : oldTx.getMessage().length)
+                        + (tx.getMessage() == null ? 0 : tx.getMessage().length));
+                    if (oldTx.getMessage() != null)
+                        msg.put(oldTx.getMessage());
+                    if (tx.getMessage() != null)
+                        msg.put(tx.getMessage());
+                    msg.clear();
+                    message = msg.array();
+                }
 
-            AtTransaction newTx = new AtTransaction(tx.getType(), tx.getSenderId(),
+                AtTransaction combined = new AtTransaction(
+                    tx.getType(),
+                    tx.getSenderId(),
                     tx.getRecipientId(),
-                    oldTx.getAmount() + tx.getAmount(), oldTx.getAssetId(),
-                    oldTx.getQuantity() + tx.getQuantity(), 0L, 0L,
-                    message);
-            transactions.put(txKey, newTx);
+                    oldTx.getAmount() + tx.getAmount(),
+                    oldTx.getAssetId(),
+                    oldTx.getQuantity() + tx.getQuantity(),
+                    0L, 0L,
+                    message
+                );
+                transactions.set(i, combined);
+                return;
+            }
         }
+        transactions.add(tx);
+    }
+
+    private boolean isSameTransactionKey(AtTransaction a, AtTransaction b) {
+        if (!a.getType().equals(b.getType())) return false;
+        if (a.getAssetId() != b.getAssetId()) return false;
+        if (!Arrays.equals(a.getSenderId(), b.getSenderId())) return false;
+        if (a.getRecipientId() == null && b.getRecipientId() == null) {
+            return true;
+        }
+        if (a.getRecipientId() != null && b.getRecipientId() != null) {
+            return Arrays.equals(a.getRecipientId(), b.getRecipientId());
+        }
+        return false;
     }
 
     void addMapUpdate(long atId, long key1, long key2, long value) {
@@ -309,7 +320,7 @@ public class AtMachineState {
     }
 
     public Collection<AtTransaction> getTransactions() {
-        return transactions.values();
+        return transactions;
     }
 
     public Collection<AT.AtMapEntry> getMapUpdates() {

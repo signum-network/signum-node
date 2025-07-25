@@ -561,8 +561,9 @@ public abstract class AtController {
     }
 
     private static int getExecutionPriority(TransactionType type) {
-        if (type == TransactionType.ColoredCoins.ASSET_MINT) return 0;
-        if (type == TransactionType.ColoredCoins.ASSET_TRANSFER) return 1;
+        if (type == TransactionType.ColoredCoins.ASSET_ISSUANCE) return 10;
+        if (type == TransactionType.ColoredCoins.ASSET_MINT) return 20;
+        if (type == TransactionType.ColoredCoins.ASSET_TRANSFER) return 30;
         return 100;
     }
 }

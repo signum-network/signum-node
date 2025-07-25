@@ -567,6 +567,7 @@ public class AtApiPlatformImpl extends AtApiImpl {
   @Override
   public void mintAsset(AtMachineState state) {
     if (state.getVersion() < 3) {
+      logger.debug("mintAsset aborted: AT version {} < 3", state.getVersion());
       return;
     }
 
@@ -574,9 +575,23 @@ public class AtApiPlatformImpl extends AtApiImpl {
     long accountId = AtApiHelper.getLong(state.getId());
     long quantity = AtApiHelper.getLong(state.getB1());
 
+    logger.debug(
+      "mintAsset input - assetId: {}, accountId: {}, quantity: {}, current gBalance: {}",
+      assetId,
+      accountId,
+      quantity,
+      state.getgBalance(assetId)
+    );
+
     Asset asset = Signum.getStores().getAssetStore().getAsset(assetId);
     if (asset == null || asset.getAccountId() != accountId || quantity <= 0L) {
       // only assets that we have created internally and no burning by mint
+      logger.debug(
+        "mintAsset aborted: asset null={}, account check={}, quantity={} <= 0",
+        asset == null,
+        asset != null && asset.getAccountId() != accountId,
+        quantity
+      );
       return;
     }
 
@@ -585,11 +600,28 @@ public class AtApiPlatformImpl extends AtApiImpl {
     long newSupply = circulatingSupply + quantity;
     if (newSupply > Constants.MAX_ASSET_QUANTITY_QNT) {
       // do not mint extra to keep the limit
+      logger.debug(
+        "mintAsset aborted: newSupply {} > MAX_ASSET_QUANTITY_QNT {}",
+        newSupply,
+        Constants.MAX_ASSET_QUANTITY_QNT
+      );
       return;
     }
 
+    logger.debug(
+      "mintAsset creating transaction - version: {}, newSupply: {}",
+      state.getVersion(),
+      newSupply
+    );
+
     AtTransaction tx = new AtTransaction(TransactionType.ColoredCoins.ASSET_MINT,
       state.getId(), null, 0L, assetId, quantity, null);
+    logger.debug(
+      "mintAsset tx created - sender: {}, assetId: {}, quantity: {}",
+      AtApiHelper.getLong(state.getId()),
+      assetId,
+      quantity
+    );
     state.addTransaction(tx);
 
     state.setgBalance(assetId, state.getgBalance(assetId) + quantity);

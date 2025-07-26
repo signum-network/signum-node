@@ -522,8 +522,20 @@ public abstract class AtController {
     private static long makeTransactions(AT at, int blockHeight, long generatorId) throws AtException {
         long totalAmount = 0;
 
-        List<AtTransaction> ordered = new ArrayList<>(at.getTransactions());
-        ordered.sort(Comparator.comparingInt(tx -> getExecutionPriority(tx.getType())));
+        // Group transactions by sender (AT id) and sort each group individually
+        // by execution priority. This keeps the execution order of each contract
+        // independent from others.
+        Map<Long, List<AtTransaction>> grouped = new LinkedHashMap<>();
+        for (AtTransaction tx : at.getTransactions()) {
+            long sender = AtApiHelper.getLong(tx.getSenderId());
+            grouped.computeIfAbsent(sender, k -> new ArrayList<>()).add(tx);
+        }
+
+        List<AtTransaction> ordered = new ArrayList<>();
+        for (List<AtTransaction> txs : grouped.values()) {
+            txs.sort(Comparator.comparingInt(t -> getExecutionPriority(t.getType())));
+            ordered.addAll(txs);
+        }
 
         if (!Signum.getFluxCapacitor().getValue(FluxValues.AT_FIX_BLOCK_4, at.getHeight())) {
             for (AtTransaction tx : ordered) {

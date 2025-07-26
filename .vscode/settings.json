@@ -8,5 +8,8 @@
     "editor.detectIndentation": false,
     "java.import.projectSelection": "automatic",
     "workbench.colorTheme": "Default Dark Modern",
-    "java.server.launchMode": "Standard"
+    "java.server.launchMode": "Standard",
+    "[java]": {
+        "editor.formatOnSave": true
+    }
 }

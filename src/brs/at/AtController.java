@@ -522,7 +522,6 @@ public abstract class AtController {
     private static long makeTransactions(AT at, int blockHeight, long generatorId) throws AtException {
         long totalAmount = 0;
 
-        // Sort transactions by priority: MINT first, then TRANSFER, etc.
         List<AtTransaction> ordered = new ArrayList<>(at.getTransactions());
         ordered.sort(Comparator.comparingInt(tx -> getExecutionPriority(tx.getType())));
 
@@ -561,6 +560,7 @@ public abstract class AtController {
     }
 
     private static int getExecutionPriority(TransactionType type) {
+        if (type == TransactionType.ColoredCoins.ASSET_DISTRIBUTE_TO_HOLDERS) return 1;
         if (type == TransactionType.ColoredCoins.ASSET_ISSUANCE) return 10;
         if (type == TransactionType.ColoredCoins.ASSET_MINT) return 20;
         if (type == TransactionType.ColoredCoins.ASSET_TRANSFER) return 30;

@@ -522,20 +522,29 @@ public abstract class AtController {
     private static long makeTransactions(AT at, int blockHeight, long generatorId) throws AtException {
         long totalAmount = 0;
 
-        // Group transactions by sender (AT id) and sort each group individually
-        // by execution priority. This keeps the execution order of each contract
-        // independent from others.
-        Map<Long, List<AtTransaction>> grouped = new LinkedHashMap<>();
-        for (AtTransaction tx : at.getTransactions()) {
-            long sender = AtApiHelper.getLong(tx.getSenderId());
-            grouped.computeIfAbsent(sender, k -> new ArrayList<>()).add(tx);
+        // Start with the transactions as provided
+        List<AtTransaction> ordered = new ArrayList<>(at.getTransactions());
+
+        // If a transfer is found before a mint of the same asset, swap them so
+        // the mint happens first
+        for (int i = 0; i < ordered.size(); i++) {
+            AtTransaction tx = ordered.get(i);
+            if (tx.getType() != TransactionType.ColoredCoins.ASSET_MINT) {
+                continue;
+            }
+
+            long assetId = tx.getAssetId();
+            for (int j = 0; j < i; j++) {
+                AtTransaction other = ordered.get(j);
+                if (other.getType() == TransactionType.ColoredCoins.ASSET_TRANSFER
+                        && other.getAssetId() == assetId) {
+                    Collections.swap(ordered, j, i);
+                    i = j; // continue checking in case there are more transfers before
+                    break;
+                }
+            }
         }
 
-        List<AtTransaction> ordered = new ArrayList<>();
-        for (List<AtTransaction> txs : grouped.values()) {
-            txs.sort(Comparator.comparingInt(t -> getExecutionPriority(t.getType())));
-            ordered.addAll(txs);
-        }
 
         if (!Signum.getFluxCapacitor().getValue(FluxValues.AT_FIX_BLOCK_4, at.getHeight())) {
             for (AtTransaction tx : ordered) {
@@ -571,11 +580,4 @@ public abstract class AtController {
         return 0;
     }
 
-    private static int getExecutionPriority(TransactionType type) {
-        //if (type == TransactionType.ColoredCoins.ASSET_DISTRIBUTE_TO_HOLDERS) return 1;
-        if (type == TransactionType.ColoredCoins.ASSET_ISSUANCE) return 10;
-        if (type == TransactionType.ColoredCoins.ASSET_MINT) return 20;
-        if (type == TransactionType.ColoredCoins.ASSET_TRANSFER) return 30;
-        return 100;
-    }
 }

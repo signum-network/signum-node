@@ -517,33 +517,24 @@ public abstract class AtController {
     return AtConstants.AT_ID_SIZE + 16;
   }
 
-  //platform based implementations
-  //platform based
     private static long makeTransactions(AT at, int blockHeight, long generatorId) throws AtException {
         long totalAmount = 0;
 
         // Start with the transactions as provided
         List<AtTransaction> ordered = new ArrayList<>(at.getTransactions());
+        
+        ordered.sort((tx1, tx2) -> {
+            if (tx1.getAssetId() == tx2.getAssetId()) {
+                boolean tx1isMint = tx1.getType() == TransactionType.ColoredCoins.ASSET_MINT;
+                boolean tx2isMint = tx2.getType() == TransactionType.ColoredCoins.ASSET_MINT;
+                boolean tx1isTransfer = tx1.getType() == TransactionType.ColoredCoins.ASSET_TRANSFER;
+                boolean tx2isTransfer = tx2.getType() == TransactionType.ColoredCoins.ASSET_TRANSFER;
 
-        // If a transfer is found before a mint of the same asset, swap them so
-        // the mint happens first
-        for (int i = 0; i < ordered.size(); i++) {
-            AtTransaction tx = ordered.get(i);
-            if (tx.getType() != TransactionType.ColoredCoins.ASSET_MINT) {
-                continue;
+                if (tx1isMint && tx2isTransfer) return -1;
+                if (tx1isTransfer && tx2isMint) return 1;
             }
-
-            long assetId = tx.getAssetId();
-            for (int j = 0; j < i; j++) {
-                AtTransaction other = ordered.get(j);
-                if (other.getType() == TransactionType.ColoredCoins.ASSET_TRANSFER
-                        && other.getAssetId() == assetId) {
-                    Collections.swap(ordered, j, i);
-                    i = j; // continue checking in case there are more transfers before
-                    break;
-                }
-            }
-        }
+            return 0;
+        });
 
 
         if (!Signum.getFluxCapacitor().getValue(FluxValues.AT_FIX_BLOCK_4, at.getHeight())) {
@@ -571,7 +562,6 @@ public abstract class AtController {
         return totalAmount;
     }
 
-    // platform based
     private static long getATAccountBalance(Long id) {
         Account.Balance atAccount = Account.getAccountBalance(id);
         if (atAccount != null) {

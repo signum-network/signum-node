@@ -523,22 +523,36 @@ public class AtApiPlatformImpl extends AtApiImpl {
 
   @Override
   public void sendToAddressInB(long val, AtMachineState state) {
-    if (val < 1)
+    if (val < 1) {
+      logger.debug("sendToAddressInB aborted: val {} < 1", val);
       return;
+    }
+
+    logger.debug(
+      "sendToAddressInB start - val: {}, version: {}",
+      val,
+      state.getVersion()
+    );
 
     if (state.getVersion() > 2) {
       long assetId = AtApiHelper.getLong(state.getB2());
+      logger.debug("sendToAddressInB asset path - assetId: {}", assetId);
       if (assetId != 0L) {
         long assetBalance = state.getgBalance(assetId);
+        logger.debug("asset balance: {}", assetBalance);
         if (val > assetBalance) {
+          logger.debug("adjusting val from {} to asset balance {}", val, assetBalance);
           val = assetBalance;
         }
 
         // optional coin amount besides the asset
         long amount = AtApiHelper.getLong(state.getB3());
+        logger.debug("coin amount in B3 before adjustment: {}", amount);
         if (amount > 0L) {
           long balance = state.getgBalance();
+          logger.debug("available coin balance: {}", balance);
           if (amount > balance) {
+            logger.debug("adjusting coin amount from {} to balance {}", amount, balance);
             amount = balance;
           }
           state.setgBalance(balance - amount);
@@ -548,25 +562,48 @@ public class AtApiPlatformImpl extends AtApiImpl {
 
         AtTransaction tx = new AtTransaction(TransactionType.ColoredCoins.ASSET_TRANSFER,
           state.getId(), state.getB1().clone(), amount, assetId, val, null);
+        logger.debug(
+          "asset transfer tx created - sender: {}, assetId: {}, amount: {}, quantity: {}",
+          AtApiHelper.getLong(state.getId()),
+          assetId,
+          amount,
+          val
+        );
         state.addTransaction(tx);
 
         state.setgBalance(assetId, assetBalance - val);
+        logger.debug(
+          "sendToAddressInB asset path end - new asset gBalance: {}",
+          state.getgBalance(assetId)
+        );
         return;
       }
     }
 
     if (val > state.getgBalance()) {
+      logger.debug(
+        "adjusting val from {} to current gBalance {}",
+        val,
+        state.getgBalance()
+      );
       val = state.getgBalance();
     }
     AtTransaction tx = new AtTransaction(TransactionType.Payment.ORDINARY, state.getId(), state.getB1().clone(), val, null);
+    logger.debug(
+      "ordinary payment tx created - sender: {}, amount: {}",
+      AtApiHelper.getLong(state.getId()),
+      val
+    );
     state.addTransaction(tx);
 
     state.setgBalance(state.getgBalance() - val);
+    logger.debug("sendToAddressInB end - new gBalance: {}", state.getgBalance());
   }
 
   @Override
   public void mintAsset(AtMachineState state) {
     if (state.getVersion() < 3) {
+      logger.debug("mintAsset aborted: AT version {} < 3", state.getVersion());
       return;
     }
 
@@ -574,9 +611,23 @@ public class AtApiPlatformImpl extends AtApiImpl {
     long accountId = AtApiHelper.getLong(state.getId());
     long quantity = AtApiHelper.getLong(state.getB1());
 
+    logger.debug(
+      "mintAsset input - assetId: {}, accountId: {}, quantity: {}, current gBalance: {}",
+      assetId,
+      accountId,
+      quantity,
+      state.getgBalance(assetId)
+    );
+
     Asset asset = Signum.getStores().getAssetStore().getAsset(assetId);
     if (asset == null || asset.getAccountId() != accountId || quantity <= 0L) {
       // only assets that we have created internally and no burning by mint
+      logger.debug(
+        "mintAsset aborted: asset null={}, account check={}, quantity={} <= 0",
+        asset == null,
+        asset != null && asset.getAccountId() != accountId,
+        quantity
+      );
       return;
     }
 
@@ -585,11 +636,28 @@ public class AtApiPlatformImpl extends AtApiImpl {
     long newSupply = circulatingSupply + quantity;
     if (newSupply > Constants.MAX_ASSET_QUANTITY_QNT) {
       // do not mint extra to keep the limit
+      logger.debug(
+        "mintAsset aborted: newSupply {} > MAX_ASSET_QUANTITY_QNT {}",
+        newSupply,
+        Constants.MAX_ASSET_QUANTITY_QNT
+      );
       return;
     }
 
+    logger.debug(
+      "mintAsset creating transaction - version: {}, newSupply: {}",
+      state.getVersion(),
+      newSupply
+    );
+
     AtTransaction tx = new AtTransaction(TransactionType.ColoredCoins.ASSET_MINT,
       state.getId(), null, 0L, assetId, quantity, null);
+    logger.debug(
+      "mintAsset tx created - sender: {}, assetId: {}, quantity: {}",
+      AtApiHelper.getLong(state.getId()),
+      assetId,
+      quantity
+    );
     state.addTransaction(tx);
 
     state.setgBalance(assetId, state.getgBalance(assetId) + quantity);

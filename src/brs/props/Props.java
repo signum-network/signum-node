@@ -104,7 +104,7 @@ public class Props {
     public static final Prop<String> BRS_CHECKPOINT_HASH = new Prop<>("node.checkPointPrevHash",
             "8f76beca852b41447ac59fbdf78750e43dde97f9fc09ec8f071eeb03c43420f0");
     public static final Prop<String> BRS_PK_CHECKS = new Prop<>("node.pkChecks",
-            "dba639ec3450e0b1;169b3b99ce28a350;a83c47e772a35586;6db77a51a7def19d;c4823aa7028f6735;fb0e32a5bc032257;15a35aa0515e3584;27fcf52c3bc40fba;c4823aa7028f6735;981454e22b5ac976;0cb15471ad76fcd1;");
+            "dba639ec3450e0b1;169b3b99ce28a350;a83c47e772a35586;6db77a51a7def19d;c4823aa7028f6735;fb0e32a5bc032257;15a35aa0515e3584;27fcf52c3bc40fba;981454e22b5ac976;0cb15471ad76fcd1;");
 
     // GPU options
     public static final Prop<Boolean> GPU_ACCELERATION = new Prop<>("GPU.Acceleration", false);
@@ -114,7 +114,7 @@ public class Props {
     public static final Prop<Integer> GPU_UNVERIFIED_QUEUE = new Prop<>("GPU.UnverifiedQueue", 1000);
     public static final Prop<Integer> GPU_HASHES_PER_BATCH = new Prop<>("GPU.HashesPerBatch", 1000);
     public static final Prop<Integer> GPU_MEM_PERCENT = new Prop<>("GPU.MemPercent", 50);
-  
+
     // CPU options
     public static final Prop<Integer> CPU_NUM_CORES = new Prop<>("CPU.NumCores", -1);
     public static final Prop<Integer> BLOCK_PROCESS_THREAD_DELAY = new Prop<>("CPU.BlockThreadDelay", 500);
@@ -140,7 +140,7 @@ public class Props {
     public static final Prop<Integer> BRS_BLOCK_CACHE_MB = new Prop<>("node.blockCacheMB", 40);
     public static final Prop<Integer> BRS_AT_PROCESSOR_CACHE_BLOCK_COUNT = new Prop<>("node.atProcessorCacheBlockCount",
             1000);
-    public static final Prop<Integer> DB_INSERT_BATCH_MAX_SIZE = new Prop<>("DB.InsertBatchMaxSize", 10000);
+    public static final Prop<Integer> DB_INSERT_BATCH_MAX_SIZE = new Prop<>("DB.InsertBatchMaxSize", 1000);
 
     // P2P options
     public static final Prop<Integer> P2P_PORT = new Prop<>("P2P.Port", 8123);

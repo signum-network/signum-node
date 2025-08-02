@@ -175,7 +175,7 @@ public class SqlATStore implements ATStore {
         )
       ).and(
         AT_STATE.FREEZE_WHEN_SAME_BALANCE.isFalse().or(
-          "account_balance.balance - at_state.prev_balance >= at_state.min_activate_amount"
+          ACCOUNT_BALANCE.BALANCE.minus(AT_STATE.PREV_BALANCE).ge(AT_STATE.MIN_ACTIVATE_AMOUNT)
         )
       ).orderBy(
         AT_STATE.PREV_HEIGHT.asc(), AT_STATE.NEXT_HEIGHT.asc(), AT.ID.asc()

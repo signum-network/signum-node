@@ -25,6 +25,10 @@ public final class Listeners<T, E extends Enum<E>> {
         return false;
     }
 
+    public void clear() {
+        listenersMap.clear();
+    }
+
     public void notify(T t, Enum<E> eventType) {
         List<Listener<T>> listeners = listenersMap.get(eventType);
         if (listeners != null) {

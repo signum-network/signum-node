@@ -7,12 +7,10 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.URI;
-import java.security.Permission;
 import java.text.SimpleDateFormat;
 import java.util.LinkedList;
 import java.util.Date;
@@ -25,7 +23,6 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -43,8 +40,6 @@ import javax.swing.Timer;
 import javax.swing.UIManager;
 import java.awt.Dimension;
 
-import org.apache.logging.log4j.core.config.builder.api.Component;
-import org.apache.logging.log4j.core.pattern.AbstractStyleNameConverter.Green;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.jfree.chart.ChartFactory;
@@ -59,17 +54,14 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
 import brs.fluxcapacitor.FluxValues;
-import brs.peer.Peers;
 import brs.props.PropertyService;
 import brs.props.Props;
 import brs.util.Convert;
-import io.reactivex.functions.BiFunction;
 import jiconfont.icons.font_awesome.FontAwesome;
 import jiconfont.swing.IconFontSwing;
 
 import java.awt.font.TextAttribute;
 import java.util.Map;
-import java.awt.FontMetrics;
 
 @SuppressWarnings("serial")
 public class SignumGUI extends JFrame {
@@ -123,8 +115,6 @@ public class SignumGUI extends JFrame {
     private JSlider movingAverageSlider;
     private JLabel peersLabel;
     private JLabel uploadSpeedLabel;
-    private JLabel downloadSpeedValueLabel;
-    private JLabel downloadSpeedDimensionLabel;
     private JLabel downloadSpeedLabel;
     private JLabel uploadVolumeLabel;
     private JLabel metricsUploadVolumeLabel;
@@ -1110,7 +1100,7 @@ public class SignumGUI extends JFrame {
     }
     /*
      * private void restart() {
-     * new Thread(() -> signum.restart()).start();
+     * new Thread(() -> Signum.restart()).start();
      * }
      */
 
@@ -1382,13 +1372,6 @@ public class SignumGUI extends JFrame {
         lastNetVolumeUpdateTime = currentTime;
         lastUploadedVolume = uploadedVolume;
         lastDownloadedVolume = downloadedVolume;
-
-        // downloadSpeedLabel.setText("↓ " + string[0] + string[1]);
-
-        /*
-         * uploadSpeedLabel.setText("\u2191" + formatDataRate(uploadSpeed));
-         * downloadSpeedLabel.setText("\u2193" + formatDataRate(downloadSpeed));
-         */
 
         // Update chart series
         uploadSpeedSeries.add(currentTime, avgUploadSpeed);

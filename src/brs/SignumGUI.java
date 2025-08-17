@@ -662,8 +662,12 @@ public class SignumGUI extends JFrame {
 
         metricsUploadVolumeLabel = new JLabel();
         metricsUploadVolumeLabel.setForeground(new Color(233, 150, 122)); // Upload color
+        addInfoTooltip(metricsUploadVolumeLabel,
+                "The total amount of data uploaded to the network during this session.");
         metricsDownloadVolumeLabel = new JLabel();
         metricsDownloadVolumeLabel.setForeground(new Color(50, 205, 50)); // Download color
+        addInfoTooltip(metricsDownloadVolumeLabel,
+                "The total amount of data downloaded from the network during this session.");
         combinedVolumePanel.add(metricsUploadVolumeLabel);
         combinedVolumePanel.add(new JLabel("/"));
         combinedVolumePanel.add(metricsDownloadVolumeLabel);

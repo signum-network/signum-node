@@ -653,31 +653,26 @@ public class SignumGUI extends JFrame {
         timingInfoPanel.add(downloadSpeedProgressBar, timingGbc);
 
         // --- Combined Volume ---
+        JPanel combinedVolumePanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
+        combinedVolumePanel.setOpaque(false);
         JLabel volumeTitleLabel = new JLabel("Volume:", SwingConstants.RIGHT);
-        timingGbc.gridx = 0;
-        timingGbc.gridy = 8;
-        timingInfoPanel.add(volumeTitleLabel, timingGbc);
         addInfoTooltip(volumeTitleLabel,
                 "The total amount of data uploaded to and downloaded from the network during this session. The format is Uploaded / Downloaded.");
+        combinedVolumePanel.add(volumeTitleLabel);
 
-        // Panel for the volume values
-        JPanel volumeValuesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
-        volumeValuesPanel.setOpaque(false);
         metricsUploadVolumeLabel = new JLabel();
         metricsUploadVolumeLabel.setForeground(new Color(233, 150, 122)); // Upload color
         metricsDownloadVolumeLabel = new JLabel();
         metricsDownloadVolumeLabel.setForeground(new Color(50, 205, 50)); // Download color
-        volumeValuesPanel.add(metricsUploadVolumeLabel);
-        volumeValuesPanel.add(new JLabel("/"));
-        volumeValuesPanel.add(metricsDownloadVolumeLabel);
-        timingGbc.gridx = 1;
+        combinedVolumePanel.add(metricsUploadVolumeLabel);
+        combinedVolumePanel.add(new JLabel("/"));
+        combinedVolumePanel.add(metricsDownloadVolumeLabel);
+        timingGbc.gridx = 0;
         timingGbc.gridy = 8;
-        timingGbc.gridwidth = 2; // Span across two columns
-        timingGbc.fill = GridBagConstraints.HORIZONTAL;
+        timingGbc.gridwidth = 3;
         timingGbc.anchor = GridBagConstraints.CENTER;
-        timingInfoPanel.add(volumeValuesPanel, timingGbc);
+        timingInfoPanel.add(combinedVolumePanel, timingGbc);
         timingGbc.gridwidth = 1; // Reset
-        timingGbc.fill = GridBagConstraints.NONE; // Reset fill
         timingGbc.anchor = GridBagConstraints.LINE_END; // Reset anchor
         // === End Timing Info Panel ===
 

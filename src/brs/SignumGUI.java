@@ -1,25 +1,9 @@
 package brs;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Desktop;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.GridLayout;
-import java.awt.Image;
-import java.awt.MenuItem;
-import java.awt.Insets;
-import java.awt.Label;
-import java.awt.PopupMenu;
-import java.awt.RenderingHints;
-import java.awt.SystemTray;
-import java.awt.Toolkit;
-import java.awt.TrayIcon;
+import java.awt.*;
 import java.awt.TrayIcon.MessageType;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -27,7 +11,6 @@ import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.net.InetAddress;
 import java.net.URI;
 import java.security.Permission;
 import java.text.SimpleDateFormat;
@@ -42,7 +25,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -64,7 +47,6 @@ import org.apache.logging.log4j.core.config.builder.api.Component;
 import org.apache.logging.log4j.core.pattern.AbstractStyleNameConverter.Green;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -197,6 +179,8 @@ public class SignumGUI extends JFrame {
     private long uploadedVolume = 0;
     private long downloadedVolume = 0;
 
+    private JPanel metricsPanel;
+
     public static void main(String[] args) {
         new SignumGUI("Signum Node", Props.ICON_LOCATION.getDefaultValue(), Signum.VERSION.toString(), args);
     }
@@ -284,9 +268,10 @@ public class SignumGUI extends JFrame {
 
         // === Metrics panel ===
         // This is the main container for all metric groups.
-        JPanel metricsPanel = new JPanel(new GridBagLayout());
+        metricsPanel = new JPanel(new GridBagLayout());
+        metricsPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
         GridBagConstraints mainMetricsGbc = new GridBagConstraints();
-        mainMetricsGbc.anchor = GridBagConstraints.NORTHWEST;
+        mainMetricsGbc.anchor = GridBagConstraints.CENTER;
         mainMetricsGbc.insets = new Insets(0, 5, 0, 5);
         mainMetricsGbc.gridy = 0;
         // === Container for the first group of metrics (Performance) ===
@@ -309,6 +294,8 @@ public class SignumGUI extends JFrame {
         gbc.weightx = 0;
         gbc.fill = GridBagConstraints.NONE;
         downloadPanel.add(verifLabel, gbc);
+        addInfoTooltip(verifLabel,
+                "Shows the number of blocks in the download queue that have been verified against the total number of blocks in the queue. A high number of unverified blocks may indicate a slow verification process.");
 
         syncProgressBarDownloadedBlocks = new JProgressBar();
         syncProgressBarDownloadedBlocks.setBackground(Color.GREEN);
@@ -332,6 +319,8 @@ public class SignumGUI extends JFrame {
         gbc.weightx = 0;
         gbc.fill = GridBagConstraints.NONE;
         downloadPanel.add(unVerifLabel, gbc);
+        addInfoTooltip(unVerifLabel,
+                "The number of blocks in the download queue that are waiting for PoC (Proof-of-Capacity) verification. A persistently high number might indicate that the CPU or GPU is unable to keep up with the network.");
 
         syncProgressBarUnverifiedBlocks = new JProgressBar(0, 2000); // Max 2000 unverified blocks, scaled by 100
         syncProgressBarUnverifiedBlocks.setBackground(Color.RED);
@@ -367,6 +356,8 @@ public class SignumGUI extends JFrame {
         gbc.weightx = 0;
         gbc.fill = GridBagConstraints.NONE;
         downloadPanel.add(blocksPerSecondLabel, gbc);
+        addInfoTooltip(blocksPerSecondLabel,
+                "The moving average of blocks processed per second. This indicates the speed at which your node is catching up with the blockchain.");
 
         blocksPerSecondProgressBar = new JProgressBar(0, 200); // Max 2 blocks/sec, scaled by 100
         blocksPerSecondProgressBar.setPreferredSize(progressBarSize);
@@ -388,6 +379,8 @@ public class SignumGUI extends JFrame {
         gbc.gridy = 4;
         gbc.anchor = GridBagConstraints.LINE_END;
         downloadPanel.add(txPerSecondLabel, gbc);
+        addInfoTooltip(txPerSecondLabel,
+                "The moving average of transactions processed per second. This metric reflects the current transactional throughput of the network as seen by your node.");
 
         transactionsPerSecondProgressBar = new JProgressBar(0, 2000); // Max 2000 tx/s
         transactionsPerSecondProgressBar.setPreferredSize(progressBarSize);
@@ -407,6 +400,8 @@ public class SignumGUI extends JFrame {
         gbc.gridy = 5;
         gbc.anchor = GridBagConstraints.LINE_END;
         downloadPanel.add(txPerBlockLabel, gbc);
+        addInfoTooltip(txPerBlockLabel,
+                "The moving average of the number of transactions included in each block. This provides insight into how full blocks are on average.");
 
         transactionsPerBlockProgressBar = new JProgressBar(0, 255); // Max tx/block
         transactionsPerBlockProgressBar.setPreferredSize(progressBarSize);
@@ -425,6 +420,8 @@ public class SignumGUI extends JFrame {
         gbc.gridy = 6;
         gbc.anchor = GridBagConstraints.LINE_END;
         downloadPanel.add(maWindowLabel, gbc);
+        addInfoTooltip(maWindowLabel,
+                "The number of recent blocks used to calculate the moving average for performance metrics. A larger window provides a smoother but less responsive trend, while a smaller window is more reactive to recent changes.");
 
         // Define the discrete values for the slider
         final int[] maWindowValues = { 10, 100, 200, 300, 400, 500 };
@@ -463,15 +460,21 @@ public class SignumGUI extends JFrame {
         });
         gbc.gridx = 1;
         gbc.gridy = 6;
+        gbc.gridwidth = 2;
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.LINE_START;
         downloadPanel.add(movingAverageSlider, gbc);
+        gbc.gridwidth = 1;
+        gbc.weightx = 0.0;
+        gbc.fill = GridBagConstraints.NONE;
         // === End Download Panel ===
 
         // Add downloadPanel to the left
         metricsGbc.gridx = 0;
         metricsGbc.gridy = 0;
-        metricsGbc.weightx = 0;
-        metricsGbc.fill = GridBagConstraints.NONE;
+        metricsGbc.weightx = 1.0;
+        metricsGbc.fill = GridBagConstraints.HORIZONTAL;
         metricsGbc.anchor = GridBagConstraints.NORTHWEST;
         performanceMetricsPanel.add(downloadPanel, metricsGbc);
 
@@ -547,6 +550,8 @@ public class SignumGUI extends JFrame {
         timingGbc.gridx = 0;
         timingGbc.gridy = 1;
         timingInfoPanel.add(pushTimeLabel, timingGbc);
+        addInfoTooltip(pushTimeLabel,
+                "The moving average of the total time taken to process and push a new block to the blockchain, including all validations and database operations.");
 
         pushTimeProgressBar = new JProgressBar(0, 100);
         pushTimeProgressBar.setPreferredSize(timingProgressBarSize);
@@ -563,6 +568,8 @@ public class SignumGUI extends JFrame {
         timingGbc.gridx = 0;
         timingGbc.gridy = 2;
         timingInfoPanel.add(dbTimeLabel, timingGbc);
+        addInfoTooltip(dbTimeLabel,
+                "The moving average of the time spent on database operations for each block. High values may indicate a slow disk or database contention.");
 
         dbTimeProgressBar = new JProgressBar(0, 100);
         dbTimeProgressBar.setPreferredSize(timingProgressBarSize);
@@ -575,10 +582,12 @@ public class SignumGUI extends JFrame {
 
         // --- AT Time ---
         atTimeLabel = new JLabel("AT Time/Block (MA):");
-        atTimeLabel.setForeground(new Color(255, 20, 147)); // Deep Pink
+        atTimeLabel.setForeground(new Color(153, 0, 76)); // Deep Pink
         timingGbc.gridx = 0;
         timingGbc.gridy = 3;
         timingInfoPanel.add(atTimeLabel, timingGbc);
+        addInfoTooltip(atTimeLabel,
+                "The moving average of the time spent processing Automated Transactions (ATs) within each block. This metric is relevant for assessing the performance impact of smart contracts on the network.");
 
         atTimeProgressBar = new JProgressBar(0, 100);
         atTimeProgressBar.setPreferredSize(timingProgressBarSize);
@@ -595,6 +604,8 @@ public class SignumGUI extends JFrame {
         timingGbc.gridx = 0;
         timingGbc.gridy = 4;
         timingInfoPanel.add(calculationTimeLabel, timingGbc);
+        addInfoTooltip(calculationTimeLabel,
+                "The moving average of the CPU time spent on calculations for each block, excluding database and Automated Transaction (AT) processing time. This includes signature verifications and other cryptographic operations.");
 
         calculationTimeProgressBar = new JProgressBar(0, 100);
         calculationTimeProgressBar.setPreferredSize(timingProgressBarSize);
@@ -622,6 +633,8 @@ public class SignumGUI extends JFrame {
         timingGbc.gridx = 0;
         timingGbc.gridy = 6;
         timingInfoPanel.add(uploadSpeedLabel, timingGbc);
+        addInfoTooltip(uploadSpeedLabel,
+                "The current data upload speed to other peers in the network. This reflects how much blockchain data your node is sharing.");
 
         uploadSpeedProgressBar = new JProgressBar(0, MAX_SPEED_BPS);
         uploadSpeedProgressBar.setPreferredSize(timingProgressBarSize);
@@ -638,6 +651,8 @@ public class SignumGUI extends JFrame {
         timingGbc.gridx = 0;
         timingGbc.gridy = 7;
         timingInfoPanel.add(downloadSpeedLabel, timingGbc);
+        addInfoTooltip(downloadSpeedLabel,
+                "The current data download speed from other peers in the network. This indicates how quickly your node is receiving blockchain data.");
 
         downloadSpeedProgressBar = new JProgressBar(0, MAX_SPEED_BPS);
         downloadSpeedProgressBar.setPreferredSize(new Dimension(150, 20));
@@ -652,6 +667,8 @@ public class SignumGUI extends JFrame {
         timingGbc.gridx = 0;
         timingGbc.gridy = 8;
         timingInfoPanel.add(volumeTitleLabel, timingGbc);
+        addInfoTooltip(volumeTitleLabel,
+                "The total amount of data uploaded to and downloaded from the network during this session. The format is Uploaded / Downloaded.");
 
         // Panel for the volume values
         JPanel volumeValuesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
@@ -725,12 +742,6 @@ public class SignumGUI extends JFrame {
         // Add the timing metrics group to the main metrics panel
         mainMetricsGbc.gridx = 1;
         metricsPanel.add(timingMetricsPanel, mainMetricsGbc);
-
-        // Add a filler component to push everything to the left
-        mainMetricsGbc.gridx = 2;
-        mainMetricsGbc.weightx = 1.0;
-        mainMetricsGbc.fill = GridBagConstraints.HORIZONTAL;
-        metricsPanel.add(Box.createHorizontalGlue(), mainMetricsGbc);
 
         // === Add checkboxes to toolBar ===
         checkboxPanel = new JPanel();
@@ -865,6 +876,25 @@ public class SignumGUI extends JFrame {
         new Thread(this::startSignumWithGUI).start();
     }
 
+    private void addInfoTooltip(JLabel label, String text) {
+        label.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (SwingUtilities.isRightMouseButton(e)) {
+                    String title = label.getText();
+                    // Remove trailing colon for a cleaner title
+                    if (title.endsWith(":")) {
+                        title = title.substring(0, title.length() - 1);
+                    }
+                    // Wrap the text in HTML to control the width of the dialog.
+                    String htmlText = "<html><body><p style='width: 300px;'>" + text.replace("\n", "<br>")
+                            + "</p></body></html>";
+                    JOptionPane.showMessageDialog(SignumGUI.this, htmlText, title, JOptionPane.PLAIN_MESSAGE);
+                }
+            }
+        });
+    }
+
     private void addToggleListener(JLabel label, ChartPanel chartPanel, int rendererIndex, int seriesIndex) {
         label.putClientProperty("visible", true);
         Font originalFont = label.getFont();
@@ -875,13 +905,16 @@ public class SignumGUI extends JFrame {
         label.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                boolean isVisible = (boolean) label.getClientProperty("visible");
-                isVisible = !isVisible;
-                label.putClientProperty("visible", isVisible);
+                if (SwingUtilities.isLeftMouseButton(evt)) {
+                    boolean isVisible = (boolean) label.getClientProperty("visible");
+                    isVisible = !isVisible;
+                    label.putClientProperty("visible", isVisible);
 
-                chartPanel.getChart().getXYPlot().getRenderer(rendererIndex).setSeriesVisible(seriesIndex, isVisible);
+                    chartPanel.getChart().getXYPlot().getRenderer(rendererIndex).setSeriesVisible(seriesIndex,
+                            isVisible);
 
-                label.setFont(isVisible ? originalFont : strikethroughFont);
+                    label.setFont(isVisible ? originalFont : strikethroughFont);
+                }
             }
         });
     }
@@ -898,16 +931,18 @@ public class SignumGUI extends JFrame {
         label.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                boolean isVisible = (boolean) label.getClientProperty("visible");
-                isVisible = !isVisible;
-                label.putClientProperty("visible", isVisible);
+                if (SwingUtilities.isLeftMouseButton(evt)) {
+                    boolean isVisible = (boolean) label.getClientProperty("visible");
+                    isVisible = !isVisible;
+                    label.putClientProperty("visible", isVisible);
 
-                chartPanel1.getChart().getXYPlot().getRenderer(rendererIndex1).setSeriesVisible(seriesIndex1,
-                        isVisible);
-                chartPanel2.getChart().getXYPlot().getRenderer(rendererIndex2).setSeriesVisible(seriesIndex2,
-                        isVisible);
+                    chartPanel1.getChart().getXYPlot().getRenderer(rendererIndex1).setSeriesVisible(seriesIndex1,
+                            isVisible);
+                    chartPanel2.getChart().getXYPlot().getRenderer(rendererIndex2).setSeriesVisible(seriesIndex2,
+                            isVisible);
 
-                label.setFont(isVisible ? originalFont : strikethroughFont);
+                    label.setFont(isVisible ? originalFont : strikethroughFont);
+                }
             }
         });
     }
@@ -1160,7 +1195,14 @@ public class SignumGUI extends JFrame {
             showMetrics = Signum.getPropertyService().getBoolean(Props.EXPERIMENTAL);
 
             try {
-                SwingUtilities.invokeLater(() -> showTrayIcon());
+                SwingUtilities.invokeLater(() -> {
+                    showTrayIcon();
+                    // Sync checkbox states with loaded properties
+                    showPopOffCheckbox.setSelected(showPopOff);
+                    showMetricsCheckbox.setSelected(showMetrics);
+                    // Sync panel visibility with loaded properties
+                    metricsPanel.setVisible(showMetrics);
+                });
 
                 updateTitle();
 
@@ -1581,7 +1623,7 @@ public class SignumGUI extends JFrame {
         plot.getRenderer().setSeriesPaint(0, Color.BLUE);
         plot.getRenderer().setSeriesPaint(1, Color.YELLOW);
         plot.getRenderer().setSeriesPaint(2, new Color(128, 0, 128));
-        plot.getRenderer().setSeriesPaint(3, new Color(255, 20, 147));
+        plot.getRenderer().setSeriesPaint(3, new Color(153, 0, 76));
 
         // Set line thickness
         plot.getRenderer().setSeriesStroke(0, new java.awt.BasicStroke(1.2f));

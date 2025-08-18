@@ -91,20 +91,191 @@ jobs:
             GUIDELINES=$(cat claude_guidelines.txt)
           fi
 
-          # Create JSON payload for Claude API
-          cat > claude_request.json << EOF
-          {
-            "model": "claude-3-5-sonnet-20241022",
-            "max_tokens": 4000,
-            "system": "You are an expert code reviewer for the Signum Node blockchain project. This is critical cryptocurrency infrastructure requiring strict security and quality standards.\n\nProject Context:\n- Java 21 blockchain node implementation\n- Layered architecture: API → Services → Stores → Database\n- Uses Gradle, JUnit 5, Mockito, JOOQ, Flyway\n- Multi-database support: SQLite/MariaDB/PostgreSQL\n\nReview Priorities:\n1. SECURITY: Input validation, crypto usage, SQL injection prevention\n2. ARCHITECTURE: Layer separation, dependency injection, package structure\n3. TESTING: Unit tests for all new/modified code with proper mocking\n4. DESIGN PATTERNS: Factory, Observer, Strategy, Command, Template Method\n5. CODE QUALITY: Clean, maintainable, SOLID principles\n6. PERFORMANCE: Efficient database access, resource management\n\nProject Guidelines:\n${GUIDELINES}\n\nCRITICAL RULES:\n- Never allow direct database access from business logic\n- Require unit tests for all new methods\n- Enforce constructor dependency injection\n- Validate all external inputs\n- Use specific exception types\n- Follow existing package structure\n\nProvide specific feedback with file:line references. Mark security issues with ⚠️, missing tests with ❌, good practices with ✅.",
-            "messages": [
-              {
-                "role": "user",
-                "content": "Review this Pull Request for Signum Node:\n\n**Title:** ${{ github.event.pull_request.title }}\n\n**Description:**\n${{ github.event.pull_request.body }}\n\n**Changed Files:**\n${{ steps.changed-files.outputs.all_changed_files }}\n\n**Code Changes:**\n\`\`\`diff\n${DIFF_CONTENT}\n\`\`\`\n\nFocus on:\n- Security vulnerabilities (input validation, crypto misuse)\n- Architecture violations (layer skipping, direct DB access)\n- Missing or inadequate tests\n- Design pattern misuse\n- Code quality issues\n- Performance problems\n\nProvide actionable feedback with specific file and line references."
-              }
-            ]
+          # Create JSON payload for Claude API using Python for proper escaping
+          python3 << 'PYTHON_SCRIPT'
+          import json
+          import os
+
+          # Read diff and guidelines
+          diff_content = ""
+          try:
+              with open('pr_diff.txt', 'r') as f:
+                  diff_content = f.read()
+          except:
+              diff_content = "No diff available"
+
+          guidelines = ""
+          try:
+              with open('claude_guidelines.txt', 'r') as f:
+                  guidelines = f.read()
+          except:
+              guidelines = "No guidelines available"
+
+          # Create the request payload
+          request_data = {
+              "model": "claude-3-5-sonnet-20241022",
+              "max_tokens": 4000,
+              "system": f"""You are an expert code reviewer for the Signum Node blockchain project. This is critical cryptocurrency infrastructure requiring strict security and quality standards.
+
+Project Context:
+- Java 21 blockchain node implementation
+- Layered architecture: API → Services → Stores → Database
+- Uses Gradle, JUnit 5, Mockito, JOOQ, Flyway
+- Multi-database support: SQLite/MariaDB/PostgreSQL
+
+Review Priorities:
+1. SECURITY: Input validation, crypto usage, SQL injection prevention
+2. ARCHITECTURE: Layer separation, dependency injection, package structure
+3. TESTING: Unit tests for all new/modified code with proper mocking
+4. DESIGN PATTERNS: Factory, Observer, Strategy, Command, Template Method
+5. CODE QUALITY: Clean, maintainable, SOLID principles
+6. PERFORMANCE: Efficient database access, resource management
+
+Project Guidelines:
+{guidelines}
+
+CRITICAL RULES:
+- Never allow direct database access from business logic
+- Require unit tests for all new methods
+- Enforce constructor dependency injection
+- Validate all external inputs
+- Use specific exception types
+- Follow existing package structure
+
+Provide specific feedback with file:line references. Mark security issues with ⚠️, missing tests with ❌, good practices with ✅.""",
+              "messages": [
+                  {
+                      "role": "user",
+                      "content": f"""Review this Pull Request for Signum Node:
+
+**Title:** {os.environ.get('PR_TITLE', 'No title')}
+
+**Description:**
+{os.environ.get('PR_BODY', 'No description')}
+
+**Changed Files:**
+{os.environ.get('CHANGED_FILES', 'No files')}
+
+**Code Changes:**
+```diff
+{diff_content}
+```
+
+Focus on:
+- Security vulnerabilities (input validation, crypto misuse)
+- Architecture violations (layer skipping, direct DB access)
+- Missing or inadequate tests
+- Design pattern misuse
+- Code quality issues
+- Performance problems
+
+Provide actionable feedback with specific file and line references."""
+                  }
+              ]
           }
-          EOF
+
+          # Write to file
+          with open('claude_request.json', 'w') as f:
+              json.dump(request_data, f, indent=2)
+          PYTHON_SCRIPT
+
+          # Set environment variables for Python script
+          export PR_TITLE="${{ github.event.pull_request.title }}"
+          export PR_BODY="${{ github.event.pull_request.body }}"
+          export CHANGED_FILES="${{ steps.changed-files.outputs.all_changed_files }}"
+
+          # Pass environment variables to Python script
+          python3 -c "
+          import json
+          import os
+
+          # Read diff and guidelines
+          diff_content = ''
+          try:
+              with open('pr_diff.txt', 'r') as f:
+                  diff_content = f.read()
+          except:
+              diff_content = 'No diff available'
+
+          guidelines = ''
+          try:
+              with open('claude_guidelines.txt', 'r') as f:
+                  guidelines = f.read()
+          except:
+              guidelines = 'No guidelines available'
+
+          # Get environment variables
+          pr_title = os.environ.get('PR_TITLE', 'No title')
+          pr_body = os.environ.get('PR_BODY', 'No description')
+          changed_files = os.environ.get('CHANGED_FILES', 'No files')
+
+          # Create the request payload
+          request_data = {
+              'model': 'claude-3-5-sonnet-20241022',
+              'max_tokens': 4000,
+              'system': f'''You are an expert code reviewer for the Signum Node blockchain project. This is critical cryptocurrency infrastructure requiring strict security and quality standards.
+
+          Project Context:
+          - Java 21 blockchain node implementation
+          - Layered architecture: API → Services → Stores → Database
+          - Uses Gradle, JUnit 5, Mockito, JOOQ, Flyway
+          - Multi-database support: SQLite/MariaDB/PostgreSQL
+
+          Review Priorities:
+          1. SECURITY: Input validation, crypto usage, SQL injection prevention
+          2. ARCHITECTURE: Layer separation, dependency injection, package structure
+          3. TESTING: Unit tests for all new/modified code with proper mocking
+          4. DESIGN PATTERNS: Factory, Observer, Strategy, Command, Template Method
+          5. CODE QUALITY: Clean, maintainable, SOLID principles
+          6. PERFORMANCE: Efficient database access, resource management
+
+          Project Guidelines:
+          {guidelines}
+
+          CRITICAL RULES:
+          - Never allow direct database access from business logic
+          - Require unit tests for all new methods
+          - Enforce constructor dependency injection
+          - Validate all external inputs
+          - Use specific exception types
+          - Follow existing package structure
+
+          Provide specific feedback with file:line references. Mark security issues with ⚠️, missing tests with ❌, good practices with ✅.''',
+              'messages': [
+                  {
+                      'role': 'user',
+                      'content': f'''Review this Pull Request for Signum Node:
+
+          **Title:** {pr_title}
+
+          **Description:**
+          {pr_body}
+
+          **Changed Files:**
+          {changed_files}
+
+          **Code Changes:**
+          ```diff
+          {diff_content}
+          ```
+
+          Focus on:
+          - Security vulnerabilities (input validation, crypto misuse)
+          - Architecture violations (layer skipping, direct DB access)
+          - Missing or inadequate tests
+          - Design pattern misuse
+          - Code quality issues
+          - Performance problems
+
+          Provide actionable feedback with specific file and line references.'''
+                  }
+              ]
+          }
+
+          # Write to file
+          with open('claude_request.json', 'w') as f:
+              json.dump(request_data, f, indent=2)
+          "
 
       - name: Call Claude API
         if: steps.changed-files.outputs.any_changed == 'true'
@@ -169,14 +340,14 @@ jobs:
               return;
             }
 
-            const comment = `## 🤖 Claude AI Code Review
+            const comment = \`## 🤖 Claude AI Code Review
 
-${reviewContent}
+\${reviewContent}
 
 ---
 *This review was generated automatically by Claude AI using the project's coding guidelines. Please address any ⚠️ security issues and ❌ missing tests before merging.*
 
-**Changed files:** ${{ steps.changed-files.outputs.all_changed_files }}`;
+**Changed files:** ${{ steps.changed-files.outputs.all_changed_files }}\`;
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,

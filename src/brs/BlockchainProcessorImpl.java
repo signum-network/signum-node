@@ -970,7 +970,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     private void updateAndFirePeerCount() {
         int newPeerCount = Peers.getAllPeers().size();
-        int newConnectedPeerCount = Peers.getActivePeers().size();
+        int newConnectedPeerCount = (int) Peers.getActivePeers().stream()
+                .filter(peer -> peer.getState() == Peer.State.CONNECTED)
+                .count();
         if (newPeerCount != lastKnownPeerCount || newConnectedPeerCount != lastKnownConnectedPeerCount) {
             lastKnownPeerCount = newPeerCount;
             lastKnownConnectedPeerCount = newConnectedPeerCount;

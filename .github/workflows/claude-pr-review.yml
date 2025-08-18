@@ -1,0 +1,210 @@
+name: Claude PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [develop, main]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  claude-review:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            **/*.java
+            **/*.gradle
+            **/*.properties
+            **/*.md
+            **/*.json
+            **/*.ts
+            **/*.tsx
+            **/*.js
+          separator: ","
+
+      - name: Get PR diff
+        id: pr-diff
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          # Get the diff for changed files
+          git diff origin/${{ github.event.pull_request.base.ref }}..HEAD -- ${{ steps.changed-files.outputs.all_changed_files }} > pr_diff.txt
+          
+          # Limit diff size to avoid API limits (max ~100KB)
+          if [ $(wc -c < pr_diff.txt) -gt 100000 ]; then
+            echo "Diff too large, truncating to first 100KB"
+            head -c 100000 pr_diff.txt > pr_diff_truncated.txt
+            mv pr_diff_truncated.txt pr_diff.txt
+            echo "... [DIFF TRUNCATED DUE TO SIZE]" >> pr_diff.txt
+          fi
+
+      - name: Read project guidelines
+        id: guidelines
+        run: |
+          # Read CLAUDE.md and other guideline files
+          CLAUDE_MD=""
+          if [ -f "CLAUDE.md" ]; then
+            CLAUDE_MD=$(cat CLAUDE.md)
+          fi
+          
+          CURSORRULES=""
+          if [ -f ".cursorrules" ]; then
+            CURSORRULES=$(cat .cursorrules)
+          fi
+          
+          # Save guidelines to environment
+          echo "CLAUDE_MD<<EOF" >> $GITHUB_ENV
+          echo "$CLAUDE_MD" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          
+          echo "CURSORRULES<<EOF" >> $GITHUB_ENV
+          echo "$CURSORRULES" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Claude PR Review
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: anthropics/claude-github-action@v1
+        with:
+          claude-api-key: ${{ secrets.CLAUDE_API_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          model: claude-3-5-sonnet-20241022
+          max-tokens: 4000
+          system-prompt: |
+            You are an expert code reviewer for the Signum Node blockchain project. Your role is to ensure high code quality, security, and adherence to established patterns.
+
+            **CRITICAL**: This is defensive security infrastructure for a cryptocurrency. Be thorough and strict in your review.
+
+            **Project Context:**
+            - Java 21 blockchain node implementation  
+            - Layered architecture: API → Services → Stores → Database
+            - Uses Gradle, JUnit 5, Mockito, JOOQ, Flyway
+            - Supports SQLite/MariaDB/PostgreSQL
+            - Multi-language: Java core + TypeScript UIs
+
+            **Review Criteria (in order of importance):**
+            1. **Security**: No vulnerabilities, proper input validation, secure crypto usage
+            2. **Architecture**: Follows layered design, proper dependency injection
+            3. **Testing**: Comprehensive unit tests with mocks, >80% coverage
+            4. **Design Patterns**: Appropriate use of Factory, Observer, Strategy, Command, Template Method
+            5. **Code Quality**: Clean, maintainable, follows SOLID principles
+            6. **Performance**: Efficient database access, proper resource management
+
+            **GUIDELINES TO ENFORCE:**
+            ${{ env.CLAUDE_MD }}
+
+            **Additional Rules:**
+            - NEVER allow direct database access from business logic
+            - REQUIRE unit tests for all new/modified methods
+            - ENFORCE constructor dependency injection only
+            - VALIDATE all external inputs (API parameters, config values)
+            - USE specific exception types with meaningful messages
+            - FOLLOW existing package structure strictly
+            - APPLY Gang of Four patterns where appropriate
+
+            **Your Review Format:**
+            - Start with an overall assessment (APPROVE/REQUEST_CHANGES/COMMENT)
+            - List specific issues by file and line number
+            - Provide concrete code suggestions
+            - Highlight security concerns with ⚠️
+            - Note missing tests with ❌
+            - Acknowledge good practices with ✅
+
+            Be constructive but thorough. This is critical blockchain infrastructure.
+
+          prompt: |
+            Please review this Pull Request for the Signum Node project.
+
+            **PR Title:** ${{ github.event.pull_request.title }}
+            **PR Description:**
+            ${{ github.event.pull_request.body }}
+
+            **Changed Files:**
+            ${{ steps.changed-files.outputs.all_changed_files }}
+
+            **Code Diff:**
+            ```diff
+            $(cat pr_diff.txt)
+            ```
+
+            **Instructions:**
+            1. Review the code changes against the project guidelines
+            2. Check for security vulnerabilities
+            3. Verify architectural compliance (layered design)
+            4. Ensure proper testing coverage
+            5. Validate use of design patterns
+            6. Check code quality and maintainability
+
+            Focus on:
+            - Security issues (input validation, crypto usage)
+            - Architecture violations (layer skipping, direct DB access)
+            - Missing or inadequate tests
+            - Poor error handling
+            - Performance concerns
+            - Code style violations
+
+            Provide specific, actionable feedback with file names and line numbers where applicable.
+
+      - name: Add review comment
+        if: failure() || success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const review = `${{ steps.claude-review.outputs.response }}`;
+            
+            if (review && review.trim().length > 0) {
+              // Post the review as a PR comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body: `## 🤖 Claude AI Code Review\n\n${review}\n\n---\n*This review was generated automatically by Claude AI based on the project's coding guidelines in CLAUDE.md*`
+              });
+            }
+
+      - name: Check for critical issues
+        id: check-critical
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          # Check if Claude flagged critical security issues
+          if grep -q "⚠️\|SECURITY\|CRITICAL\|VULNERABILITY" <<< "${{ steps.claude-review.outputs.response }}"; then
+            echo "critical_issues=true" >> $GITHUB_OUTPUT
+            echo "Critical security issues detected in PR"
+          else
+            echo "critical_issues=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Block merge on critical issues
+        if: steps.check-critical.outputs.critical_issues == 'true'
+        run: |
+          echo "❌ Critical security issues detected. Please address before merging."
+          exit 1
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Claude PR Review Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Files Changed:** ${{ steps.changed-files.outputs.all_changed_files_count }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Review Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.check-critical.outputs.critical_issues }}" == "true" ]; then
+            echo "- **Critical Issues:** ⚠️ Found" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Critical Issues:** ✅ None detected" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Review completed using project guidelines from CLAUDE.md" >> $GITHUB_STEP_SUMMARY

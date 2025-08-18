@@ -113,7 +113,7 @@ jobs:
           HTTP_STATUS=$(curl -w "%{http_code}" -s -o claude_response.json \
             -X POST "https://api.anthropic.com/v1/messages" \
             -H "Content-Type: application/json" \
-            -H "x-api-key: ${{ secrets.CLAUDE_API_KEY }}" \
+            -H "x-api-key: ${{ secrets.ANTHROPIC_API_KEY }}" \
             -H "anthropic-version: 2023-06-01" \
             -d @claude_request.json)
 

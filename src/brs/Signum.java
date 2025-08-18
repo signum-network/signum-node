@@ -158,7 +158,7 @@ public final class Signum {
         return blockchain;
     }
 
-    public static BlockchainProcessorImpl getBlockchainProcessor() {
+    public static BlockchainProcessor getBlockchainProcessor() {
         return blockchainProcessor;
     }
 
@@ -561,6 +561,9 @@ public final class Signum {
         if (webServer != null) {
             webServer.shutdown();
         }
+        if (blockchainProcessor != null) {
+            blockchainProcessor.shutdown();
+        }
         if (threadPool != null) {
             Peers.shutdown(threadPool);
             threadPool.shutdown();
@@ -572,9 +575,6 @@ public final class Signum {
 
         if (dbCacheManager != null) {
             dbCacheManager.close();
-        }
-        if (blockchainProcessor != null && blockchainProcessor.getOclVerify()) {
-            OCLPoC.destroy();
         }
         logger.info("BRS {} stopped.", VERSION);
         LoggerConfigurator.shutdown();

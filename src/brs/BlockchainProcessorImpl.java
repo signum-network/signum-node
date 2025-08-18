@@ -6,6 +6,10 @@ import static brs.Constants.ONE_SIGNA;
 import brs.at.*;
 import brs.crypto.Crypto;
 import brs.db.BlockDb;
+import brs.listeners.NetVolumeListener;
+import brs.listeners.PeerCountListener;
+import brs.listeners.PerformanceListener;
+import brs.listeners.QueueStatusListener;
 import brs.db.DerivedTable;
 import brs.db.TransactionDb;
 import brs.db.cache.DBCacheManagerImpl;
@@ -33,6 +37,7 @@ import brs.util.DownloadCacheImpl;
 import brs.util.JSON;
 import brs.util.Listener;
 import brs.util.Listeners;
+import java.util.concurrent.CopyOnWriteArrayList;
 import brs.util.ThreadPool;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -118,12 +123,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     private final AtomicBoolean isConsistent = new AtomicBoolean(false);
 
-    private final boolean autoPopOffEnabled;
-
-    private final List<PeerCountListener> peerCountListeners = new ArrayList<>();
-
-    private final List<NetVolumeListener> netVolumeListeners = new ArrayList<>();
-
     private int lastKnownPeerCount = -1;
     private int lastKnownConnectedPeerCount = -1;
 
@@ -140,20 +139,19 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     private final Listener<Peer> netVolumeListener = peer -> updateAndFireNetVolume();
 
-    public final void setOclVerify(Boolean b) {
-        oclVerify = b;
-    }
+    // --- Listener Management ---
 
-    public Boolean getOclVerify() {
-        return oclVerify;
-    }
+    private final List<QueueStatusListener> queueStatusListeners = new CopyOnWriteArrayList<>();
+    private final List<PerformanceListener> performanceListeners = new CopyOnWriteArrayList<>();
+    private final List<PeerCountListener> peerCountListeners = new CopyOnWriteArrayList<>();
+    private final List<NetVolumeListener> netVolumeListeners = new CopyOnWriteArrayList<>();
 
+    private final boolean autoPopOffEnabled;
+
+    @Override
     public void shutdown() {
         logger.info("Shutting down blockchain processor...");
         blockListeners.clear();
-        queueStatusListeners.clear();
-        peerCountListeners.clear();
-        performanceListeners.clear();
         for (Peers.Event event : Peers.Event.values()) {
             Peers.removeListener(peerListener, event);
         }
@@ -163,112 +161,55 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
     }
 
-    /**
-     * Listener interface for changes in the verified queue size.
-     * This interface allows components to be notified when the size of the
-     * verified (but not yet pushed) queue changes.
-     */
-    public interface QueueStatusListener {
-        void onQueueStatusChanged(int downloadCacheUnverifiedSize,
-                int downloadCacheVerifiedSize,
-                int downloadCacheTotalSize);
+    public final void setOclVerify(Boolean b) {
+        oclVerify = b;
     }
 
-    private final List<QueueStatusListener> queueStatusListeners = new ArrayList<>();
+    public Boolean getOclVerify() {
+        return oclVerify;
+    }
 
+    @Override
     public void addQueueStatusListener(QueueStatusListener listener) {
         queueStatusListeners.add(listener);
     }
 
+    @Override
     public void removeQueueStatusListener(QueueStatusListener listener) {
         queueStatusListeners.remove(listener);
     }
 
-    private void fireQueueStatusChanged(int downloadCacheUnverifiedSize,
-            int downloadCacheVerifiedSize,
-            int downloadCacheTotalSize) {
-        for (QueueStatusListener listener : queueStatusListeners) {
-            listener.onQueueStatusChanged(downloadCacheUnverifiedSize, downloadCacheVerifiedSize,
-                    downloadCacheTotalSize);
-        }
-    }
-
-    /**
-     * Listener for performance statistics related to block processing.
-     */
-    public interface PerformanceListener {
-        /**
-         * Called when new performance statistics are available after a block is pushed.
-         * 
-         * @param totalTimeMs The total time taken to execute the pushBlock method in
-         *                    milliseconds.
-         * @param dbTimeMs    The time spent within the database transaction in
-         *                    milliseconds.
-         * @param atTimeMs    The time spent processing Automated Transactions in
-         *                    milliseconds.
-         * @param txCount     The number of transactions in the processed block.
-         * @param blockHeight The height of the processed block.
-         */
-        void onPerformanceStatsUpdated(long totalTimeMs, long dbTimeMs, long atTimeMs, int txCount, int blockHeight);
-    }
-
-    private final List<PerformanceListener> performanceListeners = new ArrayList<>();
-
+    @Override
     public void addPerformanceListener(PerformanceListener listener) {
         performanceListeners.add(listener);
     }
 
+    @Override
     public void removePerformanceListener(PerformanceListener listener) {
         performanceListeners.remove(listener);
     }
 
-    private void firePerformanceStatsUpdated(long totalTimeMs, long dbTimeMs, long atTimeMs, int txCount,
-            int blockHeight) {
-        performanceListeners
-                .forEach(listener -> listener.onPerformanceStatsUpdated(totalTimeMs, dbTimeMs, atTimeMs, txCount,
-                        blockHeight));
-    }
-
-    /**
-     * Listener interface for changes in the peer count.
-     * This interface allows components to be notified when the number of peers
-     * changes.
-     */
-    public interface PeerCountListener {
-        void onPeerCountChanged(int newCount, int newConnectedCount);
-    }
-
+    @Override
     public void addPeerCountListener(PeerCountListener listener) {
         peerCountListeners.add(listener);
     }
 
+    @Override
     public void removePeerCountListener(PeerCountListener listener) {
         peerCountListeners.remove(listener);
     }
 
-    private void firePeerCountChanged(int newCount, int newConnectedCount) {
-        for (PeerCountListener listener : peerCountListeners) {
-            listener.onPeerCountChanged(newCount, newConnectedCount);
-        }
-    }
-
-    public interface NetVolumeListener {
-        void onNetVolumeChanged(long uploadedVolume, long downloadedVolume);
-    }
-
+    @Override
     public void addNetVolumeListener(NetVolumeListener listener) {
         netVolumeListeners.add(listener);
     }
 
+    @Override
     public void removeNetVolumeListener(NetVolumeListener listener) {
         netVolumeListeners.remove(listener);
     }
 
-    private void fireNetVolumeChanged(long uploadedVolume, long downloadedVolume) {
-        for (NetVolumeListener listener : netVolumeListeners) {
-            listener.onNetVolumeChanged(uploadedVolume, downloadedVolume);
-        }
-    }
+    // --- Firing events ---
 
     public BlockchainProcessorImpl(ThreadPool threadPool,
             BlockService blockService,
@@ -355,6 +296,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 }
             }, Event.AFTER_BLOCK_APPLY);
         }
+
+        blockListeners.addListener(block -> {
+            updateAndFireQueueStatus();
+        }, Event.BLOCK_PUSHED);
+
         addGenesisBlock();
         if (Boolean.FALSE.equals(propertyService.getBoolean(Props.DB_SKIP_CHECK))
                 && checkDatabaseState() != 0) {
@@ -839,7 +785,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                             logger.debug("block was not preverified");
                         }
                         pushBlock(currentBlock); // pushblock removes the block from cache.
-                        updateAndFireQueueStatus();
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     } catch (BlockNotAcceptedException e) {
@@ -968,6 +913,28 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
     }
 
+    private void fireQueueStatusChanged(int downloadCacheUnverifiedSize,
+            int downloadCacheVerifiedSize,
+            int downloadCacheTotalSize) {
+        for (QueueStatusListener listener : queueStatusListeners) {
+            listener.onQueueStatusChanged(downloadCacheUnverifiedSize, downloadCacheVerifiedSize,
+                    downloadCacheTotalSize);
+        }
+    }
+
+    private void firePerformanceStatsUpdated(long totalTimeMs, long dbTimeMs, long atTimeMs, int txCount,
+            int blockHeight) {
+        performanceListeners
+                .forEach(listener -> listener.onPerformanceStatsUpdated(totalTimeMs, dbTimeMs, atTimeMs, txCount,
+                        blockHeight));
+    }
+
+    private void firePeerCountChanged(int newCount, int newConnectedCount) {
+        for (PeerCountListener listener : peerCountListeners) {
+            listener.onPeerCountChanged(newCount, newConnectedCount);
+        }
+    }
+
     private void updateAndFirePeerCount() {
         int newPeerCount = Peers.getAllPeers().size();
         int newConnectedPeerCount = (int) Peers.getActivePeers().stream()
@@ -977,6 +944,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             lastKnownPeerCount = newPeerCount;
             lastKnownConnectedPeerCount = newConnectedPeerCount;
             firePeerCountChanged(newPeerCount, newConnectedPeerCount);
+        }
+    }
+
+    private void fireNetVolumeChanged(long uploadedVolume, long downloadedVolume) {
+        for (NetVolumeListener listener : netVolumeListeners) {
+            listener.onNetVolumeChanged(uploadedVolume, downloadedVolume);
         }
     }
 

@@ -38,7 +38,6 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.UIManager;
-import java.awt.Dimension;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +51,7 @@ import org.jfree.chart.renderer.xy.XYBarRenderer;
 import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+import brs.at.AtController;
 
 import brs.fluxcapacitor.FluxValues;
 import brs.props.PropertyService;
@@ -1730,7 +1730,17 @@ public class SignumGUI extends JFrame {
         }
 
         blockTimestamps.add(System.currentTimeMillis());
-        transactionCounts.add(block.getTransactions().size());
+
+        // Calculate total transactions for this block
+        int totalTxCount = block.getTransactions().size();
+        if (block.getBlockAts() != null) {
+            try {
+                totalTxCount += AtController.getATsFromBlock(block.getBlockAts()).size();
+            } catch (Exception e) {
+                LOGGER.warn("Could not parse ATs from block", e);
+            }
+        }
+        transactionCounts.add(totalTxCount);
 
         // Keep the history to a fixed size
         while (blockTimestamps.size() > CHART_HISTORY_SIZE) {
@@ -1773,6 +1783,7 @@ public class SignumGUI extends JFrame {
 
         transactionsPerBlockProgressBar.setValue((int) avgTransactions);
         transactionsPerBlockProgressBar.setString(String.format("%.2f", avgTransactions));
+
     }
 
     private void onBrsStopped() {

@@ -1,0 +1,150 @@
+{
+  "name": "Signum Node Development Assistant",
+  "description": "AI configuration for Signum blockchain node development with Java 21, Gradle, and multi-database support",
+  "version": "1.0.0",
+  "language": "java",
+  "framework": ["gradle", "spring", "junit", "mockito"],
+  "guidelines": {
+    "primary_reference": "CLAUDE.md",
+    "architecture": {
+      "pattern": "layered",
+      "layers": [
+        "presentation (brs.web.api.http.handler)",
+        "business (brs.services.impl)", 
+        "data_access (brs.db.store)",
+        "database (sqlite/mariadb/postgresql)"
+      ],
+      "dependency_injection": "constructor_only",
+      "separation_of_concerns": "mandatory"
+    },
+    "design_patterns": [
+      "factory (object_creation)",
+      "observer (event_handling)", 
+      "strategy (algorithm_variants)",
+      "command (api_handlers)",
+      "template_method (common_processing)"
+    ],
+    "testing": {
+      "mandatory": true,
+      "framework": "junit5_mockito",
+      "structure": "arrange_act_assert",
+      "coverage_minimum": "80%",
+      "mock_strategy": "all_dependencies",
+      "test_types": ["happy_path", "error_conditions", "boundary_cases"]
+    },
+    "code_quality": {
+      "method_length_max": 20,
+      "single_responsibility": "enforced",
+      "early_returns": "preferred",
+      "meaningful_names": "required",
+      "exception_handling": "specific_types_only",
+      "input_validation": "all_external_inputs"
+    },
+    "security": {
+      "parameter_validation": "ParameterParser",
+      "crypto_utilities": "brs.crypto_package_only",
+      "no_custom_crypto": true,
+      "input_sanitization": "required",
+      "sql_injection_protection": "jooq_prepared_statements"
+    },
+    "performance": {
+      "database_access": "prepared_statements_only",
+      "pagination": "large_result_sets",
+      "n_plus_one_queries": "avoid",
+      "try_with_resources": "closeable_objects",
+      "caching": "expensive_operations"
+    }
+  },
+  "project_structure": {
+    "main_entry": "signum.Launcher",
+    "core_packages": {
+      "services": "brs.services (interfaces), brs.services.impl (implementations)",
+      "data_access": "brs.db.store",
+      "web_api": "brs.web.api.http.handler",
+      "smart_contracts": "brs.at",
+      "networking": "brs.peer",
+      "asset_exchange": "brs.assetexchange",
+      "crypto": "brs.crypto",
+      "configuration": "brs.props"
+    }
+  },
+  "build_system": {
+    "type": "gradle",
+    "java_version": "21",
+    "main_commands": {
+      "build": "./gradlew build",
+      "test": "./gradlew test", 
+      "distribution": "./gradlew dist",
+      "quality_check": "./gradlew check",
+      "schema_generation": "./gradlew generateJooq"
+    }
+  },
+  "database": {
+    "default": "sqlite",
+    "supported": ["sqlite", "mariadb", "postgresql"],
+    "orm": "jooq",
+    "migrations": "flyway",
+    "schema_location": "resources/db/migration_*"
+  },
+  "code_templates": {
+    "service_implementation": {
+      "pattern": "constructor_injection",
+      "error_handling": "specific_exceptions",
+      "logging": "slf4j",
+      "validation": "input_parameters"
+    },
+    "unit_test": {
+      "annotations": ["@ExtendWith(MockitoExtension.class)", "@Mock", "@InjectMocks"],
+      "naming": "testMethod_GivenCondition_ExpectedBehavior",
+      "structure": "arrange_act_assert",
+      "verification": "mock_interactions"
+    },
+    "api_handler": {
+      "pattern": "command_pattern",
+      "parameter_parsing": "ParameterService",
+      "response_format": "json",
+      "exception_handling": "SignumException"
+    }
+  },
+  "quality_checklist": [
+    "follows_layered_architecture",
+    "uses_constructor_injection", 
+    "has_comprehensive_tests",
+    "applies_design_patterns",
+    "handles_errors_specifically",
+    "includes_appropriate_logging",
+    "validates_external_inputs",
+    "no_hardcoded_values",
+    "no_direct_database_access",
+    "follows_naming_conventions",
+    "includes_javadoc_public_apis",
+    "no_security_vulnerabilities"
+  ],
+  "common_imports": {
+    "logging": "org.slf4j.Logger, org.slf4j.LoggerFactory",
+    "testing": "org.junit.jupiter.api.*, org.mockito.*, static org.junit.jupiter.api.Assertions.*, static org.mockito.Mockito.*",
+    "json": "org.json.simple.JSONObject, org.json.simple.JSONStreamAware",
+    "project": "brs.*, brs.services.*, brs.db.store.*, brs.web.api.http.common.*"
+  },
+  "ai_instructions": {
+    "primary_goal": "Generate clean, tested, enterprise-grade code for blockchain infrastructure",
+    "priorities": ["quality", "maintainability", "security", "performance"],
+    "mandatory_practices": [
+      "read_CLAUDE.md_first",
+      "follow_architecture_layers",
+      "write_comprehensive_tests",
+      "use_dependency_injection",
+      "apply_design_patterns",
+      "validate_all_inputs",
+      "handle_errors_specifically"
+    ],
+    "forbidden_practices": [
+      "skip_architecture_layers",
+      "direct_database_access_from_business_logic",
+      "hardcoded_values",
+      "custom_cryptographic_implementations",
+      "untested_code",
+      "generic_exception_handling"
+    ]
+  }
+}

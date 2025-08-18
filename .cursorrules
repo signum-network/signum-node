@@ -1,0 +1,121 @@
+# Cursor AI Rules for Signum Node Development
+
+## Read CLAUDE.md First
+ALWAYS read and follow the comprehensive guidelines in CLAUDE.md before writing any code.
+
+## Project Context
+Signum Node is a Java 21 blockchain implementation using Gradle, with embedded SQLite/MariaDB/PostgreSQL support and web UIs.
+
+## Mandatory Code Quality Standards
+
+### Architecture Enforcement
+- Follow strict layered architecture: Services → Stores → Database
+- Use dependency injection (constructor injection only)
+- Never access database directly from business logic
+- Package organization: brs.services (interfaces) → brs.services.impl (implementations) → brs.db.store (data access)
+
+### Design Patterns (Gang of Four)
+Apply these patterns when appropriate:
+- Factory Pattern: Object creation with variants (see DatabaseInstanceFactory)
+- Observer Pattern: Event handling (BlockchainProcessor listeners)
+- Strategy Pattern: Algorithm variants (Generator implementations)
+- Command Pattern: API handlers (brs.web.api.http.handler)
+- Template Method: Common processing patterns
+
+### Testing Requirements (MANDATORY)
+For EVERY new class/method:
+- Create unit tests in test/java/ with same package structure
+- Use JUnit 5 + Mockito
+- Follow AAA pattern (Arrange-Act-Assert)
+- Test happy path + error conditions + boundary cases
+- Use @Mock for dependencies, @InjectMocks for class under test
+- Naming: ClassName → ClassNameTest, method: testMethod_GivenCondition_ExpectedBehavior()
+
+### Code Structure Rules
+- Single Responsibility Principle: One reason to change per class
+- Methods < 20 lines when possible
+- Early returns to reduce nesting
+- Meaningful names for classes, methods, variables
+- Use final for immutable fields
+- Constructor injection for dependencies
+
+### Error Handling
+- Use specific exception types with descriptive messages
+- Input validation for all external inputs
+- Use SLF4J logging with appropriate levels
+- Include context in log messages
+
+### Security Requirements
+- Validate all API parameters using ParameterParser
+- Use existing crypto utilities in brs.crypto package
+- Never implement custom cryptographic algorithms
+- Sanitize database inputs (JOOQ handles SQL injection)
+
+### Performance Guidelines
+- Use prepared statements (JOOQ provides this)
+- Implement pagination for large result sets
+- Avoid N+1 query problems
+- Use try-with-resources for closeable objects
+- Consider caching for expensive operations
+
+## Build Commands
+- ./gradlew build - Compile and build
+- ./gradlew test - Run unit tests  
+- ./gradlew dist - Create distribution
+- java -jar signum-node.jar --headless - Run node
+
+## Before Code Submission Checklist
+- [ ] Follows package/naming conventions
+- [ ] Has comprehensive unit tests (>80% coverage)
+- [ ] Uses dependency injection correctly
+- [ ] Applies appropriate design patterns
+- [ ] Handles errors with specific exceptions
+- [ ] Includes proper logging
+- [ ] No hardcoded values (use PropertyService)
+- [ ] No direct database access from business logic
+- [ ] Javadoc for public APIs
+- [ ] No security vulnerabilities
+
+## Code Examples
+
+### Service Implementation Pattern
+```java
+@Component
+public class AccountServiceImpl implements AccountService {
+    private final AccountStore accountStore;
+    
+    public AccountServiceImpl(AccountStore accountStore) {
+        this.accountStore = accountStore;
+    }
+    
+    @Override
+    public Account getAccount(long id) {
+        return accountStore.getAccount(id);
+    }
+}
+```
+
+### Unit Test Pattern
+```java
+@ExtendWith(MockitoExtension.class)
+class AccountServiceImplTest {
+    @Mock private AccountStore accountStore;
+    @InjectMocks private AccountServiceImpl accountService;
+    
+    @Test
+    void getAccount_GivenValidId_ReturnsAccount() {
+        // Arrange
+        Account expected = createTestAccount();
+        when(accountStore.getAccount(123L)).thenReturn(expected);
+        
+        // Act
+        Account result = accountService.getAccount(123L);
+        
+        // Assert
+        assertEquals(expected, result);
+        verify(accountStore).getAccount(123L);
+    }
+}
+```
+
+Remember: Quality over speed. Clean, tested, maintainable code is the priority.

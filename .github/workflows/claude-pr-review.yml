@@ -66,8 +66,8 @@ jobs:
           # Read CLAUDE.md if it exists
           if [ -f "CLAUDE.md" ]; then
             echo "Found CLAUDE.md"
-            # Take first 8000 chars to avoid oversized prompts
-            head -c 8000 CLAUDE.md > claude_guidelines.txt
+            # Take first 12000 chars to avoid oversized prompts
+            head -c 12000 CLAUDE.md > claude_guidelines.txt
           else
             echo "CLAUDE.md not found"
             echo "Follow Java best practices and blockchain security standards." > claude_guidelines.txt

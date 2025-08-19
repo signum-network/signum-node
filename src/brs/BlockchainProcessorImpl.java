@@ -139,8 +139,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     private final Listener<Peer> netVolumeListener = peer -> updateAndFireNetVolume();
 
-    // --- Listener Management ---
-
     private final boolean autoPopOffEnabled;
 
     private EventBus eventBus = Signum.getEventBus();

@@ -4,7 +4,7 @@ buildscript {
         maven { url 'https://jitpack.io' }
     }
     dependencies {
-        classpath("org.flywaydb:flyway-mysql:8.5.13")
+        classpath("org.flywaydb:flyway-mysql:11.11.1")
     }
 }
 
@@ -17,7 +17,7 @@ plugins {
   id 'com.palantir.git-version' version '3.3.0'
   id 'io.spring.dependency-management' version '1.1.4'
   id 'nu.studer.jooq' version '7.2'
-  id "org.flywaydb.flyway" version "8.5.13"
+  id "org.flywaydb.flyway" version "11.11.1"
   id "de.undercouch.download" version "5.5.0"
   id 'jacoco'
   id "com.github.node-gradle.node" version "7.1.0"
@@ -50,8 +50,8 @@ dependencies {
     implementation 'org.jocl:jocl:2.0.1'
 
     implementation 'org.jooq:jooq:3.20.3'
-    implementation 'org.flywaydb:flyway-core:8.5.13'
-    implementation 'org.flywaydb:flyway-mysql:8.5.13'
+    implementation 'org.flywaydb:flyway-core:11.11.1'
+    implementation 'org.flywaydb:flyway-mysql:11.11.1'
     implementation 'org.postgresql:postgresql:42.7.3'
     implementation 'com.kohlschutter.junixsocket:junixsocket-core:2.8.3'
     implementation 'org.mariadb.jdbc:mariadb-java-client:3.1.4'

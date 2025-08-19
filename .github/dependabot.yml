@@ -1,0 +1,44 @@
+version: 2
+updates:
+  # Gradle (Java 21) – Root-Projekt
+  - package-ecosystem: "gradle"
+    directory: "/"                # build.gradle liegt im Root
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:00"
+      timezone: "Europe/Zurich"
+    target-branch: "develop"
+    open-pull-requests-limit: 20
+    groups:
+      gradle-minor-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
+
+  # GitHub Actions – alle Workflows unter .github/workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:10"
+      timezone: "Europe/Zurich"
+    target-branch: "develop"
+    groups:
+      gha-weekly:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Docker – Root-Dockerfile
+  - package-ecosystem: "docker"
+    directory: "/"                # Dockerfile im Root
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:20"
+      timezone: "Europe/Zurich"
+    target-branch: "develop"

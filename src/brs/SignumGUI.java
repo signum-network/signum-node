@@ -53,6 +53,12 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import brs.at.AtController;
 
+import brs.events.NetVolumeChangedEvent;
+import brs.events.PeerCountChangedEvent;
+import brs.events.PerformanceStatsUpdatedEvent;
+import brs.events.QueueStatusEvent;
+import brs.util.EventBus;
+
 import brs.fluxcapacitor.FluxValues;
 import brs.props.PropertyService;
 import brs.props.Props;
@@ -1143,26 +1149,31 @@ public class SignumGUI extends JFrame {
     }
 
     private void initListeners() {
-        Signum.getBlockchainProcessor().addQueueStatusListener((unverifiedSize, verifiedSize, totalSize) -> {
-            SwingUtilities.invokeLater(() -> updateQueueStatus(unverifiedSize, verifiedSize, totalSize));
-        });
-
-        Signum.getBlockchainProcessor().addPeerCountListener((newCount, newConnectedCount) -> {
-            SwingUtilities.invokeLater(() -> updatePeerCount(newCount, newConnectedCount));
-        });
-
-        Signum.getBlockchainProcessor().addNetVolumeListener((uploadedVolume, downloadedVolume) -> {
-            SwingUtilities.invokeLater(() -> updateNetVolume(uploadedVolume, downloadedVolume));
-        });
-
+        EventBus eventBus = Signum.getEventBus();
+        eventBus.subscribe(QueueStatusEvent.class, this::onQueueStatus);
+        eventBus.subscribe(PeerCountChangedEvent.class, this::onPeerCountChanged);
+        eventBus.subscribe(NetVolumeChangedEvent.class, this::onNetVolumeChanged);
+        eventBus.subscribe(PerformanceStatsUpdatedEvent.class, this::onPerformanceStatsUpdated);
         Signum.getBlockchainProcessor().addListener(this::onBlockPushed, BlockchainProcessor.Event.BLOCK_PUSHED);
+    }
 
-        Signum.getBlockchainProcessor()
-                .addPerformanceListener((totalTimeMs, dbTimeMs, atTimeMs, txCount, blockHeight) -> {
-                    SwingUtilities.invokeLater(
-                            () -> updateTimingChart(totalTimeMs, dbTimeMs, atTimeMs, txCount, blockHeight));
-                });
+    public void onQueueStatus(QueueStatusEvent event) {
+        SwingUtilities.invokeLater(
+                () -> updateQueueStatus(event.getUnverifiedSize(), event.getVerifiedSize(), event.getTotalSize()));
+    }
 
+    public void onPeerCountChanged(PeerCountChangedEvent event) {
+        SwingUtilities.invokeLater(() -> updatePeerCount(event.getNewCount(), event.getNewConnectedCount()));
+    }
+
+    public void onNetVolumeChanged(NetVolumeChangedEvent event) {
+        SwingUtilities.invokeLater(() -> updateNetVolume(event.getUploadedVolume(), event.getDownloadedVolume()));
+    }
+
+    public void onPerformanceStatsUpdated(PerformanceStatsUpdatedEvent event) {
+        SwingUtilities.invokeLater(
+                () -> updateTimingChart(event.getTotalTimeMs(), event.getDbTimeMs(), event.getAtTimeMs(),
+                        event.getTxCount(), event.getBlockHeight()));
     }
 
     private void onBlockPushed(Block block) {

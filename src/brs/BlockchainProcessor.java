@@ -1,9 +1,5 @@
 package brs;
 
-import brs.listeners.NetVolumeListener;
-import brs.listeners.PeerCountListener;
-import brs.listeners.PerformanceListener;
-import brs.listeners.QueueStatusListener;
 import brs.peer.Peer;
 import brs.util.JSON;
 import brs.util.Observable;
@@ -38,22 +34,6 @@ public interface BlockchainProcessor extends Observable<Block, BlockchainProcess
             throws BlockNotAcceptedException;
 
     void shutdown();
-
-    void addQueueStatusListener(QueueStatusListener listener);
-
-    void removeQueueStatusListener(QueueStatusListener listener);
-
-    void addPerformanceListener(PerformanceListener listener);
-
-    void removePerformanceListener(PerformanceListener listener);
-
-    void addPeerCountListener(PeerCountListener listener);
-
-    void removePeerCountListener(PeerCountListener listener);
-
-    void addNetVolumeListener(NetVolumeListener listener);
-
-    void removeNetVolumeListener(NetVolumeListener listener);
 
     List<Block> popOffTo(int height);
 

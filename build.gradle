@@ -15,7 +15,7 @@ plugins {
   id 'application'
   id 'org.gradle.crypto.checksum' version '1.4.0'
   id 'com.palantir.git-version' version '4.0.0'
-  id 'io.spring.dependency-management' version '1.1.4'
+  id 'io.spring.dependency-management' version '1.1.7'
   id 'nu.studer.jooq' version '7.2'
   id "org.flywaydb.flyway" version "8.5.13"
   id "de.undercouch.download" version "5.5.0"
@@ -40,14 +40,14 @@ def details = versionDetails()
 
 dependencies {
     implementation 'com.github.signum-network:signumj:v1.3.2'
-    implementation 'io.reactivex.rxjava2:rxjava:2.2.15'
-    implementation 'org.bouncycastle:bcprov-jdk18on:1.78.1'
-    implementation 'org.bouncycastle:bcpkix-jdk18on:1.78.1'
-    implementation 'org.ehcache:ehcache:3.9.9'
-    implementation 'com.google.code.gson:gson:2.8.9'
-    implementation 'commons-cli:commons-cli:1.4'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.21'
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.81'
+    implementation 'org.bouncycastle:bcpkix-jdk18on:1.81'
+    implementation 'org.ehcache:ehcache:3.11.0'
+    implementation 'com.google.code.gson:gson:2.13.1'
+    implementation 'commons-cli:commons-cli:1.10.0'
     implementation 'com.zaxxer:HikariCP:7.0.2'
-    implementation 'org.jocl:jocl:2.0.1'
+    implementation 'org.jocl:jocl:2.0.5'
 
     implementation 'org.jooq:jooq:3.20.3'
     implementation 'org.flywaydb:flyway-core:8.5.13'

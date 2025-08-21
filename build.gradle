@@ -61,8 +61,8 @@ dependencies {
     implementation 'org.bitlet:weupnp:0.1.4'
     implementation 'com.google.zxing:core:3.5.3'
     implementation 'com.google.zxing:javase:3.5.3'
-    implementation 'org.slf4j:slf4j-api:1.7.35'
-    implementation 'org.slf4j:slf4j-jdk14:1.7.35'
+    implementation 'org.slf4j:slf4j-api:2.0.17'
+    implementation 'org.slf4j:slf4j-jdk14:2.0.17'
 
     implementation 'org.eclipse.jetty:jetty-server:10.0.24'
     implementation 'org.eclipse.jetty:jetty-servlet:10.0.24'

@@ -13,10 +13,6 @@ import brs.db.store.BlockchainStore;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.Stores;
 import brs.fluxcapacitor.FluxValues;
-import brs.events.NetVolumeChangedEvent;
-import brs.events.PeerCountChangedEvent;
-import brs.events.PerformanceStatsUpdatedEvent;
-import brs.events.QueueStatusEvent;
 import brs.peer.Peer;
 import brs.peer.Peers;
 import brs.props.PropertyService;
@@ -34,7 +30,6 @@ import brs.transactionduplicates.TransactionDuplicatesCheckerImpl;
 import brs.unconfirmedtransactions.UnconfirmedTransactionStore;
 import brs.util.Convert;
 import brs.util.DownloadCacheImpl;
-import brs.util.EventBus;
 import brs.util.JSON;
 import brs.util.Listener;
 import brs.util.Listeners;
@@ -123,6 +118,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     private final AtomicBoolean isConsistent = new AtomicBoolean(false);
 
+    private final AtomicReference<QueueStatus> queueStatus = new AtomicReference<>();
+    private final AtomicReference<PerformanceStats> performanceStats = new AtomicReference<>();
+    private final AtomicLong uploadedVolume = new AtomicLong();
+    private final AtomicLong downloadedVolume = new AtomicLong();
+
     private int lastKnownPeerCount = -1;
     private int lastKnownConnectedPeerCount = -1;
 
@@ -140,8 +140,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     private final Listener<Peer> netVolumeListener = peer -> updateAndFireNetVolume();
 
     private final boolean autoPopOffEnabled;
-
-    private EventBus eventBus = Signum.getEventBus();
 
     @Override
     public void shutdown() {
@@ -165,6 +163,30 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
 
     // --- Firing events ---
+
+    public int getLastKnownPeerCount() {
+        return lastKnownPeerCount;
+    }
+
+    public int getLastKnownConnectedPeerCount() {
+        return lastKnownConnectedPeerCount;
+    }
+
+    public QueueStatus getQueueStatus() {
+        return queueStatus.get();
+    }
+
+    public PerformanceStats getPerformanceStats() {
+        return performanceStats.get();
+    }
+
+    public long getUploadedVolume() {
+        return uploadedVolume.get();
+    }
+
+    public long getDownloadedVolume() {
+        return downloadedVolume.get();
+    }
 
     public BlockchainProcessorImpl(ThreadPool threadPool,
             BlockService blockService,
@@ -864,24 +886,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         if (totalSize != lastTotalSize || unverifiedSize != lastUnverifiedQueueSize) {
             lastUnverifiedQueueSize = unverifiedSize;
             lastTotalSize = totalSize;
-            fireQueueStatusChanged(unverifiedSize, verifiedSize, totalSize);
+            queueStatus.set(new BlockchainProcessor.QueueStatus(unverifiedSize, verifiedSize, totalSize));
+            blockListeners.notify(null, Event.QUEUE_STATUS_CHANGED);
         }
-    }
-
-    private void fireQueueStatusChanged(int downloadCacheUnverifiedSize,
-            int downloadCacheVerifiedSize,
-            int downloadCacheTotalSize) {
-        eventBus.publish(
-                new QueueStatusEvent(downloadCacheUnverifiedSize, downloadCacheVerifiedSize, downloadCacheTotalSize));
-    }
-
-    private void firePerformanceStatsUpdated(long totalTimeMs, long dbTimeMs, long atTimeMs, int txCount,
-            int blockHeight) {
-        eventBus.publish(new PerformanceStatsUpdatedEvent(totalTimeMs, dbTimeMs, atTimeMs, txCount, blockHeight));
-    }
-
-    private void firePeerCountChanged(int newCount, int newConnectedCount) {
-        eventBus.publish(new PeerCountChangedEvent(newCount, newConnectedCount));
     }
 
     private void updateAndFirePeerCount() {
@@ -892,12 +899,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         if (newPeerCount != lastKnownPeerCount || newConnectedPeerCount != lastKnownConnectedPeerCount) {
             lastKnownPeerCount = newPeerCount;
             lastKnownConnectedPeerCount = newConnectedPeerCount;
-            firePeerCountChanged(newPeerCount, newConnectedPeerCount);
+            blockListeners.notify(null, Event.PEER_COUNT_CHANGED);
         }
-    }
-
-    private void fireNetVolumeChanged(long uploadedVolume, long downloadedVolume) {
-        eventBus.publish(new NetVolumeChangedEvent(uploadedVolume, downloadedVolume));
     }
 
     private void updateAndFireNetVolume() {
@@ -908,7 +911,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             sumUploadedVolume += peer.getUploadedVolume();
             sumDownloadedVolume += peer.getDownloadedVolume();
         }
-        fireNetVolumeChanged(sumUploadedVolume, sumDownloadedVolume);
+        this.uploadedVolume.set(sumUploadedVolume);
+        this.downloadedVolume.set(sumDownloadedVolume);
+        blockListeners.notify(null, Event.NET_VOLUME_CHANGED);
     }
 
     private void blacklistClean(Block block, Exception e, String description) {
@@ -1301,8 +1306,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             long totalTimeMs = TimeUnit.NANOSECONDS.toMillis(totalEndTime - totalStartTime);
             long dbTimeMs = dbStartTime > 0 ? TimeUnit.NANOSECONDS.toMillis(dbEndTime - dbStartTime) : 0;
             atTimeMs = TimeUnit.NANOSECONDS.toMillis(atTimeNanos);
-            firePerformanceStatsUpdated(totalTimeMs, dbTimeMs, atTimeMs, block.getTransactions().size(),
-                    block.getHeight());
+            performanceStats.set(new BlockchainProcessor.PerformanceStats(totalTimeMs, dbTimeMs, atTimeMs, block));
+            blockListeners.notify(block, Event.PERFORMANCE_STATS_UPDATED);
 
             logger.debug("Successfully pushed {} (height {})", block.getId(), block.getHeight());
             statisticsManager.blockAdded();
@@ -1499,14 +1504,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             long totalFeeCashBackNqt = 0;
             long totalFeeBurntNqt = 0;
             int indirectsCount = 0;
-
-            /**
-             * This map is used to track the provisional unconfirmed balances of accounts
-             * during block generation. It allows us to simulate the state of accounts
-             * without modifying the actual unconfirmed balances in the database,
-             * thus preventing double-spending within the same block.
-             */
-            final Map<Long, Long> provisionalUnconfirmedBalances = new HashMap<>();
 
             final Block previousBlock = blockchain.getLastBlock();
             final int blockTimestamp = timeService.getEpochTime();

@@ -53,12 +53,6 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import brs.at.AtController;
 
-import brs.events.NetVolumeChangedEvent;
-import brs.events.PeerCountChangedEvent;
-import brs.events.PerformanceStatsUpdatedEvent;
-import brs.events.QueueStatusEvent;
-import brs.util.EventBus;
-
 import brs.fluxcapacitor.FluxValues;
 import brs.props.PropertyService;
 import brs.props.Props;
@@ -1149,31 +1143,42 @@ public class SignumGUI extends JFrame {
     }
 
     private void initListeners() {
-        EventBus eventBus = Signum.getEventBus();
-        eventBus.subscribe(QueueStatusEvent.class, this::onQueueStatus);
-        eventBus.subscribe(PeerCountChangedEvent.class, this::onPeerCountChanged);
-        eventBus.subscribe(NetVolumeChangedEvent.class, this::onNetVolumeChanged);
-        eventBus.subscribe(PerformanceStatsUpdatedEvent.class, this::onPerformanceStatsUpdated);
-        Signum.getBlockchainProcessor().addListener(this::onBlockPushed, BlockchainProcessor.Event.BLOCK_PUSHED);
+        BlockchainProcessor blockchainProcessor = Signum.getBlockchainProcessor();
+        blockchainProcessor.addListener(block -> onQueueStatus(), BlockchainProcessor.Event.QUEUE_STATUS_CHANGED);
+        blockchainProcessor.addListener(block -> onPeerCountChanged(), BlockchainProcessor.Event.PEER_COUNT_CHANGED);
+        blockchainProcessor.addListener(block -> onNetVolumeChanged(), BlockchainProcessor.Event.NET_VOLUME_CHANGED);
+        blockchainProcessor.addListener(this::onPerformanceStatsUpdated,
+                BlockchainProcessor.Event.PERFORMANCE_STATS_UPDATED);
+        blockchainProcessor.addListener(this::onBlockPushed, BlockchainProcessor.Event.BLOCK_PUSHED);
     }
 
-    public void onQueueStatus(QueueStatusEvent event) {
+    public void onQueueStatus() {
+        BlockchainProcessor.QueueStatus status = Signum.getBlockchainProcessor().getQueueStatus();
+        if (status != null) {
+            SwingUtilities.invokeLater(
+                    () -> updateQueueStatus(status.unverifiedSize, status.verifiedSize, status.totalSize));
+        }
+    }
+
+    public void onPeerCountChanged() {
+        BlockchainProcessor blockchainProcessor = Signum.getBlockchainProcessor();
+        SwingUtilities.invokeLater(() -> updatePeerCount(blockchainProcessor.getLastKnownPeerCount(),
+                blockchainProcessor.getLastKnownConnectedPeerCount()));
+    }
+
+    public void onNetVolumeChanged() {
+        BlockchainProcessor blockchainProcessor = Signum.getBlockchainProcessor();
         SwingUtilities.invokeLater(
-                () -> updateQueueStatus(event.getUnverifiedSize(), event.getVerifiedSize(), event.getTotalSize()));
+                () -> updateNetVolume(blockchainProcessor.getUploadedVolume(),
+                        blockchainProcessor.getDownloadedVolume()));
     }
 
-    public void onPeerCountChanged(PeerCountChangedEvent event) {
-        SwingUtilities.invokeLater(() -> updatePeerCount(event.getNewCount(), event.getNewConnectedCount()));
-    }
-
-    public void onNetVolumeChanged(NetVolumeChangedEvent event) {
-        SwingUtilities.invokeLater(() -> updateNetVolume(event.getUploadedVolume(), event.getDownloadedVolume()));
-    }
-
-    public void onPerformanceStatsUpdated(PerformanceStatsUpdatedEvent event) {
-        SwingUtilities.invokeLater(
-                () -> updateTimingChart(event.getTotalTimeMs(), event.getDbTimeMs(), event.getAtTimeMs(),
-                        event.getTxCount(), event.getBlockHeight()));
+    public void onPerformanceStatsUpdated(Block block) {
+        BlockchainProcessor.PerformanceStats stats = Signum.getBlockchainProcessor().getPerformanceStats();
+        if (stats != null) {
+            SwingUtilities
+                    .invokeLater(() -> updateTimingChart(stats.totalTimeMs, stats.dbTimeMs, stats.atTimeMs, block));
+        }
     }
 
     private void onBlockPushed(Block block) {
@@ -1442,11 +1447,13 @@ public class SignumGUI extends JFrame {
         return String.format("%.2f %s/s", bytesPerSecond, units[unitIndex]);
     }
 
-    private void updateTimingChart(long totalTimeMs, long dbTimeMs, long atTimeMs, int txCount, int blockHeight) {
+    private void updateTimingChart(long totalTimeMs, long dbTimeMs, long atTimeMs, Block block) {
 
-        if (!showMetrics) {
+        if (!showMetrics || block == null) {
             return;
         }
+
+        int blockHeight = block.getHeight();
 
         atTimes.add(atTimeMs);
 

@@ -44,7 +44,6 @@ import brs.services.impl.TimeServiceImpl;
 import brs.services.impl.TransactionServiceImpl;
 import brs.statistics.StatisticsManagerImpl;
 import brs.util.DownloadCacheImpl;
-import brs.util.EventBus;
 import brs.util.LoggerConfigurator;
 import brs.util.ThreadPool;
 import brs.util.Time;
@@ -122,8 +121,6 @@ public final class Signum {
 
     private static WebServer webServer;
 
-    private static EventBus eventBus = new EventBus();
-
     private static AtomicBoolean shuttingdown = new AtomicBoolean(false);
 
     private static PropertyService loadProperties(String confFolder) {
@@ -179,10 +176,6 @@ public final class Signum {
 
     public static AssetExchange getAssetExchange() {
         return assetExchange;
-    }
-
-    public static EventBus getEventBus() {
-        return eventBus;
     }
 
     public static Stores getStores() {

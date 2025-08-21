@@ -49,7 +49,7 @@ dependencies {
     implementation 'com.zaxxer:HikariCP:7.0.2'
     implementation 'org.jocl:jocl:2.0.5'
 
-    implementation 'org.jooq:jooq:3.20.3'
+    implementation 'org.jooq:jooq:3.20.6'
     implementation 'org.flywaydb:flyway-core:8.5.13'
     implementation 'org.flywaydb:flyway-mysql:8.5.13'
     implementation 'org.postgresql:postgresql:42.7.3'
@@ -59,8 +59,8 @@ dependencies {
 
     implementation 'org.owasp.encoder:encoder:1.2.3'
     implementation 'org.bitlet:weupnp:0.1.4'
-    implementation 'com.google.zxing:core:3.4.1'
-    implementation 'com.google.zxing:javase:3.4.1'
+    implementation 'com.google.zxing:core:3.5.3'
+    implementation 'com.google.zxing:javase:3.5.3'
     implementation 'org.slf4j:slf4j-api:2.0.17'
     implementation 'org.slf4j:slf4j-jdk14:2.0.17'
 

@@ -1,12 +1,3 @@
-buildscript {
-    repositories {
-        mavenCentral()
-        maven { url 'https://jitpack.io' }
-    }
-    dependencies {
-        classpath("org.flywaydb:flyway-mysql:8.5.13")
-    }
-}
 
 plugins {
   id 'com.github.johnrengelman.shadow' version '8.1.1'

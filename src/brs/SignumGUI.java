@@ -1725,8 +1725,8 @@ public class SignumGUI extends JFrame {
 
         // A single dataset and renderer for both volume series.
         XYSeriesCollection volumeDataset = new XYSeriesCollection();
-        volumeDataset.addSeries(downloadVolumeSeries); // Series 0: Download (drawn first)
-        volumeDataset.addSeries(uploadVolumeSeries); // Series 1: Upload (drawn on top)
+        volumeDataset.addSeries(downloadVolumeSeries); // Series 0: Download (top layer)
+        volumeDataset.addSeries(uploadVolumeSeries); // Series 1: Upload (bottom layer)
 
         XYStepAreaRenderer volumeRenderer = new XYStepAreaRenderer();
         volumeRenderer.setShapesVisible(false);
@@ -1741,7 +1741,7 @@ public class SignumGUI extends JFrame {
         plot.setAxisOffset(new RectangleInsets(0, 0, 0, 0));
 
         ChartPanel chartPanel = new ChartPanel(chart);
-        // Set a fixed 4:3 aspect ratio size, 2x the previous size
+        // Set a fixed 4:3 aspect ratio
         Dimension newSize = new Dimension(240, 180);
         chartPanel.setPreferredSize(newSize);
         chartPanel.setMinimumSize(newSize);

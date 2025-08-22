@@ -705,8 +705,8 @@ public class SignumGUI extends JFrame {
 
         Color uploadVolumeColor = new Color(233, 150, 122, 128); // Red
         Color downloadVolumeColor = new Color(50, 205, 50, 128); // Green
-        addPaintToggleListener(metricsUploadVolumeLabel, netSpeedChartPanel, 1, 0, uploadVolumeColor);
-        addPaintToggleListener(metricsDownloadVolumeLabel, netSpeedChartPanel, 1, 1, downloadVolumeColor);
+        addPaintToggleListener(metricsUploadVolumeLabel, netSpeedChartPanel, 1, 1, uploadVolumeColor);
+        addPaintToggleListener(metricsDownloadVolumeLabel, netSpeedChartPanel, 1, 0, downloadVolumeColor);
         timingChartContainer.add(timingChartPanel);
 
         JPanel timingChartContainerPanel = new JPanel(new BorderLayout(10, 0));
@@ -1724,16 +1724,14 @@ public class SignumGUI extends JFrame {
         plot.setRangeAxis(1, volumeAxis); // Use axis index 1 for volume
 
         // A single dataset and renderer for both volume series.
-        // By drawing upload (red) before download (green), we avoid rendering artifacts
-        // when hiding the top layer.
         XYSeriesCollection volumeDataset = new XYSeriesCollection();
-        volumeDataset.addSeries(uploadVolumeSeries); // Series 0: Upload (drawn first)
-        volumeDataset.addSeries(downloadVolumeSeries); // Series 1: Download (drawn on top)
+        volumeDataset.addSeries(downloadVolumeSeries); // Series 0: Download (drawn first)
+        volumeDataset.addSeries(uploadVolumeSeries); // Series 1: Upload (drawn on top)
 
         XYStepAreaRenderer volumeRenderer = new XYStepAreaRenderer();
         volumeRenderer.setShapesVisible(false);
-        volumeRenderer.setSeriesPaint(0, new Color(233, 150, 122, 128)); // Upload - Red
-        volumeRenderer.setSeriesPaint(1, new Color(50, 205, 50, 128)); // Download - Green
+        volumeRenderer.setSeriesPaint(0, new Color(50, 205, 50, 128)); // Download - Green
+        volumeRenderer.setSeriesPaint(1, new Color(233, 150, 122, 128)); // Upload - Red
         plot.setDataset(1, volumeDataset);
         plot.setRenderer(1, volumeRenderer);
         plot.mapDatasetToRangeAxis(1, 1);

@@ -70,7 +70,7 @@ dependencies {
     implementation 'org.apache.logging.log4j:log4j-core:2.25.1'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.19.2'
     implementation 'org.eclipse.jgit:org.eclipse.jgit:7.3.0.202506031305-r'
-    implementation 'jakarta.xml.bind:jakarta.xml.bind-api:3.0.1'
+    implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.2'
 
 
     testImplementation("org.junit.platform:junit-platform-engine:1.13.4")

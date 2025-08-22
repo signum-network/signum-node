@@ -431,25 +431,6 @@ create index if not exists idx_16512_escrow_decision_escrow_id_height_idx
 create index if not exists idx_16512_escrow_decision_account_id_height_idx
   on escrow_decision (account_id, height desc);
 
-create table if not exists flyway_schema_history
-(
-  installed_rank bigint                                             not null
-    constraint idx_16517_primary
-      primary key,
-  version        varchar(50)              default NULL::character varying,
-  description    varchar(200)                                       not null,
-  type           varchar(20)                                        not null,
-  script         varchar(1000)                                      not null,
-  checksum       bigint,
-  installed_by   varchar(100)                                       not null,
-  installed_on   timestamp with time zone default CURRENT_TIMESTAMP not null,
-  execution_time bigint                                             not null,
-  success        boolean                                            not null
-);
-
-create index if not exists idx_16517_flyway_schema_history_s_idx
-  on flyway_schema_history (success);
-
 create table if not exists goods
 (
   db_id       bigserial

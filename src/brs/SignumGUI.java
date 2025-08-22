@@ -48,6 +48,7 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.chart.renderer.xy.XYBarRenderer;
+import org.jfree.chart.renderer.xy.XYStepAreaRenderer;
 import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -62,6 +63,7 @@ import jiconfont.swing.IconFontSwing;
 
 import java.awt.font.TextAttribute;
 import java.util.Map;
+import java.util.function.Consumer;
 
 @SuppressWarnings("serial")
 public class SignumGUI extends JFrame {
@@ -700,8 +702,11 @@ public class SignumGUI extends JFrame {
         addToggleListener(atTimeLabel, timingChartPanel, 0, 3);
         addToggleListener(uploadSpeedLabel, netSpeedChartPanel, 0, 0);
         addToggleListener(downloadSpeedLabel, netSpeedChartPanel, 0, 1);
-        addToggleListener(metricsUploadVolumeLabel, netSpeedChartPanel, 1, 0);
-        addToggleListener(metricsDownloadVolumeLabel, netSpeedChartPanel, 1, 1);
+
+        Color uploadVolumeColor = new Color(233, 150, 122, 128); // Red
+        Color downloadVolumeColor = new Color(50, 205, 50, 128); // Green
+        addPaintToggleListener(metricsUploadVolumeLabel, netSpeedChartPanel, 1, 0, uploadVolumeColor);
+        addPaintToggleListener(metricsDownloadVolumeLabel, netSpeedChartPanel, 1, 1, downloadVolumeColor);
         timingChartContainer.add(timingChartPanel);
 
         JPanel timingChartContainerPanel = new JPanel(new BorderLayout(10, 0));
@@ -884,55 +889,66 @@ public class SignumGUI extends JFrame {
         });
     }
 
-    private void addToggleListener(JLabel label, ChartPanel chartPanel, int rendererIndex, int seriesIndex) {
+    /**
+     * A generic helper method to add a toggle listener to a JLabel.
+     * It handles the common logic of toggling a 'visible' client property,
+     * switching the font between normal and strikethrough, and then executing a
+     * custom action.
+     *
+     * @param label          The label to attach the listener to.
+     * @param onToggleAction The specific action to perform when the label is
+     *                       toggled.
+     *                       It receives the new visibility state as a boolean.
+     */
+    private void addLabelToggleListener(JLabel label, Consumer<Boolean> onToggleAction) {
         label.putClientProperty("visible", true);
-        Font originalFont = label.getFont();
-        Map<TextAttribute, Object> attributes = new HashMap<>(originalFont.getAttributes());
+        final Font originalFont = label.getFont();
+        // Create a strikethrough version of the font to indicate a disabled state
+        final Map<TextAttribute, Object> attributes = new HashMap<>(originalFont.getAttributes());
         attributes.put(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON);
-        Font strikethroughFont = originalFont.deriveFont(attributes);
+        final Font strikethroughFont = originalFont.deriveFont(attributes);
 
-        label.addMouseListener(new java.awt.event.MouseAdapter() {
+        label.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
+            public void mouseClicked(MouseEvent evt) {
                 if (SwingUtilities.isLeftMouseButton(evt)) {
-                    boolean isVisible = (boolean) label.getClientProperty("visible");
-                    isVisible = !isVisible;
+                    // Toggle the visibility state
+                    boolean isVisible = !((boolean) label.getClientProperty("visible"));
                     label.putClientProperty("visible", isVisible);
 
-                    chartPanel.getChart().getXYPlot().getRenderer(rendererIndex).setSeriesVisible(seriesIndex,
-                            isVisible);
-
+                    // Update the label's font to show the state
                     label.setFont(isVisible ? originalFont : strikethroughFont);
+
+                    // Perform the specific toggle action
+                    onToggleAction.accept(isVisible);
                 }
             }
+        });
+    }
+
+    private void addToggleListener(JLabel label, ChartPanel chartPanel, int rendererIndex, int seriesIndex) {
+        addLabelToggleListener(label, isVisible -> chartPanel.getChart().getXYPlot().getRenderer(rendererIndex)
+                .setSeriesVisible(seriesIndex, isVisible));
+    }
+
+    private void addPaintToggleListener(JLabel label, ChartPanel chartPanel, int rendererIndex, int seriesIndex,
+            Color originalColor) {
+        final Color transparentColor = new Color(0, 0, 0, 0);
+        addLabelToggleListener(label, isVisible -> {
+            org.jfree.chart.renderer.xy.AbstractXYItemRenderer renderer = (org.jfree.chart.renderer.xy.AbstractXYItemRenderer) chartPanel
+                    .getChart().getXYPlot().getRenderer(rendererIndex);
+
+            renderer.setSeriesVisible(seriesIndex, isVisible);
+            renderer.setSeriesPaint(seriesIndex, isVisible ? originalColor : transparentColor);
         });
     }
 
     private void addDualChartToggleListener(JLabel label,
             ChartPanel chartPanel1, int rendererIndex1, int seriesIndex1,
             ChartPanel chartPanel2, int rendererIndex2, int seriesIndex2) {
-        label.putClientProperty("visible", true);
-        Font originalFont = label.getFont();
-        Map<TextAttribute, Object> attributes = new HashMap<>(originalFont.getAttributes());
-        attributes.put(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON);
-        Font strikethroughFont = originalFont.deriveFont(attributes);
-
-        label.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                if (SwingUtilities.isLeftMouseButton(evt)) {
-                    boolean isVisible = (boolean) label.getClientProperty("visible");
-                    isVisible = !isVisible;
-                    label.putClientProperty("visible", isVisible);
-
-                    chartPanel1.getChart().getXYPlot().getRenderer(rendererIndex1).setSeriesVisible(seriesIndex1,
-                            isVisible);
-                    chartPanel2.getChart().getXYPlot().getRenderer(rendererIndex2).setSeriesVisible(seriesIndex2,
-                            isVisible);
-
-                    label.setFont(isVisible ? originalFont : strikethroughFont);
-                }
-            }
+        addLabelToggleListener(label, isVisible -> {
+            chartPanel1.getChart().getXYPlot().getRenderer(rendererIndex1).setSeriesVisible(seriesIndex1, isVisible);
+            chartPanel2.getChart().getXYPlot().getRenderer(rendererIndex2).setSeriesVisible(seriesIndex2, isVisible);
         });
     }
 
@@ -1388,24 +1404,26 @@ public class SignumGUI extends JFrame {
         lastUploadedVolume = uploadedVolume;
         lastDownloadedVolume = downloadedVolume;
 
-        // Update chart series
-        uploadSpeedSeries.add(currentTime, avgUploadSpeed);
-        downloadSpeedSeries.add(currentTime, avgDownloadSpeed);
-        uploadVolumeSeries.add(currentTime, uploadedVolume);
-        downloadVolumeSeries.add(currentTime, downloadedVolume);
+        if (uploadedVolume > 0 || downloadedVolume > 0) {
+            // Update chart series
+            uploadSpeedSeries.add(currentTime, avgUploadSpeed);
+            downloadSpeedSeries.add(currentTime, avgDownloadSpeed);
+            uploadVolumeSeries.add(currentTime, uploadedVolume);
+            downloadVolumeSeries.add(currentTime, downloadedVolume);
 
-        // Keep history size for chart
-        while (uploadSpeedSeries.getItemCount() > SPEED_HISTORY_SIZE) {
-            uploadSpeedSeries.remove(0);
-        }
-        while (downloadSpeedSeries.getItemCount() > SPEED_HISTORY_SIZE) {
-            downloadSpeedSeries.remove(0);
-        }
-        while (uploadVolumeSeries.getItemCount() > SPEED_HISTORY_SIZE) {
-            uploadVolumeSeries.remove(0);
-        }
-        while (downloadVolumeSeries.getItemCount() > SPEED_HISTORY_SIZE) {
-            downloadVolumeSeries.remove(0);
+            // Keep history size for chart
+            while (uploadSpeedSeries.getItemCount() > SPEED_HISTORY_SIZE) {
+                uploadSpeedSeries.remove(0);
+            }
+            while (downloadSpeedSeries.getItemCount() > SPEED_HISTORY_SIZE) {
+                downloadSpeedSeries.remove(0);
+            }
+            while (uploadVolumeSeries.getItemCount() > SPEED_HISTORY_SIZE) {
+                uploadVolumeSeries.remove(0);
+            }
+            while (downloadVolumeSeries.getItemCount() > SPEED_HISTORY_SIZE) {
+                downloadVolumeSeries.remove(0);
+            }
         }
 
     }
@@ -1672,11 +1690,6 @@ public class SignumGUI extends JFrame {
         lineDataset.addSeries(uploadSpeedSeries);
         lineDataset.addSeries(downloadSpeedSeries);
 
-        XYSeriesCollection volumeDataset = new XYSeriesCollection();
-        volumeDataset.addSeries(uploadVolumeSeries);
-        volumeDataset.addSeries(downloadVolumeSeries);
-
-        // Create chart with no title or axis labels to save space
         JFreeChart chart = ChartFactory.createXYLineChart(
                 null, // No title
                 null, // No X-axis label
@@ -1708,17 +1721,22 @@ public class SignumGUI extends JFrame {
         // Second Y-axis for volume
         NumberAxis volumeAxis = new NumberAxis(null); // No label for the second axis
         volumeAxis.setTickLabelsVisible(false);
-        plot.setRangeAxis(1, volumeAxis);
-        plot.setDataset(1, volumeDataset);
-        plot.mapDatasetToRangeAxis(1, 1);
+        plot.setRangeAxis(1, volumeAxis); // Use axis index 1 for volume
 
-        // Renderer for volume bars
-        XYBarRenderer volumeRenderer = new XYBarRenderer(0);
-        volumeRenderer.setBarPainter(new StandardXYBarPainter());
-        volumeRenderer.setShadowVisible(false);
-        volumeRenderer.setSeriesPaint(0, new Color(233, 150, 122, 128)); // Upload - Red, semi-transparent
-        volumeRenderer.setSeriesPaint(1, new Color(50, 205, 50, 128)); // Download - Green, semi-transparent
+        // A single dataset and renderer for both volume series.
+        // By drawing upload (red) before download (green), we avoid rendering artifacts
+        // when hiding the top layer.
+        XYSeriesCollection volumeDataset = new XYSeriesCollection();
+        volumeDataset.addSeries(uploadVolumeSeries); // Series 0: Upload (drawn first)
+        volumeDataset.addSeries(downloadVolumeSeries); // Series 1: Download (drawn on top)
+
+        XYStepAreaRenderer volumeRenderer = new XYStepAreaRenderer();
+        volumeRenderer.setShapesVisible(false);
+        volumeRenderer.setSeriesPaint(0, new Color(233, 150, 122, 128)); // Upload - Red
+        volumeRenderer.setSeriesPaint(1, new Color(50, 205, 50, 128)); // Download - Green
+        plot.setDataset(1, volumeDataset);
         plot.setRenderer(1, volumeRenderer);
+        plot.mapDatasetToRangeAxis(1, 1);
 
         // Remove all padding around the plot area
         plot.setInsets(new RectangleInsets(0, 0, 0, 0));

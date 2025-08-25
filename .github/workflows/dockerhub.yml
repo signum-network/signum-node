@@ -53,7 +53,7 @@ jobs:
             type=raw,value={{branch}},enable=${{ github.ref != format('refs/heads/{0}', 'main') }}
 
       - name: Build and push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: './Dockerfile'

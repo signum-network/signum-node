@@ -80,6 +80,10 @@ public interface BlockchainProcessor extends Observable<Block, BlockchainProcess
 
     PerformanceStats getPerformanceStats();
 
+    long getAccumulatedSyncTimeMs();
+
+    long getAccumulatedSyncInProgressTimeMs();
+
     long getUploadedVolume();
 
     long getDownloadedVolume();

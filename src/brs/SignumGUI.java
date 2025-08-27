@@ -99,6 +99,8 @@ public class SignumGUI extends JFrame {
     private final LinkedList<Long> pushTimes = new LinkedList<>();
     private final LinkedList<Long> dbTimes = new LinkedList<>();
     private final LinkedList<Long> atTimes = new LinkedList<>();
+    private final LinkedList<Double> blocksPerSecondHistory = new LinkedList<>();
+    private final LinkedList<Double> transactionsPerSecondHistory = new LinkedList<>();
     private int movingAverageWindow = 100; // Default value
     private XYSeries blocksPerSecondSeries;
     private XYSeries transactionsPerSecondSeries;
@@ -116,6 +118,8 @@ public class SignumGUI extends JFrame {
     private int oclUnverifiedQueueThreshold;
     private JSlider movingAverageSlider;
     private JLabel peersLabel;
+    private JLabel connectedPeersLabel;
+    private JLabel peersCountLabel;
     private JLabel uploadSpeedLabel;
     private JLabel downloadSpeedLabel;
     private JLabel uploadVolumeLabel;
@@ -172,6 +176,41 @@ public class SignumGUI extends JFrame {
     private long downloadedVolume = 0;
 
     private JPanel metricsPanel;
+    /**
+     * Panel to hold the time tracking labels. Only visible when experimental
+     * features are enabled.
+     */
+    private JPanel timePanel;
+
+    private JSeparator timeSeparator;
+
+    /**
+     * Label to display the total elapsed time since the GUI was started.
+     */
+    private JLabel totalTimeLabel;
+    /**
+     * Label to display the accumulated time spent syncing the blockchain.
+     */
+    private JLabel syncInProgressTimeLabel;
+    /**
+     * Stores the total elapsed time in milliseconds, updated by the GUI timer.
+     */
+    private long guiAccumulatedSyncTimeMs = 0;
+    /**
+     * Stores the accumulated time in milliseconds spent actively syncing (when more
+     * than 10 blocks behind).
+     */
+    private long guiAccumulatedSyncInProgressTimeMs = 0;
+    /**
+     * Flag for the hysteresis logic, indicating if the node is currently considered
+     * to be syncing.
+     */
+    private boolean isSyncing = false; // For hysteresis
+    /**
+     * Timer to update the GUI time labels every second.
+     */
+    private Timer guiTimer;
+    private boolean guiTimerStarted = false;
 
     public static void main(String[] args) {
         new SignumGUI("Signum Node", Props.ICON_LOCATION.getDefaultValue(), Signum.VERSION.toString(), args);
@@ -276,7 +315,7 @@ public class SignumGUI extends JFrame {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(2, 5, 2, 5); // Padding
 
-        Dimension progressBarSize = new Dimension(150, 20);
+        Dimension progressBarSize = new Dimension(200, 20);
 
         // --- Row 1: Verified/Total Blocks ---
         JLabel verifLabel = new JLabel("Verified/Total Blocks:");
@@ -299,8 +338,8 @@ public class SignumGUI extends JFrame {
         gbc.gridx = 1;
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.LINE_START;
-        gbc.weightx = 0;
-        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         downloadPanel.add(syncProgressBarDownloadedBlocks, gbc);
 
         // --- Row 2: Unverified Blocks ---
@@ -324,20 +363,19 @@ public class SignumGUI extends JFrame {
         gbc.gridx = 1;
         gbc.gridy = 1;
         gbc.anchor = GridBagConstraints.LINE_START;
-        gbc.weightx = 0;
-        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         downloadPanel.add(syncProgressBarUnverifiedBlocks, gbc);
 
         // --- Separator ---
         JSeparator separator1 = new JSeparator(SwingConstants.HORIZONTAL);
         gbc.gridx = 0;
         gbc.gridy = 2;
-        gbc.gridwidth = 3; // Span across all columns
+        gbc.gridwidth = 2; // Span across all columns
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(2, 5, 2, 5); // Match other components' padding
         downloadPanel.add(separator1, gbc);
         gbc.gridwidth = 1; // Reset gridwidth
-        gbc.insets = new Insets(2, 5, 2, 5); // Reset insets
 
         // --- Row 3: Blocks/Second (Moving Average) ---
         JLabel blocksPerSecondLabel = new JLabel("Blocks/Sec (MA):");
@@ -453,7 +491,7 @@ public class SignumGUI extends JFrame {
         gbc.gridx = 1;
         gbc.gridy = 6;
         gbc.gridwidth = 2;
-        gbc.weightx = 1.0;
+        gbc.weightx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.LINE_START;
         downloadPanel.add(movingAverageSlider, gbc);
@@ -465,8 +503,8 @@ public class SignumGUI extends JFrame {
         // Add downloadPanel to the left
         metricsGbc.gridx = 0;
         metricsGbc.gridy = 0;
-        metricsGbc.weightx = 1.0;
-        metricsGbc.fill = GridBagConstraints.HORIZONTAL;
+        metricsGbc.weightx = 0.0;
+        metricsGbc.fill = GridBagConstraints.NONE;
         metricsGbc.anchor = GridBagConstraints.NORTHWEST;
         performanceMetricsPanel.add(downloadPanel, metricsGbc);
 
@@ -500,7 +538,7 @@ public class SignumGUI extends JFrame {
          * sliderWithLabelPanel.add(new VerticalLabel("MA Window"), BorderLayout.WEST);
          * sliderWithLabelPanel.add(movingAverageSlider, BorderLayout.CENTER);
          */
-        JPanel chartContainer = new JPanel(new BorderLayout(10, 0));
+        JPanel chartContainer = new JPanel(new BorderLayout(0, 0));
         chartContainer.add(performanceChartContainer, BorderLayout.CENTER);
         // chartContainer.add(sliderWithLabelPanel, BorderLayout.EAST);
 
@@ -529,29 +567,28 @@ public class SignumGUI extends JFrame {
         // 'downloadPanel'
         JPanel timingInfoPanel = new JPanel(new GridBagLayout());
         GridBagConstraints timingGbc = new GridBagConstraints();
-        timingGbc.insets = new Insets(2, 5, 2, 5);
-        timingGbc.anchor = GridBagConstraints.LINE_END;
+        timingGbc.insets = new Insets(2, 0, 2, 5);
         timingGbc.fill = GridBagConstraints.NONE;
         timingGbc.weightx = 0;
-
-        Dimension timingProgressBarSize = new Dimension(150, 20);
 
         // --- Push Time ---
         pushTimeLabel = new JLabel("Push Time/Block (MA):");
         pushTimeLabel.setForeground(Color.BLUE);
         timingGbc.gridx = 0;
         timingGbc.gridy = 1;
+        timingGbc.anchor = GridBagConstraints.LINE_END;
         timingInfoPanel.add(pushTimeLabel, timingGbc);
         addInfoTooltip(pushTimeLabel,
                 "The moving average of the total time taken to process and push a new block to the blockchain, including all validations and database operations.");
 
         pushTimeProgressBar = new JProgressBar(0, 100);
-        pushTimeProgressBar.setPreferredSize(timingProgressBarSize);
-        pushTimeProgressBar.setMinimumSize(timingProgressBarSize);
+        pushTimeProgressBar.setPreferredSize(progressBarSize);
+        pushTimeProgressBar.setMinimumSize(progressBarSize);
         pushTimeProgressBar.setStringPainted(true);
         pushTimeProgressBar.setString("0 ms");
         timingGbc.gridx = 1;
         timingGbc.gridy = 1;
+        timingGbc.anchor = GridBagConstraints.LINE_START;
         timingInfoPanel.add(pushTimeProgressBar, timingGbc);
 
         // --- DB Time ---
@@ -559,17 +596,19 @@ public class SignumGUI extends JFrame {
         dbTimeLabel.setForeground(Color.YELLOW);
         timingGbc.gridx = 0;
         timingGbc.gridy = 2;
+        timingGbc.anchor = GridBagConstraints.LINE_END;
         timingInfoPanel.add(dbTimeLabel, timingGbc);
         addInfoTooltip(dbTimeLabel,
                 "The moving average of the time spent on database operations for each block. High values may indicate a slow disk or database contention.");
 
         dbTimeProgressBar = new JProgressBar(0, 100);
-        dbTimeProgressBar.setPreferredSize(timingProgressBarSize);
-        dbTimeProgressBar.setMinimumSize(timingProgressBarSize);
+        dbTimeProgressBar.setPreferredSize(progressBarSize);
+        dbTimeProgressBar.setMinimumSize(progressBarSize);
         dbTimeProgressBar.setStringPainted(true);
         dbTimeProgressBar.setString("0 ms");
         timingGbc.gridx = 1;
         timingGbc.gridy = 2;
+        timingGbc.anchor = GridBagConstraints.LINE_START;
         timingInfoPanel.add(dbTimeProgressBar, timingGbc);
 
         // --- AT Time ---
@@ -577,17 +616,19 @@ public class SignumGUI extends JFrame {
         atTimeLabel.setForeground(new Color(153, 0, 76)); // Deep Pink
         timingGbc.gridx = 0;
         timingGbc.gridy = 3;
+        timingGbc.anchor = GridBagConstraints.LINE_END;
         timingInfoPanel.add(atTimeLabel, timingGbc);
         addInfoTooltip(atTimeLabel,
                 "The moving average of the time spent processing Automated Transactions (ATs) within each block. This metric is relevant for assessing the performance impact of smart contracts on the network.");
 
         atTimeProgressBar = new JProgressBar(0, 100);
-        atTimeProgressBar.setPreferredSize(timingProgressBarSize);
-        atTimeProgressBar.setMinimumSize(timingProgressBarSize);
+        atTimeProgressBar.setPreferredSize(progressBarSize);
+        atTimeProgressBar.setMinimumSize(progressBarSize);
         atTimeProgressBar.setStringPainted(true);
         atTimeProgressBar.setString("0 ms");
         timingGbc.gridx = 1;
         timingGbc.gridy = 3;
+        timingGbc.anchor = GridBagConstraints.LINE_START;
         timingInfoPanel.add(atTimeProgressBar, timingGbc);
 
         // --- Calculation Time ---
@@ -595,46 +636,48 @@ public class SignumGUI extends JFrame {
         calculationTimeLabel.setForeground(new Color(128, 0, 128));
         timingGbc.gridx = 0;
         timingGbc.gridy = 4;
+        timingGbc.anchor = GridBagConstraints.LINE_END;
         timingInfoPanel.add(calculationTimeLabel, timingGbc);
         addInfoTooltip(calculationTimeLabel,
                 "The moving average of the CPU time spent on calculations for each block, excluding database and Automated Transaction (AT) processing time. This includes signature verifications and other cryptographic operations.");
 
         calculationTimeProgressBar = new JProgressBar(0, 100);
-        calculationTimeProgressBar.setPreferredSize(timingProgressBarSize);
-        calculationTimeProgressBar.setMinimumSize(timingProgressBarSize);
+        calculationTimeProgressBar.setPreferredSize(progressBarSize);
+        calculationTimeProgressBar.setMinimumSize(progressBarSize);
         calculationTimeProgressBar.setStringPainted(true);
         calculationTimeProgressBar.setString("0 ms");
         timingGbc.gridx = 1;
         timingGbc.gridy = 4;
+        timingGbc.anchor = GridBagConstraints.LINE_START;
         timingInfoPanel.add(calculationTimeProgressBar, timingGbc);
 
         // --- Separator ---
         JSeparator separator2 = new JSeparator(SwingConstants.HORIZONTAL);
         timingGbc.gridx = 0;
         timingGbc.gridy = 5;
-        timingGbc.gridwidth = 3; // Span across all columns
+        timingGbc.gridwidth = 2; // Span across all columns
         timingGbc.fill = GridBagConstraints.HORIZONTAL;
-        timingGbc.insets = new Insets(2, 5, 2, 5); // Match other components' padding
         timingInfoPanel.add(separator2, timingGbc);
         timingGbc.gridwidth = 1;
-        timingGbc.insets = new Insets(2, 5, 2, 5);
 
         // --- Upload Speed ---
         uploadSpeedLabel = new JLabel("Upload Speed:", SwingConstants.RIGHT);
         uploadSpeedLabel.setForeground(new Color(128, 0, 0));
         timingGbc.gridx = 0;
         timingGbc.gridy = 6;
+        timingGbc.anchor = GridBagConstraints.LINE_END;
         timingInfoPanel.add(uploadSpeedLabel, timingGbc);
         addInfoTooltip(uploadSpeedLabel,
                 "The current data upload speed to other peers in the network. This reflects how much blockchain data your node is sharing.");
 
         uploadSpeedProgressBar = new JProgressBar(0, MAX_SPEED_BPS);
-        uploadSpeedProgressBar.setPreferredSize(timingProgressBarSize);
-        uploadSpeedProgressBar.setMinimumSize(timingProgressBarSize);
+        uploadSpeedProgressBar.setPreferredSize(progressBarSize);
+        uploadSpeedProgressBar.setMinimumSize(progressBarSize);
         uploadSpeedProgressBar.setStringPainted(true);
         uploadSpeedProgressBar.setString("0 B/s");
         timingGbc.gridx = 1;
         timingGbc.gridy = 6;
+        timingGbc.anchor = GridBagConstraints.LINE_START;
         timingInfoPanel.add(uploadSpeedProgressBar, timingGbc);
 
         // --- Download Speed ---
@@ -642,6 +685,7 @@ public class SignumGUI extends JFrame {
         downloadSpeedLabel.setForeground(new Color(0, 100, 0));
         timingGbc.gridx = 0;
         timingGbc.gridy = 7;
+        timingGbc.anchor = GridBagConstraints.LINE_END;
         timingInfoPanel.add(downloadSpeedLabel, timingGbc);
         addInfoTooltip(downloadSpeedLabel,
                 "The current data download speed from other peers in the network. This indicates how quickly your node is receiving blockchain data.");
@@ -652,6 +696,7 @@ public class SignumGUI extends JFrame {
         downloadSpeedProgressBar.setString("0 B/s");
         timingGbc.gridx = 1;
         timingGbc.gridy = 7;
+        timingGbc.anchor = GridBagConstraints.LINE_START;
         timingInfoPanel.add(downloadSpeedProgressBar, timingGbc);
 
         // --- Combined Volume ---
@@ -675,11 +720,11 @@ public class SignumGUI extends JFrame {
         combinedVolumePanel.add(metricsDownloadVolumeLabel);
         timingGbc.gridx = 0;
         timingGbc.gridy = 8;
-        timingGbc.gridwidth = 3;
+        timingGbc.gridwidth = 2;
         timingGbc.anchor = GridBagConstraints.CENTER;
         timingInfoPanel.add(combinedVolumePanel, timingGbc);
         timingGbc.gridwidth = 1; // Reset
-        timingGbc.anchor = GridBagConstraints.LINE_END; // Reset anchor
+        timingGbc.anchor = GridBagConstraints.CENTER; // Reset anchor
         // === End Timing Info Panel ===
 
         // Add timingInfoPanel to the left of the timingMetricsPanel
@@ -769,17 +814,38 @@ public class SignumGUI extends JFrame {
 
         content.add(topPanel, BorderLayout.NORTH);
         content.add(textScrollPane, BorderLayout.CENTER);
-        // === Hozzáadás a fő content panelhez ===
-
-        // Font monoFont = new Font("Monospaced", Font.PLAIN, 12);
 
         JPanel infoPanel = new JPanel();
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.X_AXIS));
 
+        // --- Time Labels ---
+        timePanel = new JPanel();
+        timePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        totalTimeLabel = new JLabel("0");
+        addInfoTooltip(totalTimeLabel, "Displays the total elapsed time since the node application was started.");
+        syncInProgressTimeLabel = new JLabel("0");
+        addInfoTooltip(syncInProgressTimeLabel,
+                "Displays the total time the node has spent in synchronization mode. The timer is active only when the blockchain is more than 10 blocks behind the network.");
+        timePanel.add(totalTimeLabel);
+        timePanel.add(new JLabel("/"));
+        timePanel.add(syncInProgressTimeLabel);
+        timePanel.setVisible(false);
+
+        timeSeparator = new JSeparator(SwingConstants.VERTICAL);
+        timeSeparator.setVisible(false);
+
         // --- Peers ---
         JPanel peersPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        connectedPeersLabel = new JLabel("000");
+        addInfoTooltip(connectedPeersLabel, "The number of peers your node is currently connected to.");
+        peersCountLabel = new JLabel("000");
+        addInfoTooltip(peersCountLabel,
+                "The total number of peers your node has discovered in the network, including both connected and disconnected peers.");
         peersPanel.add(new JLabel("Peers:"));
-        peersLabel = new JLabel("000 / 000");
+        peersPanel.add(connectedPeersLabel);
+        peersPanel.add(new JLabel("/"));
+        peersPanel.add(peersCountLabel);
+
         // peersLabel.setFont(monoFont);
         /*
          * Dimension peersDim = new Dimension(
@@ -787,11 +853,11 @@ public class SignumGUI extends JFrame {
          * peersLabel.getPreferredSize().height);
          * peersLabel.setPreferredSize(peersDim);
          */
-        peersPanel.add(peersLabel);
+        // peersPanel.add(peersLabel);
 
         // --- Speed ---
-        JPanel speedPanel = new JPanel(new BorderLayout());
-        speedPanel.add(new JLabel("Speed:"));
+        // JPanel speedPanel = new JPanel(new BorderLayout());
+        // speedPanel.add(new JLabel("Speed:"));
 
         // --- Volume ---
         JPanel volumePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
@@ -799,9 +865,13 @@ public class SignumGUI extends JFrame {
 
         // Upload
         uploadVolumeLabel = new JLabel("▲ 000 MB");
+        addInfoTooltip(uploadVolumeLabel,
+                "The total amount of data your node has uploaded to other peers since the application started.");
 
         // Download
         downloadVolumeLabel = new JLabel("▼ 000 MB");
+        addInfoTooltip(downloadVolumeLabel,
+                "The total amount of data your node has downloaded from other peers since the application started.");
 
         // uploadVolumeLabel.setFont(monoFont);
         /*
@@ -811,11 +881,16 @@ public class SignumGUI extends JFrame {
          * uploadVolumeLabel.setPreferredSize(volumeDim);
          */
         volumePanel.add(uploadVolumeLabel);
-        volumePanel.add(new JLabel(" / "));
+        volumePanel.add(new JLabel("/"));
         volumePanel.add(downloadVolumeLabel);
 
         // --- Main infoPanel sorrend ---
         // infoPanel.removeAll();
+
+        infoPanel.add(timePanel);
+        infoPanel.add(Box.createHorizontalStrut(5));
+        infoPanel.add(timeSeparator);
+        infoPanel.add(Box.createHorizontalStrut(5));
 
         infoPanel.add(peersPanel);
         infoPanel.add(Box.createHorizontalStrut(5));
@@ -1178,15 +1253,53 @@ public class SignumGUI extends JFrame {
 
     public void onPeerCountChanged() {
         BlockchainProcessor blockchainProcessor = Signum.getBlockchainProcessor();
-        SwingUtilities.invokeLater(() -> updatePeerCount(blockchainProcessor.getLastKnownPeerCount(),
-                blockchainProcessor.getLastKnownConnectedPeerCount()));
+        SwingUtilities.invokeLater(() -> updatePeerCount(blockchainProcessor.getLastKnownConnectedPeerCount(),
+                blockchainProcessor.getLastKnownPeerCount()));
     }
 
     public void onNetVolumeChanged() {
         BlockchainProcessor blockchainProcessor = Signum.getBlockchainProcessor();
-        SwingUtilities.invokeLater(
-                () -> updateNetVolume(blockchainProcessor.getUploadedVolume(),
-                        blockchainProcessor.getDownloadedVolume()));
+        long newDownloadedVolume = blockchainProcessor.getDownloadedVolume();
+        SwingUtilities.invokeLater(() -> {
+            updateNetVolume(blockchainProcessor.getUploadedVolume(), newDownloadedVolume);
+
+            // Start the GUI timer only once, when the first download volume is received,
+            // and if experimental features are enabled in the config.
+            if (Signum.getPropertyService().getBoolean(Props.EXPERIMENTAL) && !guiTimerStarted
+                    && newDownloadedVolume > 0) {
+                startGuiTimer();
+                guiTimerStarted = true;
+            }
+        });
+    }
+
+    private void startGuiTimer() {
+        guiTimer = new Timer(1000, e -> {
+            if (Signum.getBlockchain() != null && Signum.getBlockchainProcessor() != null) {
+                // The timer is started when the first download volume is received, so we
+                // increment total elapsed
+                // time.
+                guiAccumulatedSyncTimeMs += 1000;
+                totalTimeLabel.setText("Total Elapsed Time: " + formatDuration(guiAccumulatedSyncTimeMs));
+
+                int height = Signum.getBlockchain().getHeight();
+                int feederHeight = Signum.getBlockchainProcessor().getLastBlockchainFeederHeight();
+                int diff = feederHeight > 0 ? feederHeight - height : 0;
+
+                if (!isSyncing && diff >= 10) {
+                    isSyncing = true;
+                } else if (isSyncing && diff <= 1) {
+                    isSyncing = false;
+                }
+
+                if (isSyncing) {
+                    guiAccumulatedSyncInProgressTimeMs += 1000;
+                }
+                syncInProgressTimeLabel
+                        .setText("Syncing Time: " + formatDuration(guiAccumulatedSyncInProgressTimeMs));
+            }
+        });
+        guiTimer.start();
     }
 
     public void onPerformanceStatsUpdated(Block block) {
@@ -1223,12 +1336,30 @@ public class SignumGUI extends JFrame {
                     showMetricsCheckbox.setSelected(showMetrics);
                     // Sync panel visibility with loaded properties
                     metricsPanel.setVisible(showMetrics);
+                    if (showMetrics) {
+                        timePanel.setVisible(true);
+                        timeSeparator.setVisible(true);
+                    }
                 });
 
                 updateTitle();
 
                 initListeners();
-
+                if (Signum.getPropertyService().getBoolean(Props.EXPERIMENTAL)) {
+                    // Initialize timers from the log file.
+                    BlockchainProcessor blockchainProcessor = Signum.getBlockchainProcessor();
+                    if (blockchainProcessor != null) {
+                        this.guiAccumulatedSyncTimeMs = blockchainProcessor.getAccumulatedSyncTimeMs();
+                        this.guiAccumulatedSyncInProgressTimeMs = blockchainProcessor
+                                .getAccumulatedSyncInProgressTimeMs();
+                    }
+                    // Update labels with initial values from log file
+                    SwingUtilities.invokeLater(() -> {
+                        totalTimeLabel.setText("Total Elapsed Time: " + formatDuration(guiAccumulatedSyncTimeMs));
+                        syncInProgressTimeLabel
+                                .setText("Syncing Time: " + formatDuration(guiAccumulatedSyncInProgressTimeMs));
+                    });
+                }
                 if (Signum.getBlockchain() == null)
                     onBrsStopped();
             } catch (Exception t) {
@@ -1435,8 +1566,9 @@ public class SignumGUI extends JFrame {
 
     }
 
-    private void updatePeerCount(int count, int newConnectedCount) {
-        peersLabel.setText(newConnectedCount + " / " + count);
+    private void updatePeerCount(int newConnectedCount, int count) {
+        connectedPeersLabel.setText(newConnectedCount + "");
+        peersCountLabel.setText(count + "");
     }
 
     private String formatDataSize(double bytes) {
@@ -1493,6 +1625,23 @@ public class SignumGUI extends JFrame {
             return;
         }
 
+        long maxPushTime = pushTimes.stream().mapToLong(Long::longValue).max().orElse(0);
+        long maxDbTime = dbTimes.stream().mapToLong(Long::longValue).max().orElse(0);
+        long maxAtTime = atTimes.stream().mapToLong(Long::longValue).max().orElse(0);
+
+        long maxCalculationTime = 0;
+        if (!pushTimes.isEmpty()) {
+            java.util.Iterator<Long> pushIt = pushTimes.iterator();
+            java.util.Iterator<Long> dbIt = dbTimes.iterator();
+            java.util.Iterator<Long> atIt = atTimes.iterator();
+            while (pushIt.hasNext()) {
+                long calcTime = pushIt.next() - dbIt.next() - atIt.next();
+                if (calcTime > maxCalculationTime) {
+                    maxCalculationTime = calcTime;
+                }
+            }
+        }
+
         long displayPushTime = (long) pushTimes.stream()
                 .skip(Math.max(0, pushTimes.size() - currentWindowSize))
                 .mapToLong(Long::longValue)
@@ -1510,13 +1659,15 @@ public class SignumGUI extends JFrame {
 
         long calculationTimeMs = displayPushTime - displayDbTime - displayAtTime;
         pushTimeProgressBar.setValue((int) displayPushTime);
-        pushTimeProgressBar.setString(String.format("%d ms", displayPushTime));
+        pushTimeProgressBar.setString(String.format("%d ms - max: %d ms", displayPushTime, maxPushTime));
         dbTimeProgressBar.setValue((int) displayDbTime);
-        dbTimeProgressBar.setString(String.format("%d ms", displayDbTime));
+        dbTimeProgressBar.setString(String.format("%d ms - max: %d ms", displayDbTime, maxDbTime));
         atTimeProgressBar.setValue((int) displayAtTime);
-        atTimeProgressBar.setString(String.format("%d ms", displayAtTime));
+        atTimeProgressBar.setString(String.format("%d ms - max: %d ms", displayAtTime, maxAtTime));
         calculationTimeProgressBar.setValue(Math.max(0, (int) calculationTimeMs));
-        calculationTimeProgressBar.setString(String.format("%d ms", Math.max(0, calculationTimeMs)));
+        calculationTimeProgressBar
+                .setString(String.format("%d ms - max: %d ms", Math.max(0, calculationTimeMs),
+                        Math.max(0, maxCalculationTime)));
 
         // Update timing chart series
         pushTimePerBlockSeries.add(blockHeight, displayPushTime);
@@ -1749,14 +1900,6 @@ public class SignumGUI extends JFrame {
         return chartPanel;
     }
 
-    /**
-     * Updates the performance chart with the latest block data.
-     * This method calculates the blocks per second, transactions per second,
-     * and transactions per block, and updates the respective series and progress
-     * bars.
-     *
-     * @param block The latest block to update the performance chart with.
-     */
     private void updatePerformanceChart(Block block) {
 
         if (!showMetrics) {
@@ -1765,7 +1908,6 @@ public class SignumGUI extends JFrame {
 
         blockTimestamps.add(System.currentTimeMillis());
 
-        // Calculate total transactions for this block
         int totalTxCount = block.getTransactions().size();
         if (block.getBlockAts() != null) {
             try {
@@ -1776,10 +1918,15 @@ public class SignumGUI extends JFrame {
         }
         transactionCounts.add(totalTxCount);
 
-        // Keep the history to a fixed size
         while (blockTimestamps.size() > CHART_HISTORY_SIZE) {
             blockTimestamps.removeFirst();
             transactionCounts.removeFirst();
+            if (!blocksPerSecondHistory.isEmpty()) {
+                blocksPerSecondHistory.removeFirst();
+            }
+            if (!transactionsPerSecondHistory.isEmpty()) {
+                transactionsPerSecondHistory.removeFirst();
+            }
             if (!blocksPerSecondSeries.isEmpty()) {
                 blocksPerSecondSeries.remove(0);
             }
@@ -1791,32 +1938,39 @@ public class SignumGUI extends JFrame {
             }
         }
 
-        // Calculate moving average for blocks/second
         long timeSpanMs = blockTimestamps.getLast()
                 - blockTimestamps.get(blockTimestamps.size() - Math.min(blockTimestamps.size(), movingAverageWindow));
         double blocksPerSecond = (timeSpanMs > 0)
                 ? (double) Math.min(blockTimestamps.size(), movingAverageWindow) * 1000.0 / timeSpanMs
                 : 0;
+        blocksPerSecondHistory.add(blocksPerSecond);
 
-        // Calculate moving average for transaction count
         double avgTransactions = transactionCounts.stream()
                 .skip(Math.max(0, transactionCounts.size() - Math.min(transactionCounts.size(), movingAverageWindow)))
                 .mapToInt(Integer::intValue)
                 .average().orElse(0.0);
 
-        // Update chart series and progress bar
+        double transactionsPerSecond = avgTransactions * blocksPerSecond;
+        transactionsPerSecondHistory.add(transactionsPerSecond);
+
+        double maxBlocksPerSecond = blocksPerSecondHistory.stream().mapToDouble(Double::doubleValue).max().orElse(0.0);
+        int maxTransactionsPerBlock = transactionCounts.stream().mapToInt(Integer::intValue).max().orElse(0);
+        double maxTransactionsPerSecond = transactionsPerSecondHistory.stream().mapToDouble(Double::doubleValue).max()
+                .orElse(0.0);
+
         blocksPerSecondSeries.add(block.getHeight(), blocksPerSecond);
         transactionsPerBlockSeries.add(block.getHeight(), avgTransactions);
         blocksPerSecondProgressBar.setValue((int) (blocksPerSecond));
-        blocksPerSecondProgressBar.setString(String.format("%.2f", blocksPerSecond));
+        blocksPerSecondProgressBar.setString(String.format("%.2f - max: %.2f", blocksPerSecond, maxBlocksPerSecond));
 
-        double transactionsPerSecond = avgTransactions * blocksPerSecond;
         transactionsPerSecondSeries.add(block.getHeight(), transactionsPerSecond);
         transactionsPerSecondProgressBar.setValue((int) transactionsPerSecond);
-        transactionsPerSecondProgressBar.setString(String.format("%.2f", transactionsPerSecond));
+        transactionsPerSecondProgressBar
+                .setString(String.format("%.2f - max: %.2f", transactionsPerSecond, maxTransactionsPerSecond));
 
         transactionsPerBlockProgressBar.setValue((int) avgTransactions);
-        transactionsPerBlockProgressBar.setString(String.format("%.2f", avgTransactions));
+        transactionsPerBlockProgressBar
+                .setString(String.format("%.2f - max: %d", avgTransactions, maxTransactionsPerBlock));
 
     }
 
@@ -1836,6 +1990,55 @@ public class SignumGUI extends JFrame {
             System.err.println("Showing message: " + message);
             JOptionPane.showMessageDialog(this, message, "Signum Message", JOptionPane.ERROR_MESSAGE);
         });
+    }
+
+    /**
+     * Formats a duration in milliseconds into a human-readable string (y:d:h:m:s).
+     * Omits larger units if they are zero.
+     *
+     * @param millis The duration in milliseconds.
+     * @return A formatted string representing the duration.
+     */
+    private String formatDuration(long millis) {
+        if (millis <= 0) {
+            return "0s";
+        }
+
+        long totalSeconds = millis / 1000;
+
+        final long SEC_PER_MINUTE = 60;
+        final long SEC_PER_HOUR = SEC_PER_MINUTE * 60;
+        final long SEC_PER_DAY = SEC_PER_HOUR * 24;
+        final long SEC_PER_YEAR = SEC_PER_DAY * 365; // Approximation
+
+        long years = totalSeconds / SEC_PER_YEAR;
+        long secondsAfterYears = totalSeconds % SEC_PER_YEAR;
+
+        long days = secondsAfterYears / SEC_PER_DAY;
+        long secondsAfterDays = secondsAfterYears % SEC_PER_DAY;
+
+        long hours = secondsAfterDays / SEC_PER_HOUR;
+        long secondsAfterHours = secondsAfterDays % SEC_PER_HOUR;
+
+        long minutes = secondsAfterHours / SEC_PER_MINUTE;
+        long seconds = secondsAfterHours % SEC_PER_MINUTE;
+
+        StringBuilder sb = new StringBuilder();
+        if (years > 0) {
+            sb.append(years).append("y:");
+        }
+        if (days > 0 || sb.length() > 0) {
+            sb.append(String.format(sb.length() > 0 ? "%02d" : "%d", days)).append("d:");
+        }
+        if (hours > 0 || sb.length() > 0) {
+            sb.append(String.format(sb.length() > 0 ? "%02d" : "%d", hours)).append("h:");
+        }
+        if (minutes > 0 || sb.length() > 0) {
+            sb.append(String.format(sb.length() > 0 ? "%02d" : "%d", minutes)).append("m:");
+        }
+        sb.append(String.format(sb.length() > 0 ? "%02d" : "%d", seconds)).append("s");
+
+        return sb.toString();
     }
 
     private static class TextAreaOutputStream extends OutputStream {

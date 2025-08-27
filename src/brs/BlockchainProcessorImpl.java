@@ -37,12 +37,21 @@ import brs.util.ThreadPool;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Path;
+import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -99,6 +108,19 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     private final DBCacheManagerImpl dbCacheManager;
     private final IndirectIncomingService indirectIncomingService;
     private final long genesisBlockId;
+    private final AtomicBoolean isShutdown = new AtomicBoolean(false);
+
+    private final boolean logSyncProgressToCsv;
+    private long lastSyncLogTimestamp;
+    private long accumulatedSyncTimeMs;
+    private long accumulatedSyncInProgressTimeMs;
+    private final AtomicBoolean isSyncingForLog = new AtomicBoolean(false);
+
+    private final boolean measurementActive;
+    private final List<String> measurementData = Collections.synchronizedList(new ArrayList<>());
+    private final String measurementDir;
+    private final String syncProgressLogFilename;
+    private final String syncMeasurementLogFilename;
 
     private static final int MAX_TIMESTAMP_DIFFERENCE = 15;
     private boolean oclVerify;
@@ -144,6 +166,21 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     @Override
     public void shutdown() {
         logger.info("Shutting down blockchain processor...");
+        if (isShutdown.getAndSet(true)) {
+            return; // Already shutdown
+        }
+        if (logSyncProgressToCsv) {
+            long currentTime = System.currentTimeMillis();
+            long deltaTime = currentTime - lastSyncLogTimestamp;
+            accumulatedSyncTimeMs += deltaTime;
+            if (isSyncingForLog.get()) {
+                accumulatedSyncInProgressTimeMs += deltaTime;
+            }
+            writeSyncProgressLog(accumulatedSyncTimeMs, blockchain.getHeight());
+        }
+        if (measurementActive) {
+            writeMeasurementLog();
+        }
         blockListeners.clear();
         for (Peers.Event event : Peers.Event.values()) {
             Peers.removeListener(peerListener, event);
@@ -176,8 +213,19 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         return queueStatus.get();
     }
 
+    @Override
     public PerformanceStats getPerformanceStats() {
         return performanceStats.get();
+    }
+
+    @Override
+    public long getAccumulatedSyncTimeMs() {
+        return this.accumulatedSyncTimeMs;
+    }
+
+    @Override
+    public long getAccumulatedSyncInProgressTimeMs() {
+        return this.accumulatedSyncInProgressTimeMs;
     }
 
     public long getUploadedVolume() {
@@ -230,6 +278,46 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         this.accountService = accountService;
         this.indirectIncomingService = indirectIncomingService;
         this.propertyService = propertyService;
+        this.measurementActive = propertyService.getBoolean(Props.MEASUREMENT_ACTIVE);
+        this.logSyncProgressToCsv = propertyService.getBoolean(Props.EXPERIMENTAL);
+
+        String finalMeasurementDir;
+        if (logSyncProgressToCsv || measurementActive) {
+            String configuredPath = propertyService.getString(Props.MEASUREMENT_DIR);
+            Path measurementPath;
+            try {
+                Path configuredAsPath = Paths.get(configuredPath);
+                if (configuredAsPath.isAbsolute()) {
+                    measurementPath = configuredAsPath;
+                } else {
+                    // Resolve relative to the application's location
+                    File codeSourceFile = new File(
+                            BlockchainProcessorImpl.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+                    Path applicationBasePath;
+                    if (codeSourceFile.isFile() && codeSourceFile.getName().toLowerCase().endsWith(".jar")) {
+                        // Running from a JAR, base path is the JAR's containing directory
+                        applicationBasePath = codeSourceFile.getParentFile().toPath();
+                    } else {
+                        // Running from IDE, use current working directory as base
+                        applicationBasePath = Paths.get(".").toAbsolutePath().normalize();
+                    }
+                    measurementPath = applicationBasePath.resolve(configuredPath).normalize();
+                }
+                finalMeasurementDir = measurementPath.toString();
+                Files.createDirectories(measurementPath);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to create or resolve measurement directory: " + configuredPath, e);
+            }
+        } else {
+            finalMeasurementDir = null;
+        }
+        this.measurementDir = finalMeasurementDir;
+        this.syncProgressLogFilename = this.measurementDir != null
+                ? Paths.get(this.measurementDir, "sync_progress.csv").toString()
+                : null;
+        this.syncMeasurementLogFilename = this.measurementDir != null
+                ? Paths.get(this.measurementDir, "sync_measurement.csv").toString()
+                : null;
 
         for (Peers.Event event : Peers.Event.values()) {
             Peers.listeners.addListener(peerListener, event);
@@ -254,8 +342,53 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }, Event.BLOCK_SCANNED);
 
         blockListeners.addListener(block -> {
+            if (logSyncProgressToCsv || measurementActive) {
+                long currentTime = System.currentTimeMillis();
+                long deltaTime = currentTime - lastSyncLogTimestamp;
+                accumulatedSyncTimeMs += deltaTime;
+
+                int heightDifference = lastBlockchainFeederHeight.get() - blockchain.getHeight();
+                if (!isSyncingForLog.get() && heightDifference >= 10) {
+                    isSyncingForLog.set(true);
+                } else if (isSyncingForLog.get() && heightDifference <= 1) {
+                    isSyncingForLog.set(false);
+                }
+
+                if (isSyncingForLog.get()) {
+                    accumulatedSyncInProgressTimeMs += deltaTime;
+                }
+
+                if (measurementActive) {
+                    PerformanceStats stats = performanceStats.get();
+                    // The stats might be null if the block is the very first one (genesis)
+                    if (stats != null) {
+                        int transactionCount = block.getTransactions().size();
+                        if (block.getBlockAts() != null) {
+                            try {
+                                transactionCount += AtController.getATsFromBlock(block.getBlockAts()).size();
+                            } catch (Exception e) {
+                                // ignore, as this is for measurement only
+                            }
+                        }
+
+                        String line = String.join(";", String.valueOf(block.getTimestamp()),
+                                block.getCumulativeDifficulty().toString(), String.valueOf(accumulatedSyncTimeMs),
+                                String.valueOf(accumulatedSyncInProgressTimeMs), String.valueOf(stats.totalTimeMs),
+                                String.valueOf(stats.dbTimeMs), String.valueOf(stats.atTimeMs),
+                                String.valueOf(block.getHeight()), String.valueOf(transactionCount));
+                        measurementData.add(line);
+                    }
+                }
+                lastSyncLogTimestamp = currentTime;
+            }
             if (block.getHeight() % 5000 == 0) {
                 logger.info("processed block {}", block.getHeight());
+                if (logSyncProgressToCsv) {
+                    writeSyncProgressLog(accumulatedSyncTimeMs, block.getHeight());
+                }
+                if (measurementActive) {
+                    writeMeasurementLog();
+                }
                 // Db.analyzeTables(); no-op
             }
         }, Event.BLOCK_PUSHED);
@@ -279,6 +412,14 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }, Event.BLOCK_PUSHED);
 
         addGenesisBlock();
+
+        if (logSyncProgressToCsv) {
+            initSyncProgressLogging();
+        }
+        if (measurementActive) {
+            initMeasurementLogging();
+        }
+
         if (Boolean.FALSE.equals(propertyService.getBoolean(Props.DB_SKIP_CHECK))
                 && checkDatabaseState() != 0) {
             logger.warn("Database is inconsistent,"
@@ -951,6 +1092,121 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             }
             autoPopOffNumberOfBlocks++;
         }
+    }
+
+    private void initSyncProgressLogging() {
+        File file = new File(this.syncProgressLogFilename);
+        boolean fileExistsAndHasContent = file.exists() && file.length() > 0;
+
+        if (fileExistsAndHasContent) {
+            try (Stream<String> lines = Files.lines(Paths.get(this.syncProgressLogFilename))) {
+                String lastLine = lines.reduce((first, second) -> second).orElse("");
+                if (!lastLine.trim().isEmpty() && !lastLine.contains("Accumulated_sync_time[s]")) { // Not header
+                    String[] parts = lastLine.split(";");
+                    if (parts.length == 3) {
+                        this.accumulatedSyncInProgressTimeMs = Long.parseLong(parts[0].trim()) * 1000;
+                        this.accumulatedSyncTimeMs = Long.parseLong(parts[1].trim()) * 1000;
+                    } else {
+                        // Malformed line, treat as new file
+                        fileExistsAndHasContent = false;
+                    }
+                }
+            } catch (IOException | NumberFormatException e) {
+                logger.error("Failed to read or parse sync progress log, re-initializing.", e);
+                fileExistsAndHasContent = false;
+            }
+        }
+
+        if (!fileExistsAndHasContent) {
+            try (PrintWriter writer = new PrintWriter(new FileWriter(file, false))) { // overwrite
+                /*
+                 * Header:
+                 * Accumulated_sync_in_progress_time[s];Accumulated_sync_time[s];Block_height
+                 * Accumulated_sync_in_progress_time[s] - Time spent in sync mode
+                 * Accumulated_sync_time[s] - Total time since start of node
+                 * Block_height - Current block height
+                 */
+                writer.println("Accumulated_sync_in_progress_time[s];Accumulated_sync_time[s];Block_height");
+                writer.println("0;0;" + blockchain.getHeight());
+                this.accumulatedSyncInProgressTimeMs = 0;
+                this.accumulatedSyncTimeMs = 0;
+            } catch (IOException e) {
+                logger.error("Failed to create or re-initialize sync progress log", e);
+            }
+        }
+
+        this.lastSyncLogTimestamp = System.currentTimeMillis();
+    }
+
+    private void initMeasurementLogging() {
+        File file = new File(this.syncMeasurementLogFilename);
+        if (!file.exists()) {
+            try (PrintWriter writer = new PrintWriter(new FileWriter(file, false))) {
+                /*
+                 * Header:
+                 * Block_timestamp;Cumulative_difficulty;Accumulated_sync_in_progress_time[ms];
+                 * Accumulated_sync_time[ms];Push_block_time[ms];Db_time[ms];At_time[ms];
+                 * Block_height;Transaction_count
+                 * Block_timestamp - Block timestamp of the pushed block (UTC) in seconds since
+                 * epoch (yyyy.mm.dd.) 2014.08.11. 02:00:00 (UTC)
+                 * Cumulative_difficulty - Cumulative difficulty of the pushed block
+                 * Accumulated_sync_in_progress_time[ms] - Time spent in sync mode in
+                 * milliseconds
+                 * Accumulated_sync_time[ms] - Total time since start of node in milliseconds
+                 * Push_block_time[ms] - Time taken to push the block in milliseconds
+                 * Db_time[ms] - Time taken for database operations in milliseconds
+                 * At_time[ms] - Time taken for account transactions processing in milliseconds
+                 * Block_height - Height of the pushed block
+                 * Transaction_count - Number of transactions in the pushed block
+                 */
+                writer.println(
+                        "Block_timestamp;Cumulative_difficulty;Accumulated_sync_in_progress_time[ms];Accumulated_sync_time[ms];Push_block_time[ms];Db_time[ms];At_time[ms];Block_height;Transaction_count");
+            } catch (IOException e) {
+                logger.error("Failed to create sync measurement log", e);
+            }
+        }
+    }
+
+    /*
+     * Writes a new line to the sync progress log file with the accumulated sync
+     * in-progress time,
+     * total elapsed time, and current block height.
+     * accumulatedSyncInProgressTimeMs is for the time when sync is in progress
+     * totalTime is for the total time since start of node
+     * 
+     * @param totalTime Total elapsed time in milliseconds
+     * 
+     * @param height Current block height
+     */
+    private void writeSyncProgressLog(long totalTime, int height) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(this.syncProgressLogFilename, true))) {
+            writer.println(accumulatedSyncInProgressTimeMs / 1000 + ";" + totalTime / 1000 + ";" + height);
+        } catch (IOException e) {
+            logger.error("Failed to write to sync progress log", e);
+        }
+    }
+
+    private void writeMeasurementLog() {
+        if (measurementData.isEmpty()) {
+            return;
+        }
+        // To avoid ConcurrentModificationException, we copy the list and clear the
+        // original
+        List<String> dataToWrite;
+        synchronized (measurementData) {
+            if (measurementData.isEmpty()) {
+                return;
+            }
+            dataToWrite = new ArrayList<>(measurementData);
+            measurementData.clear();
+        }
+
+        try (PrintWriter writer = new PrintWriter(new FileWriter(this.syncMeasurementLogFilename, true))) {
+            dataToWrite.forEach(writer::println);
+        } catch (IOException e) {
+            logger.error("Failed to write to sync measurement log", e);
+        }
+
     }
 
     @Override

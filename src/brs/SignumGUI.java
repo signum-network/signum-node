@@ -126,6 +126,7 @@ public class SignumGUI extends JFrame {
     private JLabel metricsUploadVolumeLabel;
     private JLabel metricsDownloadVolumeLabel;
     private JLabel downloadVolumeLabel;
+    private String tooltip;
 
     private long lastNetVolumeUpdateTime = 0;
     private long lastUploadedVolume = 0;
@@ -176,6 +177,13 @@ public class SignumGUI extends JFrame {
     private long downloadedVolume = 0;
 
     private JPanel metricsPanel;
+    private JLabel measurementLabel;
+    private JLabel experimentalLabel;
+    private JSeparator measurementSeparator;
+    private JSeparator experimentalSeparator;
+    private JPanel measurementPanel;
+    private JPanel experimentalPanel;
+
     /**
      * Panel to hold the time tracking labels. Only visible when experimental
      * features are enabled.
@@ -207,10 +215,69 @@ public class SignumGUI extends JFrame {
      */
     private boolean isSyncing = false; // For hysteresis
     /**
+     * Label for the separator between time labels.
+     */
+    private JLabel timeSeparatorLabel;
+    /**
      * Timer to update the GUI time labels every second.
      */
     private Timer guiTimer;
     private boolean guiTimerStarted = false;
+
+    private JProgressBar createProgressBar(int min, int max, Color color, String initialString, Dimension size) {
+        JProgressBar bar = new JProgressBar(min, max);
+        bar.setBackground(color);
+        bar.setPreferredSize(size);
+        bar.setMinimumSize(size);
+        bar.setStringPainted(true);
+        bar.setString(initialString);
+        bar.setValue(min);
+        return bar;
+    }
+
+    private JLabel createLabel(String text, Color color, String tooltip) {
+        JLabel label = new JLabel(text);
+        if (color != null) {
+            label.setForeground(color);
+        }
+        if (tooltip != null) {
+            addInfoTooltip(label, tooltip);
+        }
+        return label;
+    }
+
+    private void addInfoTooltip(JLabel label, String text) {
+        label.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (SwingUtilities.isRightMouseButton(e)) {
+                    String title = label.getText();
+                    // Remove trailing colon for a cleaner title
+                    if (title.endsWith(":")) {
+                        title = title.substring(0, title.length() - 1);
+                    }
+                    // Wrap the text in HTML to control the width of the dialog.
+                    String htmlText = "<html><body><p style='width: 300px;'>" + text.replace("\n", "<br>")
+                            + "</p></body></html>";
+                    JOptionPane.showMessageDialog(SignumGUI.this, htmlText, title, JOptionPane.PLAIN_MESSAGE);
+                }
+            }
+        });
+    }
+
+    private void addComponent(JPanel panel, Component comp, int x, int y, int gridwidth, int weightx, int weighty,
+            int anchor, int fill, Insets insets) {
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = x;
+        gbc.gridy = y;
+        gbc.gridwidth = gridwidth;
+        gbc.weightx = weightx;
+        gbc.weighty = weighty;
+        gbc.anchor = anchor;
+        gbc.fill = fill;
+        gbc.insets = insets;
+        panel.add(comp, gbc);
+    }
 
     public static void main(String[] args) {
         new SignumGUI("Signum Node", Props.ICON_LOCATION.getDefaultValue(), Signum.VERSION.toString(), args);
@@ -294,164 +361,77 @@ public class SignumGUI extends JFrame {
         syncProgressBar.setStringPainted(true);
         infoLable = new JLabel("Latest block info");
 
-        // bottomPanel.add(infoLable, BorderLayout.CENTER);
-        // bottomPanel.add(syncProgressBar, BorderLayout.LINE_END);
-
-        // === Metrics panel ===
-        // This is the main container for all metric groups.
+        // === Metrics Panel ===
         metricsPanel = new JPanel(new GridBagLayout());
         metricsPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
-        GridBagConstraints mainMetricsGbc = new GridBagConstraints();
-        mainMetricsGbc.anchor = GridBagConstraints.CENTER;
-        mainMetricsGbc.insets = new Insets(0, 5, 0, 5);
-        mainMetricsGbc.gridy = 0;
-        // === Container for the first group of metrics (Performance) ===
-        JPanel performanceMetricsPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints metricsGbc = new GridBagConstraints();
+        GridBagConstraints mainGbc = new GridBagConstraints();
+        mainGbc.gridy = 0;
+        mainGbc.insets = new Insets(0, 5, 0, 5);
 
-        // === Start Download Panel ===
-        // We use GridBagLayout to align the progress bars vertically
-        JPanel downloadPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(2, 5, 2, 5); // Padding
-
+        // --- Common sizes ---
         Dimension progressBarSize = new Dimension(200, 20);
+        Insets labelInsets = new Insets(2, 5, 2, 0);
+        Insets barInsets = new Insets(2, 5, 2, 5);
 
-        // --- Row 1: Verified/Total Blocks ---
-        JLabel verifLabel = new JLabel("Verified/Total Blocks:");
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.anchor = GridBagConstraints.LINE_END;
-        gbc.weightx = 0;
-        gbc.fill = GridBagConstraints.NONE;
-        downloadPanel.add(verifLabel, gbc);
-        addInfoTooltip(verifLabel,
-                "Shows the number of blocks in the download queue that have been verified against the total number of blocks in the queue. A high number of unverified blocks may indicate a slow verification process.");
+        // === Performance Metrics Panel ===
+        JPanel performanceMetricsPanel = new JPanel(new GridBagLayout());
 
-        syncProgressBarDownloadedBlocks = new JProgressBar();
-        syncProgressBarDownloadedBlocks.setBackground(Color.GREEN);
-        syncProgressBarDownloadedBlocks.setPreferredSize(progressBarSize);
-        syncProgressBarDownloadedBlocks.setMinimumSize(progressBarSize);
-        syncProgressBarDownloadedBlocks.setStringPainted(true);
-        syncProgressBarDownloadedBlocks.setString("0 / 0 - 0%");
-        syncProgressBarDownloadedBlocks.setValue(0);
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        gbc.anchor = GridBagConstraints.LINE_START;
-        gbc.weightx = 1;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        downloadPanel.add(syncProgressBarDownloadedBlocks, gbc);
+        // Download Panel (Progress Bars)
+        JPanel downloadPanel = new JPanel(new GridBagLayout());
 
-        // --- Row 2: Unverified Blocks ---
-        JLabel unVerifLabel = new JLabel("Unverified Blocks:");
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.anchor = GridBagConstraints.LINE_END;
-        gbc.weightx = 0;
-        gbc.fill = GridBagConstraints.NONE;
-        downloadPanel.add(unVerifLabel, gbc);
-        addInfoTooltip(unVerifLabel,
-                "The number of blocks in the download queue that are waiting for PoC (Proof-of-Capacity) verification. A persistently high number might indicate that the CPU or GPU is unable to keep up with the network.");
+        // Verified/Total Blocks
+        tooltip = "Shows the number of blocks verified against the total number of blocks in the queue. A high number of unverified blocks may indicate a slow verification process.";
+        JLabel verifLabel = createLabel("Verified/Total Blocks:", null, tooltip);
+        syncProgressBarDownloadedBlocks = createProgressBar(0, 100, Color.GREEN, "0 / 0 - 0%", progressBarSize);
+        addComponent(downloadPanel, verifLabel, 0, 0, 1, 0, 0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
+                labelInsets);
+        addComponent(downloadPanel, syncProgressBarDownloadedBlocks, 1, 0, 1, 1, 0, GridBagConstraints.LINE_START,
+                GridBagConstraints.HORIZONTAL, barInsets);
 
-        syncProgressBarUnverifiedBlocks = new JProgressBar(0, 2000); // Max 2000 unverified blocks, scaled by 100
-        syncProgressBarUnverifiedBlocks.setBackground(Color.RED);
-        syncProgressBarUnverifiedBlocks.setPreferredSize(progressBarSize);
-        syncProgressBarUnverifiedBlocks.setMinimumSize(progressBarSize);
-        syncProgressBarUnverifiedBlocks.setStringPainted(true);
-        syncProgressBarUnverifiedBlocks.setString("0");
-        syncProgressBarUnverifiedBlocks.setValue(0);
-        gbc.gridx = 1;
-        gbc.gridy = 1;
-        gbc.anchor = GridBagConstraints.LINE_START;
-        gbc.weightx = 1;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        downloadPanel.add(syncProgressBarUnverifiedBlocks, gbc);
+        // Unverified Blocks
+        tooltip = "The number of blocks in the download queue that are waiting for PoC (Proof-of-Capacity) verification. A persistently high number might indicate that the CPU or GPU is unable to keep up with the network.";
+        JLabel unVerifLabel = createLabel("Unverified Blocks:", null, tooltip);
+        syncProgressBarUnverifiedBlocks = createProgressBar(0, 2000, Color.GREEN, "0", progressBarSize);
+        addComponent(downloadPanel, unVerifLabel, 0, 1, 1, 0, 0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
+                labelInsets);
+        addComponent(downloadPanel, syncProgressBarUnverifiedBlocks, 1, 1, 1, 1, 0, GridBagConstraints.LINE_START,
+                GridBagConstraints.HORIZONTAL, barInsets);
 
-        // --- Separator ---
+        // Separator
         JSeparator separator1 = new JSeparator(SwingConstants.HORIZONTAL);
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.gridwidth = 2; // Span across all columns
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(2, 5, 2, 5); // Match other components' padding
-        downloadPanel.add(separator1, gbc);
-        gbc.gridwidth = 1; // Reset gridwidth
+        addComponent(downloadPanel, separator1, 0, 2, 2, 1, 0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
+                barInsets);
 
-        // --- Row 3: Blocks/Second (Moving Average) ---
-        JLabel blocksPerSecondLabel = new JLabel("Blocks/Sec (MA):");
-        blocksPerSecondLabel.setForeground(Color.CYAN);
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.anchor = GridBagConstraints.LINE_END;
-        gbc.weightx = 0;
-        gbc.fill = GridBagConstraints.NONE;
-        downloadPanel.add(blocksPerSecondLabel, gbc);
-        addInfoTooltip(blocksPerSecondLabel,
-                "The moving average of blocks processed per second. This indicates the speed at which your node is catching up with the blockchain.");
+        // Blocks/Second (Moving Average)
+        tooltip = "The moving average of blocks processed per second. This indicates the speed at which your node is catching up with the blockchain.";
+        JLabel blocksPerSecondLabel = createLabel("Blocks/Sec (MA):", Color.CYAN, tooltip);
+        blocksPerSecondProgressBar = createProgressBar(0, 200, null, "0", progressBarSize);
+        addComponent(downloadPanel, blocksPerSecondLabel, 0, 3, 1, 0, 0, GridBagConstraints.LINE_END,
+                GridBagConstraints.NONE, labelInsets);
+        addComponent(downloadPanel, blocksPerSecondProgressBar, 1, 3, 1, 0, 0, GridBagConstraints.LINE_START,
+                GridBagConstraints.HORIZONTAL, barInsets);
 
-        blocksPerSecondProgressBar = new JProgressBar(0, 200); // Max 2 blocks/sec, scaled by 100
-        blocksPerSecondProgressBar.setPreferredSize(progressBarSize);
-        blocksPerSecondProgressBar.setMinimumSize(progressBarSize);
-        blocksPerSecondProgressBar.setStringPainted(true);
-        blocksPerSecondProgressBar.setString("0");
-        blocksPerSecondProgressBar.setValue(0);
-        gbc.gridx = 1;
-        gbc.gridy = 3;
-        gbc.anchor = GridBagConstraints.LINE_START;
-        gbc.weightx = 0;
-        gbc.fill = GridBagConstraints.NONE;
-        downloadPanel.add(blocksPerSecondProgressBar, gbc);
+        // Transactions/Second (Moving Average)
+        tooltip = "The moving average of transactions processed per second. This metric reflects the current transactional throughput of the network as seen by your node.";
+        JLabel txPerSecondLabel = createLabel("Transactions/Sec (MA):", Color.GREEN, tooltip);
+        transactionsPerSecondProgressBar = createProgressBar(0, 2000, null, "0", progressBarSize);
+        addComponent(downloadPanel, txPerSecondLabel, 0, 4, 1, 0, 0, GridBagConstraints.LINE_END,
+                GridBagConstraints.NONE, labelInsets);
+        addComponent(downloadPanel, transactionsPerSecondProgressBar, 1, 4, 1, 0, 0, GridBagConstraints.LINE_START,
+                GridBagConstraints.HORIZONTAL, barInsets);
 
-        // --- Row 4: Transactions/Second (Moving Average) ---
-        JLabel txPerSecondLabel = new JLabel("Transactions/Sec (MA):");
-        txPerSecondLabel.setForeground(Color.GREEN);
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        gbc.anchor = GridBagConstraints.LINE_END;
-        downloadPanel.add(txPerSecondLabel, gbc);
-        addInfoTooltip(txPerSecondLabel,
-                "The moving average of transactions processed per second. This metric reflects the current transactional throughput of the network as seen by your node.");
+        // Transactions/Block (Moving Average)
+        tooltip = "The moving average of the number of transactions included in each block. This provides insight into how full blocks are on average.";
+        JLabel txPerBlockLabel = createLabel("Transactions/Block (MA):", new Color(255, 165, 0), tooltip);
+        transactionsPerBlockProgressBar = createProgressBar(0, 255, null, "0", progressBarSize);
+        addComponent(downloadPanel, txPerBlockLabel, 0, 5, 1, 0, 0, GridBagConstraints.LINE_END,
+                GridBagConstraints.NONE, labelInsets);
+        addComponent(downloadPanel, transactionsPerBlockProgressBar, 1, 5, 1, 0, 0, GridBagConstraints.LINE_START,
+                GridBagConstraints.HORIZONTAL, barInsets);
 
-        transactionsPerSecondProgressBar = new JProgressBar(0, 2000); // Max 2000 tx/s
-        transactionsPerSecondProgressBar.setPreferredSize(progressBarSize);
-        transactionsPerSecondProgressBar.setMinimumSize(progressBarSize);
-        transactionsPerSecondProgressBar.setStringPainted(true);
-        transactionsPerSecondProgressBar.setString("0");
-        transactionsPerSecondProgressBar.setValue(0);
-        gbc.gridx = 1;
-        gbc.gridy = 4;
-        gbc.anchor = GridBagConstraints.LINE_START;
-        downloadPanel.add(transactionsPerSecondProgressBar, gbc);
-
-        // --- Row 5: Transactions/Block (Moving Average) ---
-        JLabel txPerBlockLabel = new JLabel("Transactions/Block (MA):");
-        txPerBlockLabel.setForeground(new Color(255, 165, 0)); // Orange
-        gbc.gridx = 0;
-        gbc.gridy = 5;
-        gbc.anchor = GridBagConstraints.LINE_END;
-        downloadPanel.add(txPerBlockLabel, gbc);
-        addInfoTooltip(txPerBlockLabel,
-                "The moving average of the number of transactions included in each block. This provides insight into how full blocks are on average.");
-
-        transactionsPerBlockProgressBar = new JProgressBar(0, 255); // Max tx/block
-        transactionsPerBlockProgressBar.setPreferredSize(progressBarSize);
-        transactionsPerBlockProgressBar.setMinimumSize(progressBarSize);
-        transactionsPerBlockProgressBar.setStringPainted(true);
-        transactionsPerBlockProgressBar.setString("0");
-        transactionsPerBlockProgressBar.setValue(0);
-        gbc.gridx = 1;
-        gbc.gridy = 5;
-        gbc.anchor = GridBagConstraints.LINE_START;
-        downloadPanel.add(transactionsPerBlockProgressBar, gbc);
-
-        // --- Row 6: Moving Average Slider ---
-        JLabel maWindowLabel = new JLabel("MA Window (Blocks):");
-        gbc.gridx = 0;
-        gbc.gridy = 6;
-        gbc.anchor = GridBagConstraints.LINE_END;
-        downloadPanel.add(maWindowLabel, gbc);
-        addInfoTooltip(maWindowLabel,
-                "The number of recent blocks used to calculate the moving average for performance metrics. A larger window provides a smoother but less responsive trend, while a smaller window is more reactive to recent changes.");
+        // Moving Average Slider
+        tooltip = "The number of recent blocks used to calculate the moving average for performance metrics. A larger window provides a smoother but less responsive trend, while a smaller window is more reactive to recent changes.";
+        JLabel maWindowLabel = createLabel("MA Window (Blocks):", null, tooltip);
 
         // Define the discrete values for the slider
         final int[] maWindowValues = { 10, 100, 200, 300, 400, 500 };
@@ -488,257 +468,141 @@ public class SignumGUI extends JFrame {
                 movingAverageWindow = maWindowValues[source.getValue()];
             }
         });
-        gbc.gridx = 1;
-        gbc.gridy = 6;
-        gbc.gridwidth = 2;
-        gbc.weightx = 1;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.LINE_START;
-        downloadPanel.add(movingAverageSlider, gbc);
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.0;
-        gbc.fill = GridBagConstraints.NONE;
-        // === End Download Panel ===
 
-        // Add downloadPanel to the left
-        metricsGbc.gridx = 0;
-        metricsGbc.gridy = 0;
-        metricsGbc.weightx = 0.0;
-        metricsGbc.fill = GridBagConstraints.NONE;
-        metricsGbc.anchor = GridBagConstraints.NORTHWEST;
-        performanceMetricsPanel.add(downloadPanel, metricsGbc);
+        addComponent(downloadPanel, maWindowLabel, 0, 6, 1, 0, 0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
+                labelInsets);
+        addComponent(downloadPanel, movingAverageSlider, 1, 6, 2, 1, 0, GridBagConstraints.LINE_START,
+                GridBagConstraints.HORIZONTAL, barInsets);
 
-        // Create and add chart panel to the right
+        // Add downloadPanel to performanceMetricsPanel
+        addComponent(performanceMetricsPanel, downloadPanel, 0, 0, 1, 0, 0, GridBagConstraints.NORTHWEST,
+                GridBagConstraints.NONE, new Insets(0, 0, 0, 0));
+
+        // Performance chart
+        performanceChartPanel = createPerformanceChartPanel();
         JPanel performanceChartContainer = new JPanel();
         performanceChartContainer.setLayout(new BoxLayout(performanceChartContainer, BoxLayout.Y_AXIS));
-        performanceChartPanel = createPerformanceChartPanel();
         performanceChartContainer.add(performanceChartPanel);
+        // TODO: change insets
+        addComponent(performanceMetricsPanel, performanceChartContainer, 1, 0, 1, 0, 0, GridBagConstraints.NORTHWEST,
+                GridBagConstraints.NONE, new Insets(0, 0, 0, 0));
 
         addToggleListener(blocksPerSecondLabel, performanceChartPanel, 0, 0);
         addToggleListener(txPerSecondLabel, performanceChartPanel, 0, 1);
 
-        /*
-         * // --- Moving Average Slider ---
-         * movingAverageSlider = new JSlider(JSlider.HORIZONTAL, 10, 500,
-         * movingAverageWindow);
-         * movingAverageSlider.add(new Label("MA Window"), BorderLayout.NORTH);
-         * movingAverageSlider.setMajorTickSpacing(100);
-         * movingAverageSlider.setMinorTickSpacing(10);
-         * movingAverageSlider.setPaintTicks(true);
-         * movingAverageSlider.setPaintLabels(true);
-         * movingAverageSlider.addChangeListener(e -> {
-         * JSlider source = (JSlider) e.getSource();
-         * // Update only when the user releases the slider
-         * if (!source.getValueIsAdjusting()) {
-         * movingAverageWindow = source.getValue();
-         * }
-         * });
-         * 
-         * JPanel sliderWithLabelPanel = new JPanel(new BorderLayout());
-         * sliderWithLabelPanel.add(new VerticalLabel("MA Window"), BorderLayout.WEST);
-         * sliderWithLabelPanel.add(movingAverageSlider, BorderLayout.CENTER);
-         */
-        JPanel chartContainer = new JPanel(new BorderLayout(0, 0));
-        chartContainer.add(performanceChartContainer, BorderLayout.CENTER);
-        // chartContainer.add(sliderWithLabelPanel, BorderLayout.EAST);
-
-        metricsGbc.gridx = 1;
-        metricsGbc.gridy = 0;
-        metricsGbc.weightx = 0;
-        metricsGbc.weighty = 0;
-        metricsGbc.fill = GridBagConstraints.NONE;
-        metricsGbc.anchor = GridBagConstraints.NORTHWEST;
-        performanceMetricsPanel.add(chartContainer, metricsGbc);
-
-        // Add the performance metrics group to the main metrics panel
-        mainMetricsGbc.gridx = 0;
-        metricsPanel.add(performanceMetricsPanel, mainMetricsGbc);
-
-        // === Container for the second group of metrics (Timing) ===
-        JPanel timingMetricsPanel = new JPanel(new GridBagLayout()); // Main container for this group
-        metricsGbc = new GridBagConstraints(); // Re-using this from performance panel, which is
-                                               // fine.
+        // Add to main metrics panel
+        addComponent(metricsPanel, performanceMetricsPanel, 0, 0, 1, 0, 0, GridBagConstraints.CENTER,
+                GridBagConstraints.NONE, new Insets(0, 0, 0, 0));
 
         // Create the net speed chart panel early so its listeners can be attached
         netSpeedChartPanel = createNetSpeedChartPanel();
 
-        // === Start Timing Info Panel ===
-        // This panel will hold the labels, progress bars, and checkboxes, similar to
-        // 'downloadPanel'
+        // === Timing Metrics Panel ===
+        JPanel timingMetricsPanel = new JPanel(new GridBagLayout());
+
+        // Timing Info Panel (Progress Bars + Labels)
         JPanel timingInfoPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints timingGbc = new GridBagConstraints();
-        timingGbc.insets = new Insets(2, 0, 2, 5);
-        timingGbc.fill = GridBagConstraints.NONE;
-        timingGbc.weightx = 0;
 
         // --- Push Time ---
-        pushTimeLabel = new JLabel("Push Time/Block (MA):");
-        pushTimeLabel.setForeground(Color.BLUE);
-        timingGbc.gridx = 0;
-        timingGbc.gridy = 1;
-        timingGbc.anchor = GridBagConstraints.LINE_END;
-        timingInfoPanel.add(pushTimeLabel, timingGbc);
-        addInfoTooltip(pushTimeLabel,
-                "The moving average of the total time taken to process and push a new block to the blockchain, including all validations and database operations.");
-
-        pushTimeProgressBar = new JProgressBar(0, 100);
-        pushTimeProgressBar.setPreferredSize(progressBarSize);
-        pushTimeProgressBar.setMinimumSize(progressBarSize);
-        pushTimeProgressBar.setStringPainted(true);
-        pushTimeProgressBar.setString("0 ms");
-        timingGbc.gridx = 1;
-        timingGbc.gridy = 1;
-        timingGbc.anchor = GridBagConstraints.LINE_START;
-        timingInfoPanel.add(pushTimeProgressBar, timingGbc);
+        tooltip = "The moving average of the total time taken to process and push a new block to the blockchain, including all validations and database operations.";
+        pushTimeLabel = createLabel("Push Time/Block (MA):", Color.BLUE, tooltip);
+        pushTimeProgressBar = createProgressBar(0, 100, null, "0 ms", progressBarSize);
+        addComponent(timingInfoPanel, pushTimeLabel, 0, 1, 1, 0, 0, GridBagConstraints.LINE_END,
+                GridBagConstraints.NONE, labelInsets);
+        addComponent(timingInfoPanel, pushTimeProgressBar, 1, 1, 1, 0, 0, GridBagConstraints.LINE_START,
+                GridBagConstraints.HORIZONTAL, barInsets);
 
         // --- DB Time ---
-        dbTimeLabel = new JLabel("DB Time/Block (MA):");
-        dbTimeLabel.setForeground(Color.YELLOW);
-        timingGbc.gridx = 0;
-        timingGbc.gridy = 2;
-        timingGbc.anchor = GridBagConstraints.LINE_END;
-        timingInfoPanel.add(dbTimeLabel, timingGbc);
-        addInfoTooltip(dbTimeLabel,
-                "The moving average of the time spent on database operations for each block. High values may indicate a slow disk or database contention.");
-
-        dbTimeProgressBar = new JProgressBar(0, 100);
-        dbTimeProgressBar.setPreferredSize(progressBarSize);
-        dbTimeProgressBar.setMinimumSize(progressBarSize);
-        dbTimeProgressBar.setStringPainted(true);
-        dbTimeProgressBar.setString("0 ms");
-        timingGbc.gridx = 1;
-        timingGbc.gridy = 2;
-        timingGbc.anchor = GridBagConstraints.LINE_START;
-        timingInfoPanel.add(dbTimeProgressBar, timingGbc);
+        tooltip = "The moving average of the time spent on database operations for each block. High values may indicate a slow disk or database contention.";
+        dbTimeLabel = createLabel("DB Time/Block (MA):", Color.YELLOW, tooltip);
+        dbTimeProgressBar = createProgressBar(0, 100, null, "0 ms", progressBarSize);
+        addComponent(timingInfoPanel, dbTimeLabel, 0, 2, 1, 0, 0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
+                labelInsets);
+        addComponent(timingInfoPanel, dbTimeProgressBar, 1, 2, 1, 0, 0, GridBagConstraints.LINE_START,
+                GridBagConstraints.HORIZONTAL, barInsets);
 
         // --- AT Time ---
-        atTimeLabel = new JLabel("AT Time/Block (MA):");
-        atTimeLabel.setForeground(new Color(153, 0, 76)); // Deep Pink
-        timingGbc.gridx = 0;
-        timingGbc.gridy = 3;
-        timingGbc.anchor = GridBagConstraints.LINE_END;
-        timingInfoPanel.add(atTimeLabel, timingGbc);
-        addInfoTooltip(atTimeLabel,
-                "The moving average of the time spent processing Automated Transactions (ATs) within each block. This metric is relevant for assessing the performance impact of smart contracts on the network.");
-
-        atTimeProgressBar = new JProgressBar(0, 100);
-        atTimeProgressBar.setPreferredSize(progressBarSize);
-        atTimeProgressBar.setMinimumSize(progressBarSize);
-        atTimeProgressBar.setStringPainted(true);
-        atTimeProgressBar.setString("0 ms");
-        timingGbc.gridx = 1;
-        timingGbc.gridy = 3;
-        timingGbc.anchor = GridBagConstraints.LINE_START;
-        timingInfoPanel.add(atTimeProgressBar, timingGbc);
+        tooltip = "The moving average of the time spent processing Automated Transactions (ATs) within each block. This metric is relevant for assessing the performance impact of smart contracts on the network.";
+        atTimeLabel = createLabel("AT Time/Block (MA):", new Color(153, 0, 76), tooltip);
+        atTimeProgressBar = createProgressBar(0, 100, null, "0 ms", progressBarSize);
+        addComponent(timingInfoPanel, atTimeLabel, 0, 3, 1, 0, 0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
+                labelInsets);
+        addComponent(timingInfoPanel, atTimeProgressBar, 1, 3, 1, 0, 0, GridBagConstraints.LINE_START,
+                GridBagConstraints.HORIZONTAL, barInsets);
 
         // --- Calculation Time ---
-        calculationTimeLabel = new JLabel("Calc Time/Block (MA):");
-        calculationTimeLabel.setForeground(new Color(128, 0, 128));
-        timingGbc.gridx = 0;
-        timingGbc.gridy = 4;
-        timingGbc.anchor = GridBagConstraints.LINE_END;
-        timingInfoPanel.add(calculationTimeLabel, timingGbc);
-        addInfoTooltip(calculationTimeLabel,
-                "The moving average of the CPU time spent on calculations for each block, excluding database and Automated Transaction (AT) processing time. This includes signature verifications and other cryptographic operations.");
-
-        calculationTimeProgressBar = new JProgressBar(0, 100);
-        calculationTimeProgressBar.setPreferredSize(progressBarSize);
-        calculationTimeProgressBar.setMinimumSize(progressBarSize);
-        calculationTimeProgressBar.setStringPainted(true);
-        calculationTimeProgressBar.setString("0 ms");
-        timingGbc.gridx = 1;
-        timingGbc.gridy = 4;
-        timingGbc.anchor = GridBagConstraints.LINE_START;
-        timingInfoPanel.add(calculationTimeProgressBar, timingGbc);
+        tooltip = "The moving average of the CPU time spent on calculations for each block, excluding database and Automated Transaction (AT) processing time. This includes signature verifications and other cryptographic operations.";
+        calculationTimeLabel = createLabel("Calc Time/Block (MA):", new Color(128, 0, 128),
+                "Moving average CPU calculation time per block.");
+        calculationTimeProgressBar = createProgressBar(0, 100, null, "0 ms", progressBarSize);
+        addComponent(timingInfoPanel, calculationTimeLabel, 0, 4, 1, 0, 0, GridBagConstraints.LINE_END,
+                GridBagConstraints.NONE, labelInsets);
+        addComponent(timingInfoPanel, calculationTimeProgressBar, 1, 4, 1, 0, 0, GridBagConstraints.LINE_START,
+                GridBagConstraints.HORIZONTAL, barInsets);
 
         // --- Separator ---
         JSeparator separator2 = new JSeparator(SwingConstants.HORIZONTAL);
-        timingGbc.gridx = 0;
-        timingGbc.gridy = 5;
-        timingGbc.gridwidth = 2; // Span across all columns
-        timingGbc.fill = GridBagConstraints.HORIZONTAL;
-        timingInfoPanel.add(separator2, timingGbc);
-        timingGbc.gridwidth = 1;
+        addComponent(timingInfoPanel, separator2, 0, 5, 2, 1, 0, GridBagConstraints.CENTER,
+                GridBagConstraints.HORIZONTAL, barInsets);
 
         // --- Upload Speed ---
-        uploadSpeedLabel = new JLabel("Upload Speed:", SwingConstants.RIGHT);
-        uploadSpeedLabel.setForeground(new Color(128, 0, 0));
-        timingGbc.gridx = 0;
-        timingGbc.gridy = 6;
-        timingGbc.anchor = GridBagConstraints.LINE_END;
-        timingInfoPanel.add(uploadSpeedLabel, timingGbc);
-        addInfoTooltip(uploadSpeedLabel,
-                "The current data upload speed to other peers in the network. This reflects how much blockchain data your node is sharing.");
-
-        uploadSpeedProgressBar = new JProgressBar(0, MAX_SPEED_BPS);
-        uploadSpeedProgressBar.setPreferredSize(progressBarSize);
-        uploadSpeedProgressBar.setMinimumSize(progressBarSize);
-        uploadSpeedProgressBar.setStringPainted(true);
-        uploadSpeedProgressBar.setString("0 B/s");
-        timingGbc.gridx = 1;
-        timingGbc.gridy = 6;
-        timingGbc.anchor = GridBagConstraints.LINE_START;
-        timingInfoPanel.add(uploadSpeedProgressBar, timingGbc);
+        tooltip = "The current data upload speed to other peers in the network. This reflects how much blockchain data your node is sharing.";
+        uploadSpeedLabel = createLabel("Upload Speed:", new Color(128, 0, 0), tooltip);
+        uploadSpeedProgressBar = createProgressBar(0, MAX_SPEED_BPS, null, "0 B/s", progressBarSize);
+        addComponent(timingInfoPanel, uploadSpeedLabel, 0, 6, 1, 0, 0, GridBagConstraints.LINE_END,
+                GridBagConstraints.NONE, labelInsets);
+        addComponent(timingInfoPanel, uploadSpeedProgressBar, 1, 6, 1, 0, 0, GridBagConstraints.LINE_START,
+                GridBagConstraints.HORIZONTAL, barInsets);
 
         // --- Download Speed ---
-        downloadSpeedLabel = new JLabel("Download Speed:", SwingConstants.RIGHT);
-        downloadSpeedLabel.setForeground(new Color(0, 100, 0));
-        timingGbc.gridx = 0;
-        timingGbc.gridy = 7;
-        timingGbc.anchor = GridBagConstraints.LINE_END;
-        timingInfoPanel.add(downloadSpeedLabel, timingGbc);
-        addInfoTooltip(downloadSpeedLabel,
-                "The current data download speed from other peers in the network. This indicates how quickly your node is receiving blockchain data.");
-
-        downloadSpeedProgressBar = new JProgressBar(0, MAX_SPEED_BPS);
-        downloadSpeedProgressBar.setPreferredSize(new Dimension(150, 20));
-        downloadSpeedProgressBar.setStringPainted(true);
-        downloadSpeedProgressBar.setString("0 B/s");
-        timingGbc.gridx = 1;
-        timingGbc.gridy = 7;
-        timingGbc.anchor = GridBagConstraints.LINE_START;
-        timingInfoPanel.add(downloadSpeedProgressBar, timingGbc);
+        tooltip = "The current data download speed from other peers in the network. This indicates how quickly your node is receiving blockchain data.";
+        downloadSpeedLabel = createLabel("Download Speed:", new Color(0, 100, 0), tooltip);
+        downloadSpeedProgressBar = createProgressBar(0, MAX_SPEED_BPS, null, "0 B/s", progressBarSize);
+        addComponent(timingInfoPanel, downloadSpeedLabel, 0, 7, 1, 0, 0, GridBagConstraints.LINE_END,
+                GridBagConstraints.NONE, labelInsets);
+        addComponent(timingInfoPanel, downloadSpeedProgressBar, 1, 7, 1, 0, 0, GridBagConstraints.LINE_START,
+                GridBagConstraints.HORIZONTAL, barInsets);
 
         // --- Combined Volume ---
         JPanel combinedVolumePanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
         combinedVolumePanel.setOpaque(false);
-        JLabel volumeTitleLabel = new JLabel("Volume:", SwingConstants.RIGHT);
-        addInfoTooltip(volumeTitleLabel,
-                "The total amount of data uploaded to and downloaded from the network during this session. The format is Uploaded / Downloaded.");
+        tooltip = "The total amount of data uploaded to and downloaded from the network during this session. The format is Uploaded / Downloaded.";
+        JLabel volumeTitleLabel = createLabel("Volume:", null, tooltip);
+        tooltip = "The total amount of data uploaded to the network during this session.";
+        metricsUploadVolumeLabel = createLabel("", new Color(233, 150, 122), tooltip);
+        tooltip = "The total amount of data downloaded from the network during this session.";
+        metricsDownloadVolumeLabel = createLabel("", new Color(50, 205, 50), tooltip);
         combinedVolumePanel.add(volumeTitleLabel);
-
-        metricsUploadVolumeLabel = new JLabel();
-        metricsUploadVolumeLabel.setForeground(new Color(233, 150, 122)); // Upload color
-        addInfoTooltip(metricsUploadVolumeLabel,
-                "The total amount of data uploaded to the network during this session.");
-        metricsDownloadVolumeLabel = new JLabel();
-        metricsDownloadVolumeLabel.setForeground(new Color(50, 205, 50)); // Download color
-        addInfoTooltip(metricsDownloadVolumeLabel,
-                "The total amount of data downloaded from the network during this session.");
         combinedVolumePanel.add(metricsUploadVolumeLabel);
         combinedVolumePanel.add(new JLabel("/"));
         combinedVolumePanel.add(metricsDownloadVolumeLabel);
-        timingGbc.gridx = 0;
-        timingGbc.gridy = 8;
-        timingGbc.gridwidth = 2;
-        timingGbc.anchor = GridBagConstraints.CENTER;
-        timingInfoPanel.add(combinedVolumePanel, timingGbc);
-        timingGbc.gridwidth = 1; // Reset
-        timingGbc.anchor = GridBagConstraints.CENTER; // Reset anchor
-        // === End Timing Info Panel ===
+        addComponent(timingInfoPanel, combinedVolumePanel, 0, 8, 2, 1, 0, GridBagConstraints.CENTER,
+                GridBagConstraints.NONE, barInsets);
 
-        // Add timingInfoPanel to the left of the timingMetricsPanel
-        metricsGbc.gridx = 0;
-        metricsGbc.gridy = 0;
-        metricsGbc.weightx = 0;
-        metricsGbc.fill = GridBagConstraints.NONE;
-        metricsGbc.anchor = GridBagConstraints.NORTHWEST;
-        timingMetricsPanel.add(timingInfoPanel, metricsGbc);
+        // Add timingInfoPanel to timingMetricsPanel
+        addComponent(timingMetricsPanel, timingInfoPanel, 0, 0, 1, 0, 0, GridBagConstraints.NORTHWEST,
+                GridBagConstraints.NONE, new Insets(0, 0, 0, 0));
 
-        // Create and add chart panel to the right
+        // --- Timing Chart Panel ---
+        timingChartPanel = createTimingChartPanel();
         JPanel timingChartContainer = new JPanel();
         timingChartContainer.setLayout(new BoxLayout(timingChartContainer, BoxLayout.Y_AXIS));
-        timingChartPanel = createTimingChartPanel();
+        timingChartContainer.add(timingChartPanel);
+        addComponent(timingMetricsPanel, timingChartContainer, 1, 0, 1, 0, 0, GridBagConstraints.NORTHWEST,
+                GridBagConstraints.NONE, new Insets(0, 0, 0, 0));
+
+        // --- Net Speed Chart Panel ---
+        netSpeedChartPanel = createNetSpeedChartPanel();
+        JPanel netSpeedChartContainer = new JPanel();
+        netSpeedChartContainer.setLayout(new BoxLayout(netSpeedChartContainer, BoxLayout.Y_AXIS));
+        netSpeedChartContainer.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+        netSpeedChartContainer.add(netSpeedChartPanel);
+        addComponent(timingMetricsPanel, netSpeedChartContainer, 2, 0, 1, 0, 0, GridBagConstraints.NORTHWEST,
+                GridBagConstraints.NONE, new Insets(0, 0, 0, 5));
+
+        // Add the timing metrics group to the main metrics panel
+        addComponent(metricsPanel, timingMetricsPanel, 1, 0, 1, 0, 0, GridBagConstraints.CENTER,
+                GridBagConstraints.NONE, new Insets(0, 0, 0, 0));
 
         addDualChartToggleListener(txPerBlockLabel, performanceChartPanel, 1, 0, timingChartPanel, 1, 0);
         addToggleListener(pushTimeLabel, timingChartPanel, 0, 0);
@@ -752,35 +616,6 @@ public class SignumGUI extends JFrame {
         Color downloadVolumeColor = new Color(50, 205, 50, 128); // Green
         addPaintToggleListener(metricsUploadVolumeLabel, netSpeedChartPanel, 1, 1, uploadVolumeColor);
         addPaintToggleListener(metricsDownloadVolumeLabel, netSpeedChartPanel, 1, 0, downloadVolumeColor);
-        timingChartContainer.add(timingChartPanel);
-
-        JPanel timingChartContainerPanel = new JPanel(new BorderLayout(10, 0));
-        timingChartContainerPanel.add(timingChartContainer, BorderLayout.CENTER);
-        // chartContainer.add(sliderWithLabelPanel, BorderLayout.EAST);
-
-        metricsGbc.gridx = 1;
-        metricsGbc.gridy = 0;
-        metricsGbc.weightx = 0;
-        metricsGbc.weighty = 0;
-        metricsGbc.fill = GridBagConstraints.NONE;
-        metricsGbc.anchor = GridBagConstraints.NORTHWEST;
-        timingMetricsPanel.add(timingChartContainerPanel, metricsGbc);
-
-        // Create and add net speed chart panel to the right
-        JPanel netSpeedChartContainer = new JPanel();
-        netSpeedChartContainer.setLayout(new BoxLayout(netSpeedChartContainer, BoxLayout.Y_AXIS));
-        netSpeedChartContainer.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
-        netSpeedChartContainer.add(netSpeedChartPanel);
-
-        metricsGbc.gridx = 2;
-        metricsGbc.gridy = 0;
-        metricsGbc.fill = GridBagConstraints.NONE;
-        metricsGbc.anchor = GridBagConstraints.NORTHWEST;
-        timingMetricsPanel.add(netSpeedChartContainer, metricsGbc);
-
-        // Add the timing metrics group to the main metrics panel
-        mainMetricsGbc.gridx = 1;
-        metricsPanel.add(timingMetricsPanel, mainMetricsGbc);
 
         // === Add checkboxes to toolBar ===
         checkboxPanel = new JPanel();
@@ -820,77 +655,52 @@ public class SignumGUI extends JFrame {
 
         // --- Time Labels ---
         timePanel = new JPanel();
-        timePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        totalTimeLabel = new JLabel("0");
-        addInfoTooltip(totalTimeLabel, "Displays the total elapsed time since the node application was started.");
-        syncInProgressTimeLabel = new JLabel("0");
-        addInfoTooltip(syncInProgressTimeLabel,
-                "Displays the total time the node has spent in synchronization mode. The timer is active only when the blockchain is more than 10 blocks behind the network.");
-        timePanel.add(totalTimeLabel);
-        timePanel.add(new JLabel("/"));
-        timePanel.add(syncInProgressTimeLabel);
-        timePanel.setVisible(false);
+        timePanel.setLayout(new BoxLayout(timePanel, BoxLayout.X_AXIS));
+        timePanel.setOpaque(false);
+        tooltip = "Displays the total elapsed time since the node application was started.";
+        totalTimeLabel = createLabel("0s", null, tooltip);
+        tooltip = "Displays the total time the node has spent in synchronization mode. The timer is active only when the blockchain is more than 10 blocks behind the network.";
+        syncInProgressTimeLabel = createLabel("0s", null, tooltip);
 
         timeSeparator = new JSeparator(SwingConstants.VERTICAL);
-        timeSeparator.setVisible(false);
+        timeSeparatorLabel = new JLabel(" / ");
+
+        timePanel.add(totalTimeLabel);
+        timePanel.add(timeSeparatorLabel);
+        timePanel.add(syncInProgressTimeLabel);
+        timePanel.add(Box.createHorizontalStrut(5));
+        timePanel.add(timeSeparator);
+        timePanel.add(Box.createHorizontalStrut(5));
+        timePanel.setVisible(false);
 
         // --- Peers ---
-        JPanel peersPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        connectedPeersLabel = new JLabel("000");
-        addInfoTooltip(connectedPeersLabel, "The number of peers your node is currently connected to.");
-        peersCountLabel = new JLabel("000");
-        addInfoTooltip(peersCountLabel,
-                "The total number of peers your node has discovered in the network, including both connected and disconnected peers.");
-        peersPanel.add(new JLabel("Peers:"));
+        JPanel peersPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        tooltip = "The number of peers your node is currently connected to.";
+        connectedPeersLabel = createLabel("000", null, tooltip);
+        tooltip = "The total number of peers discovered by your node.";
+        peersCountLabel = createLabel("000", null, tooltip);
+
+        peersPanel.add(new JLabel("Peers: "));
         peersPanel.add(connectedPeersLabel);
-        peersPanel.add(new JLabel("/"));
+        peersPanel.add(new JLabel(" / "));
         peersPanel.add(peersCountLabel);
 
-        // peersLabel.setFont(monoFont);
-        /*
-         * Dimension peersDim = new Dimension(
-         * peersLabel.getFontMetrics(monoFont).stringWidth("000 / 000"),
-         * peersLabel.getPreferredSize().height);
-         * peersLabel.setPreferredSize(peersDim);
-         */
-        // peersPanel.add(peersLabel);
-
-        // --- Speed ---
-        // JPanel speedPanel = new JPanel(new BorderLayout());
-        // speedPanel.add(new JLabel("Speed:"));
-
         // --- Volume ---
-        JPanel volumePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        // volumePanel.add(new JLabel("Volume:"));
+        JPanel volumePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
 
         // Upload
-        uploadVolumeLabel = new JLabel("▲ 000 MB");
-        addInfoTooltip(uploadVolumeLabel,
-                "The total amount of data your node has uploaded to other peers since the application started.");
+        tooltip = "The total amount of data your node has uploaded to other peers since the application started.";
+        uploadVolumeLabel = createLabel("▲ 000 MB", null, tooltip);
 
         // Download
-        downloadVolumeLabel = new JLabel("▼ 000 MB");
-        addInfoTooltip(downloadVolumeLabel,
-                "The total amount of data your node has downloaded from other peers since the application started.");
+        tooltip = "The total amount of data your node has downloaded from other peers since the application started.";
+        downloadVolumeLabel = createLabel("▼ 000 MB", null, tooltip);
 
-        // uploadVolumeLabel.setFont(monoFont);
-        /*
-         * Dimension volumeDim = new Dimension(
-         * uploadVolumeLabel.getFontMetrics(monoFont).stringWidth("↑ 000 PB"),
-         * uploadVolumeLabel.getPreferredSize().height);
-         * uploadVolumeLabel.setPreferredSize(volumeDim);
-         */
         volumePanel.add(uploadVolumeLabel);
-        volumePanel.add(new JLabel("/"));
+        volumePanel.add(new JLabel(" / "));
         volumePanel.add(downloadVolumeLabel);
 
-        // --- Main infoPanel sorrend ---
-        // infoPanel.removeAll();
-
         infoPanel.add(timePanel);
-        infoPanel.add(Box.createHorizontalStrut(5));
-        infoPanel.add(timeSeparator);
-        infoPanel.add(Box.createHorizontalStrut(5));
 
         infoPanel.add(peersPanel);
         infoPanel.add(Box.createHorizontalStrut(5));
@@ -900,13 +710,51 @@ public class SignumGUI extends JFrame {
         infoPanel.add(Box.createHorizontalStrut(5));
         infoPanel.add(new JSeparator(SwingConstants.VERTICAL));
         infoPanel.add(Box.createHorizontalStrut(5));
+
+        // --- Measurement ---
+        measurementPanel = new JPanel();
+        measurementPanel.setLayout(new BoxLayout(measurementPanel, BoxLayout.X_AXIS));
+        measurementPanel.setOpaque(false);
+        measurementSeparator = new JSeparator(SwingConstants.VERTICAL);
+        tooltip = "Performance measurement is active. \n"
+                + "Detailed syncronization datas are collecting for each blocks and being saved to \n"
+                + "measurement/sync_measurement.csv and \n"
+                + "measurement/sync_progress.csv for analysis.";
+        measurementLabel = createLabel("🔬 MEAS", null, tooltip);
+        measurementPanel.setVisible(false);
+
+        measurementPanel.add(measurementLabel);
+        measurementPanel.add(Box.createHorizontalStrut(5));
+        measurementPanel.add(measurementSeparator);
+        measurementPanel.add(Box.createHorizontalStrut(5));
+
+        infoPanel.add(measurementPanel);
+
+        // --- Experimental ---
+        experimentalPanel = new JPanel();
+        experimentalPanel.setLayout(new BoxLayout(experimentalPanel, BoxLayout.X_AXIS));
+        experimentalPanel.setOpaque(false);
+        experimentalSeparator = new JSeparator(SwingConstants.VERTICAL);
+        tooltip = "Experimental feature is enabled.\n"
+                + "Symplified datas are collecting and being saved to \n"
+                + "measurement/sync_progress.csv file for analysis.";
+        experimentalLabel = createLabel("⚗ EXP", null, tooltip);
+        experimentalPanel.setVisible(false);
+
+        experimentalPanel.add(experimentalLabel);
+        experimentalPanel.add(Box.createHorizontalStrut(5));
+        experimentalPanel.add(experimentalSeparator);
+        experimentalPanel.add(Box.createHorizontalStrut(5));
+
+        infoPanel.add(experimentalPanel);
+
         infoPanel.add(syncProgressBar);
 
         bottomPanel.add(infoLable, BorderLayout.CENTER);
         bottomPanel.add(infoPanel, BorderLayout.LINE_END);
 
         pack();
-        setSize(metricsPanel.getPreferredSize().width, 800);
+        setSize(Math.max(topPanel.getPreferredSize().width, metricsPanel.getPreferredSize().width), 800);
         setLocationRelativeTo(null);
         try {
             setIconImage(ImageIO.read(getClass().getResourceAsStream(iconLocation)));
@@ -943,25 +791,6 @@ public class SignumGUI extends JFrame {
 
         // Start BRS
         new Thread(this::startSignumWithGUI).start();
-    }
-
-    private void addInfoTooltip(JLabel label, String text) {
-        label.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (SwingUtilities.isRightMouseButton(e)) {
-                    String title = label.getText();
-                    // Remove trailing colon for a cleaner title
-                    if (title.endsWith(":")) {
-                        title = title.substring(0, title.length() - 1);
-                    }
-                    // Wrap the text in HTML to control the width of the dialog.
-                    String htmlText = "<html><body><p style='width: 300px;'>" + text.replace("\n", "<br>")
-                            + "</p></body></html>";
-                    JOptionPane.showMessageDialog(SignumGUI.this, htmlText, title, JOptionPane.PLAIN_MESSAGE);
-                }
-            }
-        });
     }
 
     /**
@@ -1276,11 +1105,11 @@ public class SignumGUI extends JFrame {
     private void startGuiTimer() {
         guiTimer = new Timer(1000, e -> {
             if (Signum.getBlockchain() != null && Signum.getBlockchainProcessor() != null) {
+
                 // The timer is started when the first download volume is received, so we
-                // increment total elapsed
-                // time.
+                // increment total elapsed time.
                 guiAccumulatedSyncTimeMs += 1000;
-                totalTimeLabel.setText("Total Elapsed Time: " + formatDuration(guiAccumulatedSyncTimeMs));
+                totalTimeLabel.setText("🕒 " + formatDuration(guiAccumulatedSyncTimeMs));
 
                 int height = Signum.getBlockchain().getHeight();
                 int feederHeight = Signum.getBlockchainProcessor().getLastBlockchainFeederHeight();
@@ -1296,7 +1125,9 @@ public class SignumGUI extends JFrame {
                     guiAccumulatedSyncInProgressTimeMs += 1000;
                 }
                 syncInProgressTimeLabel
-                        .setText("Syncing Time: " + formatDuration(guiAccumulatedSyncInProgressTimeMs));
+                        .setText("🔄 " + formatDuration(guiAccumulatedSyncInProgressTimeMs));
+
+                updateTimeLabelVisibility();
             }
         });
         guiTimer.start();
@@ -1327,6 +1158,8 @@ public class SignumGUI extends JFrame {
             oclUnverifiedQueueThreshold = Signum.getPropertyService().getInt(Props.GPU_UNVERIFIED_QUEUE);
             showPopOff = Signum.getPropertyService().getBoolean(Props.EXPERIMENTAL);
             showMetrics = Signum.getPropertyService().getBoolean(Props.EXPERIMENTAL);
+            boolean measurementActive = Signum.getPropertyService().getBoolean(Props.MEASUREMENT_ACTIVE);
+            boolean experimentalActive = Signum.getPropertyService().getBoolean(Props.EXPERIMENTAL);
 
             try {
                 SwingUtilities.invokeLater(() -> {
@@ -1336,9 +1169,12 @@ public class SignumGUI extends JFrame {
                     showMetricsCheckbox.setSelected(showMetrics);
                     // Sync panel visibility with loaded properties
                     metricsPanel.setVisible(showMetrics);
-                    if (showMetrics) {
+                    if (measurementActive) {
+                        measurementPanel.setVisible(true);
+                    }
+                    if (experimentalActive) {
+                        experimentalPanel.setVisible(true);
                         timePanel.setVisible(true);
-                        timeSeparator.setVisible(true);
                     }
                 });
 
@@ -1355,9 +1191,10 @@ public class SignumGUI extends JFrame {
                     }
                     // Update labels with initial values from log file
                     SwingUtilities.invokeLater(() -> {
-                        totalTimeLabel.setText("Total Elapsed Time: " + formatDuration(guiAccumulatedSyncTimeMs));
+                        totalTimeLabel.setText("🕒 " + formatDuration(guiAccumulatedSyncTimeMs));
                         syncInProgressTimeLabel
-                                .setText("Syncing Time: " + formatDuration(guiAccumulatedSyncInProgressTimeMs));
+                                .setText("🔄 " + formatDuration(guiAccumulatedSyncInProgressTimeMs));
+                        updateTimeLabelVisibility(); // Initial visibility check
                     });
                 }
                 if (Signum.getBlockchain() == null)
@@ -1372,6 +1209,13 @@ public class SignumGUI extends JFrame {
         }
 
     }
+
+    private void updateTimeLabelVisibility() {
+        boolean showTotalTime = guiAccumulatedSyncTimeMs != guiAccumulatedSyncInProgressTimeMs;
+        totalTimeLabel.setVisible(showTotalTime);
+        timeSeparatorLabel.setVisible(showTotalTime);
+    }
+
     /*
      * * This method is called when the Signum service is restarted.
      * * It re-initializes the GUI components and updates the state to reflect the

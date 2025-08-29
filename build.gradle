@@ -66,8 +66,8 @@ dependencies {
     implementation 'com.github.jiconfont:jiconfont:1.0.0'
     implementation 'com.github.jiconfont:jiconfont-swing:1.0.1'
     implementation 'com.github.jiconfont:jiconfont-font_awesome:4.7.0.1'
-    implementation 'org.apache.logging.log4j:log4j-api:2.17.1'
-    implementation 'org.apache.logging.log4j:log4j-core:2.17.1'
+    implementation 'org.apache.logging.log4j:log4j-api:2.25.1'
+    implementation 'org.apache.logging.log4j:log4j-core:2.25.1'
     implementation 'org.eclipse.jgit:org.eclipse.jgit:6.5.0.202303070854-r'
 
 

@@ -1106,6 +1106,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                     if (parts.length == 3) {
                         this.accumulatedSyncInProgressTimeMs = Long.parseLong(parts[0].trim()) * 1000;
                         this.accumulatedSyncTimeMs = Long.parseLong(parts[1].trim()) * 1000;
+                        logger.info("Reading sync progress from {}:", this.syncProgressLogFilename);
+                        logger.info("  - Accumulated Sync In Progress Time: {}s",
+                                this.accumulatedSyncInProgressTimeMs / 1000);
+                        logger.info("  - Accumulated Sync Time: {}s", this.accumulatedSyncTimeMs / 1000);
                     } else {
                         // Malformed line, treat as new file
                         fileExistsAndHasContent = false;
@@ -1119,6 +1123,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
         if (!fileExistsAndHasContent) {
             try (PrintWriter writer = new PrintWriter(new FileWriter(file, false))) { // overwrite
+                logger.info("Creating new sync progress log file: {}", this.syncProgressLogFilename);
                 /*
                  * Header:
                  * Accumulated_sync_in_progress_time[s];Accumulated_sync_time[s];Block_height
@@ -1142,6 +1147,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         File file = new File(this.syncMeasurementLogFilename);
         if (!file.exists()) {
             try (PrintWriter writer = new PrintWriter(new FileWriter(file, false))) {
+                logger.info("Creating new sync measurement log file: {}", this.syncMeasurementLogFilename);
                 /*
                  * Header:
                  * Block_timestamp;Cumulative_difficulty;Accumulated_sync_in_progress_time[ms];

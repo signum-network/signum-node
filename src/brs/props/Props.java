@@ -99,8 +99,11 @@ public class Props {
 
     public static final Prop<String> ICON_LOCATION = new Prop<>("node.iconLocation", "/images/signum_overlay_logo.png");
 
+    public static final Prop<Boolean> MEASUREMENT_ACTIVE = new Prop<>("node.measurementActive", false);
+    public static final Prop<String> MEASUREMENT_DIR = new Prop<>("node.measurementDir", "../measurement");
+
     // Checkpoint block for faster sync from empty database
-    public static final Prop<Integer> BRS_CHECKPOINT_HEIGHT = new Prop<>("node.checkPointHeight",  1_418_000);
+    public static final Prop<Integer> BRS_CHECKPOINT_HEIGHT = new Prop<>("node.checkPointHeight", 1_418_000);
     public static final Prop<String> BRS_CHECKPOINT_HASH = new Prop<>("node.checkPointPrevHash",
             "8f76beca852b41447ac59fbdf78750e43dde97f9fc09ec8f071eeb03c43420f0");
     public static final Prop<String> BRS_PK_CHECKS = new Prop<>("node.pkChecks",
@@ -136,7 +139,7 @@ public class Props {
     public static final Prop<String> DB_SQLITE_SYNCHRONOUS = new Prop<>("DB.SqliteSynchronous", "NORMAL");
 
     // Cache Management
-    public static final Prop<Integer> DB_SQLITE_CACHE_SIZE = new Prop<>("DB.SqliteCacheSize",  -131072);
+    public static final Prop<Integer> DB_SQLITE_CACHE_SIZE = new Prop<>("DB.SqliteCacheSize", -131072);
     public static final Prop<Integer> BRS_BLOCK_CACHE_MB = new Prop<>("node.blockCacheMB", 40);
     public static final Prop<Integer> BRS_AT_PROCESSOR_CACHE_BLOCK_COUNT = new Prop<>("node.atProcessorCacheBlockCount",
             1000);

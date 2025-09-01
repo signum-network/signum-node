@@ -62,6 +62,8 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -117,6 +119,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     private final AtomicBoolean isSyncingForLog = new AtomicBoolean(false);
 
     private final boolean measurementActive;
+    private final ExecutorService measurementLogExecutor;
     private final List<String> measurementData = Collections.synchronizedList(new ArrayList<>());
     private final String measurementDir;
     private final String syncProgressLogFilename;
@@ -169,6 +172,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         if (isShutdown.getAndSet(true)) {
             return; // Already shutdown
         }
+
         if (logSyncProgressToCsv) {
             long currentTime = System.currentTimeMillis();
             long deltaTime = currentTime - lastSyncLogTimestamp;
@@ -178,13 +182,31 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             }
             writeSyncProgressLog(accumulatedSyncTimeMs, blockchain.getHeight());
         }
+
         if (measurementActive) {
             writeMeasurementLog();
         }
+
+        if (measurementLogExecutor != null) {
+            logger.info("Shutting down measurement log executor...");
+            measurementLogExecutor.shutdown();
+            try {
+                if (!measurementLogExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+                    logger.warn("Measurement log executor did not terminate in 10 seconds.");
+                    measurementLogExecutor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                logger.warn("Interrupted while waiting for measurement log executor to terminate.");
+                measurementLogExecutor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+        }
+
         blockListeners.clear();
         for (Peers.Event event : Peers.Event.values()) {
             Peers.removeListener(peerListener, event);
         }
+
         if (getOclVerify()) {
             logger.info("Destroying OCLPoC instance from BlockchainProcessor.");
             OCLPoC.destroy();
@@ -280,6 +302,13 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         this.propertyService = propertyService;
         this.measurementActive = propertyService.getBoolean(Props.MEASUREMENT_ACTIVE);
         this.logSyncProgressToCsv = propertyService.getBoolean(Props.EXPERIMENTAL);
+
+        if (this.measurementActive || this.logSyncProgressToCsv) {
+            // A single-threaded executor ensures that log entries are written in order.
+            this.measurementLogExecutor = Executors.newSingleThreadExecutor();
+        } else {
+            this.measurementLogExecutor = null;
+        }
 
         String finalMeasurementDir;
         if (logSyncProgressToCsv || measurementActive) {
@@ -1185,11 +1214,17 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
      * @param height Current block height
      */
     private void writeSyncProgressLog(long totalTime, int height) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(this.syncProgressLogFilename, true))) {
-            writer.println(accumulatedSyncInProgressTimeMs / 1000 + ";" + totalTime / 1000 + ";" + height);
-        } catch (IOException e) {
-            logger.error("Failed to write to sync progress log", e);
+        if (measurementLogExecutor == null) {
+            return;
         }
+
+        measurementLogExecutor.submit(() -> {
+            try (PrintWriter writer = new PrintWriter(new FileWriter(this.syncProgressLogFilename, true))) {
+                writer.println(accumulatedSyncInProgressTimeMs / 1000 + ";" + totalTime / 1000 + ";" + height);
+            } catch (IOException e) {
+                logger.error("Failed to write to sync progress log", e);
+            }
+        });
     }
 
     private void writeMeasurementLog() {
@@ -1198,7 +1233,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
         // To avoid ConcurrentModificationException, we copy the list and clear the
         // original
-        List<String> dataToWrite;
+        final List<String> dataToWrite;
         synchronized (measurementData) {
             if (measurementData.isEmpty()) {
                 return;
@@ -1207,12 +1242,17 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             measurementData.clear();
         }
 
-        try (PrintWriter writer = new PrintWriter(new FileWriter(this.syncMeasurementLogFilename, true))) {
-            dataToWrite.forEach(writer::println);
-        } catch (IOException e) {
-            logger.error("Failed to write to sync measurement log", e);
+        if (measurementLogExecutor == null) {
+            return;
         }
 
+        measurementLogExecutor.submit(() -> {
+            try (PrintWriter writer = new PrintWriter(new FileWriter(this.syncMeasurementLogFilename, true))) {
+                dataToWrite.forEach(writer::println);
+            } catch (IOException e) {
+                logger.error("Failed to write to sync measurement log", e);
+            }
+        });
     }
 
     @Override

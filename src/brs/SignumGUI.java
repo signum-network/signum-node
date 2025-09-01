@@ -39,6 +39,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.UIManager;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.jfree.chart.ChartFactory;
@@ -99,6 +101,7 @@ public class SignumGUI extends JFrame {
     private final LinkedList<Long> pushTimes = new LinkedList<>();
     private final LinkedList<Long> dbTimes = new LinkedList<>();
     private final LinkedList<Long> atTimes = new LinkedList<>();
+    private final LinkedList<Long> calculationTimes = new LinkedList<>();
     private final LinkedList<Double> blocksPerSecondHistory = new LinkedList<>();
     private final LinkedList<Double> transactionsPerSecondHistory = new LinkedList<>();
     private int movingAverageWindow = 100; // Default value
@@ -223,6 +226,8 @@ public class SignumGUI extends JFrame {
      */
     private Timer guiTimer;
     private boolean guiTimerStarted = false;
+
+    private final ExecutorService chartUpdateExecutor = Executors.newSingleThreadExecutor();
 
     private JProgressBar createProgressBar(int min, int max, Color color, String initialString, Dimension size) {
         JProgressBar bar = new JProgressBar(min, max);
@@ -870,6 +875,7 @@ public class SignumGUI extends JFrame {
             if (trayIcon != null && SystemTray.isSupported()) {
                 SystemTray.getSystemTray().remove(trayIcon);
             }
+            chartUpdateExecutor.shutdown();
             System.exit(0);
         }).start();
     }
@@ -1135,18 +1141,20 @@ public class SignumGUI extends JFrame {
 
     public void onPerformanceStatsUpdated(Block block) {
         BlockchainProcessor.PerformanceStats stats = Signum.getBlockchainProcessor().getPerformanceStats();
-        if (stats != null) {
-            SwingUtilities
-                    .invokeLater(() -> updateTimingChart(stats.totalTimeMs, stats.dbTimeMs, stats.atTimeMs, block));
+        if (stats != null && block != null) {
+            chartUpdateExecutor.submit(() -> {
+                updateTimingChart(stats.totalTimeMs, stats.dbTimeMs, stats.atTimeMs, block);
+            });
         }
     }
 
     private void onBlockPushed(Block block) {
-        // All UI updates should be on the Event Dispatch Thread (EDT)
-        SwingUtilities.invokeLater(() -> {
-            updateLatestBlock(block);
-            updatePerformanceChart(block);
-        });
+        if (block == null)
+            return;
+
+        // Submit the heavy lifting to a background thread
+        chartUpdateExecutor.submit(() -> updatePerformanceChart(block));
+        SwingUtilities.invokeLater(() -> updateLatestBlock(block));
     }
 
     public void startSignumWithGUI() {
@@ -1308,99 +1316,95 @@ public class SignumGUI extends JFrame {
     }
 
     private void updateNetVolumeAndSpeedChart(long uploadedVolume, long downloadedVolume) {
+        chartUpdateExecutor.submit(() -> {
+            // --- Calculations on background thread ---
+            long currentTime = System.currentTimeMillis();
+            if (lastNetVolumeUpdateTime == 0) {
+                lastNetVolumeUpdateTime = currentTime;
+                lastUploadedVolume = uploadedVolume;
+                lastDownloadedVolume = downloadedVolume;
+                return;
+            }
 
-        this.uploadedVolume = uploadedVolume;
-        this.downloadedVolume = downloadedVolume;
+            long deltaTime = currentTime - lastNetVolumeUpdateTime;
+            if (deltaTime <= 0) {
+                return; // Avoid division by zero or negative time intervals
+            }
 
-        uploadVolumeLabel.setText("▲ " + formatDataSize(uploadedVolume));
-        downloadVolumeLabel.setText("▼ " + formatDataSize(downloadedVolume));
+            long deltaUploaded = uploadedVolume - lastUploadedVolume;
+            long deltaDownloaded = downloadedVolume - lastDownloadedVolume;
 
-        if (metricsUploadVolumeLabel != null) {
-            // metricsUploadVolumeLabel.setText(formatDataSize(uploadedVolume));
-            metricsUploadVolumeLabel.setText("▲ " + formatDataSize(uploadedVolume));
-        }
-        if (metricsDownloadVolumeLabel != null) {
-            // metricsDownloadVolumeLabel.setText(formatDataSize(downloadedVolume));
-            metricsDownloadVolumeLabel.setText("▼ " + formatDataSize(downloadedVolume));
-        }
+            double currentUploadSpeed = (double) deltaUploaded * 1000 / deltaTime; // bytes per second
+            double currentDownloadSpeed = (double) deltaDownloaded * 1000 / deltaTime; // bytes per second
 
-        long currentTime = System.currentTimeMillis();
-        if (lastNetVolumeUpdateTime == 0) {
+            // Add current speed to history and maintain size
+            uploadSpeedHistory.add(currentUploadSpeed);
+            if (uploadSpeedHistory.size() > SPEED_HISTORY_SIZE) {
+                uploadSpeedHistory.removeFirst();
+            }
+
+            downloadSpeedHistory.add(currentDownloadSpeed);
+            if (downloadSpeedHistory.size() > SPEED_HISTORY_SIZE) {
+                downloadSpeedHistory.removeFirst();
+            }
+
+            int currentWindowSize = Math.min(uploadSpeedHistory.size(), 100);
+            if (currentWindowSize < 1) {
+                return;
+            }
+
+            double avgUploadSpeed = uploadSpeedHistory.stream()
+                    .skip(Math.max(0, uploadSpeedHistory.size() - currentWindowSize))
+                    .mapToDouble(d -> d)
+                    .average().orElse(0.0);
+
+            double avgDownloadSpeed = downloadSpeedHistory.stream()
+                    .skip(Math.max(0, downloadSpeedHistory.size() - currentWindowSize))
+                    .mapToDouble(d -> d)
+                    .average().orElse(0.0);
+
             lastNetVolumeUpdateTime = currentTime;
             lastUploadedVolume = uploadedVolume;
             lastDownloadedVolume = downloadedVolume;
-            return;
-        }
 
-        long deltaTime = currentTime - lastNetVolumeUpdateTime;
-        if (deltaTime <= 0) {
-            return; // Avoid division by zero or negative time intervals
-        }
+            // --- UI Updates on EDT ---
+            SwingUtilities.invokeLater(() -> {
+                uploadVolumeLabel.setText("▲ " + formatDataSize(uploadedVolume));
+                downloadVolumeLabel.setText("▼ " + formatDataSize(downloadedVolume));
 
-        long deltaUploaded = uploadedVolume - lastUploadedVolume;
-        long deltaDownloaded = downloadedVolume - lastDownloadedVolume;
+                if (metricsUploadVolumeLabel != null) {
+                    metricsUploadVolumeLabel.setText("▲ " + formatDataSize(uploadedVolume));
+                }
+                if (metricsDownloadVolumeLabel != null) {
+                    metricsDownloadVolumeLabel.setText("▼ " + formatDataSize(downloadedVolume));
+                }
 
-        double currentUploadSpeed = (double) deltaUploaded * 1000 / deltaTime; // bytes per second
-        double currentDownloadSpeed = (double) deltaDownloaded * 1000 / deltaTime; // bytes per second
+                uploadSpeedProgressBar.setValue((int) avgUploadSpeed);
+                uploadSpeedProgressBar.setString(formatDataRate(avgUploadSpeed));
+                downloadSpeedProgressBar.setValue((int) avgDownloadSpeed);
+                downloadSpeedProgressBar.setString(formatDataRate(avgDownloadSpeed));
 
-        // Add current speed to history and maintain size
-        uploadSpeedHistory.add(currentUploadSpeed);
-        if (uploadSpeedHistory.size() > SPEED_HISTORY_SIZE) {
-            uploadSpeedHistory.removeFirst();
-        }
+                if (uploadedVolume > 0 || downloadedVolume > 0) {
+                    uploadSpeedSeries.add(currentTime, avgUploadSpeed);
+                    downloadSpeedSeries.add(currentTime, avgDownloadSpeed);
+                    uploadVolumeSeries.add(currentTime, uploadedVolume);
+                    downloadVolumeSeries.add(currentTime, downloadedVolume);
 
-        downloadSpeedHistory.add(currentDownloadSpeed);
-        if (downloadSpeedHistory.size() > SPEED_HISTORY_SIZE) {
-            downloadSpeedHistory.removeFirst();
-        }
-
-        int currentWindowSize = Math.min(uploadSpeedHistory.size(), 100);
-        if (currentWindowSize < 1) {
-            return;
-        }
-
-        double avgUploadSpeed = uploadSpeedHistory.stream()
-                .skip(Math.max(0, uploadSpeedHistory.size() - currentWindowSize))
-                .mapToDouble(d -> d)
-                .average().orElse(0.0);
-
-        double avgDownloadSpeed = downloadSpeedHistory.stream()
-                .skip(Math.max(0, downloadSpeedHistory.size() - currentWindowSize))
-                .mapToDouble(d -> d)
-                .average().orElse(0.0);
-
-        uploadSpeedProgressBar.setValue((int) avgUploadSpeed);
-        uploadSpeedProgressBar.setString(formatDataRate(avgUploadSpeed));
-        downloadSpeedProgressBar.setValue((int) avgDownloadSpeed);
-        downloadSpeedProgressBar
-                .setString(formatDataRate(avgDownloadSpeed));
-
-        lastNetVolumeUpdateTime = currentTime;
-        lastUploadedVolume = uploadedVolume;
-        lastDownloadedVolume = downloadedVolume;
-
-        if (uploadedVolume > 0 || downloadedVolume > 0) {
-            // Update chart series
-            uploadSpeedSeries.add(currentTime, avgUploadSpeed);
-            downloadSpeedSeries.add(currentTime, avgDownloadSpeed);
-            uploadVolumeSeries.add(currentTime, uploadedVolume);
-            downloadVolumeSeries.add(currentTime, downloadedVolume);
-
-            // Keep history size for chart
-            while (uploadSpeedSeries.getItemCount() > SPEED_HISTORY_SIZE) {
-                uploadSpeedSeries.remove(0);
-            }
-            while (downloadSpeedSeries.getItemCount() > SPEED_HISTORY_SIZE) {
-                downloadSpeedSeries.remove(0);
-            }
-            while (uploadVolumeSeries.getItemCount() > SPEED_HISTORY_SIZE) {
-                uploadVolumeSeries.remove(0);
-            }
-            while (downloadVolumeSeries.getItemCount() > SPEED_HISTORY_SIZE) {
-                downloadVolumeSeries.remove(0);
-            }
-        }
-
+                    while (uploadSpeedSeries.getItemCount() > SPEED_HISTORY_SIZE) {
+                        uploadSpeedSeries.remove(0);
+                    }
+                    while (downloadSpeedSeries.getItemCount() > SPEED_HISTORY_SIZE) {
+                        downloadSpeedSeries.remove(0);
+                    }
+                    while (uploadVolumeSeries.getItemCount() > SPEED_HISTORY_SIZE) {
+                        uploadVolumeSeries.remove(0);
+                    }
+                    while (downloadVolumeSeries.getItemCount() > SPEED_HISTORY_SIZE) {
+                        downloadVolumeSeries.remove(0);
+                    }
+                }
+            });
+        });
     }
 
     private void updateNetVolume(long uploadedVolume, long downloadedVolume) {
@@ -1449,10 +1453,12 @@ public class SignumGUI extends JFrame {
 
         int blockHeight = block.getHeight();
 
-        atTimes.add(atTimeMs);
+        long calculationTimeMs = Math.max(0, totalTimeMs - dbTimeMs - atTimeMs);
 
+        atTimes.add(atTimeMs);
         pushTimes.add(totalTimeMs);
         dbTimes.add(dbTimeMs);
+        calculationTimes.add(calculationTimeMs);
 
         while (pushTimes.size() > CHART_HISTORY_SIZE) {
             pushTimes.removeFirst();
@@ -1463,6 +1469,9 @@ public class SignumGUI extends JFrame {
         while (atTimes.size() > CHART_HISTORY_SIZE) {
             atTimes.removeFirst();
         }
+        while (calculationTimes.size() > CHART_HISTORY_SIZE) {
+            calculationTimes.removeFirst();
+        }
 
         int currentWindowSize = Math.min(pushTimes.size(), movingAverageWindow);
         if (currentWindowSize < 1) {
@@ -1472,19 +1481,7 @@ public class SignumGUI extends JFrame {
         long maxPushTime = pushTimes.stream().mapToLong(Long::longValue).max().orElse(0);
         long maxDbTime = dbTimes.stream().mapToLong(Long::longValue).max().orElse(0);
         long maxAtTime = atTimes.stream().mapToLong(Long::longValue).max().orElse(0);
-
-        long maxCalculationTime = 0;
-        if (!pushTimes.isEmpty()) {
-            java.util.Iterator<Long> pushIt = pushTimes.iterator();
-            java.util.Iterator<Long> dbIt = dbTimes.iterator();
-            java.util.Iterator<Long> atIt = atTimes.iterator();
-            while (pushIt.hasNext()) {
-                long calcTime = pushIt.next() - dbIt.next() - atIt.next();
-                if (calcTime > maxCalculationTime) {
-                    maxCalculationTime = calcTime;
-                }
-            }
-        }
+        long maxCalculationTime = calculationTimes.stream().mapToLong(Long::longValue).max().orElse(0);
 
         long displayPushTime = (long) pushTimes.stream()
                 .skip(Math.max(0, pushTimes.size() - currentWindowSize))
@@ -1501,37 +1498,42 @@ public class SignumGUI extends JFrame {
                 .mapToLong(Long::longValue)
                 .average().orElse(0.0);
 
-        long calculationTimeMs = displayPushTime - displayDbTime - displayAtTime;
-        pushTimeProgressBar.setValue((int) displayPushTime);
-        pushTimeProgressBar.setString(String.format("%d ms - max: %d ms", displayPushTime, maxPushTime));
-        dbTimeProgressBar.setValue((int) displayDbTime);
-        dbTimeProgressBar.setString(String.format("%d ms - max: %d ms", displayDbTime, maxDbTime));
-        atTimeProgressBar.setValue((int) displayAtTime);
-        atTimeProgressBar.setString(String.format("%d ms - max: %d ms", displayAtTime, maxAtTime));
-        calculationTimeProgressBar.setValue(Math.max(0, (int) calculationTimeMs));
-        calculationTimeProgressBar
-                .setString(String.format("%d ms - max: %d ms", Math.max(0, calculationTimeMs),
-                        Math.max(0, maxCalculationTime)));
+        long displayCalculationTime = (long) calculationTimes.stream()
+                .skip(Math.max(0, calculationTimes.size() - currentWindowSize))
+                .mapToLong(Long::longValue)
+                .average().orElse(0.0);
 
-        // Update timing chart series
-        pushTimePerBlockSeries.add(blockHeight, displayPushTime);
-        dbTimePerBlockSeries.add(blockHeight, displayDbTime);
-        calculationTimePerBlockSeries.add(blockHeight, Math.max(0, calculationTimeMs));
-        atTimePerBlockSeries.add(blockHeight, displayAtTime);
+        SwingUtilities.invokeLater(() -> {
+            pushTimeProgressBar.setValue((int) displayPushTime);
+            pushTimeProgressBar.setString(String.format("%d ms - max: %d ms", displayPushTime, maxPushTime));
+            dbTimeProgressBar.setValue((int) displayDbTime);
+            dbTimeProgressBar.setString(String.format("%d ms - max: %d ms", displayDbTime, maxDbTime));
+            atTimeProgressBar.setValue((int) displayAtTime);
+            atTimeProgressBar.setString(String.format("%d ms - max: %d ms", displayAtTime, maxAtTime));
+            calculationTimeProgressBar.setValue(Math.max(0, (int) displayCalculationTime));
+            calculationTimeProgressBar
+                    .setString(String.format("%d ms - max: %d ms", Math.max(0, displayCalculationTime),
+                            Math.max(0, maxCalculationTime)));
+            // Update timing chart series
+            pushTimePerBlockSeries.add(blockHeight, displayPushTime);
+            dbTimePerBlockSeries.add(blockHeight, displayDbTime);
+            calculationTimePerBlockSeries.add(blockHeight, Math.max(0, displayCalculationTime));
+            atTimePerBlockSeries.add(blockHeight, displayAtTime);
 
-        // Keep history size for timing chart
-        while (pushTimePerBlockSeries.getItemCount() > CHART_HISTORY_SIZE) {
-            pushTimePerBlockSeries.remove(0);
-        }
-        while (dbTimePerBlockSeries.getItemCount() > CHART_HISTORY_SIZE) {
-            dbTimePerBlockSeries.remove(0);
-        }
-        while (calculationTimePerBlockSeries.getItemCount() > CHART_HISTORY_SIZE) {
-            calculationTimePerBlockSeries.remove(0);
-        }
-        while (atTimePerBlockSeries.getItemCount() > CHART_HISTORY_SIZE) {
-            atTimePerBlockSeries.remove(0);
-        }
+            // Keep history size for timing chart
+            while (pushTimePerBlockSeries.getItemCount() > CHART_HISTORY_SIZE) {
+                pushTimePerBlockSeries.remove(0);
+            }
+            while (dbTimePerBlockSeries.getItemCount() > CHART_HISTORY_SIZE) {
+                dbTimePerBlockSeries.remove(0);
+            }
+            while (calculationTimePerBlockSeries.getItemCount() > CHART_HISTORY_SIZE) {
+                calculationTimePerBlockSeries.remove(0);
+            }
+            while (atTimePerBlockSeries.getItemCount() > CHART_HISTORY_SIZE) {
+                atTimePerBlockSeries.remove(0);
+            }
+        });
     }
 
     private ChartPanel createPerformanceChartPanel() {
@@ -1771,15 +1773,6 @@ public class SignumGUI extends JFrame {
             if (!transactionsPerSecondHistory.isEmpty()) {
                 transactionsPerSecondHistory.removeFirst();
             }
-            if (!blocksPerSecondSeries.isEmpty()) {
-                blocksPerSecondSeries.remove(0);
-            }
-            if (!transactionsPerSecondSeries.isEmpty()) {
-                transactionsPerSecondSeries.remove(0);
-            }
-            if (!transactionsPerBlockSeries.isEmpty()) {
-                transactionsPerBlockSeries.remove(0);
-            }
         }
 
         long timeSpanMs = blockTimestamps.getLast()
@@ -1802,20 +1795,34 @@ public class SignumGUI extends JFrame {
         double maxTransactionsPerSecond = transactionsPerSecondHistory.stream().mapToDouble(Double::doubleValue).max()
                 .orElse(0.0);
 
-        blocksPerSecondSeries.add(block.getHeight(), blocksPerSecond);
-        transactionsPerBlockSeries.add(block.getHeight(), avgTransactions);
-        blocksPerSecondProgressBar.setValue((int) (blocksPerSecond));
-        blocksPerSecondProgressBar.setString(String.format("%.2f - max: %.2f", blocksPerSecond, maxBlocksPerSecond));
+        // Now, schedule only the UI updates on the EDT
+        SwingUtilities.invokeLater(() -> {
+            // Prune series on EDT before adding new data
+            while (blocksPerSecondSeries.getItemCount() >= CHART_HISTORY_SIZE) {
+                blocksPerSecondSeries.remove(0);
+            }
+            while (transactionsPerSecondSeries.getItemCount() >= CHART_HISTORY_SIZE) {
+                transactionsPerSecondSeries.remove(0);
+            }
+            while (transactionsPerBlockSeries.getItemCount() >= CHART_HISTORY_SIZE) {
+                transactionsPerBlockSeries.remove(0);
+            }
 
-        transactionsPerSecondSeries.add(block.getHeight(), transactionsPerSecond);
-        transactionsPerSecondProgressBar.setValue((int) transactionsPerSecond);
-        transactionsPerSecondProgressBar
-                .setString(String.format("%.2f - max: %.2f", transactionsPerSecond, maxTransactionsPerSecond));
+            blocksPerSecondSeries.add(block.getHeight(), blocksPerSecond);
+            transactionsPerBlockSeries.add(block.getHeight(), avgTransactions);
+            blocksPerSecondProgressBar.setValue((int) (blocksPerSecond));
+            blocksPerSecondProgressBar
+                    .setString(String.format("%.2f - max: %.2f", blocksPerSecond, maxBlocksPerSecond));
 
-        transactionsPerBlockProgressBar.setValue((int) avgTransactions);
-        transactionsPerBlockProgressBar
-                .setString(String.format("%.2f - max: %d", avgTransactions, maxTransactionsPerBlock));
+            transactionsPerSecondSeries.add(block.getHeight(), transactionsPerSecond);
+            transactionsPerSecondProgressBar.setValue((int) transactionsPerSecond);
+            transactionsPerSecondProgressBar
+                    .setString(String.format("%.2f - max: %.2f", transactionsPerSecond, maxTransactionsPerSecond));
 
+            transactionsPerBlockProgressBar.setValue((int) avgTransactions);
+            transactionsPerBlockProgressBar
+                    .setString(String.format("%.2f - max: %d", avgTransactions, maxTransactionsPerBlock));
+        });
     }
 
     private void onBrsStopped() {

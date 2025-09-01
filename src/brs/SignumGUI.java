@@ -552,7 +552,7 @@ public class SignumGUI extends JFrame {
 
         // --- Upload Speed ---
         tooltip = "The current data upload speed to other peers in the network. This reflects how much blockchain data your node is sharing.";
-        uploadSpeedLabel = createLabel("Upload Speed:", new Color(128, 0, 0), tooltip);
+        uploadSpeedLabel = createLabel("Upload Speed (MA):", new Color(128, 0, 0), tooltip);
         uploadSpeedProgressBar = createProgressBar(0, MAX_SPEED_BPS, null, "0 B/s", progressBarSize);
         addComponent(timingInfoPanel, uploadSpeedLabel, 0, 6, 1, 0, 0, GridBagConstraints.LINE_END,
                 GridBagConstraints.NONE, labelInsets);
@@ -561,7 +561,7 @@ public class SignumGUI extends JFrame {
 
         // --- Download Speed ---
         tooltip = "The current data download speed from other peers in the network. This indicates how quickly your node is receiving blockchain data.";
-        downloadSpeedLabel = createLabel("Download Speed:", new Color(0, 100, 0), tooltip);
+        downloadSpeedLabel = createLabel("Download Speed (MA):", new Color(0, 100, 0), tooltip);
         downloadSpeedProgressBar = createProgressBar(0, MAX_SPEED_BPS, null, "0 B/s", progressBarSize);
         addComponent(timingInfoPanel, downloadSpeedLabel, 0, 7, 1, 0, 0, GridBagConstraints.LINE_END,
                 GridBagConstraints.NONE, labelInsets);
@@ -1348,7 +1348,7 @@ public class SignumGUI extends JFrame {
                 downloadSpeedHistory.removeFirst();
             }
 
-            int currentWindowSize = Math.min(uploadSpeedHistory.size(), 100);
+            int currentWindowSize = Math.min(uploadSpeedHistory.size(), movingAverageWindow);
             if (currentWindowSize < 1) {
                 return;
             }

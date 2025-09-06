@@ -1,0 +1,215 @@
+name: Claude PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [develop, main]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  claude-review:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v46
+        with:
+          files: |
+            **/*.java
+            **/*.gradle
+            **/*.properties
+            **/*.md
+            **/*.json
+            **/*.ts
+            **/*.tsx
+            **/*.js
+          separator: " "
+
+      - name: Get PR diff
+        id: pr-diff
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          echo "Getting diff for changed files..."
+
+          # Get the diff for changed files
+          git diff origin/${{ github.event.pull_request.base.ref }}...HEAD -- ${{ steps.changed-files.outputs.all_changed_files }} > pr_diff.txt
+
+          # Check diff size and truncate if necessary
+          DIFF_SIZE=$(wc -c < pr_diff.txt)
+          echo "Diff size: $DIFF_SIZE bytes"
+
+          if [ $DIFF_SIZE -gt 50000 ]; then
+            echo "Diff too large ($DIFF_SIZE bytes), truncating to 50KB..."
+            head -c 50000 pr_diff.txt > pr_diff_truncated.txt
+            mv pr_diff_truncated.txt pr_diff.txt
+            echo "" >> pr_diff.txt
+            echo "... [DIFF TRUNCATED DUE TO SIZE - Original: ${DIFF_SIZE} bytes]" >> pr_diff.txt
+          fi
+
+          echo "Final diff size: $(wc -c < pr_diff.txt) bytes"
+
+      - name: Read project guidelines
+        run: |
+          echo "Reading project guidelines..."
+
+          # Read CLAUDE.md if it exists
+          if [ -f "CLAUDE.md" ]; then
+            echo "Found CLAUDE.md"
+            # Take first 12000 chars to avoid oversized prompts
+            head -c 12000 CLAUDE.md > claude_guidelines.txt
+          else
+            echo "CLAUDE.md not found"
+            echo "Follow Java best practices and blockchain security standards." > claude_guidelines.txt
+          fi
+
+      - name: Create request JSON
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          echo "Creating Claude API request..."
+
+          # Read files
+          DIFF_CONTENT=$(cat pr_diff.txt 2>/dev/null || echo "No diff available")
+          GUIDELINES=$(cat claude_guidelines.txt 2>/dev/null || echo "No guidelines available")
+
+          # Escape special characters for JSON
+          DIFF_CONTENT_ESCAPED=$(echo "$DIFF_CONTENT" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | tr '\n' ' ')
+          GUIDELINES_ESCAPED=$(echo "$GUIDELINES" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | tr '\n' ' ')
+          PR_TITLE_ESCAPED=$(echo "${{ github.event.pull_request.title }}" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g')
+          PR_BODY_ESCAPED=$(echo "${{ github.event.pull_request.body }}" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | tr '\n' ' ')
+
+          # Create JSON request
+          cat > claude_request.json << EOF
+          {
+            "model": "claude-sonnet-4-20250514",
+            "max_tokens": 8000,
+            "system": "You are an expert code reviewer for the Signum Node blockchain project. This is critical cryptocurrency infrastructure requiring strict security and quality standards. Project Context: Java 21 blockchain node implementation with layered architecture (API → Services → Stores → Database). Uses Gradle, JUnit 5, Mockito, JOOQ, Flyway. Multi-database support: SQLite/MariaDB/PostgreSQL. Review Priorities: 1. SECURITY: Input validation, crypto usage, SQL injection prevention 2. ARCHITECTURE: Layer separation, dependency injection, package structure 3. TESTING: Unit tests for all new/modified code with proper mocking 4. DESIGN PATTERNS: Factory, Observer, Strategy, Command, Template Method 5. CODE QUALITY: Clean, maintainable, SOLID principles 6. PERFORMANCE: Efficient database access, resource management. Project Guidelines: ${GUIDELINES_ESCAPED}. CRITICAL RULES: Never allow direct database access from business logic, Require unit tests for all new methods, Enforce constructor dependency injection, Validate all external inputs, Use specific exception types, Follow existing package structure. Provide specific feedback with file:line references. Mark security issues with ⚠️, missing tests with ❌, good practices with ✅.",
+            "messages": [
+              {
+                "role": "user",
+                "content": "Review this Pull Request for Signum Node: **Title:** ${PR_TITLE_ESCAPED} **Description:** ${PR_BODY_ESCAPED} **Changed Files:** ${{ steps.changed-files.outputs.all_changed_files }} **Code Changes:** ${DIFF_CONTENT_ESCAPED} Focus on: Security vulnerabilities (input validation, crypto misuse), Architecture violations (layer skipping, direct DB access), Missing or inadequate tests, Design pattern misuse, Code quality issues, Performance problems. Provide actionable feedback with specific file and line references."
+              }
+            ]
+          }
+          EOF
+
+      - name: Call Claude API
+        if: steps.changed-files.outputs.any_changed == 'true'
+        id: claude-api
+        run: |
+          echo "Calling Claude API..."
+
+          # Make API call to Claude
+          HTTP_STATUS=$(curl -w "%{http_code}" -s -o claude_response.json \
+            -X POST "https://api.anthropic.com/v1/messages" \
+            -H "Content-Type: application/json" \
+            -H "x-api-key: ${{ secrets.ANTHROPIC_API_KEY }}" \
+            -H "anthropic-version: 2023-06-01" \
+            -d @claude_request.json)
+
+          echo "HTTP Status: $HTTP_STATUS"
+
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "API call failed with status $HTTP_STATUS"
+            echo "Response:"
+            cat claude_response.json
+            echo "api_success=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Extract review content from response
+          REVIEW_CONTENT=$(python3 -c "
+          import json
+          import sys
+          try:
+              with open('claude_response.json', 'r') as f:
+                  data = json.load(f)
+              if 'content' in data and len(data['content']) > 0:
+                  print(data['content'][0]['text'])
+              else:
+                  print('Error: No content in Claude response')
+          except Exception as e:
+              print(f'Error parsing Claude response: {e}')
+          ")
+
+          # Save review to file
+          echo "$REVIEW_CONTENT" > claude_review.txt
+          echo "api_success=true" >> $GITHUB_OUTPUT
+
+      - name: Post review comment
+        if: steps.claude-api.outputs.api_success == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            let reviewContent = '';
+            try {
+              reviewContent = fs.readFileSync('claude_review.txt', 'utf8');
+            } catch (error) {
+              console.log('Could not read review file:', error);
+              return;
+            }
+
+            if (reviewContent.trim().length === 0) {
+              console.log('Review content is empty');
+              return;
+            }
+
+            const comment = '## 🤖 Claude AI Code Review\n\n' +
+                            reviewContent + '\n\n' +
+                            '---\n' +
+                            '*This review was generated automatically by Claude AI using the project\'s coding guidelines. Please address any ⚠️ security issues and ❌ missing tests before merging.*\n\n' +
+                            '**Changed files:** ${{ steps.changed-files.outputs.all_changed_files }}';
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: comment
+            });
+
+      - name: Check for blocking issues
+        if: steps.claude-api.outputs.api_success == 'true'
+        run: |
+          echo "Checking for critical issues..."
+
+          if [ -f claude_review.txt ]; then
+            # Check for security warnings or critical issues
+            if grep -qi "⚠️\|critical\|security.*vulnerability\|sql.*injection\|hardcoded.*secret" claude_review.txt; then
+              echo "🚨 Critical security issues detected!"
+              echo "CRITICAL_ISSUES_FOUND=true" >> $GITHUB_ENV
+            else
+              echo "✅ No critical blocking issues found"
+              echo "CRITICAL_ISSUES_FOUND=false" >> $GITHUB_ENV
+            fi
+          fi
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Claude PR Review Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Files analyzed:** ${{ steps.changed-files.outputs.all_changed_files_count }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **API call status:** ${{ steps.claude-api.outputs.api_success }}" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ env.CRITICAL_ISSUES_FOUND }}" == "true" ]; then
+            echo "- **Critical issues:** ⚠️ Found - Review required" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Critical issues:** ✅ None detected" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ steps.changed-files.outputs.any_changed }}" == "true" ]; then
+            echo "- **Review posted:** ✅ Check PR comments" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Review posted:** ⏭️ No relevant files changed" >> $GITHUB_STEP_SUMMARY
+          fi

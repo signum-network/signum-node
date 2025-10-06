@@ -77,7 +77,7 @@ dependencies {
     testImplementation("org.junit.platform:junit-platform-launcher:1.13.4")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.13.4")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.13.4")
-    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.13.4")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:6.0.0")
 
     testImplementation 'org.apache.httpcomponents:httpclient:4.5.14'
     testImplementation 'org.mockito:mockito-core:5.20.0'

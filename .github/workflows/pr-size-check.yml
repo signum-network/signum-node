@@ -1,0 +1,202 @@
+name: "PR Size Check"
+
+# Gatekeeper: enforces PR size limits before any AI review runs.
+# Fails the check if the PR exceeds 10 files or 500 new lines.
+# On success, uploads PR metadata for the downstream review workflow.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [develop, main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  size-check:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: Get PR stats
+        id: stats
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              per_page: 100,
+            });
+
+            const fileCount = files.length;
+            const additions = files.reduce((sum, f) => sum + f.additions, 0);
+            const deletions = files.reduce((sum, f) => sum + f.deletions, 0);
+
+            // Check which files are protocol-frozen
+            const protocolPaths = [
+              'brs/GeneratorImpl.java', 'brs/util/MiningPlot.java', 'brs/OCLPoC.java',
+              'brs/BlockchainProcessorImpl.java', 'brs/BlockchainImpl.java',
+              'brs/services/impl/BlockServiceImpl.java',
+              'brs/TransactionType.java', 'brs/Transaction.java', 'brs/Attachment.java',
+              'brs/services/impl/TransactionServiceImpl.java', 'brs/EconomicClustering.java',
+              'brs/Constants.java', 'brs/Genesis.java',
+              'brs/fluxcapacitor/FluxValues.java', 'brs/fluxcapacitor/HistoricalMoments.java',
+              'brs/fluxcapacitor/FluxCapacitorImpl.java', 'brs/props/Props.java',
+              'brs/crypto/Crypto.java', 'brs/crypto/EncryptedData.java',
+              'brs/at/AtController.java', 'brs/at/AtMachineProcessor.java',
+              'brs/at/OpCode.java', 'brs/at/AtConstants.java',
+              'brs/at/AtApiImpl.java', 'brs/at/AtApiController.java', 'brs/at/AtApiPlatformImpl.java',
+              'brs/peer/PeerServlet.java', 'brs/peer/ProcessBlock.java',
+              'brs/peer/GetCumulativeDifficulty.java',
+            ];
+
+            const touchedProtocolFiles = files
+              .filter(f => protocolPaths.some(p => f.filename.includes(p)))
+              .map(f => f.filename);
+
+            core.setOutput('file_count', fileCount);
+            core.setOutput('additions', additions);
+            core.setOutput('deletions', deletions);
+            core.setOutput('protocol_files', JSON.stringify(touchedProtocolFiles));
+            core.setOutput('protocol_files_count', touchedProtocolFiles.length);
+
+            console.log(`Files: ${fileCount}, +${additions}, -${deletions}`);
+            console.log(`Protocol files touched: ${touchedProtocolFiles.length}`);
+            if (touchedProtocolFiles.length > 0) {
+              console.log(`  ${touchedProtocolFiles.join('\n  ')}`);
+            }
+
+      - name: Enforce size limits
+        id: limits
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fileCount = parseInt('${{ steps.stats.outputs.file_count }}');
+            const additions = parseInt('${{ steps.stats.outputs.additions }}');
+            const protocolCount = parseInt('${{ steps.stats.outputs.protocol_files_count }}');
+            const protocolFiles = JSON.parse('${{ steps.stats.outputs.protocol_files }}');
+
+            const MAX_FILES = 10;
+            const MAX_ADDITIONS = 500;
+
+            const violations = [];
+
+            if (fileCount > MAX_FILES) {
+              violations.push(`**Files changed:** ${fileCount} (limit: ${MAX_FILES})`);
+            }
+            if (additions > MAX_ADDITIONS) {
+              violations.push(`**Lines added:** ${additions} (limit: ${MAX_ADDITIONS})`);
+            }
+
+            let protocolWarning = '';
+            if (protocolCount > 0) {
+              protocolWarning = [
+                '',
+                '### Protocol-Frozen Files Modified',
+                '',
+                'The following consensus-critical files were changed. These require explicit maintainer approval and are only permitted for verified security fixes:',
+                '',
+                ...protocolFiles.map(f => `- \`${f}\``),
+              ].join('\n');
+            }
+
+            if (violations.length > 0) {
+              const body = [
+                '## PR Size Check: Failed',
+                '',
+                'This PR exceeds the size limits for review:',
+                '',
+                ...violations,
+                '',
+                'Please split this PR into smaller, focused changes (max 10 files, max 500 new lines each).',
+                '',
+                'Smaller PRs are:',
+                '- Easier to review thoroughly for security issues',
+                '- Less likely to introduce subtle bugs',
+                '- Faster to get approved and merged',
+                protocolWarning,
+              ].join('\n');
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body: body,
+              });
+
+              core.setFailed(`PR too large: ${violations.join(', ')}`);
+            } else {
+              let body = `## PR Size Check: Passed\n\nFiles: ${fileCount}/${MAX_FILES}, Lines added: ${additions}/${MAX_ADDITIONS}`;
+              if (protocolWarning) {
+                body += '\n' + protocolWarning;
+              }
+
+              console.log(body);
+              // Only comment on protocol file warnings, not on every passing PR
+              if (protocolCount > 0) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.payload.pull_request.number,
+                  body: body,
+                });
+              }
+            }
+
+      - name: Upload PR metadata
+        if: success()
+        run: |
+          mkdir -p pr-metadata
+
+          python3 << 'PYEOF'
+          import json, os
+
+          metadata = {
+              "pr_number": int("${{ github.event.pull_request.number }}"),
+              "pr_title": os.environ.get("PR_TITLE", ""),
+              "pr_body": os.environ.get("PR_BODY", ""),
+              "pr_author": "${{ github.event.pull_request.user.login }}",
+              "base_ref": "${{ github.event.pull_request.base.ref }}",
+              "head_ref": "${{ github.event.pull_request.head.ref }}",
+              "head_sha": "${{ github.event.pull_request.head.sha }}",
+              "is_fork": "${{ github.event.pull_request.head.repo.fork }}" == "true",
+              "file_count": int("${{ steps.stats.outputs.file_count }}"),
+              "additions": int("${{ steps.stats.outputs.additions }}"),
+              "deletions": int("${{ steps.stats.outputs.deletions }}"),
+              "protocol_files": json.loads('${{ steps.stats.outputs.protocol_files }}'),
+          }
+
+          with open("pr-metadata/metadata.json", "w") as f:
+              json.dump(metadata, f, indent=2)
+
+          print(f"Metadata saved for PR #{metadata['pr_number']}")
+          PYEOF
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+
+      - name: Upload metadata artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-metadata
+          path: pr-metadata/
+          retention-days: 1
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## PR Size Check" >> $GITHUB_STEP_SUMMARY
+          echo "- **Files changed:** ${{ steps.stats.outputs.file_count }} / 10" >> $GITHUB_STEP_SUMMARY
+          echo "- **Lines added:** ${{ steps.stats.outputs.additions }} / 500" >> $GITHUB_STEP_SUMMARY
+          echo "- **Lines deleted:** ${{ steps.stats.outputs.deletions }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Protocol files touched:** ${{ steps.stats.outputs.protocol_files_count }}" >> $GITHUB_STEP_SUMMARY

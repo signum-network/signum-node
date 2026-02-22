@@ -1,0 +1,305 @@
+name: "PR Review: Claude Analysis"
+
+# Triggered after "PR Size Check" passes.
+# Runs in the BASE repo context — HAS access to secrets.
+# Downloads PR metadata from size check, collects diff, calls Claude, posts review.
+
+on:
+  workflow_run:
+    workflows: ["PR Size Check"]
+    types: [completed]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  actions: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+
+    steps:
+      - name: Download PR metadata
+        uses: actions/download-artifact@v4
+        with:
+          name: pr-metadata
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: pr-metadata
+
+      - name: Load metadata
+        id: meta
+        run: |
+          if [ ! -f pr-metadata/metadata.json ]; then
+            echo "::error::No metadata artifact found from size check."
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          python3 << 'PYEOF'
+          import json, os
+
+          with open("pr-metadata/metadata.json") as f:
+              meta = json.load(f)
+
+          # Write outputs for subsequent steps
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+              out.write(f"pr_number={meta['pr_number']}\n")
+              out.write(f"pr_author={meta['pr_author']}\n")
+              out.write(f"base_ref={meta['base_ref']}\n")
+              out.write(f"head_sha={meta['head_sha']}\n")
+              out.write(f"file_count={meta['file_count']}\n")
+              out.write(f"skip=false\n")
+
+          print(f"Reviewing PR #{meta['pr_number']} by {meta['pr_author']} ({meta['file_count']} files, +{meta['additions']})")
+          PYEOF
+
+      - name: Validate API key
+        if: steps.meta.outputs.skip != 'true'
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::error::ANTHROPIC_API_KEY secret is not set or empty."
+            exit 1
+          fi
+          echo "API key is configured."
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Checkout base repo (for guidelines)
+        if: steps.meta.outputs.skip != 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.meta.outputs.base_ref }}
+          sparse-checkout: |
+            CLAUDE.md
+            .github/copilot-instructions.md
+          sparse-checkout-cone-mode: false
+
+      - name: Collect diff via GitHub API
+        if: steps.meta.outputs.skip != 'true'
+        run: |
+          PR_NUMBER=${{ steps.meta.outputs.pr_number }}
+
+          # Get diff via gh CLI (works for fork PRs, uses GITHUB_TOKEN)
+          gh pr diff "$PR_NUMBER" > pr_diff.txt 2>/dev/null || true
+
+          DIFF_SIZE=$(wc -c < pr_diff.txt)
+          echo "Diff size: $DIFF_SIZE bytes"
+
+          if [ "$DIFF_SIZE" -gt 50000 ]; then
+            echo "Truncating diff from $DIFF_SIZE to 50KB..."
+            head -c 50000 pr_diff.txt > pr_diff_truncated.txt
+            mv pr_diff_truncated.txt pr_diff.txt
+            echo "" >> pr_diff.txt
+            echo "... [DIFF TRUNCATED - Original: ${DIFF_SIZE} bytes. Review may be incomplete.]" >> pr_diff.txt
+          fi
+
+          # Get changed file names
+          gh pr view "$PR_NUMBER" --json files --jq '.files[].path' > pr_changed_files.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Prepare guidelines
+        if: steps.meta.outputs.skip != 'true'
+        run: |
+          # Combine CLAUDE.md + security review section from copilot-instructions
+          if [ -f "CLAUDE.md" ]; then
+            head -c 12000 CLAUDE.md > guidelines.txt
+          else
+            echo "No CLAUDE.md found." > guidelines.txt
+          fi
+
+          if [ -f ".github/copilot-instructions.md" ]; then
+            echo "" >> guidelines.txt
+            echo "---" >> guidelines.txt
+            sed -n '/## PR Review: Security/,$p' .github/copilot-instructions.md >> guidelines.txt
+          fi
+
+          head -c 20000 guidelines.txt > guidelines_trimmed.txt
+          mv guidelines_trimmed.txt guidelines.txt
+
+      - name: Build Claude request
+        if: steps.meta.outputs.skip != 'true'
+        run: |
+          python3 << 'PYEOF'
+          import json
+
+          with open("pr-metadata/metadata.json") as f:
+              meta = json.load(f)
+
+          with open("pr_diff.txt") as f:
+              diff = f.read()
+
+          with open("guidelines.txt") as f:
+              guidelines = f.read()
+
+          with open("pr_changed_files.txt") as f:
+              changed_files = f.read().strip()
+
+          protocol_note = ""
+          if meta.get("protocol_files"):
+              files_list = "\n".join(f"  - {f}" for f in meta["protocol_files"])
+              protocol_note = f"""
+          ALERT: This PR modifies {len(meta['protocol_files'])} PROTOCOL-FROZEN file(s):
+          {files_list}
+          These changes MUST be rejected unless the PR explicitly references a disclosed CVE being fixed.
+          """
+
+          system_prompt = f"""You are a senior security-focused code reviewer for the Signum Node blockchain project.
+          This is critical cryptocurrency infrastructure. Your primary job is to protect protocol integrity and catch exploitable code.
+
+          CONTEXT:
+          - Java 21 blockchain node (Proof-of-Commitment / PoC+ consensus)
+          - The Signum protocol is STABLE. Changes to consensus, transaction processing, cryptography, smart contracts (AT), or P2P protocol code are NOT permitted unless fixing a disclosed CVE.
+          - Layered architecture: API handlers -> Services -> Stores -> Database (JOOQ/Flyway)
+          - External contributors may submit AI-generated code ("vibe coding") that looks plausible but may contain subtle vulnerabilities or backdoors.
+          {protocol_note}
+          REVIEW PRIORITIES (in order):
+          1. PROTOCOL INTEGRITY: Flag ANY changes to protocol-frozen files (consensus, block validation, transaction types, constants, crypto, AT engine, P2P). These require explicit maintainer justification.
+          2. SECURITY: Backdoors, hardcoded accounts/keys, obfuscated logic, overflow/underflow, signature bypass, gas metering bypass, input validation gaps.
+          3. ARCHITECTURE: Layer violations, direct DB access from business logic, missing dependency injection.
+          4. TESTING: New logic without unit tests -> reject.
+          5. CODE QUALITY: Clean code, proper error handling, logging.
+
+          PROJECT GUIDELINES:
+          {guidelines}
+
+          OUTPUT FORMAT (use this exact structure):
+
+          ### Verdict: [APPROVE | REQUEST_CHANGES | COMMENT]
+
+          ### Protocol Impact
+          [List any protocol-frozen files touched. If none, say "No protocol files modified."]
+
+          ### Security Findings
+          [List security issues with WARNING prefix. If none, say "No security issues found."]
+
+          ### Architecture & Quality
+          [Notable findings, good practices, issues]
+
+          ### Action Items
+          [Numbered list of required changes, or "None - ready to merge."]
+
+          Be concise. Use file:line references. Do not pad with generic praise."""
+
+          user_message = f"""Review this Pull Request for Signum Node:
+
+          **PR #{meta['pr_number']}**: {meta['pr_title']}
+          **Author**: {meta['pr_author']}
+          **Target**: {meta['base_ref']} <- {meta['head_ref']}
+          **From fork**: {meta['is_fork']}
+          **Files changed**: {meta['file_count']} (+{meta['additions']}, -{meta['deletions']})
+
+          **Description**:
+          {meta.get('pr_body') or 'No description provided.'}
+
+          **Changed files**:
+          {changed_files}
+
+          **Diff**:
+          ```
+          {diff}
+          ```"""
+
+          request = {
+              "model": "claude-sonnet-4-20250514",
+              "max_tokens": 4096,
+              "system": system_prompt,
+              "messages": [{"role": "user", "content": user_message}]
+          }
+
+          with open("claude_request.json", "w") as f:
+              json.dump(request, f)
+
+          print(f"Request built for PR #{meta['pr_number']} ({meta['file_count']} files)")
+          PYEOF
+
+      - name: Call Claude API
+        if: steps.meta.outputs.skip != 'true'
+        id: claude
+        run: |
+          HTTP_STATUS=$(curl -w "%{http_code}" -s -o claude_response.json \
+            --max-time 60 \
+            -X POST "https://api.anthropic.com/v1/messages" \
+            -H "Content-Type: application/json" \
+            -H "x-api-key: $ANTHROPIC_API_KEY" \
+            -H "anthropic-version: 2023-06-01" \
+            -d @claude_request.json)
+
+          echo "HTTP Status: $HTTP_STATUS"
+
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "::error::Claude API returned HTTP $HTTP_STATUS"
+            cat claude_response.json
+            echo "success=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          python3 << 'PYEOF'
+          import json, sys
+
+          with open("claude_response.json") as f:
+              data = json.load(f)
+
+          if "content" not in data or len(data["content"]) == 0:
+              print("::error::Empty response from Claude API", file=sys.stderr)
+              sys.exit(1)
+
+          review = data["content"][0]["text"]
+          with open("claude_review.txt", "w") as f:
+              f.write(review)
+
+          print(f"Review generated: {len(review)} chars")
+          PYEOF
+
+          echo "success=true" >> $GITHUB_OUTPUT
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Post review comment
+        if: steps.claude.outputs.success == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            const reviewContent = fs.readFileSync('claude_review.txt', 'utf8').trim();
+            if (!reviewContent) {
+              console.log('Review content is empty, skipping.');
+              return;
+            }
+
+            const meta = JSON.parse(fs.readFileSync('pr-metadata/metadata.json', 'utf8'));
+
+            const body = [
+              '## Claude AI Code Review',
+              '',
+              reviewContent,
+              '',
+              '---',
+              `*Automated review of ${meta.file_count} changed file(s) (+${meta.additions}, -${meta.deletions}). Address any security issues before merging.*`,
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: meta.pr_number,
+              body: body,
+            });
+
+            console.log(`Review posted on PR #${meta.pr_number}`);
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Claude PR Review" >> $GITHUB_STEP_SUMMARY
+          echo "- **PR:** #${{ steps.meta.outputs.pr_number || 'unknown' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **API success:** ${{ steps.claude.outputs.success || 'skipped' }}" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f claude_review.txt ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Review" >> $GITHUB_STEP_SUMMARY
+            head -c 2000 claude_review.txt >> $GITHUB_STEP_SUMMARY
+          fi

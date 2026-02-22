@@ -1,261 +1,161 @@
-# Claude AI PR Review Setup Guide
+# Claude AI PR Review — Setup Guide
 
-This guide explains how to set up and use the Claude AI-powered Pull Request review system for the Signum Node project.
+Automated Pull Request review using Claude AI with a two-stage workflow that works securely for both internal branches and external fork PRs.
 
-## Overview
+## Architecture
 
-The Claude PR Review system automatically reviews Pull Requests using Claude AI to ensure code quality, security, and adherence to project guidelines. It leverages the comprehensive coding standards defined in `CLAUDE.md` and related guideline files.
+The review uses two workflows to solve GitHub's secret isolation for fork PRs:
 
-## Setup Requirements
-
-### 1. GitHub Repository Secrets
-
-You need to configure the following secrets in your GitHub repository:
-
-#### Required Secrets:
-- `CLAUDE_API_KEY`: Your Anthropic Claude API key
-  - Get from: https://console.anthropic.com/
-  - Required permissions: Claude API access
-  - Recommended model: Claude 3.5 Sonnet
-
-#### Optional Secrets:
-- `GITHUB_TOKEN`: Automatically provided by GitHub Actions (no setup needed)
-
-### 2. Setting up Claude API Key
-
-1. **Get Claude API Access:**
-   - Visit https://console.anthropic.com/
-   - Create an account or sign in
-   - Navigate to API Keys section
-   - Generate a new API key
-
-2. **Add to GitHub Secrets:**
-   - Go to your repository → Settings → Secrets and variables → Actions
-   - Click "New repository secret"
-   - Name: `CLAUDE_API_KEY`
-   - Value: Your Claude API key
-   - Click "Add secret"
-
-### 3. Permissions Setup
-
-The GitHub Action requires these permissions (already configured in the workflow):
-- `contents: read` - To read repository files
-- `pull-requests: write` - To post review comments
-- `issues: write` - To create/update issue comments
-
-## How It Works
-
-### Trigger Conditions
-The Claude review runs when:
-- A Pull Request is **opened** against `develop` or `main` branches
-- An existing PR is **updated** (new commits pushed)
-- A PR is **reopened**
-- The PR is **not in draft mode**
-
-### Review Process
-
-1. **File Analysis**: Detects changed files (Java, Gradle, properties, Markdown, TypeScript, JavaScript)
-2. **Diff Generation**: Creates a code diff for review (limited to 100KB to respect API limits)
-3. **Guidelines Loading**: Reads project guidelines from `CLAUDE.md` and `.cursorrules`
-4. **AI Review**: Claude analyzes the code against project standards
-5. **Comment Posting**: Review results are posted as PR comments
-6. **Critical Issue Detection**: Blocks merge if security vulnerabilities are found
-
-### Review Criteria
-
-Claude evaluates PRs based on:
-
-#### 🔒 Security (Highest Priority)
-- Input validation for all external data
-- Proper use of cryptographic utilities
-- SQL injection prevention
-- No hardcoded secrets or sensitive data
-
-#### 🏗️ Architecture Compliance
-- Layered architecture adherence (API → Services → Stores → Database)
-- Constructor dependency injection
-- Proper package organization
-- Interface segregation
-
-#### 🧪 Testing Requirements
-- Unit tests for all new/modified methods
-- Proper test structure (Arrange-Act-Assert)
-- Comprehensive coverage (happy path + errors + boundaries)
-- Correct use of mocking
-
-#### 🎨 Design Patterns
-- Appropriate application of Gang of Four patterns
-- Factory, Observer, Strategy, Command, Template Method usage
-
-#### 📝 Code Quality
-- Clean, readable, maintainable code
-- Proper error handling with specific exceptions
-- Meaningful naming conventions
-- Appropriate logging
-
-#### ⚡ Performance
-- Efficient database access
-- Resource management
-- Memory usage optimization
-
-## Usage Examples
-
-### Example Review Comment
-
-```markdown
-## 🤖 Claude AI Code Review
-
-### Overall Assessment: REQUEST_CHANGES
-
-### Summary
-This PR adds a new AccountService method but has several issues that need addressing before merge.
-
-### Security Analysis
-⚠️ **CRITICAL**: Missing input validation in `getAccountBalance()` method - could lead to SQL injection
-
-### Architecture Review
-✅ Properly uses constructor dependency injection
-❌ `AccountController` directly accesses `AccountStore` - should use `AccountService`
-
-### Testing Assessment
-❌ Missing unit tests for new `calculateTotalBalance()` method
-❌ Existing test `getAccount_GivenValidId_ReturnsAccount()` doesn't verify mock interactions
-
-### Code Quality Findings
-
-#### ✅ Good Practices Observed
-- Proper use of SLF4J logging
-- Meaningful method and variable names
-- Early returns to reduce nesting
-
-#### ❌ Issues Requiring Attention
-- **AccountServiceImpl.java:45** - Missing null check for accountId parameter
-- **AccountServiceImpl.java:67** - Generic Exception caught instead of specific type
-- **AccountController.java:23** - Direct store access violates layered architecture
-
-### Action Items
-1. **HIGH** Add input validation to `getAccountBalance()` - AccountServiceImpl.java:45
-2. **HIGH** Create unit tests for `calculateTotalBalance()` method
-3. **MEDIUM** Replace direct store access with service injection - AccountController.java:23
-
-### Recommendation
-REQUEST_CHANGES - Address security and architecture violations before merge.
+```
+PR opened/updated (fork or internal)
+        │
+        ▼
+┌──────────────────────────────┐
+│  Stage 1: pr-size-check.yml  │  ← pull_request trigger (fork context, NO secrets)
+│  - Counts files & additions  │
+│  - Detects protocol files    │
+│  - Fails if PR too large     │
+│  - Uploads PR metadata       │
+└──────────┬───────────────────┘
+           │ artifact (only on success)
+           ▼
+┌──────────────────────────────┐
+│  Stage 2: pr-review.yml      │  ← workflow_run trigger (base repo context, HAS secrets)
+│  - Downloads metadata        │
+│  - Collects diff via GH API  │
+│  - Loads review guidelines   │
+│  - Calls Claude API          │
+│  - Posts review comment      │
+└──────────────────────────────┘
 ```
 
-## Customization
+**Why two stages?**
+1. **Secret isolation**: GitHub does not expose repository secrets to workflows triggered by fork PRs (`pull_request` event). Stage 1 runs without secrets; Stage 2 runs in the base repo's context where `ANTHROPIC_API_KEY` is available.
+2. **Cost savings**: Stage 2 only triggers if Stage 1 passes. Oversized PRs are rejected before any API credits are spent.
 
-### Modifying Review Criteria
+## Setup
 
-To customize the review behavior:
+### 1. Repository Secret
 
-1. **Update Guidelines**: Modify `CLAUDE.md` with new or changed requirements
-2. **Adjust Workflow**: Edit `.github/workflows/claude-pr-review.yml`
-3. **Update Templates**: Modify `.github/PR_REVIEW_TEMPLATE.md`
+Add `ANTHROPIC_API_KEY` in Settings → Secrets and variables → Actions:
+- Get a key from https://console.anthropic.com/
+- The workflow uses `claude-sonnet-4-20250514` by default
 
-### Changing Trigger Conditions
+### 2. Workflow Permissions
 
-Edit the workflow's `on` section:
-```yaml
-on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    branches: [develop, main, feature/*]  # Add more branches
-```
+In Settings → Actions → General → Workflow permissions:
+- Select **"Read and write permissions"**
+- Check **"Allow GitHub Actions to create and approve pull requests"**
 
-### Adjusting File Filters
+### 3. Workflow Files
 
-Modify the `changed-files` step to include/exclude file types:
-```yaml
-files: |
-  **/*.java
-  **/*.gradle
-  **/*.kt        # Add Kotlin files
-  !**/test/**    # Exclude test directories
-```
+Both must be present on the default branch:
+- `.github/workflows/pr-size-check.yml` — Stage 1 (size gate + metadata)
+- `.github/workflows/pr-review.yml` — Stage 2 (diff collection + Claude review)
+
+### 4. Branch Protection (recommended)
+
+Add **"PR Size Check"** as a required status check on `develop` and `main` branches. This prevents oversized PRs from being merged even if maintainers bypass the comment.
+
+## Review Instructions
+
+Review criteria are defined in two files, both loaded by Stage 1:
+
+| File | Content |
+|------|---------|
+| `CLAUDE.md` | Project architecture, coding standards, testing requirements |
+| `.github/copilot-instructions.md` | Security review rules, protocol-frozen file list, exploit patterns, PR quality gates |
+
+**Both Claude and Copilot use the same review instructions** from `copilot-instructions.md`. To update review criteria, edit that file — changes take effect on the next PR.
+
+### Review Priorities (in order)
+
+1. **Protocol Integrity** — The Signum protocol is stable. Any changes to consensus, block validation, transaction types, constants, cryptography, AT engine, or P2P protocol files are rejected unless fixing a disclosed CVE. See the frozen file list in `copilot-instructions.md`.
+
+2. **Security** — Backdoors, hardcoded accounts/keys, obfuscated logic, integer overflow/underflow, signature bypass, gas metering bypass, input validation gaps.
+
+3. **Architecture** — Layer violations (API → Services → Stores → DB), missing dependency injection, package structure.
+
+4. **Testing** — New logic without unit tests is rejected.
+
+5. **PR Size** — Max 10 files changed, max 500 new lines. Oversized PRs are flagged for splitting.
+
+6. **Code Quality** — Clean code, proper error handling, logging.
+
+### Output Format
+
+Claude posts a structured comment with:
+- **Verdict**: APPROVE / REQUEST_CHANGES / COMMENT
+- **Protocol Impact**: Lists any protocol-frozen files touched
+- **Security Findings**: Issues prefixed with a warning marker
+- **Architecture & Quality**: Notable findings
+- **Action Items**: Numbered list of required changes
+
+## Trigger Conditions
+
+Reviews run when a PR is **opened**, **updated** (new commits), or **reopened** against `develop` or `main`. Draft PRs are skipped.
+
+### File Types Analyzed
+`*.java`, `*.gradle`, `*.properties`, `*.md`, `*.json`, `*.ts`, `*.tsx`, `*.js`, `*.yml`
+
+### Diff Size Limit
+Diffs are truncated to 50KB. For very large PRs, the review may be incomplete — this is another reason to enforce small PRs.
 
 ## Troubleshooting
 
-### Common Issues
+### No review comment posted
 
-#### 1. "Claude API Key not found"
-**Solution**: Ensure `CLAUDE_API_KEY` is properly set in repository secrets
+1. Check that **both** workflow runs completed: Actions tab → look for "PR Size Check" and "PR Review: Claude Analysis"
+2. Stage 1 (size check) must succeed and upload an artifact before Stage 2 triggers
+3. If size check fails, Stage 2 won't run — that's by design (PR is too large)
+4. If Stage 2 shows "API returned HTTP 401" → the `ANTHROPIC_API_KEY` is invalid or expired
+5. If Stage 2 never runs → check that the workflow name in `pr-review.yml` matches: `workflows: ["PR Size Check"]`
 
-#### 2. "Rate limit exceeded"
-**Solution**: Claude has rate limits. Consider:
-- Adding delays between requests
-- Limiting PR size (current limit: 100KB diff)
-- Using batched reviews for large PRs
+### Stage 2 never triggers
 
-#### 3. "Permission denied"
-**Solution**: Check that the GitHub Action has required permissions:
-- Repository settings → Actions → General → Workflow permissions
-- Select "Read and write permissions"
+The `workflow_run` trigger only fires for workflows on the **default branch**. Both workflow files must be merged to `main` (or your default branch) before they work.
 
-#### 4. "No review posted"
-**Solution**: Check the Action logs:
-- Go to Actions tab → Select failed run
-- Review logs for error messages
-- Common causes: API quota, malformed diff, network issues
+### API errors
 
-### Debug Mode
+| HTTP Status | Cause | Fix |
+|-------------|-------|-----|
+| 401 | Invalid or missing API key | Update `ANTHROPIC_API_KEY` secret |
+| 429 | Rate limit exceeded | Wait and re-run, or reduce diff size |
+| 500+ | Anthropic service issue | Re-run the workflow |
 
-To enable verbose logging, add to the workflow:
+### Debug mode
+
+Add to the workflow environment:
 ```yaml
 env:
   ACTIONS_STEP_DEBUG: true
 ```
 
-## Best Practices
+## Customization
 
-### For Repository Maintainers
+### Changing trigger branches
 
-1. **Monitor API Usage**: Track Claude API usage to manage costs
-2. **Review Thresholds**: Adjust review sensitivity based on team preferences
-3. **Update Guidelines**: Keep `CLAUDE.md` current as project evolves
-4. **Train Team**: Ensure developers understand review criteria
+Edit `pr-collect.yml`:
+```yaml
+branches: [develop, main, release/*]
+```
 
-### For Developers
+### Changing the Claude model
 
-1. **Pre-Submit Review**: Run local checks before creating PRs
-2. **Incremental Changes**: Keep PRs focused and reasonably sized
-3. **Address Feedback**: Respond to Claude's suggestions promptly
-4. **Learn Patterns**: Use Claude's feedback to improve coding practices
+Edit the `model` field in `pr-review.yml`:
+```python
+request = {
+    "model": "claude-sonnet-4-20250514",  # change here
+    ...
+}
+```
 
-## Cost Considerations
+### Adjusting file filters
 
-- Claude API costs vary by model and token usage
-- Estimate: ~$0.01-0.10 per PR review (depending on size)
-- Consider setting up budget alerts in Anthropic Console
-- Monitor usage patterns to optimize costs
+Edit the `files` list in `pr-collect.yml` under the `changed-files` step.
 
-## Security Notes
+## Cost
 
-- Claude API key should be treated as sensitive information
-- The system only reads repository contents (no write access to external systems)
-- Review comments are posted using GitHub's standard permissions
-- No sensitive data should be included in code diffs
-
-## Integration with Existing Workflows
-
-This system complements:
-- **Existing CI/CD**: Runs alongside other checks (tests, linting)
-- **Human Reviews**: Augments rather than replaces human reviewers
-- **Branch Protection**: Can be required check for merge protection
-- **Quality Gates**: Integrates with existing quality assurance processes
-
-## Maintenance
-
-### Regular Updates
-
-1. **Model Updates**: Consider newer Claude models as they become available
-2. **Guidelines Sync**: Keep review criteria aligned with project evolution
-3. **Performance Monitoring**: Track review accuracy and usefulness
-4. **Feedback Integration**: Incorporate team feedback to improve reviews
-
-### Monitoring
-
-Monitor these metrics:
-- Review accuracy (false positives/negatives)
-- Developer adoption and feedback
-- Time saved in human review process
-- Code quality improvements over time
+- Typical review: ~$0.01–0.05 per PR (Sonnet, 50KB diff)
+- Large PRs hitting the 50KB truncation limit: ~$0.05–0.10
+- Monitor usage at https://console.anthropic.com/

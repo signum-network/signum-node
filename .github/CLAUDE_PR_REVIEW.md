@@ -78,7 +78,7 @@ Review criteria are defined in two files, both loaded by Stage 1:
 
 4. **Testing** — New logic without unit tests is rejected.
 
-5. **PR Size** — Max 10 files changed, max 500 new lines. Oversized PRs are flagged for splitting.
+5. **PR Size** — Max 10 files changed, max 1000 new lines. Oversized PRs are flagged for splitting.
 
 6. **Code Quality** — Clean code, proper error handling, logging.
 

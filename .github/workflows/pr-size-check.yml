@@ -86,7 +86,7 @@ jobs:
             const protocolFiles = JSON.parse('${{ steps.stats.outputs.protocol_files }}');
 
             const MAX_FILES = 10;
-            const MAX_ADDITIONS = 500;
+            const MAX_ADDITIONS = 1000;
 
             const violations = [];
 

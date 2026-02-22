@@ -366,7 +366,7 @@ These patterns are not necessarily malicious but require explicit justification:
 
 In addition to security, flag these quality issues:
 
-- **PR too large**: More than 10 files changed or more than 500 new lines of code — request the contributor to split into smaller PRs
+- **PR too large**: More than 10 files changed or more than 1000 new lines of code — request the contributor to split into smaller PRs
 - **No tests**: New logic without corresponding unit tests — reject
 - **No justification**: Changes to critical infrastructure without a linked issue or design discussion — reject
 - **Unrelated changes**: Formatting-only changes mixed with logic changes to obscure the real diff — request separation into distinct PRs

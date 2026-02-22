@@ -67,11 +67,14 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
-      - name: Checkout base repo (for guidelines)
+      - name: Checkout base repo (for guidelines only)
         if: steps.meta.outputs.skip != 'true'
         uses: actions/checkout@v4
         with:
-          ref: ${{ steps.meta.outputs.base_ref }}
+          # Always checkout the repo's default branch — never use a ref from the
+          # PR metadata artifact, as it could be crafted by a malicious fork.
+          ref: ${{ github.event.workflow_run.head_repository.default_branch || 'develop' }}
+          persist-credentials: false
           sparse-checkout: |
             CLAUDE.md
             .github/copilot-instructions.md

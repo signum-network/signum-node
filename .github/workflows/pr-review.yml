@@ -1,13 +1,22 @@
 name: "PR Review: Claude Analysis"
 
-# Triggered after "PR Size Check" passes.
+# Two trigger modes:
+# 1. AUTOMATIC: After "PR Size Check" passes (workflow_run)
+# 2. MANUAL: workflow_dispatch with a PR number (bypasses size check)
+#
 # Runs in the BASE repo context — HAS access to secrets.
-# Downloads PR metadata from size check, collects diff, calls Claude, posts review.
 
 on:
   workflow_run:
     workflows: ["PR Size Check"]
     types: [completed]
+
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to review (overrides size check)"
+        required: true
+        type: number
 
 permissions:
   contents: read
@@ -18,10 +27,17 @@ permissions:
 jobs:
   review:
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success'
+    # For workflow_run: only run if size check passed
+    # For workflow_dispatch: always run
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
 
     steps:
-      - name: Download PR metadata
+      # ── Resolve PR number from either trigger ──
+
+      - name: Download PR metadata (automatic trigger)
+        if: github.event_name == 'workflow_run'
         uses: actions/download-artifact@v4
         with:
           name: pr-metadata
@@ -29,11 +45,115 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: pr-metadata
 
+      - name: Collect PR metadata (manual trigger)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          mkdir -p pr-metadata
+
+          PR_NUMBER=${{ inputs.pr_number }}
+          echo "Manual review requested for PR #$PR_NUMBER"
+
+          # Fetch PR details via GitHub API
+          gh pr view "$PR_NUMBER" --json number,title,body,author,baseRefName,headRefName,additions,deletions,changedFiles,isCrossRepository > pr_data.json
+
+          python3 << 'PYEOF'
+          import json
+
+          with open("pr_data.json") as f:
+              pr = json.load(f)
+
+          metadata = {
+              "pr_number": pr["number"],
+              "pr_title": pr["title"],
+              "pr_body": pr.get("body", ""),
+              "pr_author": pr["author"]["login"],
+              "base_ref": pr["baseRefName"],
+              "head_ref": pr["headRefName"],
+              "head_sha": "",
+              "is_fork": pr.get("isCrossRepository", False),
+              "file_count": pr["changedFiles"],
+              "additions": pr["additions"],
+              "deletions": pr["deletions"],
+              "protocol_files": [],
+              "manual_override": True,
+          }
+
+          # Detect protocol-frozen files
+          protocol_paths = [
+              "brs/GeneratorImpl.java", "brs/util/MiningPlot.java", "brs/OCLPoC.java",
+              "brs/BlockchainProcessorImpl.java", "brs/BlockchainImpl.java",
+              "brs/services/impl/BlockServiceImpl.java",
+              "brs/TransactionType.java", "brs/Transaction.java", "brs/Attachment.java",
+              "brs/services/impl/TransactionServiceImpl.java", "brs/EconomicClustering.java",
+              "brs/Constants.java", "brs/Genesis.java",
+              "brs/fluxcapacitor/FluxValues.java", "brs/fluxcapacitor/HistoricalMoments.java",
+              "brs/fluxcapacitor/FluxCapacitorImpl.java", "brs/props/Props.java",
+              "brs/crypto/Crypto.java", "brs/crypto/EncryptedData.java",
+              "brs/at/AtController.java", "brs/at/AtMachineProcessor.java",
+              "brs/at/OpCode.java", "brs/at/AtConstants.java",
+              "brs/at/AtApiImpl.java", "brs/at/AtApiController.java", "brs/at/AtApiPlatformImpl.java",
+              "brs/peer/PeerServlet.java", "brs/peer/ProcessBlock.java",
+              "brs/peer/GetCumulativeDifficulty.java",
+          ]
+
+          with open("pr_files.json") as ff:
+              pass  # we'll get files separately below
+
+          with open("pr-metadata/metadata.json", "w") as f:
+              json.dump(metadata, f, indent=2)
+
+          print(f"Metadata collected for PR #{metadata['pr_number']}")
+          PYEOF
+
+          # Get file list and detect protocol files
+          gh pr view "$PR_NUMBER" --json files --jq '.files[].path' > pr_file_list.txt
+
+          python3 << 'PYEOF'
+          import json
+
+          protocol_paths = [
+              "brs/GeneratorImpl.java", "brs/util/MiningPlot.java", "brs/OCLPoC.java",
+              "brs/BlockchainProcessorImpl.java", "brs/BlockchainImpl.java",
+              "brs/services/impl/BlockServiceImpl.java",
+              "brs/TransactionType.java", "brs/Transaction.java", "brs/Attachment.java",
+              "brs/services/impl/TransactionServiceImpl.java", "brs/EconomicClustering.java",
+              "brs/Constants.java", "brs/Genesis.java",
+              "brs/fluxcapacitor/FluxValues.java", "brs/fluxcapacitor/HistoricalMoments.java",
+              "brs/fluxcapacitor/FluxCapacitorImpl.java", "brs/props/Props.java",
+              "brs/crypto/Crypto.java", "brs/crypto/EncryptedData.java",
+              "brs/at/AtController.java", "brs/at/AtMachineProcessor.java",
+              "brs/at/OpCode.java", "brs/at/AtConstants.java",
+              "brs/at/AtApiImpl.java", "brs/at/AtApiController.java", "brs/at/AtApiPlatformImpl.java",
+              "brs/peer/PeerServlet.java", "brs/peer/ProcessBlock.java",
+              "brs/peer/GetCumulativeDifficulty.java",
+          ]
+
+          with open("pr_file_list.txt") as f:
+              files = [line.strip() for line in f if line.strip()]
+
+          touched = [fp for fp in files if any(p in fp for p in protocol_paths)]
+
+          with open("pr-metadata/metadata.json") as f:
+              meta = json.load(f)
+
+          meta["protocol_files"] = touched
+
+          with open("pr-metadata/metadata.json", "w") as f:
+              json.dump(meta, f, indent=2)
+
+          if touched:
+              print(f"Protocol files detected: {touched}")
+          PYEOF
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── Common steps (both triggers) ──
+
       - name: Load metadata
         id: meta
         run: |
           if [ ! -f pr-metadata/metadata.json ]; then
-            echo "::error::No metadata artifact found from size check."
+            echo "::error::No metadata found."
             echo "skip=true" >> $GITHUB_OUTPUT
             exit 0
           fi
@@ -44,16 +164,16 @@ jobs:
           with open("pr-metadata/metadata.json") as f:
               meta = json.load(f)
 
-          # Write outputs for subsequent steps
           with open(os.environ["GITHUB_OUTPUT"], "a") as out:
               out.write(f"pr_number={meta['pr_number']}\n")
               out.write(f"pr_author={meta['pr_author']}\n")
               out.write(f"base_ref={meta['base_ref']}\n")
-              out.write(f"head_sha={meta['head_sha']}\n")
               out.write(f"file_count={meta['file_count']}\n")
               out.write(f"skip=false\n")
 
-          print(f"Reviewing PR #{meta['pr_number']} by {meta['pr_author']} ({meta['file_count']} files, +{meta['additions']})")
+          manual = meta.get("manual_override", False)
+          trigger = "manual override" if manual else "automatic"
+          print(f"Reviewing PR #{meta['pr_number']} by {meta['pr_author']} ({meta['file_count']} files, +{meta['additions']}) [{trigger}]")
           PYEOF
 
       - name: Validate API key
@@ -71,8 +191,7 @@ jobs:
         if: steps.meta.outputs.skip != 'true'
         uses: actions/checkout@v4
         with:
-          # Always checkout the repo's default branch — never use a ref from the
-          # PR metadata artifact, as it could be crafted by a malicious fork.
+          # Use repo default branch — never trust refs from artifacts or inputs.
           ref: ${{ github.event.workflow_run.head_repository.default_branch || 'develop' }}
           persist-credentials: false
           sparse-checkout: |
@@ -85,7 +204,6 @@ jobs:
         run: |
           PR_NUMBER=${{ steps.meta.outputs.pr_number }}
 
-          # Get diff via gh CLI (works for fork PRs, uses GITHUB_TOKEN)
           gh pr diff "$PR_NUMBER" > pr_diff.txt 2>/dev/null || true
 
           DIFF_SIZE=$(wc -c < pr_diff.txt)
@@ -99,7 +217,6 @@ jobs:
             echo "... [DIFF TRUNCATED - Original: ${DIFF_SIZE} bytes. Review may be incomplete.]" >> pr_diff.txt
           fi
 
-          # Get changed file names
           gh pr view "$PR_NUMBER" --json files --jq '.files[].path' > pr_changed_files.txt
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -107,7 +224,6 @@ jobs:
       - name: Prepare guidelines
         if: steps.meta.outputs.skip != 'true'
         run: |
-          # Combine CLAUDE.md + security review section from copilot-instructions
           if [ -f "CLAUDE.md" ]; then
             head -c 12000 CLAUDE.md > guidelines.txt
           else
@@ -141,6 +257,15 @@ jobs:
           with open("pr_changed_files.txt") as f:
               changed_files = f.read().strip()
 
+          manual = meta.get("manual_override", False)
+          size_note = ""
+          if manual:
+              size_note = """
+          NOTE: This review was triggered manually (size check override). The PR exceeds
+          normal size limits. Pay extra attention to the volume of changes and whether
+          the PR should be split into smaller pieces.
+          """
+
           protocol_note = ""
           if meta.get("protocol_files"):
               files_list = "\n".join(f"  - {f}" for f in meta["protocol_files"])
@@ -158,7 +283,7 @@ jobs:
           - The Signum protocol is STABLE. Changes to consensus, transaction processing, cryptography, smart contracts (AT), or P2P protocol code are NOT permitted unless fixing a disclosed CVE.
           - Layered architecture: API handlers -> Services -> Stores -> Database (JOOQ/Flyway)
           - External contributors may submit AI-generated code ("vibe coding") that looks plausible but may contain subtle vulnerabilities or backdoors.
-          {protocol_note}
+          {size_note}{protocol_note}
           REVIEW PRIORITIES (in order):
           1. PROTOCOL INTEGRITY: Flag ANY changes to protocol-frozen files (consensus, block validation, transaction types, constants, crypto, AT engine, P2P). These require explicit maintainer justification.
           2. SECURITY: Backdoors, hardcoded accounts/keys, obfuscated logic, overflow/underflow, signature bypass, gas metering bypass, input validation gaps.
@@ -194,6 +319,7 @@ jobs:
           **Target**: {meta['base_ref']} <- {meta['head_ref']}
           **From fork**: {meta['is_fork']}
           **Files changed**: {meta['file_count']} (+{meta['additions']}, -{meta['deletions']})
+          **Trigger**: {"Manual override (size check bypassed)" if manual else "Automatic (size check passed)"}
 
           **Description**:
           {meta.get('pr_body') or 'No description provided.'}
@@ -216,7 +342,7 @@ jobs:
           with open("claude_request.json", "w") as f:
               json.dump(request, f)
 
-          print(f"Request built for PR #{meta['pr_number']} ({meta['file_count']} files)")
+          print(f"Request built for PR #{meta['pr_number']} ({meta['file_count']} files, {'manual' if manual else 'auto'})")
           PYEOF
 
       - name: Call Claude API
@@ -275,6 +401,7 @@ jobs:
             }
 
             const meta = JSON.parse(fs.readFileSync('pr-metadata/metadata.json', 'utf8'));
+            const manual = meta.manual_override ? ' (manual override — size check bypassed)' : '';
 
             const body = [
               '## Claude AI Code Review',
@@ -282,7 +409,7 @@ jobs:
               reviewContent,
               '',
               '---',
-              `*Automated review of ${meta.file_count} changed file(s) (+${meta.additions}, -${meta.deletions}). Address any security issues before merging.*`,
+              `*Automated review of ${meta.file_count} changed file(s) (+${meta.additions}, -${meta.deletions})${manual}. Address any security issues before merging.*`,
             ].join('\n');
 
             await github.rest.issues.createComment({
@@ -299,6 +426,7 @@ jobs:
         run: |
           echo "## Claude PR Review" >> $GITHUB_STEP_SUMMARY
           echo "- **PR:** #${{ steps.meta.outputs.pr_number || 'unknown' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
           echo "- **API success:** ${{ steps.claude.outputs.success || 'skipped' }}" >> $GITHUB_STEP_SUMMARY
 
           if [ -f claude_review.txt ]; then

@@ -21,7 +21,7 @@ jobs:
     steps:
       - name: Get PR stats
         id: stats
-        uses: actions/github-script@v8
+        uses: actions/github-script@v7
         with:
           script: |
             const pr = await github.rest.pulls.get({
@@ -77,13 +77,18 @@ jobs:
 
       - name: Enforce size limits
         id: limits
-        uses: actions/github-script@v8
+        uses: actions/github-script@v7
+        env:
+          STAT_FILE_COUNT: ${{ steps.stats.outputs.file_count }}
+          STAT_ADDITIONS: ${{ steps.stats.outputs.additions }}
+          STAT_PROTOCOL_COUNT: ${{ steps.stats.outputs.protocol_files_count }}
+          STAT_PROTOCOL_FILES: ${{ steps.stats.outputs.protocol_files }}
         with:
           script: |
-            const fileCount = parseInt('${{ steps.stats.outputs.file_count }}');
-            const additions = parseInt('${{ steps.stats.outputs.additions }}');
-            const protocolCount = parseInt('${{ steps.stats.outputs.protocol_files_count }}');
-            const protocolFiles = JSON.parse('${{ steps.stats.outputs.protocol_files }}');
+            const fileCount = parseInt(process.env.STAT_FILE_COUNT, 10);
+            const additions = parseInt(process.env.STAT_ADDITIONS, 10);
+            const protocolCount = parseInt(process.env.STAT_PROTOCOL_COUNT, 10);
+            const protocolFiles = JSON.parse(process.env.STAT_PROTOCOL_FILES);
 
             const MAX_FILES = 10;
             const MAX_ADDITIONS = 1000;
@@ -158,21 +163,42 @@ jobs:
           mkdir -p pr-metadata
 
           python3 << 'PYEOF'
-          import json, os
+          import json, os, re
+
+          def sanitize_string(value, max_length=10000):
+              """Sanitize untrusted string: strip control chars, enforce length."""
+              if not isinstance(value, str):
+                  return ""
+              # Remove control characters except newlines and tabs
+              value = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]', '', value)
+              return value[:max_length]
+
+          def sanitize_ref(value, max_length=256):
+              """Sanitize git ref names: only allow safe characters."""
+              if not isinstance(value, str):
+                  return ""
+              # Git refs: alphanumeric, -, _, /, .
+              return re.sub(r'[^a-zA-Z0-9._/\-]', '', value)[:max_length]
+
+          def sanitize_login(value, max_length=39):
+              """Sanitize GitHub login: alphanumeric and hyphens only."""
+              if not isinstance(value, str):
+                  return ""
+              return re.sub(r'[^a-zA-Z0-9\-]', '', value)[:max_length]
 
           metadata = {
-              "pr_number": int("${{ github.event.pull_request.number }}"),
-              "pr_title": os.environ.get("PR_TITLE", ""),
-              "pr_body": os.environ.get("PR_BODY", ""),
-              "pr_author": "${{ github.event.pull_request.user.login }}",
-              "base_ref": "${{ github.event.pull_request.base.ref }}",
-              "head_ref": "${{ github.event.pull_request.head.ref }}",
-              "head_sha": "${{ github.event.pull_request.head.sha }}",
-              "is_fork": "${{ github.event.pull_request.head.repo.fork }}" == "true",
-              "file_count": int("${{ steps.stats.outputs.file_count }}"),
-              "additions": int("${{ steps.stats.outputs.additions }}"),
-              "deletions": int("${{ steps.stats.outputs.deletions }}"),
-              "protocol_files": json.loads('${{ steps.stats.outputs.protocol_files }}'),
+              "pr_number": int(os.environ.get("PR_NUMBER", "0")),
+              "pr_title": sanitize_string(os.environ.get("PR_TITLE", ""), 500),
+              "pr_body": sanitize_string(os.environ.get("PR_BODY", ""), 10000),
+              "pr_author": sanitize_login(os.environ.get("PR_AUTHOR", "")),
+              "base_ref": sanitize_ref(os.environ.get("BASE_REF", "")),
+              "head_ref": sanitize_ref(os.environ.get("HEAD_REF", "")),
+              "head_sha": sanitize_ref(os.environ.get("HEAD_SHA", "")),
+              "is_fork": os.environ.get("IS_FORK", "false") == "true",
+              "file_count": int(os.environ.get("STAT_FILE_COUNT", "0")),
+              "additions": int(os.environ.get("STAT_ADDITIONS", "0")),
+              "deletions": int(os.environ.get("STAT_DELETIONS", "0")),
+              "protocol_files": json.loads(os.environ.get("STAT_PROTOCOL_FILES", "[]")),
           }
 
           with open("pr-metadata/metadata.json", "w") as f:
@@ -181,12 +207,22 @@ jobs:
           print(f"Metadata saved for PR #{metadata['pr_number']}")
           PYEOF
         env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_BODY: ${{ github.event.pull_request.body }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
+          STAT_FILE_COUNT: ${{ steps.stats.outputs.file_count }}
+          STAT_ADDITIONS: ${{ steps.stats.outputs.additions }}
+          STAT_DELETIONS: ${{ steps.stats.outputs.deletions }}
+          STAT_PROTOCOL_FILES: ${{ steps.stats.outputs.protocol_files }}
 
       - name: Upload metadata artifact
         if: success()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: pr-metadata
           path: pr-metadata/
@@ -194,9 +230,14 @@ jobs:
 
       - name: Summary
         if: always()
+        env:
+          STAT_FILE_COUNT: ${{ steps.stats.outputs.file_count }}
+          STAT_ADDITIONS: ${{ steps.stats.outputs.additions }}
+          STAT_DELETIONS: ${{ steps.stats.outputs.deletions }}
+          STAT_PROTOCOL_COUNT: ${{ steps.stats.outputs.protocol_files_count }}
         run: |
           echo "## PR Size Check" >> $GITHUB_STEP_SUMMARY
-          echo "- **Files changed:** ${{ steps.stats.outputs.file_count }} / 10" >> $GITHUB_STEP_SUMMARY
-          echo "- **Lines added:** ${{ steps.stats.outputs.additions }} / 500" >> $GITHUB_STEP_SUMMARY
-          echo "- **Lines deleted:** ${{ steps.stats.outputs.deletions }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Protocol files touched:** ${{ steps.stats.outputs.protocol_files_count }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Files changed:** ${STAT_FILE_COUNT} / 10" >> $GITHUB_STEP_SUMMARY
+          echo "- **Lines added:** ${STAT_ADDITIONS} / 500" >> $GITHUB_STEP_SUMMARY
+          echo "- **Lines deleted:** ${STAT_DELETIONS}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Protocol files touched:** ${STAT_PROTOCOL_COUNT}" >> $GITHUB_STEP_SUMMARY

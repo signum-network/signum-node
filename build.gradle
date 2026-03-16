@@ -8,7 +8,7 @@ plugins {
   id 'com.palantir.git-version' version '5.0.0'
   id 'io.spring.dependency-management' version '1.1.7'
   id 'nu.studer.jooq' version '10.2'
-  id "org.flywaydb.flyway" version "12.0.3"
+  id "org.flywaydb.flyway" version "12.1.0"
   id "de.undercouch.download" version "5.7.0"
   id 'jacoco'
   id "com.github.node-gradle.node" version "7.1.0"
@@ -41,9 +41,9 @@ dependencies {
     implementation 'org.jocl:jocl:2.0.6'
 
     implementation 'org.jooq:jooq:3.20.11'
-    implementation 'org.flywaydb:flyway-core:12.0.3'
-    implementation 'org.flywaydb:flyway-mysql:12.0.3'
-    implementation 'org.flywaydb:flyway-database-postgresql:12.0.3'
+    implementation 'org.flywaydb:flyway-core:12.1.0'
+    implementation 'org.flywaydb:flyway-mysql:12.1.0'
+    implementation 'org.flywaydb:flyway-database-postgresql:12.1.0'
     implementation 'org.postgresql:postgresql:42.7.10'
     implementation 'com.kohlschutter.junixsocket:junixsocket-core:2.10.1'
     implementation 'org.mariadb.jdbc:mariadb-java-client:3.5.7'
@@ -68,9 +68,9 @@ dependencies {
     implementation 'org.apache.logging.log4j:log4j-api:2.25.3'
     implementation 'org.apache.logging.log4j:log4j-core:2.25.3'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.21.1'
-    implementation 'org.eclipse.jgit:org.eclipse.jgit:7.5.0.202512021534-r'
+    implementation 'org.eclipse.jgit:org.eclipse.jgit:7.6.0.202603022253-r'
     implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.5'
-    implementation "org.glassfish.jaxb:jaxb-runtime:4.0.6"
+    implementation "org.glassfish.jaxb:jaxb-runtime:4.0.7"
 
     implementation 'org.jfree:jfreechart:1.5.6'
 
@@ -81,7 +81,7 @@ dependencies {
     testRuntimeOnly("org.junit.vintage:junit-vintage-engine:6.0.3")
 
     testImplementation 'org.apache.httpcomponents:httpclient:4.5.14'
-    testImplementation 'org.mockito:mockito-core:5.22.0'
+    testImplementation 'org.mockito:mockito-core:5.23.0'
     testImplementation 'org.powermock:powermock-module-junit4:2.0.9'
     testImplementation 'org.powermock:powermock-api-mockito2:2.0.9'
 }

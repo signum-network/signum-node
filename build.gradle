@@ -8,7 +8,7 @@ plugins {
   id 'com.palantir.git-version' version '5.0.0'
   id 'io.spring.dependency-management' version '1.1.7'
   id 'nu.studer.jooq' version '10.2.1'
-  id "org.flywaydb.flyway" version "12.1.1"
+  id "org.flywaydb.flyway" version "12.2.0"
   id "de.undercouch.download" version "5.7.0"
   id 'jacoco'
   id "com.github.node-gradle.node" version "7.1.0"
@@ -40,10 +40,10 @@ dependencies {
     implementation 'com.zaxxer:HikariCP:7.0.2'
     implementation 'org.jocl:jocl:2.0.6'
 
-    implementation 'org.jooq:jooq:3.20.11'
-    implementation 'org.flywaydb:flyway-core:12.1.1'
-    implementation 'org.flywaydb:flyway-mysql:12.1.1'
-    implementation 'org.flywaydb:flyway-database-postgresql:12.1.1'
+    implementation 'org.jooq:jooq:3.21.1'
+    implementation 'org.flywaydb:flyway-core:12.2.0'
+    implementation 'org.flywaydb:flyway-mysql:12.2.0'
+    implementation 'org.flywaydb:flyway-database-postgresql:12.2.0'
     implementation 'org.postgresql:postgresql:42.7.10'
     implementation 'com.kohlschutter.junixsocket:junixsocket-core:2.10.1'
     implementation 'org.mariadb.jdbc:mariadb-java-client:3.5.7'
@@ -65,8 +65,8 @@ dependencies {
     implementation 'com.github.jiconfont:jiconfont:1.0.0'
     implementation 'com.github.jiconfont:jiconfont-swing:1.0.1'
     implementation 'com.github.jiconfont:jiconfont-font_awesome:4.7.0.1'
-    implementation 'org.apache.logging.log4j:log4j-api:2.25.3'
-    implementation 'org.apache.logging.log4j:log4j-core:2.25.3'
+    implementation 'org.apache.logging.log4j:log4j-api:2.25.4'
+    implementation 'org.apache.logging.log4j:log4j-core:2.25.4'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.21.2'
     implementation 'org.eclipse.jgit:org.eclipse.jgit:7.6.0.202603022253-r'
     implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.5'

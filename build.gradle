@@ -35,7 +35,7 @@ dependencies {
     implementation 'org.bouncycastle:bcprov-jdk18on:1.84'
     implementation 'org.bouncycastle:bcpkix-jdk18on:1.84'
     implementation 'org.ehcache:ehcache:3.12.0'
-    implementation 'com.google.code.gson:gson:2.13.2'
+    implementation 'com.google.code.gson:gson:2.14.0'
     implementation 'commons-cli:commons-cli:1.11.0'
     implementation 'com.zaxxer:HikariCP:7.0.2'
     implementation 'org.jocl:jocl:2.0.6'

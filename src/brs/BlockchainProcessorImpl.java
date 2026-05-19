@@ -2323,7 +2323,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                 transaction.getFeeNqt() / propertyService.getInt(Props.CASH_BACK_FACTOR));
                     }
                     if (calculatedTotalFeeCashBackNqt != block.getTotalFeeCashBackNqt()) {
-                        throw new BlockNotAcceptedException("Total fee cash back doesn't match transaction totals for block " + block.getHeight());
+                        throw new BlockNotAcceptedException("Calculated total fee cash back doesn't match stored total fee cash back for block " + block.getHeight());
                     }
                 }
 

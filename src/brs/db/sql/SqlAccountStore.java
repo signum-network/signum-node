@@ -62,7 +62,7 @@ public class SqlAccountStore implements AccountStore {
   private static final Set<String> PK_CHECKS = Collections
     .unmodifiableSet(new HashSet<>(Signum.getPropertyService().getStringList(Props.BRS_PK_CHECKS)));
 
-  private static Map<Long, Integer> accountBlockList = null;
+  private static volatile Map<Long, Integer> accountBlockList = null;
 
   public SqlAccountStore(DerivedTableManager derivedTableManager, DBCacheManagerImpl dbCacheManager) {
     rewardRecipientAssignmentTable = new VersionedEntitySqlTable<Account.RewardRecipientAssignment>("reward_recip_assign", brs.schema.Tables.REWARD_RECIP_ASSIGN, rewardRecipientAssignmentDbKeyFactory, derivedTableManager) {
@@ -425,10 +425,6 @@ public class SqlAccountStore implements AccountStore {
         getAccountTable().insert(acc);
       }
       return true;
-    } else if (Signum.getFluxCapacitor().getValue(FluxValues.PK_FREEZE)
-      && PK_CHECKS.contains(Convert.toHexString(SignumCrypto.getInstance().longToBytesLE(acc.getId())))) {
-      logger.info("Using the key for account {}", Convert.toUnsignedLong(acc.id));
-      return false;
     } else if (Signum.getFluxCapacitor().getValue(FluxValues.PK_FREEZE)
       && PK_CHECKS.contains(Convert.toHexString(SignumCrypto.getInstance().longToBytesLE(acc.getId())))) {
       logger.info("Using the key for account {}", Convert.toUnsignedLong(acc.id));

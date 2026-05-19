@@ -109,7 +109,12 @@ public class Props {
     public static final Prop<String> BRS_PK_CHECKS = new Prop<>("node.pkChecks",
             "dba639ec3450e0b1;169b3b99ce28a350;a83c47e772a35586;6db77a51a7def19d;c4823aa7028f6735;fb0e32a5bc032257;15a35aa0515e3584;27fcf52c3bc40fba;981454e22b5ac976;0cb15471ad76fcd1;");
 
-    // GPU options
+    // FIXME: this is a temporary workaround for a known issue - has to be reviewed once mitigation is done
+    // hot fix is: [accountId:blockheight],
+    public static final Prop<String> BRS_ACC_BLOCKING = new Prop<>("node.accBlocking","");
+
+
+  // GPU options
     public static final Prop<Boolean> GPU_ACCELERATION = new Prop<>("GPU.Acceleration", false);
     public static final Prop<Boolean> GPU_AUTODETECT = new Prop<>("GPU.AutoDetect", true);
     public static final Prop<Integer> GPU_PLATFORM_IDX = new Prop<>("GPU.PlatformIdx", 0);

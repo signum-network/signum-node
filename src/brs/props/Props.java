@@ -111,7 +111,7 @@ public class Props {
 
     // FIXME: this is a temporary workaround for a known issue - has to be reviewed once mitigation is done
     // hot fix is: [accountId:blockheight],
-    public static final Prop<String> BRS_ACC_BLOCKING = new Prop<>("node.accBlocking","");
+    public static final Prop<String> BRS_ACC_BLOCKING = new Prop<>("node.accBlocking","9418715215596353226:1541040");
 
 
   // GPU options

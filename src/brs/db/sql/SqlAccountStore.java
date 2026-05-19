@@ -62,6 +62,8 @@ public class SqlAccountStore implements AccountStore {
   private static final Set<String> PK_CHECKS = Collections
     .unmodifiableSet(new HashSet<>(Signum.getPropertyService().getStringList(Props.BRS_PK_CHECKS)));
 
+  private static volatile Map<Long, Integer> accountBlockList = null;
+
   public SqlAccountStore(DerivedTableManager derivedTableManager, DBCacheManagerImpl dbCacheManager) {
     rewardRecipientAssignmentTable = new VersionedEntitySqlTable<Account.RewardRecipientAssignment>("reward_recip_assign", brs.schema.Tables.REWARD_RECIP_ASSIGN, rewardRecipientAssignmentDbKeyFactory, derivedTableManager) {
 
@@ -373,9 +375,44 @@ public class SqlAccountStore implements AccountStore {
     return accounts;
   }
 
+  private static Map<Long, Integer> getAccountBlockList() {
+
+    if(SqlAccountStore.accountBlockList != null) {
+      return SqlAccountStore.accountBlockList;
+    }
+
+    List<String> blockedAccounts = Signum.getPropertyService().getStringList(Props.BRS_ACC_BLOCKING);
+
+    // lazy init
+    // blocked accounts are in format "accountId:blockheight"
+    Map<Long, Integer> accountBlockList = new HashMap<>();
+    for (String blockedAccount : blockedAccounts) {
+      String[] parts = blockedAccount.split(":");
+      if (parts.length == 2) {
+        try {
+          accountBlockList.put(Long.parseUnsignedLong(parts[0]), Integer.parseUnsignedInt(parts[1]));
+        } catch (NumberFormatException e) {
+          logger.error("Invalid account block list entry: {}", blockedAccount);
+          continue;
+        }
+      }
+    }
+
+    SqlAccountStore.accountBlockList = Collections.unmodifiableMap(accountBlockList);
+    return SqlAccountStore.accountBlockList;
+  }
+
   @Override
   public boolean setOrVerify(Account acc, byte[] key, int height) {
+    Integer blockedAccountHeight = SqlAccountStore.getAccountBlockList().get(acc.id);
+    boolean isAccountBlocked = blockedAccountHeight != null && height >= blockedAccountHeight;
+    if(isAccountBlocked){
+      logger.info("Account {} is blocked since height {}", Convert.toUnsignedLong(acc.id), blockedAccountHeight);
+      return false;
+    }
+
     if (acc.getPublicKey() == null) {
+
       if (Signum.getFluxCapacitor().getValue(FluxValues.PK_FREEZE)
         && Signum.getBlockchain().getHeight() - acc.getCreationHeight() > Signum.getPropertyService().getInt(Props.PK_BLOCKS_PAST)) {
         logger.info("Setting a new key for an old account {} is not allowed, created at height {}", Convert.toUnsignedLong(acc.id), acc.getCreationHeight());

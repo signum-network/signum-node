@@ -2323,7 +2323,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                 transaction.getFeeNqt() / propertyService.getInt(Props.CASH_BACK_FACTOR));
                     }
                     if (calculatedTotalFeeCashBackNqt != block.getTotalFeeCashBackNqt()) {
-                        throw new BlockNotAcceptedException("Calculated total fee cash back doesn't match stored total fee cash back for block " + block.getHeight());
+                        throw new BlockNotAcceptedException(
+                                "Total fee cash back doesn't match transaction totals for block " + block.getHeight());
                     }
                 }
 
@@ -2500,7 +2501,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
         if (Signum.getFluxCapacitor().getValue(FluxValues.SMART_FEES, block.getHeight())) {
             if (calculatedRemainingFee != block.getTotalFeeBurntNqt()) {
-                throw new BlockNotAcceptedException("Total fee burnt doesn't match AT and subscription totals for block " + block.getHeight());
+                throw new BlockNotAcceptedException(
+                        "Total fee burnt doesn't match AT and subscription totals for block " + block.getHeight());
             }
         }
 
@@ -2613,24 +2615,27 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                             downloadCache.resetCache();
                             atProcessorCache.reset();
                             // Checking database consistency after each block popped
-                            if (checkDatabaseState() != 0) {
-                                manualPopOffBlocksCount.set(0);
-                                manualLastPopOffHeight.set(-1);
-                                stores.rollbackTransaction();
-                                // Get block height from datbase
-                                block = blockDb.findLastBlock();
-                                blockchain.setLastBlock(block);
-                                logger.warn("Database could be inconsistent after popping block at height {}.",
-                                        block.getHeight() + 1);
-                                logger.warn("Cacelling pop-off process to prevent database consistency.");
-                                logger.warn("Setting blockchain height back to {}.", block.getHeight());
-                                break;
-                            } else {
-                                stores.commitTransaction();
-                                poppedBlocks++;
-                                manualPopOffBlocksCount.decrementAndGet();
-                                blockListeners.notify(block, Event.BLOCK_MANUAL_POPPED);
-                            }
+                            /*
+                             * if (checkDatabaseState() != 0) {
+                             * manualPopOffBlocksCount.set(0);
+                             * manualLastPopOffHeight.set(-1);
+                             * stores.rollbackTransaction();
+                             * // Get block height from datbase
+                             * block = blockDb.findLastBlock();
+                             * blockchain.setLastBlock(block);
+                             * logger.
+                             * warn("Database could be inconsistent after popping block at height {}.",
+                             * block.getHeight() + 1);
+                             * logger.warn("Cacelling pop-off process to prevent database consistency.");
+                             * logger.warn("Setting blockchain height back to {}.", block.getHeight());
+                             * break;
+                             * } else {
+                             */
+                            stores.commitTransaction();
+                            poppedBlocks++;
+                            manualPopOffBlocksCount.decrementAndGet();
+                            blockListeners.notify(block, Event.BLOCK_MANUAL_POPPED);
+                            // }
                         } else {
                             logger.warn("Reached minimum rollback height {}, cannot pop off block at height {}.",
                                     maxRollbackHeight, block.getHeight());

@@ -1510,7 +1510,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                  * The file starts with a block of system information (Property;Value).
                  * The file contains detailed timing measurements for each pushed block during
                  * synchronization.
-                 * 
+                 *
                  * Header:
                  * Block_height;Block_timestamp[s];Cumulative_difficulty;
                  * Accumulated_sync_in_progress_time[ms];
@@ -1561,7 +1561,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 /*
                  * The file starts with a block of system information (Property;Value).
                  * The file contains periodic database trim logs.
-                 * 
+                 *
                  * Header: trim_height;trim_time[ms]
                  * trim_height - Height to which the database was trimmed.
                  * trim_time[ms] - Time taken to trim the database in milliseconds.
@@ -1579,9 +1579,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
      * total elapsed time, and current block height.
      * accumulatedSyncInProgressTimeMs is for the time when sync is in progress
      * totalTime is for the total time since start of node
-     * 
+     *
      * @param totalTime Total elapsed time in milliseconds
-     * 
+     *
      * @param height Current block height
      */
     private void writeSyncProgressLog(long totalTime, int height) {
@@ -2316,6 +2316,34 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                             "Total amount or fee don't match transaction totals for block " + block.getHeight());
                 }
 
+                if (Signum.getFluxCapacitor().getValue(FluxValues.SMART_FEES, block.getHeight())) {
+                    long calculatedTotalFeeCashBackNqt = 0;
+                    for (Transaction transaction : transactions) {
+                        calculatedTotalFeeCashBackNqt = Convert.safeAdd(calculatedTotalFeeCashBackNqt,
+                                transaction.getFeeNqt() / propertyService.getInt(Props.CASH_BACK_FACTOR));
+                    }
+                    if (calculatedTotalFeeCashBackNqt != block.getTotalFeeCashBackNqt()) {
+                        throw new BlockNotAcceptedException("Total fee cash back doesn't match transaction totals for block " + block.getHeight());
+                    }
+
+                    long calculatedTotalFeeBurntNqt = 0;
+                    if (subscriptionService.isEnabled()) {
+                        calculatedTotalFeeBurntNqt = Convert.safeAdd(calculatedTotalFeeBurntNqt, subscriptionService.calculateFees(block.getTimestamp(), block.getHeight()));
+                    }
+
+                    // ATs for block
+                    try {
+                        AtBlock atBlock = AtController.validateATs(block.getBlockAts(), previousLastBlock.getHeight(), block.getGeneratorId());
+                        calculatedTotalFeeBurntNqt = Convert.safeAdd(calculatedTotalFeeBurntNqt, atBlock.getTotalFees());
+                    } catch (AtException e) {
+                        throw new BlockNotAcceptedException("ats are not matching at block height " + block.getHeight() + " (" + e + ")");
+                    }
+
+                    if (calculatedTotalFeeBurntNqt != block.getTotalFeeBurntNqt()) {
+                        throw new BlockNotAcceptedException("Total fee burnt doesn't match transaction totals for block " + block.getHeight());
+                    }
+                }
+
                 if (Signum.getFluxCapacitor().getValue(FluxValues.SODIUM)
                         && !Signum.getFluxCapacitor().getValue(FluxValues.SPEEDWAY)) {
                     Arrays.sort(feeArray);
@@ -2985,8 +3013,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                 totalAmountNqt += transaction.getAmountNqt();
                                 totalFeeNqt += transaction.getFeeNqt();
                                 if (Signum.getFluxCapacitor().getValue(FluxValues.SMART_FEES, blockHeight)) {
-                                    totalFeeCashBackNqt += transaction.getFeeNqt()
-                                            / propertyService.getInt(Props.CASH_BACK_FACTOR);
+                                    totalFeeCashBackNqt = Convert.safeAdd(totalFeeCashBackNqt, transaction.getFeeNqt()
+                                            / propertyService.getInt(Props.CASH_BACK_FACTOR));
                                 }
                                 orderedBlockTransactions.add(transaction);
                                 blockSize--;
@@ -3006,9 +3034,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 if (subscriptionService.isEnabled()) {
                     subscriptionService.clearRemovals();
                     long subscriptionFeeNqt = subscriptionService.calculateFees(blockTimestamp, blockHeight);
-                    totalFeeNqt += subscriptionFeeNqt;
+                    totalFeeNqt = Convert.safeAdd(totalFeeNqt, subscriptionFeeNqt);
                     if (Signum.getFluxCapacitor().getValue(FluxValues.SMART_FEES, blockHeight)) {
-                        totalFeeBurntNqt += subscriptionFeeNqt;
+                        totalFeeBurntNqt = Convert.safeAdd(totalFeeBurntNqt, subscriptionFeeNqt);
                     }
                 }
             } catch (Exception e) {
@@ -3028,11 +3056,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             // digesting AT Bytes
             if (byteAts != null) {
                 payloadSize -= byteAts.length;
-                totalFeeNqt += atBlock.getTotalFees();
+                totalFeeNqt = Convert.safeAdd(totalFeeNqt, atBlock.getTotalFees());
                 if (Signum.getFluxCapacitor().getValue(FluxValues.SMART_FEES, blockHeight)) {
-                    totalFeeBurntNqt += atBlock.getTotalFees();
+                    totalFeeBurntNqt = Convert.safeAdd(totalFeeBurntNqt, atBlock.getTotalFees());
                 }
-                totalAmountNqt += atBlock.getTotalAmount();
+                totalAmountNqt = Convert.safeAdd(totalAmountNqt, atBlock.getTotalAmount());
             }
 
             // ATs for block

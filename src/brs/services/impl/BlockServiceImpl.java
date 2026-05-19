@@ -271,9 +271,18 @@ public class BlockServiceImpl implements BlockService {
             Account rewardAccount = getRewardAccount(block);
 
             long rewardFeesNqt = block.getTotalFeeNqt();
-            if (Signum.getFluxCapacitor().getValue(FluxValues.SMART_FEES)) {
-                rewardFeesNqt -= block.getTotalFeeCashBackNqt();
-                rewardFeesNqt -= block.getTotalFeeBurntNqt();
+            if (Signum.getFluxCapacitor().getValue(FluxValues.SMART_FEES, block.getHeight())) {
+                if (block.getTotalFeeCashBackNqt() < 0) {
+                    throw new ArithmeticException("Block fee cashback cannot be negative at height " + block.getHeight());
+                }
+                if (block.getTotalFeeBurntNqt() < 0) {
+                    throw new ArithmeticException("Block fee burnt cannot be negative at height " + block.getHeight());
+                }
+                rewardFeesNqt = Convert.safeSubtract(rewardFeesNqt, block.getTotalFeeCashBackNqt());
+                rewardFeesNqt = Convert.safeSubtract(rewardFeesNqt, block.getTotalFeeBurntNqt());
+                if (rewardFeesNqt < 0) {
+                    throw new ArithmeticException("Reward fees cannot be negative at height " + block.getHeight());
+                }
 
                 Account nullAccount = accountService.getOrAddAccount(0L);
                 accountService.addToBalanceAndUnconfirmedBalanceNQT(

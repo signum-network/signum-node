@@ -2325,23 +2325,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                     if (calculatedTotalFeeCashBackNqt != block.getTotalFeeCashBackNqt()) {
                         throw new BlockNotAcceptedException("Total fee cash back doesn't match transaction totals for block " + block.getHeight());
                     }
-
-                    long calculatedTotalFeeBurntNqt = 0;
-                    if (subscriptionService.isEnabled()) {
-                        calculatedTotalFeeBurntNqt = Convert.safeAdd(calculatedTotalFeeBurntNqt, subscriptionService.calculateFees(block.getTimestamp(), block.getHeight()));
-                    }
-
-                    // ATs for block
-                    try {
-                        AtBlock atBlock = AtController.validateATs(block.getBlockAts(), previousLastBlock.getHeight(), block.getGeneratorId());
-                        calculatedTotalFeeBurntNqt = Convert.safeAdd(calculatedTotalFeeBurntNqt, atBlock.getTotalFees());
-                    } catch (AtException e) {
-                        throw new BlockNotAcceptedException("ats are not matching at block height " + block.getHeight() + " (" + e + ")");
-                    }
-
-                    if (calculatedTotalFeeBurntNqt != block.getTotalFeeBurntNqt()) {
-                        throw new BlockNotAcceptedException("Total fee burnt doesn't match transaction totals for block " + block.getHeight());
-                    }
                 }
 
                 if (Signum.getFluxCapacitor().getValue(FluxValues.SODIUM)
@@ -2514,6 +2497,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         if (remainingFee != null && remainingFee != calculatedRemainingFee) {
             throw new BlockNotAcceptedException(
                     "Calculated remaining fee doesn't add up for block " + block.getHeight());
+        }
+        if (Signum.getFluxCapacitor().getValue(FluxValues.SMART_FEES, block.getHeight())) {
+            if (calculatedRemainingFee != block.getTotalFeeBurntNqt()) {
+                throw new BlockNotAcceptedException("Total fee burnt doesn't match AT and subscription totals for block " + block.getHeight());
+            }
         }
 
         start = System.nanoTime();

@@ -21,7 +21,7 @@ jobs:
     steps:
       - name: Get PR stats
         id: stats
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const pr = await github.rest.pulls.get({
@@ -77,7 +77,7 @@ jobs:
 
       - name: Enforce size limits
         id: limits
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const fileCount = parseInt('${{ steps.stats.outputs.file_count }}');

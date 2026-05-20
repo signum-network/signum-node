@@ -736,7 +736,7 @@ public abstract class TransactionType {
       public String getDescription() {
         return "TLD Assignment";
       }
-      
+
       @Override
       public boolean isSigned() {
         return super.isSigned();
@@ -781,7 +781,7 @@ public abstract class TransactionType {
         if (tld != null) {
           throw new SignumException.NotCurrentlyValidException("TLD already registered by another account: " + attachment.getTldName());
         }
-        
+
         if(transaction.getRecipientId() != 0L
                 || transaction.getAmountNqt() < BASELINE_TLD_ASSIGNMENT_FACTOR * fluxCapacitor.getValue(FluxValues.FEE_QUANT, blockchain.getLastBlock().getHeight())) {
           throw new SignumException.NotCurrentlyValidException("Invalid TLD assignment: " + attachment.getTldName());
@@ -1518,7 +1518,7 @@ public abstract class TransactionType {
           throw new SignumException.NotCurrentlyValidException("Asset " + Convert.toUnsignedLong(assetCreationTransaction.getId()) +
               " does not exist yet");
         }
-        
+
         if(asset.getAccountId()!= transaction.getSenderId() || !Signum.getFluxCapacitor().getValue(FluxValues.SMART_TOKEN)) {
           throw new SignumException.NotValidException("Invalid add treasury account transaction");
         }

@@ -168,7 +168,7 @@ public class Props {
     public static final Prop<Integer> P2P_MAX_CONNECTIONS = new Prop<>("P2P.MaxConnections", 20);
     public static final Prop<Integer> P2P_TIMEOUT_CONNECT_MS = new Prop<>("P2P.TimeoutConnect_ms", 4000);
     public static final Prop<Integer> P2P_TIMEOUT_READ_MS = new Prop<>("P2P.TimeoutRead_ms", 8000);
-    public static final Prop<Integer> P2P_BLACKLISTING_TIME_MS = new Prop<>("P2P.BlacklistingTime_ms", 600000);
+    public static final Prop<Integer> P2P_BLACKLISTING_TIME_MS = new Prop<>("P2P.BlacklistingTime_ms", 6000000);
     public static final Prop<Integer> P2P_MAX_BLOCKS = new Prop<>("P2P.MaxBlocks", 720);
 
     public static final Prop<Integer> P2P_TIMEOUT_IDLE_MS = new Prop<>("P2P.TimeoutIdle_ms", 30000);

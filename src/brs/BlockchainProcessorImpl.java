@@ -1019,7 +1019,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                             for (int i = myPoppedOffBlocks.size() - 1; i >= 0; i--) {
                                 Block block = myPoppedOffBlocks.remove(i);
                                 try {
-                                    blockService.preVerify(block, blockchain.getLastBlock());
+                                    if (!block.isVerified()) {
+                                        blockService.preVerify(block, blockchain.getLastBlock());
+                                    }
                                     pushBlock(block);
                                 } catch (InterruptedException e) {
                                     Thread.currentThread().interrupt();
@@ -2206,7 +2208,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 if (block.getId() == 0L || blockDb.hasBlock(block.getId())) {
                     throw new BlockNotAcceptedException("Duplicate block or invalid id for block " + block.getHeight());
                 }
-                if (!blockService.verifyGenerationSignature(block)) {
+                if (!block.isVerified() && !blockService.verifyGenerationSignature(block)) {
                     throw new BlockNotAcceptedException(
                             "Generation signature verification failed for block " + block.getHeight());
                 }

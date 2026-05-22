@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signum Neo-Page — Horizon Dashboard Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Exo+2:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #050810; font-family: 'Exo 2', sans-serif; min-height: 100vh; }
+
+/* ── NEXUS THEME TOKENS ─────────────────── */
+:root {
+  --bg:       #050810;
+  --bg2:      #080d1a;
+  --blue:     #0066ff;
+  --blue2:    #00aaff;
+  --blue3:    #60c8ff;
+  --mag:      #ff0055;
+  --gold:     #ffd700;
+  --green:    #00ffaa;
+  --amber:    #ff9500;
+  --text:     #d0e4ff;
+  --muted:    #3a5070;
+  --border:   rgba(0,102,255,.18);
+  --border2:  rgba(0,170,255,.3);
+  --glow-b:   0 0 20px rgba(0,102,255,.3);
+  --glow-g:   0 0 16px rgba(0,255,170,.3);
+  --glow-m:   0 0 16px rgba(255,0,85,.3);
+}
+
+/* ── SHELL ──────────────────────────────── */
+.shell {
+  background: var(--bg); min-height: 100vh;
+  position: relative; overflow: hidden;
+}
+.shell::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0,102,255,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,102,255,.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ── TOPBAR ─────────────────────────────── */
+.topbar {
+  height: 60px; display: flex; align-items: center; padding: 0 28px;
+  border-bottom: 1px solid var(--border); position: relative; z-index: 10;
+  background: linear-gradient(180deg, rgba(0,102,255,.07) 0%, transparent 100%);
+}
+.logo {
+  font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 18px;
+  letter-spacing: 5px; color: #fff; text-transform: uppercase; margin-right: 36px;
+  text-shadow: 0 0 20px rgba(0,170,255,.5);
+}
+.logo sup { font-size: 8px; color: var(--blue2); letter-spacing: 3px; vertical-align: super; }
+.nav { display: flex; height: 100%; }
+.nav-item {
+  display: flex; align-items: center; padding: 0 20px; font-size: 10px;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+  cursor: pointer; position: relative; transition: color .2s; font-weight: 600;
+  clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+}
+.nav-item.active { color: var(--blue2); background: rgba(0,170,255,.08); }
+.nav-item.active::after {
+  content: ''; position: absolute; bottom: 0; left: 10px; right: 10px;
+  height: 2px; background: var(--blue2); box-shadow: 0 0 8px var(--blue2);
+}
+.nav-item.future { opacity: .2; pointer-events: none; }
+.topbar-right { margin-left: auto; display: flex; gap: 20px; align-items: center; }
+.t-stat { display: flex; gap: 6px; align-items: baseline; }
+.t-stat-k { font-size: 9px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+.t-stat-v { font-family: 'Orbitron', sans-serif; font-size: 12px; color: var(--text); }
+.t-stat-v.num { color: var(--blue2); }
+
+/* ── CARD ───────────────────────────────── */
+.card {
+  background: rgba(8,16,40,.85); border: 1px solid var(--border);
+  backdrop-filter: blur(8px); position: relative;
+}
+.card::before, .card::after { content: ''; position: absolute; width: 14px; height: 14px; }
+.card::before { top: -1px; left: -1px; border-top: 2px solid var(--blue2); border-left: 2px solid var(--blue2); }
+.card::after  { bottom: -1px; right: -1px; border-bottom: 2px solid var(--blue2); border-right: 2px solid var(--blue2); }
+.card-label { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--blue2); margin-bottom: 10px; font-weight: 600; }
+.card-sub { font-size: 10px; color: var(--muted); margin-top: 6px; letter-spacing: 1px; }
+.card-p { padding: 20px; }
+
+/* ── TYPOGRAPHY ─────────────────────────── */
+.big-num { font-family: 'Orbitron', sans-serif; font-weight: 700; color: #fff; line-height: 1; }
+.big-num.blue  { color: var(--blue2); text-shadow: var(--glow-b); }
+.big-num.green { color: var(--green); text-shadow: var(--glow-g); }
+.big-num.mag   { color: var(--mag);   text-shadow: var(--glow-m); }
+.big-num.gold  { color: var(--gold);  text-shadow: 0 0 16px rgba(255,215,0,.3); }
+
+/* ── UTILITIES ──────────────────────────── */
+.pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px; font-size: 9px; letter-spacing: 2px;
+  text-transform: uppercase; font-weight: 600;
+}
+.pill.green { background: rgba(0,255,170,.08); border: 1px solid rgba(0,255,170,.25); color: var(--green); }
+.pill.blue  { background: rgba(0,170,255,.08); border: 1px solid rgba(0,170,255,.25); color: var(--blue2); }
+.pill.mag   { background: rgba(255,0,85,.08);  border: 1px solid rgba(255,0,85,.25);  color: var(--mag); }
+.pill.amber { background: rgba(255,149,0,.08); border: 1px solid rgba(255,149,0,.25); color: var(--amber); }
+
+.dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.dot.ok   { background: var(--green); box-shadow: var(--glow-g); }
+.dot.warn { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+.dot.bad  { background: var(--mag);   box-shadow: var(--glow-m); }
+
+.vdiv { width: 1px; background: var(--border); align-self: stretch; }
+
+.spark { display: flex; align-items: flex-end; gap: 2px; height: 40px; }
+.spark-bar { flex: 1; background: rgba(0,102,255,.2); border-top: 1px solid rgba(0,170,255,.4); min-width: 4px; }
+
+/* ── LAYOUT: HORIZON ────────────────────── */
+.page { position: relative; z-index: 1; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+
+/* Banner */
+.banner {
+  display: grid;
+  grid-template-columns: auto 1px 1fr 1px auto;
+  align-items: stretch;
+  border: 1px solid var(--border2);
+  background: rgba(0,102,255,.05);
+  position: relative; overflow: hidden;
+  min-height: 160px;
+}
+.banner::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 30% 50%, rgba(0,102,255,.1) 0%, transparent 60%);
+}
+.banner-left   { padding: 28px 36px; display: flex; flex-direction: column; justify-content: center; min-width: 280px; }
+.banner-center { padding: 24px 32px; display: flex; flex-direction: column; justify-content: center; gap: 14px; }
+.banner-right  { padding: 28px 36px; display: flex; flex-direction: column; justify-content: center; min-width: 220px; }
+
+/* Sync progress */
+.prog { display: flex; flex-direction: column; gap: 6px; }
+.prog-label { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); letter-spacing: 1px; }
+.prog-track { height: 6px; background: rgba(0,102,255,.1); }
+.prog-fill  { height: 100%; background: var(--green); }
+
+/* Metric grid */
+.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.span2 { grid-column: span 2; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="logo">SIGNUM <sup>NODE</sup></div>
+    <nav class="nav">
+      <div class="nav-item active">Dashboard</div>
+      <div class="nav-item">Network</div>
+      <div class="nav-item future">Blocks</div>
+      <div class="nav-item future">Wallet</div>
+    </nav>
+    <div class="topbar-right">
+      <div class="t-stat"><span class="t-stat-k">v</span><span class="t-stat-v num">3.9.9</span></div>
+      <span class="pill green"><span class="dot ok"></span>Mainnet</span>
+    </div>
+  </div>
+
+  <div class="page">
+
+    <!-- Banner -->
+    <div class="banner">
+      <div class="banner-left">
+        <div class="card-label">Current Block Height</div>
+        <div class="big-num blue" style="font-size:56px; letter-spacing:-3px; line-height:1;">4,521,304</div>
+        <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+          <span class="pill green"><span class="dot ok"></span>Synced</span>
+          <span class="pill blue">Mainnet</span>
+        </div>
+      </div>
+      <div class="vdiv"></div>
+      <div class="banner-center">
+        <div class="prog">
+          <div class="prog-label">
+            <span class="card-label" style="margin:0">Sync Progress</span>
+            <span style="color:var(--green);font-family:'Orbitron',sans-serif;font-size:11px;">99.97%</span>
+          </div>
+          <div class="prog-track"><div class="prog-fill" style="width:99.97%;"></div></div>
+          <div class="prog-label">
+            <span>Local 4,521,304</span>
+            <span>Global 4,521,304</span>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:4px;">
+          <div>
+            <div class="card-label">Block Time</div>
+            <div style="font-family:'Orbitron',sans-serif;font-size:20px;color:var(--gold);">4:02</div>
+            <div class="card-sub">target 4:00</div>
+          </div>
+          <div>
+            <div class="card-label">Last Reward</div>
+            <div style="font-family:'Orbitron',sans-serif;font-size:20px;color:var(--gold);">80</div>
+            <div class="card-sub">SIGNA per block</div>
+          </div>
+        </div>
+      </div>
+      <div class="vdiv"></div>
+      <div class="banner-right">
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <div>
+            <div class="card-label">Feeder Peer</div>
+            <div style="font-size:12px;color:var(--blue3);margin-top:2px;">europe.signum.network</div>
+            <div class="card-sub">at #4,521,303</div>
+          </div>
+          <div>
+            <div class="card-label">Base Target</div>
+            <div style="font-family:'Orbitron',sans-serif;font-size:16px;color:var(--text);">56,463</div>
+            <div class="card-sub">mining difficulty</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Metric grid -->
+    <div class="grid">
+
+      <div class="card card-p">
+        <div class="card-label">Peers Connected</div>
+        <div class="big-num green" style="font-size:42px;">14</div>
+        <div class="card-sub">of 20 max · 2 outdated</div>
+      </div>
+
+      <div class="card card-p">
+        <div class="card-label">Pending TXs</div>
+        <div class="big-num mag" style="font-size:42px;">23</div>
+        <div class="card-sub">unconfirmed in mempool</div>
+      </div>
+
+      <div class="card card-p">
+        <div class="card-label">Avg Commitment</div>
+        <div class="big-num gold" style="font-size:42px;">49.88</div>
+        <div class="card-sub">SIGNA / TiB · PoC+ metric</div>
+      </div>
+
+      <div class="card card-p">
+        <div class="card-label">Network Capacity</div>
+        <div class="big-num blue" style="font-size:42px;">142</div>
+        <div class="card-sub">PiB · derived from base target</div>
+      </div>
+
+      <div class="card card-p span2">
+        <div class="card-label">Cumulative Difficulty</div>
+        <div class="big-num blue" style="font-size:26px; margin-bottom:12px;">57,884,336,750,738,710</div>
+        <div class="spark">
+          <div class="spark-bar" style="height:38%"></div>
+          <div class="spark-bar" style="height:44%"></div>
+          <div class="spark-bar" style="height:50%"></div>
+          <div class="spark-bar" style="height:56%"></div>
+          <div class="spark-bar" style="height:60%"></div>
+          <div class="spark-bar" style="height:65%"></div>
+          <div class="spark-bar" style="height:70%"></div>
+          <div class="spark-bar" style="height:75%"></div>
+          <div class="spark-bar" style="height:80%"></div>
+          <div class="spark-bar" style="height:85%"></div>
+          <div class="spark-bar" style="height:88%"></div>
+          <div class="spark-bar" style="height:92%"></div>
+          <div class="spark-bar" style="height:94%"></div>
+          <div class="spark-bar" style="height:97%"></div>
+          <div class="spark-bar" style="height:100%"></div>
+        </div>
+        <div class="card-sub" style="margin-top:6px;">monotonically increasing · fork detection baseline</div>
+      </div>
+
+      <div class="card card-p span2">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div class="card-label" style="margin:0">Peer Version Distribution</div>
+          <span class="pill amber">2 outdated</span>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex;align-items:center;gap:10px;font-size:11px;">
+            <span style="color:var(--text);min-width:48px;">v3.9.9</span>
+            <div style="flex:1;height:6px;background:rgba(0,170,255,.1);">
+              <div style="height:100%;width:72%;background:linear-gradient(90deg,var(--blue),var(--green));"></div>
+            </div>
+            <span style="color:var(--muted);min-width:20px;text-align:right;">10</span>
+            <span class="pill green" style="font-size:8px;">current</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:11px;">
+            <span style="color:var(--amber);min-width:48px;">v3.8.x</span>
+            <div style="flex:1;height:6px;background:rgba(0,170,255,.1);">
+              <div style="height:100%;width:21%;background:var(--amber);"></div>
+            </div>
+            <span style="color:var(--muted);min-width:20px;text-align:right;">3</span>
+            <span class="pill amber" style="font-size:8px;">outdated</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:11px;">
+            <span style="color:var(--mag);min-width:48px;">v3.7.x</span>
+            <div style="flex:1;height:6px;background:rgba(0,170,255,.1);">
+              <div style="height:100%;width:7%;background:var(--mag);"></div>
+            </div>
+            <span style="color:var(--muted);min-width:20px;text-align:right;">1</span>
+            <span class="pill mag" style="font-size:8px;">fork risk</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

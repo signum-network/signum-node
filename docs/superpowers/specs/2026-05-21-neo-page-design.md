@@ -1,7 +1,8 @@
 # Neo-Page Design Spec
 **Date:** 2026-05-21  
 **Status:** Approved  
-**Scope:** Project setup, Nexus theme system, app shell, dashboard landing page. Network Analyzer sub-page is out of scope — separate spec follows.
+**Scope:** Project setup, Nexus theme system, app shell, dashboard landing page. Network Analyzer sub-page is out of scope — separate spec follows.  
+**Visual reference:** [`2026-05-21-neo-page-horizon-mockup.html`](./2026-05-21-neo-page-horizon-mockup.html) — open in a browser to see the approved Horizon dashboard layout.
 
 ---
 

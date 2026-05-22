@@ -46,16 +46,15 @@ class ReservedBalanceCache {
     );
 
     if (senderAccount == null) {
-      if (LOGGER.isInfoEnabled()) {
-        LOGGER.info(String.format("Transaction %d: Account %d does not exist and has no balance. Required funds: %d", transaction.getId(), transaction.getSenderId(), amountNQT));
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug(String.format("Transaction %d: Account %d does not exist and has no balance. Required funds: %d", transaction.getId(), transaction.getSenderId(), amountNQT));
       }
-
       throw new SignumException.NotCurrentlyValidException("Account unknown");
     }
 
     if ( amountNQT > senderAccount.getUnconfirmedBalanceNqt() ) {
-      if (LOGGER.isInfoEnabled()) {
-        LOGGER.info("Transaction {} for {}: account {} balance too low. Total required {} > {} balance",
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Transaction {} for {}: account {} balance too low. Total required {} > {} balance",
                 Convert.toUnsignedLong(transaction.getId()), thisTransactionAmountNQT, Convert.toUnsignedLong(transaction.getSenderId()), amountNQT, senderAccount.getUnconfirmedBalanceNqt());
       }
       throw new SignumException.NotCurrentlyValidException("Insufficient funds");
@@ -69,7 +68,7 @@ class ReservedBalanceCache {
       int nBlocksMined = blockchain.getBlocksCount(senderAccount.getId(), blockchain.getHeight() - Constants.MAX_ROLLBACK, blockchain.getHeight());
       long amountCommitted = blockchain.getCommittedAmount(senderAccount.getId(), blockchain.getHeight(), blockchain.getHeight(), transaction);
       if (nBlocksMined > 0 || amountCommitted < totalAmountNQT ) {
-        if (LOGGER.isInfoEnabled()) {
+        if (LOGGER.isDebugEnabled()) {
           LOGGER.debug("Transaction {}: Account {} commitment remove not allowed. Blocks mined {}, amount commitment {}, amount removing {}",
               transaction.getId(), transaction.getSenderId(), nBlocksMined, amountCommitted, totalAmountNQT);
         }

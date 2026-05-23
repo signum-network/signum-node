@@ -1,0 +1,225 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════
+   NEXUS THEME — Default (dark cyberpunk)
+══════════════════════════════════════════════════════════════ */
+:root,
+[data-theme="nexus"] {
+  --bg:         #050810;
+  --bg2:        #080d1a;
+  --panel:      rgba(8,16,40,.85);
+  --border:     rgba(0,102,255,.18);
+  --border2:    rgba(0,170,255,.30);
+  --blue:       #0066ff;
+  --blue2:      #00aaff;
+  --blue3:      #60c8ff;
+  --green:      #00ffaa;
+  --mag:        #ff0055;
+  --gold:       #ffd700;
+  --amber:      #ff9500;
+  --text:       #d0e4ff;
+  --muted:      #5a7090;
+  --surface-tint: rgba(0,102,255,.05);
+  --bloom:      rgba(0,102,255,.10);
+  --grid-line:  rgba(0,102,255,.04);
+  --card-hover: 0 8px 32px rgba(0,102,255,.18);
+  --glow-b:     0 0 20px rgba(0,102,255,.35);
+  --glow-g:     0 0 16px rgba(0,255,170,.30);
+  --glow-m:     0 0 16px rgba(255,0,85,.30);
+  --glow-gold:  0 0 16px rgba(255,215,0,.30);
+  --font-display: 'Orbitron', sans-serif;
+  --font-body:    'Exo 2', sans-serif;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SOLARIS — Desert amber / solar heat
+══════════════════════════════════════════════════════════════ */
+[data-theme="solaris"] {
+  --bg:         #0d0906;
+  --bg2:        #1a1204;
+  --panel:      rgba(36,20,4,.88);
+  --border:     rgba(255,149,0,.20);
+  --border2:    rgba(255,200,0,.32);
+  --blue:       #ff9500;
+  --blue2:      #ffd700;
+  --blue3:      #ffe566;
+  --green:      #39d353;
+  --mag:        #ff3d6b;
+  --gold:       #ffd700;
+  --amber:      #ff9500;
+  --text:       #ffe8c0;
+  --muted:      #9a7040;
+  --surface-tint: rgba(255,149,0,.05);
+  --bloom:      rgba(255,149,0,.12);
+  --grid-line:  rgba(255,149,0,.05);
+  --card-hover: 0 8px 32px rgba(255,149,0,.18);
+  --glow-b:     0 0 20px rgba(255,149,0,.35);
+  --glow-g:     0 0 16px rgba(57,211,83,.30);
+  --glow-m:     0 0 16px rgba(255,61,107,.30);
+  --glow-gold:  0 0 24px rgba(255,215,0,.45);
+  --font-display: 'Orbitron', sans-serif;
+  --font-body:    'Exo 2', sans-serif;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DAWN — Clean luminous light
+══════════════════════════════════════════════════════════════ */
+[data-theme="dawn"] {
+  --bg:         #eef2fb;
+  --bg2:        #e2e8f8;
+  --panel:      rgba(255,255,255,.94);
+  --border:     rgba(0,102,255,.14);
+  --border2:    rgba(0,102,255,.26);
+  --blue:       #0055cc;
+  --blue2:      #0066ff;
+  --blue3:      #3388ff;
+  --green:      #00956b;
+  --mag:        #cc0044;
+  --gold:       #b87000;
+  --amber:      #c06000;
+  --text:       #1a2540;
+  --muted:      #6678a0;
+  --surface-tint: rgba(0,102,255,.04);
+  --bloom:      rgba(0,102,255,.06);
+  --grid-line:  rgba(0,102,255,.06);
+  --card-hover: 0 6px 24px rgba(0,102,255,.12);
+  --glow-b:     0 2px 12px rgba(0,102,255,.18);
+  --glow-g:     0 2px 12px rgba(0,149,107,.18);
+  --glow-m:     0 2px 12px rgba(204,0,68,.18);
+  --glow-gold:  0 2px 12px rgba(184,112,0,.18);
+  --font-display: 'Orbitron', sans-serif;
+  --font-body:    'Exo 2', sans-serif;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TERMINAL — Classic green phosphor
+══════════════════════════════════════════════════════════════ */
+[data-theme="terminal"] {
+  --bg:         #000a00;
+  --bg2:        #001400;
+  --panel:      rgba(0,20,0,.90);
+  --border:     rgba(0,255,0,.16);
+  --border2:    rgba(0,255,0,.32);
+  --blue:       #00cc00;
+  --blue2:      #00ff00;
+  --blue3:      #66ff66;
+  --green:      #00ff00;
+  --mag:        #ff3300;
+  --gold:       #ffcc00;
+  --amber:      #ff8800;
+  --text:       #90ee90;
+  --muted:      #3a7a3a;
+  --surface-tint: rgba(0,255,0,.04);
+  --bloom:      rgba(0,255,0,.08);
+  --grid-line:  rgba(0,255,0,.05);
+  --card-hover: 0 0 20px rgba(0,255,0,.16);
+  --glow-b:     0 0 16px rgba(0,255,0,.40);
+  --glow-g:     0 0 16px rgba(0,255,0,.40);
+  --glow-m:     0 0 16px rgba(255,51,0,.35);
+  --glow-gold:  0 0 16px rgba(255,204,0,.35);
+  --font-display: 'JetBrains Mono', monospace;
+  --font-body:    'JetBrains Mono', monospace;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   AURORA — Northern lights violet-teal
+══════════════════════════════════════════════════════════════ */
+[data-theme="aurora"] {
+  --bg:         #060412;
+  --bg2:        #0c0824;
+  --panel:      rgba(14,8,36,.88);
+  --border:     rgba(140,0,255,.20);
+  --border2:    rgba(180,60,255,.32);
+  --blue:       #7700ff;
+  --blue2:      #aa44ff;
+  --blue3:      #cc88ff;
+  --green:      #00ffcc;
+  --mag:        #ff0088;
+  --gold:       #ffaa00;
+  --amber:      #ff6600;
+  --text:       #e0d0ff;
+  --muted:      #6050aa;
+  --surface-tint: rgba(140,0,255,.05);
+  --bloom:      rgba(140,0,255,.10);
+  --grid-line:  rgba(140,0,255,.05);
+  --card-hover: 0 8px 32px rgba(140,0,255,.20);
+  --glow-b:     0 0 20px rgba(140,0,255,.40);
+  --glow-g:     0 0 16px rgba(0,255,204,.32);
+  --glow-m:     0 0 16px rgba(255,0,136,.32);
+  --glow-gold:  0 0 16px rgba(255,170,0,.32);
+  --font-display: 'Orbitron', sans-serif;
+  --font-body:    'Exo 2', sans-serif;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BASE STYLES
+══════════════════════════════════════════════════════════════ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  color-scheme: dark;
+}
+
+[data-theme="dawn"] {
+  color-scheme: light;
+}
+
+body {
+  background: var(--bg);
+  font-family: var(--font-body);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LAYOUT UTILITIES
+══════════════════════════════════════════════════════════════ */
+.banner-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: stretch;
+}
+
+.banner-divider {
+  display: none;
+  width: 1px;
+  background: var(--border);
+  align-self: stretch;
+}
+
+@media (min-width: 1024px) {
+  .banner-grid {
+    grid-template-columns: minmax(260px, auto) 1px 1fr 1px minmax(200px, auto);
+  }
+  .banner-divider {
+    display: block;
+  }
+}
+
+.page-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+@media (min-width: 768px) {
+  .page-layout {
+    gap: 1.25rem;
+    padding: 1.25rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .page-layout {
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+}

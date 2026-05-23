@@ -293,7 +293,26 @@ tasks.register('release', Checksum) {
         "build/distributions/${baseNodeFileName}-win_x64.zip",
     ])
 }
+tasks.register('buildWeb', Exec) {
+    group = 'build'
+    description = 'Build the Neo-Page web UI'
+    workingDir 'web'
+    commandLine 'bun', 'run', 'build'
+    inputs.dir('web/src')
+    inputs.file('web/package.json')
+    inputs.file('web/vite.config.ts')
+    outputs.dir('web/dist')
+}
+
+tasks.register('copyWeb', Copy) {
+    dependsOn buildWeb
+    from 'web/dist'
+    into 'html/ui/v2'
+}
+
+dist.dependsOn copyWeb
 dist.mustRunAfter(buildOpenApi)
+copyWeb.mustRunAfter(buildOpenApi)
 
 tasks.register('sourcesJar', Jar) {
     archiveClassifier = 'sources'

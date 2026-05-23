@@ -1,5 +1,5 @@
-import { Card, CardLabel, CardSub } from '../../ui/Card'
-import { Sparkline } from '../../ui/Sparkline'
+import { Card, CardLabel, CardSub } from '@/components/ui/Card'
+import { Sparkline } from '@/components/ui/Sparkline'
 
 interface CumulativeDifficultyCardProps {
   current: string

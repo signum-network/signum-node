@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from '@tanstack/react-router'
-import { useBlockchainStatus } from '../../../hooks/useNodeQuery'
-import { sfx, useAudio } from '../../../audio'
+import { useBlockchainStatus } from '@/hooks/useNodeQuery'
+import { sfx, useAudio } from '@/audio'
 import { AudioToggle } from './components/AudioToggle'
 import { NavItem } from './components/NavItem'
 import { StatusStrip } from './components/StatusStrip'
@@ -21,7 +21,7 @@ export function Topbar() {
 
   return (
     <header
-      className="sticky top-0 z-20 grid h-[64px] grid-cols-[auto_1fr_auto] items-center px-10! md:px-16 lg:px-20"
+      className="sticky top-0 z-20 grid h-[64px] grid-cols-[auto_1fr_auto] items-center px-10 md:px-16 lg:px-20"
       style={{
         background: 'linear-gradient(180deg, rgba(0,0,0,.08) 0%, transparent 100%)',
         borderBottom: '1px solid var(--border)'
@@ -40,7 +40,7 @@ export function Topbar() {
           Signum
         </span>
         <span
-          className="mt-1.5! text-[8px] font-semibold uppercase leading-none tracking-[3px] md:text-[8px] md:tracking-[4px]"
+          className="mt-1.5 text-[8px] font-semibold uppercase leading-none tracking-[3px] md:text-[8px] md:tracking-[4px]"
           style={{
             fontFamily: 'var(--font-display)',
             color: 'var(--blue2)',
@@ -52,7 +52,7 @@ export function Topbar() {
       </div>
 
       {/* Navigation — clean rectangular tabs with gap, no clip-path cutting characters */}
-      <nav className="flex h-full min-w-0 items-stretch overflow-hidden ml-4!">
+      <nav className="flex h-full min-w-0 items-stretch overflow-hidden ml-4">
         {NAV_ITEMS.map((item) => (
           <NavItem
             key={item.path}

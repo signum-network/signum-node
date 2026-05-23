@@ -1,11 +1,11 @@
 import { type ReactNode } from 'react'
 import { Outlet, useLocation } from '@tanstack/react-router'
 import { AnimatePresence } from 'framer-motion'
-import { Shell } from '../components/layout/Shell'
-import { Topbar } from '../components/layout/topbar'
-import { NodeSocketContext, useNodeSocketProvider } from '../hooks/useNodeSocket'
-import { ThemeProvider } from '../theme/ThemeProvider'
-import { AudioProvider } from '../audio'
+import { Shell } from '@/components/layout/Shell'
+import { Topbar } from '@/components/layout/topbar'
+import { NodeSocketContext, useNodeSocketProvider } from '@/hooks/useNodeSocket'
+import { ThemeProvider } from '@/theme/ThemeProvider'
+import { AudioProvider } from '@/audio'
 
 function NodeSocketProvider({ children }: { children: ReactNode }) {
   const value = useNodeSocketProvider()

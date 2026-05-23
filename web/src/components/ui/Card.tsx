@@ -1,5 +1,5 @@
 import { motion, type HTMLMotionProps } from 'framer-motion'
-import { cn } from '../../lib/utils'
+import { cn } from '@/lib/utils'
 
 const SPRING = { type: 'spring' as const, stiffness: 300, damping: 20 }
 
@@ -22,7 +22,6 @@ export function Card({
       style={{
         background: 'var(--panel)',
         border: '1px solid var(--border)',
-        padding: '1rem',
         ...props.style,
       }}
       whileHover={

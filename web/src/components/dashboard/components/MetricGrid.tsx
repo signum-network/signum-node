@@ -1,7 +1,7 @@
-import { Card, CardLabel, CardSub, CardSkeleton } from '../../ui/Card'
-import { AnimatedNumber } from '../../ui/AnimatedNumber'
-import { fmt, fmtSigna, networkCapacityPiB } from '../../../lib/utils'
-import type { MiningInfo } from '../../../lib/nodeApi'
+import { Card, CardLabel, CardSub, CardSkeleton } from '@/components/ui/Card'
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber'
+import { fmt, fmtSigna, networkCapacityPiB } from '@/lib/utils'
+import type { MiningInfo } from '@/lib/nodeApi'
 
 interface MetricCardProps {
   label: string

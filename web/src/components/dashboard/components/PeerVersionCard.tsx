@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
-import { Card, CardLabel } from '../../ui/Card'
-import { Badge } from '../../ui/Badge'
-import { categorizeVersion } from '../../../lib/utils'
+import { Card, CardLabel } from '@/components/ui/Card'
+import { Badge } from '@/components/ui/Badge'
+import { categorizeVersion } from '@/lib/utils'
 
 type Category = 'current' | 'outdated' | 'fork-risk'
 

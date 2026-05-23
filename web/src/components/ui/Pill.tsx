@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { cn } from '../../lib/utils'
+import { cn } from '@/lib/utils'
 
 export type PillVariant = 'green' | 'blue' | 'amber' | 'mag'
 export type DotStatus = 'ok' | 'warn' | 'bad'

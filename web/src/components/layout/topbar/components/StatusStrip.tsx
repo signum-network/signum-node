@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { Pill } from '../../../ui/Pill'
+import { Pill } from '@/components/ui/Pill'
 
 interface StatusStripProps {
   network?: string

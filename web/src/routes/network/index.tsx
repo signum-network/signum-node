@@ -1,5 +1,5 @@
-import { PageWrapper } from '../../components/layout/PageWrapper'
-import { Card, CardLabel } from '../../components/ui/Card'
+import { PageWrapper } from '@/components/layout/PageWrapper'
+import { Card, CardLabel } from '@/components/ui/Card'
 
 export default function NetworkPage() {
   return (

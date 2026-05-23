@@ -5,7 +5,7 @@ import {
   getPeers,
   getPeer,
   getUnconfirmedTransactions,
-} from '../lib/nodeApi'
+} from '@/lib/nodeApi'
 import { useNodeSocket } from './useNodeSocket'
 
 type NodeQueryOptions<TData, TResult = TData> = Omit<

@@ -1,9 +1,9 @@
-import { CardLabel, CardSub, CardSkeleton } from '../../ui/Card'
-import { Pill } from '../../ui/Pill'
-import { ProgressBar } from '../../ui/ProgressBar'
-import { AnimatedNumber } from '../../ui/AnimatedNumber'
-import { fmt } from '../../../lib/utils'
-import type { BlockchainStatus, MiningInfo } from '../../../lib/nodeApi'
+import { CardLabel, CardSub, CardSkeleton } from '@/components/ui/Card'
+import { Pill } from '@/components/ui/Pill'
+import { ProgressBar } from '@/components/ui/ProgressBar'
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber'
+import { fmt } from '@/lib/utils'
+import type { BlockchainStatus, MiningInfo } from '@/lib/nodeApi'
 
 interface BannerProps {
   status?: BlockchainStatus

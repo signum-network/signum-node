@@ -5,10 +5,10 @@ import {
   usePeers,
   usePeerDetails,
   useUnconfirmedTxCount,
-} from '../../hooks/useNodeQuery'
-import { categorizeVersion } from '../../lib/utils'
-import { sfx, useAudio } from '../../audio'
-import { PageWrapper } from '../layout/PageWrapper'
+} from '@/hooks/useNodeQuery'
+import { categorizeVersion } from '@/lib/utils'
+import { sfx, useAudio } from '@/audio'
+import { PageWrapper } from '@/components/layout/PageWrapper'
 import { Banner } from './components/Banner'
 import { MetricGrid } from './components/MetricGrid'
 import { CumulativeDifficultyCard } from './components/CumulativeDifficultyCard'

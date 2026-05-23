@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useTheme } from '../../../../theme/ThemeProvider'
-import { THEMES, type ThemeMeta } from '../../../../theme/themes'
-import { sfx, useAudio } from '../../../../audio'
+import { useTheme } from '@/theme/ThemeProvider'
+import { THEMES, type ThemeMeta } from '@/theme/themes'
+import { sfx, useAudio } from '@/audio'
 
 export function ThemeSwitcher() {
   const { theme, setTheme } = useTheme()

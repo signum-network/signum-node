@@ -44,7 +44,7 @@ export function useNodeSocketProvider() {
         const msg = JSON.parse(ev.data) as WsMessage
         if (msg.event === 'BLOCK_PUSHED') {
           queryClient.invalidateQueries({ queryKey: ['blockchainStatus'] })
-        } else if (msg.event === 'PENDING_TXS_ADDED') {
+        } else if (msg.event === 'PENDING_TRANSACTIONS_ADDED') {
           queryClient.invalidateQueries({ queryKey: ['unconfirmedTxCount'] })
         }
       } catch {

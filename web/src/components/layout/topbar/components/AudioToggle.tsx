@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { sfx, useAudio } from '../../../../audio'
+import { sfx, useAudio } from '@/audio'
 
 export function AudioToggle() {
   const { muted, setMuted, play } = useAudio()

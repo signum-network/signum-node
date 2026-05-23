@@ -4,10 +4,11 @@ import { cn } from '@/lib/utils'
 interface SparklineProps {
   data: number[]
   height?: number
+  color?: string
   className?: string
 }
 
-export function Sparkline({ data, height = 40, className }: SparklineProps) {
+export function Sparkline({ data, height = 40, color = 'var(--blue2)', className }: SparklineProps) {
   const max = Math.max(...data, 1)
   const allZero = data.every((v) => v === 0)
 
@@ -18,7 +19,7 @@ export function Sparkline({ data, height = 40, className }: SparklineProps) {
     >
       {data.map((v, i) => {
         const pct = allZero ? 18 + (i % 4) * 5 : Math.max((v / max) * 100, 4)
-        const tint = allZero ? 'var(--muted)' : 'var(--blue2)'
+        const tint = allZero ? 'var(--muted)' : color
         return (
           <motion.div
             key={i}

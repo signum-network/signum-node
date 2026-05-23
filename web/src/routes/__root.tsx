@@ -8,8 +8,12 @@ import { ThemeProvider } from '@/theme/ThemeProvider'
 import { AudioProvider } from '@/audio'
 
 function NodeSocketProvider({ children }: { children: ReactNode }) {
-  const value = useNodeSocketProvider()
-  return <NodeSocketContext.Provider value={value}>{children}</NodeSocketContext.Provider>
+  const { connected, wsEnabled, latestBlock } = useNodeSocketProvider()
+  return (
+    <NodeSocketContext.Provider value={{ connected, wsEnabled, latestBlock }}>
+      {children}
+    </NodeSocketContext.Provider>
+  )
 }
 
 export default function RootLayout() {

@@ -28,7 +28,7 @@ export function Pill({ variant = 'blue', dot, children, className }: PillProps) 
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-[5px] border px-[9px]! py-[3px]!',
+        'inline-flex items-center gap-[5px] border px-[9px] py-[3px]',
         'text-[9px] font-semibold uppercase tracking-[2px]',
         VARIANT_STYLES[variant],
         className,

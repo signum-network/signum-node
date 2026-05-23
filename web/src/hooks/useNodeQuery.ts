@@ -1,10 +1,12 @@
 import { useQuery, useQueries, type UseQueryOptions } from '@tanstack/react-query'
 import {
   getBlockchainStatus,
+  getFullBlockchainStatus,
   getMiningInfo,
   getPeers,
   getPeer,
   getUnconfirmedTransactions,
+  getRecentBlocks,
 } from '@/lib/nodeApi'
 import { useNodeSocket } from './useNodeSocket'
 
@@ -29,6 +31,14 @@ export function useBlockchainStatus() {
     queryKey: ['blockchainStatus'],
     queryFn: getBlockchainStatus,
     pollInterval: 10_000,
+  })
+}
+
+export function useFullBlockchainStatus() {
+  return useNodeQuery({
+    queryKey: ['fullBlockchainStatus'],
+    queryFn: getFullBlockchainStatus,
+    pollInterval: 30_000,
   })
 }
 
@@ -57,6 +67,14 @@ export function usePeerDetails(addresses: string[]) {
       staleTime: 30_000,
       refetchInterval: connected ? (false as const) : 30_000,
     })),
+  })
+}
+
+export function useRecentBlocks() {
+  return useNodeQuery({
+    queryKey: ['recentBlocks'],
+    queryFn: getRecentBlocks,
+    pollInterval: 120_000,
   })
 }
 

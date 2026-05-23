@@ -23,7 +23,7 @@ export function ThemeSwitcher() {
     <div ref={ref} className="relative">
       <motion.button
         type="button"
-        className="flex items-center gap-2 px-3! py-1.5! text-[9px] font-semibold uppercase tracking-[2px]"
+        className="flex items-center gap-2 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[2px]"
         style={{ border: '1px solid var(--border)', color: 'var(--muted)' }}
         whileHover={{ borderColor: 'var(--border2)', color: 'var(--blue2)' }}
         whileTap={{ scale: 0.96 }}

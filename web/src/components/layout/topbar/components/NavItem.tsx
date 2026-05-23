@@ -13,7 +13,7 @@ export function NavItem({ label, active = false, future = false, onClick }: NavI
     <motion.button
       type="button"
       className={cn(
-        'relative flex h-full cursor-pointer items-center px-5!',
+        'relative flex h-full cursor-pointer items-center px-5',
         'text-[10px] font-semibold uppercase tracking-[2px]',
         'border-none outline-none',
         active ? 'text-[var(--blue2)]' : 'text-[var(--muted)]',

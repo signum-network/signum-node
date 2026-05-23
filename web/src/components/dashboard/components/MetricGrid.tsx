@@ -1,5 +1,6 @@
 import { Card, CardLabel, CardSub, CardSkeleton } from '@/components/ui/Card'
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber'
+import { SignaAmount } from '@/components/ui/SignaAmount'
 import { fmt, fmtSigna, networkCapacityPiB } from '@/lib/utils'
 import type { MiningInfo } from '@/lib/nodeApi'
 
@@ -10,10 +11,11 @@ interface MetricCardProps {
   color: string
   glow?: string
   isLoading?: boolean
+  signa?: boolean
   formatter?: (n: number) => string
 }
 
-function MetricCard({ label, value, sub, color, glow, isLoading, formatter }: MetricCardProps) {
+function MetricCard({ label, value, sub, color, glow, isLoading, signa, formatter }: MetricCardProps) {
   return (
     <Card interactive>
       <CardLabel>{label}</CardLabel>
@@ -23,10 +25,12 @@ function MetricCard({ label, value, sub, color, glow, isLoading, formatter }: Me
         </div>
       ) : (
         <div
-          className="tabular-nums text-[30px] font-bold leading-none md:text-[36px]"
-          style={{ fontFamily: 'var(--font-display)', color, textShadow: glow }}
+          className="text-[30px] font-bold leading-none md:text-[36px]"
+          style={{ fontFamily: 'var(--font-display)', textShadow: glow }}
         >
-          <AnimatedNumber value={value} formatter={formatter ?? fmt} />
+          {signa
+            ? <SignaAmount value={value} style={{ color }} />
+            : <AnimatedNumber value={value} formatter={formatter ?? fmt} />}
         </div>
       )}
       <CardSub>{sub}</CardSub>
@@ -70,7 +74,7 @@ export function MetricGrid({ peerCount, pendingTxCount, mining, isLoading }: Met
         color="var(--gold)"
         glow="var(--glow-gold)"
         isLoading={isLoading}
-        formatter={(n) => n.toFixed(2)}
+        signa
       />
       <MetricCard
         label="Network Capacity"

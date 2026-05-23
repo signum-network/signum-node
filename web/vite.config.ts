@@ -9,7 +9,7 @@ export default defineConfig(({ command }) => ({
   server: {
     port: 5173,
     proxy: {
-      '/burst': {
+      '/api': {
         target: process.env.VITE_NODE_URL ?? 'https://brazil.signum.network',
         changeOrigin: true,
       },

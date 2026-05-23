@@ -30,9 +30,28 @@ export interface MiningInfo {
   height: string
   targetDeadline: number
   averageCommitmentNQT: string
-  lastBlockReward: string
+  lastBlockReward: string  // SIGNA integer, already divided by ONE_COIN_NQT
+  timestamp: number        // Signum epoch seconds of the last block
   requestProcessingTime: number
 }
+
+export interface BlockSummary {
+  block: string
+  height: number
+  timestamp: number   // Signum epoch seconds
+  blockReward: string // SIGNA integer
+  totalFeeNQT: string // NQT
+}
+
+export interface BlocksResponse {
+  blocks: BlockSummary[]
+}
+
+// Signum genesis: 2014-08-11 02:00:00 UTC
+export const SIGNUM_EPOCH_MS = Date.UTC(2014, 7, 11, 2, 0, 0, 0)
+
+export const signumTimestampToMs = (epochSecs: number): number =>
+  epochSecs * 1000 + SIGNUM_EPOCH_MS
 
 export interface PeerList {
   peers: string[]
@@ -83,6 +102,7 @@ export interface FullBlockchainStatus {
   "lastBlockchainFeeder": string
   "lastBlockchainFeederHeight": number,
   "isScanning": boolean,
+  "network"?: string,
   "availableProcessors": number,
   "maxMemory": number,
   "totalMemory": number,
@@ -96,7 +116,7 @@ export const getBlockchainStatus = () =>
   query<BlockchainStatus>('getBlockchainStatus')
 
 export const getFullBlockchainStatus = () =>
-  query<BlockchainStatus>('getState')
+  query<FullBlockchainStatus>('getState')
 
 export const getMiningInfo = () =>
   query<MiningInfo>('getMiningInfo')
@@ -109,3 +129,6 @@ export const getPeer = (peer: string) =>
 
 export const getUnconfirmedTransactions = () =>
   query<UnconfirmedTransactions>('getUnconfirmedTransactions')
+
+export const getRecentBlocks = () =>
+  query<BlocksResponse>('getBlocks', { firstIndex: '0', lastIndex: '99' })

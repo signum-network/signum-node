@@ -41,6 +41,7 @@ export interface BlockSummary {
   timestamp: number   // Signum epoch seconds
   blockReward: string // SIGNA integer
   totalFeeNQT: string // NQT
+  baseTarget: string
 }
 
 export interface BlocksResponse {

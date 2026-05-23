@@ -29,12 +29,22 @@ export function fmtCompact(n: number): string {
   return fmt(n)
 }
 
-/** Derive approximate network capacity in PiB from baseTarget. */
-export function networkCapacityPiB(baseTarget: string | number): number {
-  // Empirically calibrated: at baseTarget=56,463 → ~142 PiB
-  const K = 8_208_760_704
-  return Math.round(K / Number(baseTarget) / 1024)
+const GENESIS_BASE_TARGET = 18_325_193_796
+// Sodium (log-deadline) correction used by the node itself — see GeneratorImpl.java line 373
+const SODIUM_CORRECTION = 1.83
+
+/** Physical network capacity in PiB.
+ *  The node divides GENESIS_BASE_TARGET by 1.83 to correct for Sodium log-deadlines
+ *  before using capacityBaseTarget for capacity estimation (GeneratorImpl.java:373). */
+export function networkPhysicalCapacityPiB(baseTarget: string | number): number {
+  return GENESIS_BASE_TARGET / SODIUM_CORRECTION / Number(baseTarget) / 1000
 }
+
+/** Effective network capacity in PiB (physical × PoC+ commitment boost, no Sodium correction). */
+export function networkEffectiveCapacityPiB(baseTarget: string | number): number {
+  return GENESIS_BASE_TARGET / Number(baseTarget) / 1000
+}
+
 
 export function categorizeVersion(
   peerVersion: string,

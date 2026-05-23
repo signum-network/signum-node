@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import {
   useFullBlockchainStatus,
   useMiningInfo,
@@ -16,7 +16,6 @@ import { PeerVersionCard } from './components/PeerVersionCard'
 import { ChainActivityRow } from './components/ChainActivityRow'
 import { NodeHealthStrip } from './components/NodeHealthStrip'
 
-const MAX_SPARKLINE_POINTS = 15
 
 function SectionHeading({ label }: { label: string }) {
   return (
@@ -41,13 +40,6 @@ export function Dashboard() {
   const peerAddresses = peers?.peers ?? []
   const peerDetails = usePeerDetails(peerAddresses)
   const resolvedPeers = peerDetails.filter((q) => q.data).map((q) => q.data!)
-
-  const [diffHistory, setDiffHistory] = useState<number[]>([])
-  useEffect(() => {
-    if (!fullStatus?.cumulativeDifficulty) return
-    const val = Number(BigInt(fullStatus.cumulativeDifficulty) / BigInt(1e12))
-    setDiffHistory((prev) => [...prev.slice(-(MAX_SPARKLINE_POINTS - 1)), val])
-  }, [fullStatus?.cumulativeDifficulty])
 
   const { play } = useAudio()
   const lastBlockRef = useRef<number | null>(null)
@@ -87,7 +79,6 @@ export function Dashboard() {
           />
           <CumulativeDifficultyCard
             current={fullStatus?.cumulativeDifficulty ?? '0'}
-            history={diffHistory}
             isLoading={fullStatusLoading}
           />
           <PeerVersionCard

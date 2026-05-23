@@ -1,7 +1,7 @@
 import { Card, CardLabel, CardSub, CardSkeleton } from '@/components/ui/Card'
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber'
 import { SignaAmount } from '@/components/ui/SignaAmount'
-import { fmt, fmtSigna, networkCapacityPiB } from '@/lib/utils'
+import { fmt, fmtSigna } from '@/lib/utils'
 import type { MiningInfo } from '@/lib/nodeApi'
 
 interface MetricCardProps {
@@ -47,7 +47,6 @@ interface MetricGridProps {
 
 export function MetricGrid({ peerCount, pendingTxCount, mining, isLoading }: MetricGridProps) {
   const avgCommitment = mining ? Number(fmtSigna(mining.averageCommitmentNQT)) : 0
-  const capacity = mining ? networkCapacityPiB(mining.baseTarget) : 0
 
   return (
     <>
@@ -75,14 +74,6 @@ export function MetricGrid({ peerCount, pendingTxCount, mining, isLoading }: Met
         glow="var(--glow-gold)"
         isLoading={isLoading}
         signa
-      />
-      <MetricCard
-        label="Network Capacity"
-        value={capacity}
-        sub="PiB · from base target"
-        color="var(--blue2)"
-        glow="var(--glow-b)"
-        isLoading={isLoading}
       />
     </>
   )

@@ -139,8 +139,8 @@ shadowJar {
     mergeServiceFiles()
 }
 
-tasks.register('buildOpenApi', NpmTask) {
-    dependsOn npmInstall
+tasks.register('buildOpenApi', BunTask) {
+    dependsOn bunInstall
     args = ['run', 'dist']
 }
 
@@ -148,7 +148,6 @@ node {
     download = true
     version = '20.19.1'
     nodeProjectDir = file("${project.projectDir}/openapi")
-    npmInstallCommand = "ci"
 }
 
 tasks.register('dist', Zip) {

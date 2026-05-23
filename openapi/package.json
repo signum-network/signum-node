@@ -6,24 +6,8 @@
   "scripts": {
     "build:prod": "swagger-cli bundle signum-api.json | mjson.js > ./dist/signum-api.json && cp ./dist/signum-api.json ../html/api-doc/signum-api.json",
     "build": "swagger-cli bundle signum-api.json --outfile ./dist/signum-api.json",
-    "dev": "npm-watch",
-    "dist": "npm run build:prod"
-  },
-  "watch": {
-    "build": {
-      "patterns": [
-        "paths",
-        "schemas",
-        "responses",
-        "parameters",
-        "./signum-api.json"
-      ],
-      "extensions": "json",
-      "ignore": [
-        "package.json",
-        "package-lock.json"
-      ]
-    }
+    "dev": "bun --watch run build",
+    "dist": "bun run build:prod"
   },
   "keywords": [
     "oas",
@@ -35,7 +19,6 @@
   "license": "MIT",
   "devDependencies": {
     "mjson": "^0.4.2",
-    "npm-watch": "^0.11.0",
     "swagger-cli": "^4.0.4"
   },
   "dependencies": {

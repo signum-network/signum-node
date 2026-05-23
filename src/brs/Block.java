@@ -148,6 +148,10 @@ public class Block {
                             + payloadLength + " height " + height + "previd "
                             + previousBlockId);
         }
+        if (totalAmountNqt < 0 || totalFeeNqt < 0 || totalFeeCashBackNqt < 0 || totalFeeBurntNqt < 0) {
+            throw new SignumException.NotValidException(
+                    "attempted to create a block with negative monetary totals at height " + height);
+        }
         this.version = version;
         this.timestamp = timestamp;
         this.previousBlockId = previousBlockId;

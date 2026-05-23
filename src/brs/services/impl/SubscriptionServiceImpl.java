@@ -168,7 +168,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
             }
             if (applyUnconfirmed(subscription, height)) {
                 appliedSubscriptions.add(subscription);
-                totalFees += getFee(height);
+                totalFees = Convert.safeAdd(totalFees, getFee(height));
             } else {
                 removeSubscriptions.add(subscription.getId());
             }

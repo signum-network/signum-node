@@ -150,6 +150,27 @@ public final class WebServerImpl implements WebServer {
     }
 
     private void configureWebUI(ServletContextHandler servletContextHandler) {
+        if (context.getPropertyService().getBoolean(Props.WEB_UI_ENABLED)) {
+            ServletHolder redirectHolder = new ServletHolder(new HttpServlet() {
+                @Override
+                protected void service(HttpServletRequest req, HttpServletResponse resp)
+                        throws ServletException, java.io.IOException {
+                    resp.sendRedirect(req.getContextPath() + "/ui/");
+                }
+            });
+            servletContextHandler.addServlet(redirectHolder, "/ui");
+
+            ServletHolder webUiServletHolder = new ServletHolder(new DefaultServlet());
+            String webUiResourceBase = Paths.get("html", "ui", "v2").toAbsolutePath().toString();
+            webUiServletHolder.setInitParameter("resourceBase", webUiResourceBase);
+            webUiServletHolder.setInitParameter("dirAllowed", "false");
+            webUiServletHolder.setInitParameter("welcomeServlets", "true");
+            webUiServletHolder.setInitParameter("redirectWelcome", "true");
+            webUiServletHolder.setInitParameter("gzip", "true");
+            servletContextHandler.addServlet(webUiServletHolder, "/ui/*");
+            logger.info("Node Web UI enabled at /ui/");
+        }
+
         String apiResourceBase = Paths.get(
                 context.getPropertyService().getString(Props.API_UI_DIR)).toAbsolutePath().toString();
         if (!apiResourceBase.isEmpty()) {

@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 
+const nodeUrl = process.env.VITE_NODE_URL ?? 'http://localhost:8125'
+
 export default defineConfig(({ command }) => ({
   plugins: [react(), tailwindcss()],
   base: command === 'build' ? '/app/' : '/',
@@ -10,11 +12,11 @@ export default defineConfig(({ command }) => ({
     port: 5173,
     proxy: {
       '/api': {
-        target: process.env.VITE_NODE_URL ?? 'https://brazil.signum.network',
+        target: nodeUrl,
         changeOrigin: true,
       },
       '/events': {
-        target: process.env.VITE_NODE_URL ?? 'https://brazil.signum.network',
+        target: nodeUrl,
         changeOrigin: true,
         ws: true,
       },

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   useFullBlockchainStatus,
   useMiningInfo,
@@ -42,6 +43,7 @@ export function Dashboard() {
   const resolvedPeers = peerDetails.filter((q) => q.data).map((q) => q.data!)
 
   const { play } = useAudio()
+  const { t } = useTranslation()
   const lastBlockRef = useRef<number | null>(null)
   useEffect(() => {
     if (!fullStatus) return
@@ -64,12 +66,12 @@ export function Dashboard() {
 
         <Banner status={fullStatus} mining={mining} isLoading={isLoading} />
 
-        <SectionHeading label="Chain Activity" />
+        <SectionHeading label={t('dashboard.chainActivity')} />
         <div className="grid grid-cols-2 gap-3 md:gap-4 xl:grid-cols-4">
           <ChainActivityRow fullStatus={fullStatus} isLoading={fullStatusLoading} />
         </div>
 
-        <SectionHeading label="Network" />
+        <SectionHeading label={t('dashboard.network')} />
         <div className="grid grid-cols-2 gap-3 md:gap-4 xl:grid-cols-4">
           <MetricGrid
             peerCount={peerAddresses.length}
@@ -88,8 +90,7 @@ export function Dashboard() {
           />
         </div>
 
-
-        <SectionHeading label="Node Health" />
+        <SectionHeading label={t('dashboard.nodeHealth')} />
         <NodeHealthStrip fullStatus={fullStatus} isLoading={fullStatusLoading} />
 
       </div>

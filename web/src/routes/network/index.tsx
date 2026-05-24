@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { PageWrapper } from '@/components/layout/PageWrapper'
 import { Card, CardLabel, CardSub, CardSkeleton } from '@/components/ui/Card'
+import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import { useNetworkStatus, useForkHistory, useBlacklist, useFindForkPoint } from '@/hooks/useNodeQuery'
 import { cn } from '@/lib/utils'
 import type { PeerStatusEntry } from '@/lib/nodeApi'
@@ -31,13 +33,18 @@ function fmtTs(ms: number) {
 // ─── StatusBadge ────────────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation()
   const color = statusColor(status as PeerStatusEntry['status'])
+  const label = status === 'on-chain' ? t('status.onChain')
+    : status === 'stale' ? t('status.stale')
+    : status === 'forking' ? t('status.forking')
+    : t('status.blacklisted')
   return (
     <span
       className="inline-block rounded-sm px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[1px]"
       style={{ color, border: `1px solid ${color}`, background: `color-mix(in srgb, ${color} 12%, transparent)` }}
     >
-      {status}
+      {label}
     </span>
   )
 }
@@ -46,6 +53,7 @@ function StatusBadge({ status }: { status: string }) {
 
 function ConsensusBar() {
   const { data, isLoading, refetch, isFetching } = useNetworkStatus()
+  const { t } = useTranslation()
   const pct = data?.consensusPercent ?? 0
   const color = consensusColor(pct)
 
@@ -53,7 +61,10 @@ function ConsensusBar() {
     <Card className="col-span-full">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <CardLabel>Chain Consensus</CardLabel>
+          <div className="flex items-center gap-1.5">
+            <CardLabel>{t('network.chainConsensus')}</CardLabel>
+            <InfoTooltip text={t('info.chainConsensus')} />
+          </div>
           {isLoading ? (
             <div className="h-10 w-40"><CardSkeleton /></div>
           ) : (
@@ -66,12 +77,12 @@ function ConsensusBar() {
           )}
           <CardSub className="mt-1">
             {data
-              ? `${data.onChainPeers} agree · ${data.stalePeers} stale · ${data.forkingPeers} forking`
-              : 'on our chain'}
+              ? t('network.agree', { on: data.onChainPeers, stale: data.stalePeers, forking: data.forkingPeers })
+              : t('network.onOurChain')}
           </CardSub>
         </div>
         <div className="text-right">
-          <CardLabel>Height</CardLabel>
+          <CardLabel>{t('common.height')}</CardLabel>
           <div
             className="text-[24px] font-bold tabular-nums"
             style={{ fontFamily: 'var(--font-display)', color: 'var(--blue2)' }}
@@ -79,7 +90,7 @@ function ConsensusBar() {
             {data?.myHeight?.toLocaleString() ?? '—'}
           </div>
           {data?.cachedAt && (
-            <CardSub className="mt-1">cached {Math.round((Date.now() - data.cachedAt) / 1000)}s ago</CardSub>
+            <CardSub className="mt-1">{t('common.cachedAgo', { seconds: Math.round((Date.now() - data.cachedAt) / 1000) })}</CardSub>
           )}
           <button
             type="button"
@@ -88,7 +99,7 @@ function ConsensusBar() {
             onClick={() => void refetch()}
             disabled={isFetching}
           >
-            {isFetching ? 'refreshing…' : '↻ refresh'}
+            {isFetching ? t('common.refreshing') : t('common.refresh')}
           </button>
         </div>
       </div>
@@ -110,6 +121,7 @@ function ConsensusBar() {
 
 function ForkPointModal({ peer, onClose }: { peer: string; onClose: () => void }) {
   const { mutate, data, isPending } = useFindForkPoint()
+  const { t } = useTranslation()
 
   return (
     <div
@@ -121,7 +133,10 @@ function ForkPointModal({ peer, onClose }: { peer: string; onClose: () => void }
         className="w-full max-w-md"
         onClick={(e) => e.stopPropagation()}
       >
-        <CardLabel>Fork Point Search</CardLabel>
+        <div className="flex items-center gap-1.5">
+          <CardLabel>{t('network.forkPoint.title')}</CardLabel>
+          <InfoTooltip text={t('info.findFork')} />
+        </div>
         <p className="mb-3 text-[11px]" style={{ color: 'var(--muted)' }}>{peer}</p>
 
         {!data && !isPending && (
@@ -131,7 +146,7 @@ function ForkPointModal({ peer, onClose }: { peer: string; onClose: () => void }
             style={{ background: 'var(--blue2)', color: 'var(--bg)' }}
             onClick={() => mutate(peer)}
           >
-            Start Binary Search
+            {t('common.startBinarySearch')}
           </button>
         )}
 
@@ -139,7 +154,7 @@ function ForkPointModal({ peer, onClose }: { peer: string; onClose: () => void }
           <div className="mt-4 space-y-2">
             <div className="h-3 w-3/4"><CardSkeleton /></div>
             <div className="h-3 w-1/2"><CardSkeleton /></div>
-            <p className="text-[10px]" style={{ color: 'var(--muted)' }}>Searching… this may take a few seconds</p>
+            <p className="text-[10px]" style={{ color: 'var(--muted)' }}>{t('common.searching')}</p>
           </div>
         )}
 
@@ -149,10 +164,10 @@ function ForkPointModal({ peer, onClose }: { peer: string; onClose: () => void }
               <p className="text-[11px]" style={{ color: 'var(--red, #ff4444)' }}>{data.error}</p>
             ) : (
               <>
-                <Row label="Fork height" value={String(data.forkAtHeight ?? '—')} />
-                <Row label="Fork block ID" value={data.forkAtBlockId ?? '—'} mono />
-                <Row label="Our block at fork" value={data.ourBlockIdAtFork ?? '—'} mono />
-                <Row label="Search steps" value={String(data.searchSteps ?? '—')} />
+                <Row label={t('network.forkPoint.forkHeight')} value={String(data.forkAtHeight ?? '—')} />
+                <Row label={t('network.forkPoint.forkBlockId')} value={data.forkAtBlockId ?? '—'} mono />
+                <Row label={t('network.forkPoint.ourBlock')} value={data.ourBlockIdAtFork ?? '—'} mono />
+                <Row label={t('network.forkPoint.steps')} value={String(data.searchSteps ?? '—')} />
               </>
             )}
             <button
@@ -161,7 +176,7 @@ function ForkPointModal({ peer, onClose }: { peer: string; onClose: () => void }
               style={{ color: 'var(--blue2)' }}
               onClick={() => mutate(peer)}
             >
-              Search again
+              {t('common.searchAgain')}
             </button>
           </div>
         )}
@@ -197,6 +212,7 @@ function Row({ label, value, mono }: { label: string; value: string; mono?: bool
 
 function PeerTable() {
   const { data, isLoading } = useNetworkStatus()
+  const { t } = useTranslation()
   const [expanded, setExpanded] = useState<string | null>(null)
   const [forkModalPeer, setForkModalPeer] = useState<string | null>(null)
   const [sortKey, setSortKey] = useState<'height' | 'status' | 'failures'>('status')
@@ -223,18 +239,19 @@ function PeerTable() {
   return (
     <>
       <Card className="col-span-full overflow-hidden p-0">
-        <div className="px-5 pt-5">
-          <CardLabel>Peers</CardLabel>
+        <div className="flex items-center gap-1.5 px-5 pt-5">
+          <CardLabel>{t('network.peers')}</CardLabel>
+          <InfoTooltip text={t('info.peersTable')} />
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-[11px]">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                <th className="px-5 py-2 text-left"><span className="text-[9px] uppercase tracking-[2px]" style={{ color: 'var(--muted)' }}>Address</span></th>
-                <th className="px-3 py-2"><ThBtn label="Height" k="height" /></th>
+                <th className="px-5 py-2 text-left"><span className="text-[9px] uppercase tracking-[2px]" style={{ color: 'var(--muted)' }}>{t('common.address')}</span></th>
+                <th className="px-3 py-2"><ThBtn label={t('common.height')} k="height" /></th>
                 <th className="px-3 py-2"><ThBtn label="Status" k="status" /></th>
-                <th className="px-3 py-2"><ThBtn label="Failures" k="failures" /></th>
+                <th className="px-3 py-2"><ThBtn label={t('common.failures')} k="failures" /></th>
                 <th className="px-5 py-2" />
               </tr>
             </thead>
@@ -249,7 +266,7 @@ function PeerTable() {
               {!isLoading && peers.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-5 py-6 text-center text-[11px]" style={{ color: 'var(--muted)' }}>
-                    No peer data yet — status refreshes every 120 seconds
+                    {t('network.noPeerData')}
                   </td>
                 </tr>
               )}
@@ -280,7 +297,7 @@ function PeerTable() {
                           style={{ border: '1px solid var(--blue2)', color: 'var(--blue2)', opacity: 0.8 }}
                           onClick={(e) => { e.stopPropagation(); setForkModalPeer(peer.address) }}
                         >
-                          Find fork
+                          {t('network.forkPoint.findFork')}
                         </button>
                       )}
                     </td>
@@ -290,7 +307,7 @@ function PeerTable() {
                       <td colSpan={5} className="px-5 py-3">
                         <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-[10px]">
                           <div><span style={{ color: 'var(--muted)' }}>Cumul. difficulty: </span><span className="font-mono" style={{ color: 'var(--text)' }}>{peer.cumulativeDifficulty}</span></div>
-                          <div><span style={{ color: 'var(--muted)' }}>Failures: </span><span style={{ color: 'var(--text)' }}>{peer.connectionFailures}</span></div>
+                          <div><span style={{ color: 'var(--muted)' }}>{t('common.failures')}: </span><span style={{ color: 'var(--text)' }}>{peer.connectionFailures}</span></div>
                         </div>
                         {!peer.blacklisted && peer.status === 'forking' && (
                           <button
@@ -299,7 +316,7 @@ function PeerTable() {
                             style={{ border: '1px solid var(--blue2)', color: 'var(--blue2)' }}
                             onClick={() => setForkModalPeer(peer.address)}
                           >
-                            Find fork point
+                            {t('network.forkPoint.findForkFull')}
                           </button>
                         )}
                       </td>
@@ -325,11 +342,12 @@ function PeerTable() {
 
 function ForkHistory() {
   const { data, isLoading } = useForkHistory()
+  const { t } = useTranslation()
   const forks = data?.forks ?? []
 
   return (
     <Card className="col-span-full md:col-span-2">
-      <CardLabel>Fork / Reorg History</CardLabel>
+      <CardLabel>{t('network.forkHistory')}</CardLabel>
 
       {isLoading && (
         <div className="space-y-2">
@@ -339,7 +357,7 @@ function ForkHistory() {
 
       {!isLoading && forks.length === 0 && (
         <p className="text-[11px]" style={{ color: 'var(--muted)' }}>
-          No reorganizations recorded since node start
+          {t('network.noReorgs')}
         </p>
       )}
 
@@ -354,9 +372,9 @@ function ForkHistory() {
             >
               <div>
                 <div className="text-[11px]" style={{ color: 'var(--text)' }}>
-                  Height {f.rollbackHeight.toLocaleString()}
+                  {t('common.height')} {f.rollbackHeight.toLocaleString()}
                   <span className="ml-2 text-[10px]" style={{ color: depthColor }}>
-                    −{f.rollbackDepth} block{f.rollbackDepth !== 1 ? 's' : ''}
+                    {t('network.rollback', { depth: f.rollbackDepth, count: f.rollbackDepth })}
                   </span>
                 </div>
                 <div className="text-[9px]" style={{ color: 'var(--muted)' }}>
@@ -380,6 +398,7 @@ function ForkHistory() {
 function BlacklistPanel() {
   const { data: statusData } = useNetworkStatus()
   const { data: blacklistData, isLoading } = useBlacklist()
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
 
   const blacklisted = blacklistData?.blacklisted ?? []
@@ -399,9 +418,14 @@ function BlacklistPanel() {
         className="flex w-full items-center justify-between"
         onClick={() => setOpen(!open)}
       >
-        <CardLabel className="mb-0">Blacklist Recommendations</CardLabel>
+        <div className="flex items-center gap-1.5">
+          <CardLabel className="mb-0">{t('network.blacklistRecommendations')}</CardLabel>
+          <InfoTooltip text={t('info.blacklistRecommendations')} />
+        </div>
         <span className="text-[10px]" style={{ color: 'var(--muted)' }}>
-          {recommendations.length} peer{recommendations.length !== 1 ? 's' : ''} {open ? '▲' : '▼'}
+          {open
+            ? t('network.peersOpen', { count: recommendations.length })
+            : t('network.peersClosed', { count: recommendations.length })}
         </span>
       </button>
 
@@ -417,7 +441,7 @@ function BlacklistPanel() {
             <div className="mt-3 space-y-2">
               {isLoading && <div className="h-4 w-40"><CardSkeleton /></div>}
               {!isLoading && recommendations.length === 0 && (
-                <p className="text-[11px]" style={{ color: 'var(--muted)' }}>No recommendations at this time</p>
+                <p className="text-[11px]" style={{ color: 'var(--muted)' }}>{t('network.noRecommendations')}</p>
               )}
               {recommendations.map((r) => (
                 <div
@@ -435,13 +459,13 @@ function BlacklistPanel() {
                     style={{ color: 'var(--blue2)' }}
                     onClick={() => copy(r.address)}
                   >
-                    Copy
+                    {t('common.copy')}
                   </button>
                 </div>
               ))}
               {recommendations.length > 0 && (
                 <p className="pt-1 text-[9px]" style={{ color: 'var(--muted)' }}>
-                  Add addresses to <code>P2P.BlacklistedPeers</code> in node.properties to block them.
+                  {t('network.blacklistHint')}
                 </p>
               )}
             </div>

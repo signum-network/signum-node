@@ -1,23 +1,26 @@
 import { useLocation, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useBlockchainStatus } from '@/hooks/useNodeQuery'
 import { sfx, useAudio } from '@/audio'
 import { AudioToggle } from './components/AudioToggle'
+import { LanguageSwitcher } from './components/LanguageSwitcher'
 import { NavItem } from './components/NavItem'
 import { StatusStrip } from './components/StatusStrip'
 import { ThemeSwitcher } from './components/ThemeSwitcher'
-
-const NAV_ITEMS = [
-  { label: 'Dashboard', path: '/' },
-  { label: 'Network',   path: '/network' },
-  { label: 'Blocks',    path: '/blocks',  future: true },
-  { label: 'Wallet',    path: '/wallet',  future: true },
-] as const
 
 export function Topbar() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const { data: status, isFetching } = useBlockchainStatus()
   const { play } = useAudio()
+  const { t } = useTranslation()
+
+  const NAV_ITEMS = [
+    { label: t('nav.dashboard'), path: '/' },
+    { label: t('nav.network'),   path: '/network' },
+    { label: t('nav.blocks'),    path: '/blocks',  future: true },
+    { label: t('nav.wallet'),    path: '/wallet',  future: true },
+  ] as const
 
   return (
     <header
@@ -70,6 +73,7 @@ export function Topbar() {
       {/* Right side — audio toggle, theme switcher, then status */}
       <div className="flex items-center gap-3 md:gap-5">
         <AudioToggle />
+        <LanguageSwitcher />
         <ThemeSwitcher />
         <StatusStrip
           network={status?.network ?? 'Mainnet'}

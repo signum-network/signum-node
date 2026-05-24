@@ -1,4 +1,5 @@
 export { Card, CardLabel, CardSub, CardSkeleton } from './Card'
+export { InfoTooltip } from './InfoTooltip'
 export { Pill, type PillVariant, type DotStatus } from './Pill'
 export { Badge, type BadgeVariant } from './Badge'
 export { ProgressBar } from './ProgressBar'

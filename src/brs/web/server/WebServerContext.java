@@ -9,6 +9,7 @@ import brs.services.*;
 import brs.util.ThreadPool;
 import brs.web.api.http.common.APITransactionManager;
 import signum.net.NetworkParameters;
+import brs.services.NetworkAnalysisService;
 
 public class WebServerContext {
     private final TransactionProcessor transactionProcessor;
@@ -33,9 +34,10 @@ public class WebServerContext {
     private final FeeSuggestionCalculator feeSuggestionCalculator;
     private final DeeplinkQRCodeGenerator deepLinkQRCodeGenerator;
     private final IndirectIncomingService indirectIncomingService;
+    private final NetworkAnalysisService networkAnalysisService;
     private final NetworkParameters params;
 
-    public WebServerContext(TransactionProcessor transactionProcessor, Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService, AccountService accountService, AliasService aliasService, AssetExchange assetExchange, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService, SubscriptionService subscriptionService, ATService atService, TimeService timeService, EconomicClustering economicClustering, PropertyService propertyService, ThreadPool threadPool, TransactionService transactionService, BlockService blockService, Generator generator, APITransactionManager apiTransactionManager, FeeSuggestionCalculator feeSuggestionCalculator, DeeplinkQRCodeGenerator deepLinkQRCodeGenerator, IndirectIncomingService indirectIncomingService, NetworkParameters params) {
+    public WebServerContext(TransactionProcessor transactionProcessor, Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService, AccountService accountService, AliasService aliasService, AssetExchange assetExchange, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService, SubscriptionService subscriptionService, ATService atService, TimeService timeService, EconomicClustering economicClustering, PropertyService propertyService, ThreadPool threadPool, TransactionService transactionService, BlockService blockService, Generator generator, APITransactionManager apiTransactionManager, FeeSuggestionCalculator feeSuggestionCalculator, DeeplinkQRCodeGenerator deepLinkQRCodeGenerator, IndirectIncomingService indirectIncomingService, NetworkAnalysisService networkAnalysisService, NetworkParameters params) {
         this.transactionProcessor = transactionProcessor;
         this.blockchain = blockchain;
         this.blockchainProcessor = blockchainProcessor;
@@ -58,6 +60,7 @@ public class WebServerContext {
         this.feeSuggestionCalculator = feeSuggestionCalculator;
         this.deepLinkQRCodeGenerator = deepLinkQRCodeGenerator;
         this.indirectIncomingService = indirectIncomingService;
+        this.networkAnalysisService = networkAnalysisService;
         this.params = params;
     }
 
@@ -147,6 +150,10 @@ public class WebServerContext {
 
     public IndirectIncomingService getIndirectIncomingService() {
         return indirectIncomingService;
+    }
+
+    public NetworkAnalysisService getNetworkAnalysisService() {
+        return networkAnalysisService;
     }
 
     public NetworkParameters getNetworkParameters() {

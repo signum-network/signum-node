@@ -119,6 +119,7 @@ public final class GetState extends ApiServlet.JsonRequestHandler {
     response.addProperty("freeMemory", Runtime.getRuntime().freeMemory());
     response.addProperty("indirectIncomingServiceEnabled", propertyService.getBoolean(Props.INDIRECT_INCOMING_SERVICE_ENABLE));
     response.addProperty("databaseTrimmingEnabled", propertyService.getBoolean(Props.DB_TRIM_DERIVED_TABLES));
+    response.addProperty("webUIEnabled", propertyService.getBoolean(Props.WEB_UI_ENABLED));
 
     return response;
   }

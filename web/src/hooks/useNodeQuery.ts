@@ -7,7 +7,12 @@ import {
   getPeer,
   getUnconfirmedTransactions,
   getRecentBlocks,
+  getNetworkStatus,
+  getForkHistory,
+  findForkPoint,
+  getBlacklist,
 } from '@/lib/nodeApi'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNodeSocket } from './useNodeSocket'
 
 type NodeQueryOptions<TData, TResult = TData> = Omit<
@@ -85,5 +90,39 @@ export function useUnconfirmedTxCount() {
     queryFn: getUnconfirmedTransactions,
     select: (data) => data.unconfirmedTransactions.length,
     refetchInterval: connected ? false : 10_000,
+  })
+}
+
+export function useNetworkStatus() {
+  return useNodeQuery({
+    queryKey: ['networkStatus'],
+    queryFn: getNetworkStatus,
+    pollInterval: 120_000,
+  })
+}
+
+export function useForkHistory(limit = 50) {
+  return useNodeQuery({
+    queryKey: ['forkHistory', limit],
+    queryFn: () => getForkHistory(limit),
+    pollInterval: 60_000,
+  })
+}
+
+export function useBlacklist() {
+  return useNodeQuery({
+    queryKey: ['blacklist'],
+    queryFn: getBlacklist,
+    pollInterval: 30_000,
+  })
+}
+
+export function useFindForkPoint() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (peerAddress: string) => findForkPoint(peerAddress),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['networkStatus'] })
+    },
   })
 }

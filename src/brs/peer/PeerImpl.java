@@ -57,6 +57,8 @@ final class PeerImpl implements Peer {
     private final AtomicReference<String> networkName = new AtomicReference<>();
     private final AtomicBoolean isOldVersion = new AtomicBoolean(false);
     private final AtomicLong blacklistingTime = new AtomicLong();
+    private final AtomicReference<String> blacklistReason = new AtomicReference<>("");
+    private final AtomicInteger connectionFailures = new AtomicInteger(0);
     private final AtomicReference<State> state = new AtomicReference<>();
     private final AtomicLong downloadedVolume = new AtomicLong();
     private final AtomicLong uploadedVolume = new AtomicLong();
@@ -283,7 +285,18 @@ final class PeerImpl implements Peer {
     }
 
     @Override
+    public String getBlacklistReason() {
+        return blacklistReason.get();
+    }
+
+    @Override
+    public int getConnectionFailures() {
+        return connectionFailures.get();
+    }
+
+    @Override
     public void blacklist(String description) {
+        blacklistReason.set(description != null ? description : "");
         if (!isBlacklisted()) {
             if (logger.isInfoEnabled()) {
                 logger.info(
@@ -307,6 +320,8 @@ final class PeerImpl implements Peer {
     public void unBlacklist() {
         setState(State.NON_CONNECTED);
         blacklistingTime.set(0);
+        blacklistReason.set("");
+        connectionFailures.set(0);
         Peers.notifyListeners(this, Peers.Event.UNBLACKLIST);
     }
 
@@ -383,6 +398,7 @@ final class PeerImpl implements Peer {
             updateUploadedVolume(cos.getCount());
 
             if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                connectionFailures.set(0);
                 CountingInputStream cis = new CountingInputStream(connection.getInputStream());
                 InputStream responseStream = cis;
                 if ("gzip".equals(connection.getHeaderField("Content-Encoding"))) {
@@ -430,6 +446,7 @@ final class PeerImpl implements Peer {
             }
 
         } catch (RuntimeException | IOException e) {
+            connectionFailures.incrementAndGet();
             if (!isConnectionException(e)) {
                 logger.debug("Error sending JSON request", e);
             }

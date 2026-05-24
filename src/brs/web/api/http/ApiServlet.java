@@ -7,6 +7,7 @@ import brs.feesuggestions.FeeSuggestionCalculator;
 import brs.props.PropertyService;
 import brs.props.Props;
 import brs.services.*;
+import brs.services.NetworkAnalysisService;
 import brs.util.JSON;
 import brs.util.Subnet;
 import brs.web.server.WebServerContext;
@@ -216,6 +217,14 @@ public final class ApiServlet extends HttpServlet {
     NetworkParameters networkParameters = context.getNetworkParameters();
     if(networkParameters != null){
       networkParameters.adjustAPIs(map);
+    }
+
+    if (context.getPropertyService().getBoolean(Props.WEB_UI_ENABLED)) {
+      NetworkAnalysisService networkAnalysisService = context.getNetworkAnalysisService();
+      map.put("getNetworkStatus", new GetNetworkStatus(networkAnalysisService));
+      map.put("getForkHistory", new GetForkHistory(networkAnalysisService));
+      map.put("findForkPoint", new FindForkPoint(networkAnalysisService));
+      map.put("getBlacklist", new GetBlacklist(networkAnalysisService));
     }
 
     return Collections.unmodifiableMap(map);

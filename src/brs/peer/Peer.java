@@ -42,6 +42,10 @@ public interface Peer extends Comparable<Peer> {
 
     boolean isBlacklisted();
 
+    String getBlacklistReason();
+
+    int getConnectionFailures();
+
     boolean isAtLeastMyVersion();
 
     boolean isHigherOrEqualVersionThan(Version version);

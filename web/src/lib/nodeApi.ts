@@ -133,3 +133,72 @@ export const getUnconfirmedTransactions = () =>
 
 export const getRecentBlocks = () =>
   query<BlocksResponse>('getBlocks', { firstIndex: '0', lastIndex: '99' })
+
+export interface PeerStatusEntry {
+  address: string
+  cumulativeDifficulty: string
+  height: number
+  onOurChain: boolean
+  status: 'on-chain' | 'stale' | 'forking'
+  connectionFailures: number
+  blacklisted: boolean
+}
+
+export interface NetworkStatus {
+  myBlockId: string
+  myCumulativeDifficulty: string
+  myHeight: number
+  consensusPercent: number
+  totalPeers: number
+  onChainPeers: number
+  stalePeers: number
+  forkingPeers: number
+  cachedAt: number
+  peers: PeerStatusEntry[]
+}
+
+export interface ForkEvent {
+  detectedAt: number
+  rollbackHeight: number
+  rollbackDepth: number
+  oldTopBlockId: string
+  newTopBlockId: string | null
+  peerSource: string | null
+}
+
+export interface ForkHistoryResponse {
+  forks: ForkEvent[]
+}
+
+export interface ForkPoint {
+  peer: string
+  forkAtHeight?: number
+  forkAtBlockId?: string
+  ourBlockIdAtFork?: string
+  searchSteps?: number
+  error?: string
+  requestProcessingTime: number
+}
+
+export interface BlacklistEntry {
+  address: string
+  reason: string
+  connectionFailures: number
+}
+
+export interface BlacklistResponse {
+  blacklisted: BlacklistEntry[]
+  count: number
+}
+
+export const getNetworkStatus = () =>
+  query<NetworkStatus>('getNetworkStatus')
+
+export const getForkHistory = (limit = 50) =>
+  query<ForkHistoryResponse>('getForkHistory', { limit: String(limit) })
+
+export const findForkPoint = (peer: string) =>
+  query<ForkPoint>('findForkPoint', { peer })
+
+export const getBlacklist = () =>
+  query<BlacklistResponse>('getBlacklist')

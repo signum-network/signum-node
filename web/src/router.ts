@@ -1,9 +1,12 @@
-import { createRouter, createRootRoute, createRoute, redirect } from '@tanstack/react-router'
+import { createRouter, createRootRoute, createRoute, createHashHistory, redirect, Navigate } from '@tanstack/react-router'
 import RootLayout from './routes/__root'
 import DashboardPage from './routes/index'
 import NetworkPage from './routes/network/index'
 
-const rootRoute = createRootRoute({ component: RootLayout })
+const rootRoute = createRootRoute({
+  component: RootLayout,
+  notFoundComponent: () => Navigate({ to: '/' }),
+})
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -46,7 +49,7 @@ export const routeTree = rootRoute.addChildren([
 
 export const router = createRouter({
   routeTree,
-  basepath: import.meta.env.BASE_URL.replace(/\/$/, '') || '/',
+  history: createHashHistory(),
   defaultPreload: 'intent',
 })
 

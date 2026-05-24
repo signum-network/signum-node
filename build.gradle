@@ -139,15 +139,56 @@ shadowJar {
     mergeServiceFiles()
 }
 
-tasks.register('buildOpenApi', BunTask) {
-    dependsOn bunInstall
-    args = ['run', 'dist']
+// ─── Bun auto-download ───────────────────────────────────────────────────────
+import org.gradle.internal.os.OperatingSystem
+
+def bunVersion    = '1.2.15'
+def bunOs         = OperatingSystem.current()
+def bunArch       = System.getProperty('os.arch').contains('aarch64') ? 'aarch64' : 'x64'
+def bunPlatform   = bunOs.isLinux() ? 'linux' : (bunOs.isMacOsX() ? 'darwin' : 'windows')
+def bunZipName    = "bun-${bunPlatform}-${bunArch}.zip"
+def bunBuildDir   = layout.buildDirectory.dir('bun').get().asFile
+def bunZipFile    = new File(bunBuildDir, bunZipName)
+def bunExecutable = new File(bunBuildDir, "bun-${bunPlatform}-${bunArch}/bun${bunOs.isWindows() ? '.exe' : ''}")
+
+tasks.register('downloadBun', de.undercouch.gradle.tasks.download.Download) {
+    group = 'setup'
+    description = "Download bun ${bunVersion} for ${bunPlatform}-${bunArch}"
+    src "https://github.com/oven-sh/bun/releases/download/bun-v${bunVersion}/${bunZipName}"
+    dest bunZipFile
+    overwrite false
+    onlyIfModified true
+    useETag true
 }
 
-node {
-    download = true
-    version = '20.19.1'
-    nodeProjectDir = file("${project.projectDir}/openapi")
+tasks.register('setupBun', Copy) {
+    group = 'setup'
+    description = 'Unpack bun binary'
+    dependsOn downloadBun
+    from zipTree(bunZipFile)
+    into bunBuildDir
+    outputs.file(bunExecutable)
+    doLast { bunExecutable.setExecutable(true) }
+}
+
+tasks.register('bunInstallOpenApi', Exec) {
+    group = 'setup'
+    dependsOn setupBun
+    workingDir 'openapi'
+    commandLine bunExecutable.absolutePath, 'install', '--frozen-lockfile'
+    inputs.file('openapi/bun.lockb')
+    outputs.dir('openapi/node_modules')
+}
+
+tasks.register('buildOpenApi', Exec) {
+    group = 'build'
+    description = 'Build OpenAPI documentation'
+    dependsOn bunInstallOpenApi
+    workingDir 'openapi'
+    commandLine bunExecutable.absolutePath, 'run', 'dist'
+    inputs.dir('openapi/src')
+    inputs.file('openapi/package.json')
+    outputs.dir('openapi/dist')
 }
 
 tasks.register('dist', Zip) {
@@ -293,11 +334,21 @@ tasks.register('release', Checksum) {
         "build/distributions/${baseNodeFileName}-win_x64.zip",
     ])
 }
+tasks.register('bunInstallWeb', Exec) {
+    group = 'setup'
+    dependsOn setupBun
+    workingDir 'web'
+    commandLine bunExecutable.absolutePath, 'install', '--frozen-lockfile'
+    inputs.file('web/bun.lockb')
+    outputs.dir('web/node_modules')
+}
+
 tasks.register('buildWeb', Exec) {
     group = 'build'
     description = 'Build the Neo-Page web UI'
+    dependsOn bunInstallWeb
     workingDir 'web'
-    commandLine 'bun', 'run', 'build'
+    commandLine bunExecutable.absolutePath, 'run', 'build'
     inputs.dir('web/src')
     inputs.file('web/package.json')
     inputs.file('web/vite.config.ts')

@@ -207,59 +207,48 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
             String myBlockId = lastBlock.getStringId();
             String myCumulativeDifficulty = lastBlock.getCumulativeDifficulty().toString();
             int myHeight = lastBlock.getHeight();
+            BigInteger myDifficulty = new BigInteger(myCumulativeDifficulty);
 
-            JsonObject cdRequest = new JsonObject();
-            cdRequest.addProperty("requestType", "getCumulativeDifficulty");
-
-            Collection<Peer> peers = Peers.getActivePeers();
+            Collection<Peer> peers = Peers.getAllPeers();
             JsonArray peerArray = new JsonArray();
             int onChain = 0, stale = 0, forking = 0;
 
-            BigInteger myDifficulty = new BigInteger(myCumulativeDifficulty);
-
             for (Peer peer : peers) {
                 if (peer.isBlacklisted()) continue;
-                try {
-                    JsonObject resp = peer.send(cdRequest);
-                    if (resp == null || resp.has("error")) continue;
 
-                    String peerCd = JSON.getAsString(resp.get("cumulativeDifficulty"));
-                    int peerHeight = JSON.getAsInt(resp.get("blockchainHeight"));
+                String peerCd = peer.getLastKnownCumulativeDifficulty();
+                int peerHeight = peer.getLastKnownHeight();
+                if (peerCd == null || peerHeight < 0) continue;
 
-                    if (peerCd == null) continue;
+                BigInteger peerDifficulty = new BigInteger(peerCd);
+                int heightDiff = Math.abs(myHeight - peerHeight);
 
-                    BigInteger peerDifficulty = new BigInteger(peerCd);
-                    int heightDiff = Math.abs(myHeight - peerHeight);
-
-                    String status;
-                    boolean onOurChain;
-                    if (peerDifficulty.equals(myDifficulty)) {
-                        status = "on-chain";
-                        onOurChain = true;
-                        onChain++;
-                    } else if (heightDiff <= 5) {
-                        status = "stale";
-                        onOurChain = true;
-                        stale++;
-                    } else {
-                        status = "forking";
-                        onOurChain = false;
-                        forking++;
-                    }
-
-                    JsonObject peerEntry = new JsonObject();
-                    String address = peer.getAnnouncedAddress() != null ? peer.getAnnouncedAddress() : peer.getPeerAddress();
-                    peerEntry.addProperty("address", address);
-                    peerEntry.addProperty("cumulativeDifficulty", peerCd);
-                    peerEntry.addProperty("height", peerHeight);
-                    peerEntry.addProperty("onOurChain", onOurChain);
-                    peerEntry.addProperty("status", status);
-                    peerEntry.addProperty("connectionFailures", peer.getConnectionFailures());
-                    peerEntry.addProperty("blacklisted", peer.isBlacklisted());
-                    peerArray.add(peerEntry);
-                } catch (Exception e) {
-                    logger.debug("Error querying peer {} for network status", peer.getPeerAddress(), e);
+                String status;
+                boolean onOurChain;
+                if (peerDifficulty.equals(myDifficulty)) {
+                    status = "on-chain";
+                    onOurChain = true;
+                    onChain++;
+                } else if (heightDiff <= 5) {
+                    status = "stale";
+                    onOurChain = true;
+                    stale++;
+                } else {
+                    status = "forking";
+                    onOurChain = false;
+                    forking++;
                 }
+
+                JsonObject peerEntry = new JsonObject();
+                String address = peer.getAnnouncedAddress() != null ? peer.getAnnouncedAddress() : peer.getPeerAddress();
+                peerEntry.addProperty("address", address);
+                peerEntry.addProperty("cumulativeDifficulty", peerCd);
+                peerEntry.addProperty("height", peerHeight);
+                peerEntry.addProperty("onOurChain", onOurChain);
+                peerEntry.addProperty("status", status);
+                peerEntry.addProperty("connectionFailures", peer.getConnectionFailures());
+                peerEntry.addProperty("blacklisted", peer.isBlacklisted());
+                peerArray.add(peerEntry);
             }
 
             int total = peerArray.size();

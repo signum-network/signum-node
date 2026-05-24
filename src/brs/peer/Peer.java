@@ -74,6 +74,12 @@ public interface Peer extends Comparable<Peer> {
 
     int getLastUpdated();
 
+    int getLastKnownHeight();
+
+    String getLastKnownCumulativeDifficulty();
+
+    void updateChainState(int height, String cumulativeDifficulty);
+
     JsonObject send(JsonElement request);
 
     static boolean isHigherOrEqualVersion(Version ourVersion, Version possiblyLowerVersion) {

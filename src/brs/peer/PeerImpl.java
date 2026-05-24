@@ -63,6 +63,8 @@ final class PeerImpl implements Peer {
     private final AtomicLong downloadedVolume = new AtomicLong();
     private final AtomicLong uploadedVolume = new AtomicLong();
     private final AtomicInteger lastUpdated = new AtomicInteger();
+    private final AtomicInteger lastKnownHeight = new AtomicInteger(-1);
+    private final AtomicReference<String> lastKnownCumulativeDifficulty = new AtomicReference<>(null);
     private byte[] lastDownloadedTransactionsDigest;
     private final Object lastDownloadedTransactionsLock = new Object();
 
@@ -346,6 +348,22 @@ final class PeerImpl implements Peer {
 
     void setLastUpdated(int lastUpdated) {
         this.lastUpdated.set(lastUpdated);
+    }
+
+    @Override
+    public int getLastKnownHeight() {
+        return lastKnownHeight.get();
+    }
+
+    @Override
+    public String getLastKnownCumulativeDifficulty() {
+        return lastKnownCumulativeDifficulty.get();
+    }
+
+    @Override
+    public void updateChainState(int height, String cumulativeDifficulty) {
+        lastKnownHeight.set(height);
+        lastKnownCumulativeDifficulty.set(cumulativeDifficulty);
     }
 
     private JsonObject error(String message) {

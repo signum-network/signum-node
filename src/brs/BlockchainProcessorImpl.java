@@ -657,6 +657,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                     logger.debug("Peer CumulativeDifficulty is null");
                                     continue;
                                 }
+                                peer.updateChainState(lastBlockchainFeederHeight.get(), peerCumulativeDifficulty);
                                 betterCumulativeDifficulty = new BigInteger(peerCumulativeDifficulty);
                             } while (betterCumulativeDifficulty.compareTo(curCumulativeDifficulty) <= 0);
 

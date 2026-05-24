@@ -5,7 +5,7 @@ import path from 'path'
 
 export default defineConfig(({ command }) => ({
   plugins: [react(), tailwindcss()],
-  base: command === 'build' ? '/ui/v2/' : '/',
+  base: command === 'build' ? '/app/' : '/',
   server: {
     port: 5173,
     proxy: {

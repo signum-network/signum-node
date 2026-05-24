@@ -339,7 +339,7 @@ tasks.register('bunInstallWeb', Exec) {
     dependsOn setupBun
     workingDir 'web'
     commandLine bunExecutable.absolutePath, 'install', '--frozen-lockfile'
-    inputs.file('web/bun.lockb')
+    inputs.file('web/bun.lock')
     outputs.dir('web/node_modules')
 }
 
@@ -358,7 +358,7 @@ tasks.register('buildWeb', Exec) {
 tasks.register('copyWeb', Copy) {
     dependsOn buildWeb
     from 'web/dist'
-    into 'html/ui/v2'
+    into 'html/app'
 }
 
 dist.dependsOn copyWeb

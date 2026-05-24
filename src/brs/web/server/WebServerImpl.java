@@ -9,7 +9,7 @@ import brs.web.api.ws.BlockchainEventNotifier;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.compression.server.CompressionHandler;
 import org.eclipse.jetty.compression.server.CompressionConfig;
-import org.eclipse.jetty.ee10.servlet.DefaultServlet;
+import org.eclipse.jetty.ee10.servlet.ResourceServlet;
 import org.eclipse.jetty.ee10.servlet.FilterHolder;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
@@ -137,7 +137,7 @@ public final class WebServerImpl implements WebServer {
             });
             servletContextHandler.addServlet(redirectServletHolder, "/api-doc");
 
-            ServletHolder defaultServletHolder = new ServletHolder(new DefaultServlet());
+            ServletHolder defaultServletHolder = new ServletHolder(new ResourceServlet());
             String apiDocsResourceBase = Paths.get("html", "api-doc").toAbsolutePath().toString();
             defaultServletHolder.setInitParameter("resourceBase", apiDocsResourceBase);
             defaultServletHolder.setInitParameter("dirAllowed", "false");
@@ -155,26 +155,26 @@ public final class WebServerImpl implements WebServer {
                 @Override
                 protected void service(HttpServletRequest req, HttpServletResponse resp)
                         throws ServletException, java.io.IOException {
-                    resp.sendRedirect(req.getContextPath() + "/ui/");
+                    resp.sendRedirect(req.getContextPath() + "/app/");
                 }
             });
-            servletContextHandler.addServlet(redirectHolder, "/ui");
+            servletContextHandler.addServlet(redirectHolder, "/app");
 
-            ServletHolder webUiServletHolder = new ServletHolder(new DefaultServlet());
-            String webUiResourceBase = Paths.get("html", "ui", "v2").toAbsolutePath().toString();
+            ServletHolder webUiServletHolder = new ServletHolder(new ResourceServlet());
+            String webUiResourceBase = Paths.get("html", "app").toAbsolutePath().toString();
             webUiServletHolder.setInitParameter("resourceBase", webUiResourceBase);
             webUiServletHolder.setInitParameter("dirAllowed", "false");
             webUiServletHolder.setInitParameter("welcomeServlets", "true");
             webUiServletHolder.setInitParameter("redirectWelcome", "true");
             webUiServletHolder.setInitParameter("gzip", "true");
-            servletContextHandler.addServlet(webUiServletHolder, "/ui/*");
-            logger.info("Node Web UI enabled at /ui/");
+            servletContextHandler.addServlet(webUiServletHolder, "/app/*");
+            logger.info("Node Web UI enabled at /app/");
         }
 
         String apiResourceBase = Paths.get(
                 context.getPropertyService().getString(Props.API_UI_DIR)).toAbsolutePath().toString();
         if (!apiResourceBase.isEmpty()) {
-            ServletHolder defaultServletHolder = new ServletHolder(new DefaultServlet());
+            ServletHolder defaultServletHolder = new ServletHolder(new ResourceServlet());
             defaultServletHolder.setInitParameter("resourceBase", apiResourceBase);
             defaultServletHolder.setInitParameter("dirAllowed", "false");
             defaultServletHolder.setInitParameter("welcomeServlets", "true");

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Card, CardLabel, CardSkeleton } from '@/components/ui/Card'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { Badge } from '@/components/ui/Badge'
@@ -9,12 +10,14 @@ interface NodeHealthStripProps {
 }
 
 export function NodeHealthStrip({ fullStatus, isLoading }: NodeHealthStripProps) {
+  const { t } = useTranslation()
+
   const usedMB = fullStatus
     ? Math.round((fullStatus.totalMemory - fullStatus.freeMemory) / 1024 / 1024)
     : 0
   const maxMB = fullStatus ? Math.round(fullStatus.maxMemory / 1024 / 1024) : 0
   const heapPct = maxMB > 0 ? (usedMB / maxMB) * 100 : 0
-  const heapSynced = heapPct < 60  // reuse ProgressBar's green/amber coloring
+  const heapSynced = heapPct < 60
 
   const cores = fullStatus?.availableProcessors ?? 0
   const dbTrimming = fullStatus?.databaseTrimmingEnabled ?? false
@@ -26,7 +29,7 @@ export function NodeHealthStrip({ fullStatus, isLoading }: NodeHealthStripProps)
         {/* JVM Heap */}
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <div className="flex items-center justify-between">
-            <CardLabel className="mb-0">JVM Heap</CardLabel>
+            <CardLabel className="mb-0" tooltip={t('info.jvmHeap')}>{t('dashboard.jvmHeap')}</CardLabel>
             {isLoading ? null : (
               <span
                 className="tabular-nums text-[10px]"
@@ -54,7 +57,7 @@ export function NodeHealthStrip({ fullStatus, isLoading }: NodeHealthStripProps)
 
         {/* CPU */}
         <div className="flex flex-col gap-1">
-          <CardLabel>CPU Cores</CardLabel>
+          <CardLabel>{t('dashboard.cpuCores')}</CardLabel>
           {isLoading ? (
             <div className="h-6 w-12"><CardSkeleton /></div>
           ) : (
@@ -71,12 +74,12 @@ export function NodeHealthStrip({ fullStatus, isLoading }: NodeHealthStripProps)
 
         {/* DB Trimming */}
         <div className="flex flex-col gap-1">
-          <CardLabel>DB Trimming</CardLabel>
+          <CardLabel tooltip={t('info.dbTrimming')}>{t('dashboard.dbTrimming')}</CardLabel>
           {isLoading ? (
             <div className="h-5 w-20"><CardSkeleton /></div>
           ) : (
             <Badge variant={dbTrimming ? 'green' : 'amber'}>
-              {dbTrimming ? 'Enabled' : 'Disabled'}
+              {dbTrimming ? t('common.enabled') : t('common.disabled')}
             </Badge>
           )}
         </div>

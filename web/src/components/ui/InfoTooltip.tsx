@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useLayoutEffect } from 'react'
 
 const TOOLTIP_WIDTH = 240
 const VIEWPORT_MARGIN = 8
@@ -13,7 +13,7 @@ export function InfoTooltip({ text }: InfoTooltipProps) {
   const [offset, setOffset] = useState(0)
   const ref = useRef<HTMLSpanElement>(null)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!visible || !ref.current) return
     const rect = ref.current.getBoundingClientRect()
     setAbove(rect.bottom + 160 > window.innerHeight)

@@ -16,4 +16,6 @@ public interface NetworkAnalysisService {
     JsonObject getBlacklist();
 
     void recordFork(Block poppedBlock);
+
+    void recordForkAsync(Block poppedBlock);
 }

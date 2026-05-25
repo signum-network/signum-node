@@ -11,6 +11,7 @@ _config.yml
 /html/ui/doc/*
 /html/ui/phoenix/*
 /html/ui/classic/*
+/html/app/*
 !/html/ui/phoenix/README.md
 !/html/ui/classic/README.md
 target

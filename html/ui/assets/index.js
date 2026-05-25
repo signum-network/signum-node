@@ -1,5 +1,5 @@
 const nodeUrl = location.origin
-const preferredWalletKey = 'preferred-wallet'
+const preferredAppKey = 'preferred-wallet'
 
 async function getNodeVersion() {
   const url = `${nodeUrl}/api?requestType=getBlockchainStatus`
@@ -14,9 +14,9 @@ async function getNodeVersion() {
   return version
 }
 
-function selectedWallet(name) {
+function selectedApp(name) {
   if (document.getElementById('remember-wallet__checkbox').checked) {
-    localStorage.setItem(preferredWalletKey, name)
+    localStorage.setItem(preferredAppKey, name)
   }
 }
 
@@ -24,9 +24,9 @@ function selectedWallet(name) {
   getNodeVersion().then((version) => {
     document.getElementById('version').textContent = version
   })
-  const walletName = localStorage.getItem(preferredWalletKey)
-  if (walletName) {
-    document.getElementById(`${walletName}-link`).click()
+  const appName = localStorage.getItem(preferredAppKey)
+  if (appName) {
+    document.getElementById(`${appName}-link`).click()
   }
 })()
 

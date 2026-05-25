@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { Pill } from '@/components/ui/Pill'
 import { useNodeSocket } from '@/hooks/useNodeSocket'
 
@@ -8,6 +9,7 @@ interface StatusStripProps {
 }
 
 export function StatusStrip({ network = 'Mainnet', isFetching }: StatusStripProps) {
+  const { t } = useTranslation()
   const { connected, wsEnabled } = useNodeSocket()
 
   return (
@@ -30,10 +32,10 @@ export function StatusStrip({ network = 'Mainnet', isFetching }: StatusStripProp
 
       {wsEnabled ? (
         <Pill variant={connected ? 'green' : 'amber'} dot={connected ? 'ok' : 'warn'}>
-          {connected ? 'Live' : 'Connecting'}
+          {connected ? t('common.live') : t('common.connecting')}
         </Pill>
       ) : (
-        <Pill variant="amber">Polling</Pill>
+        <Pill variant="amber">{t('common.polling')}</Pill>
       )}
 
       <Pill variant="green" dot="ok">

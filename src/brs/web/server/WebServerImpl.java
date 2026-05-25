@@ -164,8 +164,8 @@ public final class WebServerImpl implements WebServer {
             String webUiResourceBase = Paths.get("html", "app").toAbsolutePath().toString();
             webUiServletHolder.setInitParameter("resourceBase", webUiResourceBase);
             webUiServletHolder.setInitParameter("dirAllowed", "false");
-            webUiServletHolder.setInitParameter("welcomeServlets", "true");
-            webUiServletHolder.setInitParameter("redirectWelcome", "true");
+            webUiServletHolder.setInitParameter("welcomeServlets", "false");
+            webUiServletHolder.setInitParameter("redirectWelcome", "false");
             webUiServletHolder.setInitParameter("gzip", "true");
             servletContextHandler.addServlet(webUiServletHolder, "/app/*");
             logger.info("Node Web UI enabled at /app/");

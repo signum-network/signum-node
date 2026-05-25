@@ -13,16 +13,22 @@
         <small id="version">...</small>
     </div>
     <div class="wallet-options__title">
-        <h1>Choose your preferred wallet</h1>
+        <h1>Choose your preferred application</h1>
     </div>
     <div class="wallet-options__cards">
-        <a class="card" id="phoenix-link" href="./phoenix/index.html" onclick="selectedWallet('phoenix')">
+        <a class="card" id="app-link" href="../app" onclick="selectedApp('app')">
+            <div class="center-text">
+                <img src="./assets/phoenix_v.svg">
+                <h2 class="card__title">Node App</h2>
+            </div>
+        </a>
+        <a class="card" id="phoenix-link" href="./phoenix/index.html" onclick="selectedApp('phoenix')">
             <div class="center-text">
                 <img src="./assets/phoenix_v.svg">
                 <h2 class="card__title">Phoenix</h2>
             </div>
         </a>
-        <a class="card" id="classic-link" href="./classic/index.html" onclick="selectedWallet('classic')">
+        <a class="card" id="classic-link" href="./classic/index.html" onclick="selectedApp('classic')">
             <div class="center-text">
                 <img src="./assets/signum-logomark-white.svg">
                 <h2 class="card__title">Classic</h2>

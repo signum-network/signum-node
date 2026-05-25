@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { Card, CardLabel } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -5,10 +6,10 @@ import { categorizeVersion } from '@/lib/utils'
 
 type Category = 'current' | 'outdated' | 'fork-risk'
 
-const CAT_STYLES: Record<Category, { label: string; color: string; bg: string; badge: 'green' | 'amber' | 'mag' }> = {
-  current:    { label: 'current',   color: 'var(--green)', bg: 'linear-gradient(90deg,var(--blue),var(--green))', badge: 'green' },
-  outdated:   { label: 'outdated',  color: 'var(--amber)', bg: 'var(--amber)',                                    badge: 'amber' },
-  'fork-risk':{ label: 'fork risk', color: 'var(--mag)',   bg: 'var(--mag)',                                      badge: 'mag' },
+const CAT_STYLES: Record<Category, { color: string; bg: string; badge: 'green' | 'amber' | 'mag' }> = {
+  current:    { color: 'var(--green)', bg: 'linear-gradient(90deg,var(--blue),var(--green))', badge: 'green' },
+  outdated:   { color: 'var(--amber)', bg: 'var(--amber)',                                    badge: 'amber' },
+  'fork-risk':{ color: 'var(--mag)',   bg: 'var(--mag)',                                      badge: 'mag' },
 }
 
 interface VersionGroup {
@@ -24,6 +25,14 @@ interface PeerVersionCardProps {
 }
 
 export function PeerVersionCard({ versions, nodeVersion, outdatedCount }: PeerVersionCardProps) {
+  const { t } = useTranslation()
+
+  const catLabel: Record<Category, string> = {
+    current: t('dashboard.versionCurrent'),
+    outdated: t('dashboard.versionOutdated'),
+    'fork-risk': t('dashboard.versionForkRisk'),
+  }
+
   const grouped = versions.reduce<Record<string, VersionGroup>>((acc, p) => {
     const raw = p.version?.trim()
     const v = raw && raw.length > 0 ? raw : 'unknown'
@@ -39,9 +48,9 @@ export function PeerVersionCard({ versions, nodeVersion, outdatedCount }: PeerVe
   return (
     <Card className="col-span-2">
       <div className="mb-3.5 flex items-center justify-between">
-        <CardLabel className="mb-0">Peer Version Distribution</CardLabel>
+        <CardLabel className="mb-0">{t('dashboard.peerVersionDist')}</CardLabel>
         {outdatedCount > 0 && (
-          <Badge variant="amber">{outdatedCount} outdated</Badge>
+          <Badge variant="amber">{t('dashboard.outdatedCount', { count: outdatedCount })}</Badge>
         )}
       </div>
 
@@ -67,12 +76,12 @@ export function PeerVersionCard({ versions, nodeVersion, outdatedCount }: PeerVe
                 />
               </div>
               <span className="min-w-[20px] text-right text-[var(--muted)]">{g.count}</span>
-              <Badge variant={style.badge}>{style.label}</Badge>
+              <Badge variant={style.badge}>{catLabel[g.category]}</Badge>
             </div>
           )
         })}
         {groups.length === 0 && (
-          <p className="text-[10px] text-[var(--muted)]">No peer data yet</p>
+          <p className="text-[10px] text-[var(--muted)]">{t('dashboard.noPeerDataYet')}</p>
         )}
       </div>
     </Card>

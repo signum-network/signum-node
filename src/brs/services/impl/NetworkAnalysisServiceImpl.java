@@ -182,6 +182,11 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
     }
 
     @Override
+    public void recordForkAsync(Block poppedBlock) {
+        if (poppedBlock == null) return;
+        scheduler.submit(() -> recordFork(poppedBlock));
+    }
+
     public void recordFork(Block poppedBlock) {
         if (poppedBlock == null) return;
         try (Connection con = getConnection();

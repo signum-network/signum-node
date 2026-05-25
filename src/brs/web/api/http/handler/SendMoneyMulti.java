@@ -66,7 +66,7 @@ public final class SendMoneyMulti extends CreateTransaction {
         long recipientId = Convert.parseUnsignedLong(recipientArray[0]);
         Long amountNQT   = Convert.parseUnsignedLong(recipientArray[1]);
         recipients.add(new SimpleEntry<>("" + recipientId, amountNQT) );
-        totalAmountNQT += amountNQT;
+        totalAmountNQT = Convert.safeAdd(totalAmountNQT, amountNQT);
       }
     }
     catch(Exception e) {

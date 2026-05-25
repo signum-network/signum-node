@@ -1393,7 +1393,7 @@ public abstract class TransactionType {
 
         boolean unconfirmed = !Signum.getFluxCapacitor().getValue(FluxValues.DISTRIBUTION_FIX);
         long circulatingSupply = assetExchange.getAssetCirculatingSupply(asset, false, unconfirmed);
-        long newSupply = circulatingSupply + attachment.getQuantityQnt();
+        long newSupply = Convert.safeAdd(circulatingSupply, attachment.getQuantityQnt());
         if (newSupply > Constants.MAX_ASSET_QUANTITY_QNT) {
           return false;
         }
@@ -1437,7 +1437,7 @@ public abstract class TransactionType {
 
         boolean unconfirmed = !Signum.getFluxCapacitor().getValue(FluxValues.DISTRIBUTION_FIX);
         long circulatingSupply = assetExchange.getAssetCirculatingSupply(asset, false, unconfirmed);
-        long newSupply = circulatingSupply + attachment.getQuantityQnt();
+        long newSupply = Convert.safeAdd(circulatingSupply, attachment.getQuantityQnt());
         if (newSupply > Constants.MAX_ASSET_QUANTITY_QNT) {
           throw new SignumException.NotCurrentlyValidException("Maximum circulating supply QNT is " + Constants.MAX_ASSET_QUANTITY_QNT);
         }
@@ -1595,7 +1595,7 @@ public abstract class TransactionType {
           if(Signum.getFluxCapacitor().getValue(FluxValues.DISTRIBUTION_FIX, transaction.getHeight()) && holder.getAccountId() == senderAccount.getId()){
             continue;
           }
-          circulatingQuantityQNT += holder.getUnconfirmedQuantityQnt();
+          circulatingQuantityQNT = Convert.safeAdd(circulatingQuantityQNT, holder.getUnconfirmedQuantityQnt());
         }
         if(circulatingQuantityQNT <= 0L) {
           accountService.addToUnconfirmedAssetBalanceQNT(senderAccount, assetToDistribute, attachment.getQuantityQnt());
@@ -1695,7 +1695,7 @@ public abstract class TransactionType {
           }
           long holderQuantity = Signum.getFluxCapacitor().getValue(FluxValues.DISTRIBUTION_FIX, transaction.getHeight()) ?
             holder.getQuantityQnt() : holder.getUnconfirmedQuantityQnt();
-          circulatingQuantityQNT += holderQuantity;
+          circulatingQuantityQNT = Convert.safeAdd(circulatingQuantityQNT, holderQuantity);
         }
         BigInteger circulatingQuantity = BigInteger.valueOf(circulatingQuantityQNT);
 
@@ -1722,14 +1722,14 @@ public abstract class TransactionType {
             quantity = quantityToDistribute.multiply(BigInteger.valueOf(holderQuantity))
                 .divide(circulatingQuantity).longValue();
 
-            quantityDistributed += quantity;
+            quantityDistributed = Convert.safeAdd(quantityDistributed, quantity);
           }
 
           long amount = 0L;
           if(transaction.getAmountNqt() > 0L) {
             amount = amountToDistribute.multiply(BigInteger.valueOf(holderQuantity))
                 .divide(circulatingQuantity).longValue();
-            amountDistributed += amount;
+            amountDistributed = Convert.safeAdd(amountDistributed, amount);
           }
 
           IndirectIncoming indirect = new IndirectIncoming(holder.getAccountId(), transaction.getId(),

@@ -4,9 +4,28 @@ export interface Locale {
     refresh: string; refreshing: string; copy: string; height: string; address: string
     failures: string; cachedAgo: string; noData: string; searchAgain: string
     startBinarySearch: string; searching: string; selectTheme: string; selectLanguage: string
+    enabled: string; disabled: string; live: string; connecting: string; polling: string
   }
   status: { onChain: string; stale: string; forking: string; blacklisted: string }
-  dashboard: { chainActivity: string; network: string; nodeHealth: string }
+  dashboard: {
+    chainActivity: string; network: string; nodeHealth: string
+    currentBlockHeight: string; syncing: string; synced: string
+    syncProgress: string; localHeight: string; globalHeight: string
+    avgBlockTime: string; lastNBlocks: string; minerReward: string
+    emissionFees: string; signaPerBlock: string; circulatingSupply: string
+    signaInCirculation: string; feederPeer: string; feederAt: string
+    totalBurned: string; signaRemovedFromSupply: string
+    allTimeTransactions: string; confirmedOnChain: string
+    smartContracts: string; atsDeployed: string; digitalAssets: string
+    tokensIssued: string; liveDexOrders: string; askBid: string
+    peersConnected: string; activeConnections: string; pendingTxs: string
+    unconfirmedInMempool: string; avgCommitment: string; signaPerTiB: string
+    jvmHeap: string; cpuCores: string; dbTrimming: string
+    networkCapacity: string; physicalLastN: string; effectiveCapacity: string
+    commitmentBoost: string; cumulDifficulty: string
+    peerVersionDist: string; outdatedCount: string; noPeerDataYet: string
+    versionCurrent: string; versionOutdated: string; versionForkRisk: string
+  }
   network: {
     chainConsensus: string; peers: string; forkHistory: string; blacklistRecommendations: string
     agree: string; onOurChain: string; noReorgs: string; noRecommendations: string
@@ -17,10 +36,13 @@ export interface Locale {
       forkHeight: string; forkBlockId: string; ourBlock: string; steps: string
     }
     rollback: string; rollback_other: string
+    status: string; cumulDifficulty: string
   }
   info: {
     chainConsensus: string; cumulativeDifficulty: string; findFork: string
-    networkCapacity: string; baseTarget: string; peersTable: string; blacklistRecommendations: string
+    networkCapacity: string; effectiveCapacity: string; baseTarget: string
+    peersTable: string; blacklistRecommendations: string
+    avgCommitment: string; jvmHeap: string; dbTrimming: string
   }
 }
 
@@ -46,6 +68,11 @@ const en: Locale = {
     searching: 'Searching… this may take a few seconds',
     selectTheme: 'Select Theme',
     selectLanguage: 'Select Language',
+    enabled: 'Enabled',
+    disabled: 'Disabled',
+    live: 'Live',
+    connecting: 'Connecting',
+    polling: 'Polling',
   },
   status: {
     onChain: 'on-chain',
@@ -57,6 +84,51 @@ const en: Locale = {
     chainActivity: 'Chain Activity',
     network: 'Network',
     nodeHealth: 'Node Health',
+    currentBlockHeight: 'Current Block Height',
+    syncing: 'Syncing',
+    synced: 'Synced',
+    syncProgress: 'Sync Progress',
+    localHeight: 'Local {{height}}',
+    globalHeight: 'Global {{height}}',
+    avgBlockTime: 'Avg Block Time',
+    lastNBlocks: 'last {{count}} blocks · target 4:00',
+    minerReward: 'Miner Reward',
+    emissionFees: '{{base}} emission · {{fees}} fees',
+    signaPerBlock: 'SIGNA / block',
+    circulatingSupply: 'Circulating Supply',
+    signaInCirculation: 'SIGNA in circulation',
+    feederPeer: 'Feeder Peer',
+    feederAt: 'at #{{height}}',
+    totalBurned: 'Total Burned',
+    signaRemovedFromSupply: 'SIGNA removed from supply',
+    allTimeTransactions: 'All-time Transactions',
+    confirmedOnChain: 'confirmed on-chain',
+    smartContracts: 'Smart Contracts',
+    atsDeployed: 'ATs deployed',
+    digitalAssets: 'Digital Assets',
+    tokensIssued: 'tokens issued',
+    liveDexOrders: 'Live DEX Orders',
+    askBid: '{{ask}} ask · {{bid}} bid',
+    peersConnected: 'Peers Connected',
+    activeConnections: 'active connections',
+    pendingTxs: 'Pending TXs',
+    unconfirmedInMempool: 'unconfirmed in mempool',
+    avgCommitment: 'Avg Commitment',
+    signaPerTiB: 'SIGNA / TiB · PoC+',
+    jvmHeap: 'JVM Heap',
+    cpuCores: 'CPU Cores',
+    dbTrimming: 'DB Trimming',
+    networkCapacity: 'Network Capacity',
+    physicalLastN: 'physical · last {{count}} blocks',
+    effectiveCapacity: 'Effective Capacity',
+    commitmentBoost: 'incl. PoC+ commitment boost',
+    cumulDifficulty: 'cumul. difficulty {{value}}',
+    peerVersionDist: 'Peer Version Distribution',
+    outdatedCount: '{{count}} outdated',
+    noPeerDataYet: 'No peer data yet',
+    versionCurrent: 'current',
+    versionOutdated: 'outdated',
+    versionForkRisk: 'fork risk',
   },
   network: {
     chainConsensus: 'Chain Consensus',
@@ -84,6 +156,8 @@ const en: Locale = {
     },
     rollback: '-{{depth}} block',
     rollback_other: '-{{depth}} blocks',
+    status: 'Status',
+    cumulDifficulty: 'Cumul. difficulty',
   },
   info: {
     chainConsensus:
@@ -100,6 +174,14 @@ const en: Locale = {
       '"On-chain" peers share our exact cumulative difficulty. "Stale" peers are within 5 blocks. "Forking" peers are on a significantly different chain and may indicate a network split.',
     blacklistRecommendations:
       'Peers that are consistently on a different chain or have repeated connection failures. Adding them to P2P.BlacklistedPeers in node.properties prevents your node from wasting resources on them.',
+    effectiveCapacity:
+      'Effective capacity weights each miner\'s raw storage by their Signum commitment (PoC+). A miner with more SIGNA staked earns a multiplier, so effective capacity can exceed physical capacity when the network has strong commitment.',
+    avgCommitment:
+      'The average amount of SIGNA committed per TiB across all active miners. Higher commitment raises the effective capacity multiplier, increases block rewards for committed miners, and makes the chain more expensive to attack.',
+    jvmHeap:
+      'JVM heap memory currently in use vs the maximum allocated to this process. Sustained usage above 80% may cause GC pauses; above 90% risks OutOfMemoryError. Raise -Xmx in the startup script if this is consistently high.',
+    dbTrimming:
+      'When enabled, the node periodically removes derived-table data (balances, unconfirmed transactions) that can be recalculated from the chain. Keeps the database compact at the cost of a small background workload.',
   },
 }
 

@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { PageWrapper } from '@/components/layout/PageWrapper'
 import { Card, CardLabel, CardSub, CardSkeleton } from '@/components/ui/Card'
-import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import { useNetworkStatus, useForkHistory, useBlacklist, useFindForkPoint } from '@/hooks/useNodeQuery'
 import { cn } from '@/lib/utils'
 import type { PeerStatusEntry } from '@/lib/nodeApi'
@@ -61,10 +60,7 @@ function ConsensusBar() {
     <Card className="col-span-full">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="flex items-center gap-1.5">
-            <CardLabel>{t('network.chainConsensus')}</CardLabel>
-            <InfoTooltip text={t('info.chainConsensus')} />
-          </div>
+          <CardLabel tooltip={t('info.chainConsensus')}>{t('network.chainConsensus')}</CardLabel>
           {isLoading ? (
             <div className="h-10 w-40"><CardSkeleton /></div>
           ) : (
@@ -133,10 +129,7 @@ function ForkPointModal({ peer, onClose }: { peer: string; onClose: () => void }
         className="w-full max-w-md"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-1.5">
-          <CardLabel>{t('network.forkPoint.title')}</CardLabel>
-          <InfoTooltip text={t('info.findFork')} />
-        </div>
+        <CardLabel tooltip={t('info.findFork')}>{t('network.forkPoint.title')}</CardLabel>
         <p className="mb-3 text-[11px]" style={{ color: 'var(--muted)' }}>{peer}</p>
 
         {!data && !isPending && (
@@ -239,9 +232,8 @@ function PeerTable() {
   return (
     <>
       <Card className="col-span-full overflow-hidden p-0">
-        <div className="flex items-center gap-1.5 px-5 pt-5">
-          <CardLabel>{t('network.peers')}</CardLabel>
-          <InfoTooltip text={t('info.peersTable')} />
+        <div className="px-5 pt-5">
+          <CardLabel tooltip={t('info.peersTable')}>{t('network.peers')}</CardLabel>
         </div>
 
         <div className="overflow-x-auto">
@@ -250,7 +242,7 @@ function PeerTable() {
               <tr style={{ borderBottom: '1px solid var(--border)' }}>
                 <th className="px-5 py-2 text-left"><span className="text-[9px] uppercase tracking-[2px]" style={{ color: 'var(--muted)' }}>{t('common.address')}</span></th>
                 <th className="px-3 py-2"><ThBtn label={t('common.height')} k="height" /></th>
-                <th className="px-3 py-2"><ThBtn label="Status" k="status" /></th>
+                <th className="px-3 py-2"><ThBtn label={t('network.status')} k="status" /></th>
                 <th className="px-3 py-2"><ThBtn label={t('common.failures')} k="failures" /></th>
                 <th className="px-5 py-2" />
               </tr>
@@ -306,7 +298,7 @@ function PeerTable() {
                     <tr key={`${peer.address}-detail`} style={{ background: 'color-mix(in srgb, var(--blue2) 4%, transparent)' }}>
                       <td colSpan={5} className="px-5 py-3">
                         <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-[10px]">
-                          <div><span style={{ color: 'var(--muted)' }}>Cumul. difficulty: </span><span className="font-mono" style={{ color: 'var(--text)' }}>{peer.cumulativeDifficulty}</span></div>
+                          <div><span style={{ color: 'var(--muted)' }}>{t('network.cumulDifficulty')}: </span><span className="font-mono" style={{ color: 'var(--text)' }}>{peer.cumulativeDifficulty}</span></div>
                           <div><span style={{ color: 'var(--muted)' }}>{t('common.failures')}: </span><span style={{ color: 'var(--text)' }}>{peer.connectionFailures}</span></div>
                         </div>
                         {!peer.blacklisted && peer.status === 'forking' && (
@@ -418,10 +410,9 @@ function BlacklistPanel() {
         className="flex w-full items-center justify-between"
         onClick={() => setOpen(!open)}
       >
-        <div className="flex items-center gap-1.5">
-          <CardLabel className="mb-0">{t('network.blacklistRecommendations')}</CardLabel>
-          <InfoTooltip text={t('info.blacklistRecommendations')} />
-        </div>
+        <CardLabel className="mb-0" tooltip={t('info.blacklistRecommendations')}>
+          {t('network.blacklistRecommendations')}
+        </CardLabel>
         <span className="text-[10px]" style={{ color: 'var(--muted)' }}>
           {open
             ? t('network.peersOpen', { count: recommendations.length })

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Card, CardLabel, CardSub, CardSkeleton } from '@/components/ui/Card'
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber'
 import { SignaAmount } from '@/components/ui/SignaAmount'
@@ -13,12 +14,13 @@ interface MetricCardProps {
   isLoading?: boolean
   signa?: boolean
   formatter?: (n: number) => string
+  tooltip?: string
 }
 
-function MetricCard({ label, value, sub, color, glow, isLoading, signa, formatter }: MetricCardProps) {
+function MetricCard({ label, value, sub, color, glow, isLoading, signa, formatter, tooltip }: MetricCardProps) {
   return (
     <Card interactive>
-      <CardLabel>{label}</CardLabel>
+      <CardLabel tooltip={tooltip}>{label}</CardLabel>
       {isLoading ? (
         <div className="mb-2 h-9 w-24">
           <CardSkeleton />
@@ -46,34 +48,36 @@ interface MetricGridProps {
 }
 
 export function MetricGrid({ peerCount, pendingTxCount, mining, isLoading }: MetricGridProps) {
+  const { t } = useTranslation()
   const avgCommitment = mining ? Number(fmtSigna(mining.averageCommitmentNQT)) : 0
 
   return (
     <>
       <MetricCard
-        label="Peers Connected"
+        label={t('dashboard.peersConnected')}
         value={peerCount}
-        sub="active connections"
+        sub={t('dashboard.activeConnections')}
         color="var(--green)"
         glow="var(--glow-g)"
         isLoading={isLoading}
       />
       <MetricCard
-        label="Pending TXs"
+        label={t('dashboard.pendingTxs')}
         value={pendingTxCount}
-        sub="unconfirmed in mempool"
+        sub={t('dashboard.unconfirmedInMempool')}
         color="var(--mag)"
         glow="var(--glow-m)"
         isLoading={isLoading}
       />
       <MetricCard
-        label="Avg Commitment"
+        label={t('dashboard.avgCommitment')}
         value={avgCommitment}
-        sub="SIGNA / TiB · PoC+"
+        sub={t('dashboard.signaPerTiB')}
         color="var(--gold)"
         glow="var(--glow-gold)"
         isLoading={isLoading}
         signa
+        tooltip={t('info.avgCommitment')}
       />
     </>
   )

@@ -1,5 +1,6 @@
 import { motion, type HTMLMotionProps } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import { InfoTooltip } from '@/components/ui/InfoTooltip'
 
 const SPRING = { type: 'spring' as const, stiffness: 300, damping: 20 }
 
@@ -43,9 +44,11 @@ export function Card({
 export function CardLabel({
   children,
   className,
+  tooltip,
 }: {
   children: React.ReactNode
   className?: string
+  tooltip?: string
 }) {
   return (
     <p
@@ -54,7 +57,14 @@ export function CardLabel({
         className,
       )}
     >
-      {children}
+      {tooltip ? (
+        <span className="flex items-center gap-1.5">
+          {children}
+          <InfoTooltip text={tooltip} />
+        </span>
+      ) : (
+        children
+      )}
     </p>
   )
 }

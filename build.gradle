@@ -8,7 +8,7 @@ plugins {
   id 'com.palantir.git-version' version '5.0.0'
   id 'io.spring.dependency-management' version '1.1.7'
   id 'nu.studer.jooq' version '10.2.1'
-  id "org.flywaydb.flyway" version "12.6.1"
+  id "org.flywaydb.flyway" version "12.6.2"
   id "de.undercouch.download" version "5.7.0"
   id 'jacoco'
   id "com.github.node-gradle.node" version "7.1.0"
@@ -41,9 +41,9 @@ dependencies {
     implementation 'org.jocl:jocl:2.0.6'
 
     implementation 'org.jooq:jooq:3.21.4'
-    implementation 'org.flywaydb:flyway-core:12.6.1'
-    implementation 'org.flywaydb:flyway-mysql:12.6.1'
-    implementation 'org.flywaydb:flyway-database-postgresql:12.6.1'
+    implementation 'org.flywaydb:flyway-core:12.6.2'
+    implementation 'org.flywaydb:flyway-mysql:12.6.2'
+    implementation 'org.flywaydb:flyway-database-postgresql:12.6.2'
     implementation 'org.postgresql:postgresql:42.7.11'
     implementation 'com.kohlschutter.junixsocket:junixsocket-core:2.10.1'
     implementation 'org.mariadb.jdbc:mariadb-java-client:3.5.8'
@@ -74,11 +74,11 @@ dependencies {
 
     implementation 'org.jfree:jfreechart:1.5.6'
 
-    testImplementation("org.junit.platform:junit-platform-engine:6.0.3")
-    testImplementation("org.junit.platform:junit-platform-launcher:6.0.3")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:6.0.3")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:6.0.3")
-    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:6.0.3")
+    testImplementation("org.junit.platform:junit-platform-engine:6.1.0")
+    testImplementation("org.junit.platform:junit-platform-launcher:6.1.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:6.1.0")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:6.1.0")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:6.1.0")
 
     testImplementation 'org.apache.httpcomponents:httpclient:4.5.14'
     testImplementation 'org.mockito:mockito-core:5.23.0'

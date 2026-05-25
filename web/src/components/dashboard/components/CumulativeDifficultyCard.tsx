@@ -1,4 +1,6 @@
+import { useTranslation } from 'react-i18next'
 import { Card, CardLabel, CardSub } from '@/components/ui/Card'
+import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import { Sparkline } from '@/components/ui/Sparkline'
 import { useRecentBlocks } from '@/hooks/useNodeQuery'
 import { networkPhysicalCapacityPiB, networkEffectiveCapacityPiB } from '@/lib/utils'
@@ -9,6 +11,7 @@ interface CumulativeDifficultyCardProps {
 }
 
 export function CumulativeDifficultyCard({ current, isLoading }: CumulativeDifficultyCardProps) {
+  const { t } = useTranslation()
   const { data: recentBlocks } = useRecentBlocks()
   const blocks = recentBlocks?.blocks ?? []
 
@@ -24,24 +27,24 @@ export function CumulativeDifficultyCard({ current, isLoading }: CumulativeDiffi
     <Card className="col-span-2">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <CardLabel>Network Capacity</CardLabel>
+          <CardLabel tooltip={t('info.networkCapacity')}>{t('dashboard.networkCapacity')}</CardLabel>
           <div
             className="tabular-nums text-[26px] font-bold leading-none md:text-[32px]"
             style={{ fontFamily: 'var(--font-display)', color: 'var(--blue2)', textShadow: 'var(--glow-b)' }}
           >
             {isLoading || currentPhysical === null ? '—' : `${currentPhysical.toFixed(2)} PiB`}
           </div>
-          <CardSub className="mt-1">physical · last {blocks.length} blocks</CardSub>
+          <CardSub className="mt-1">{t('dashboard.physicalLastN', { count: blocks.length })}</CardSub>
         </div>
         <div className="text-right">
-          <CardLabel>Effective Capacity</CardLabel>
+          <CardLabel tooltip={t('info.effectiveCapacity')}>{t('dashboard.effectiveCapacity')}</CardLabel>
           <div
             className="tabular-nums text-[16px] font-bold leading-none"
             style={{ fontFamily: 'var(--font-display)', color: 'var(--muted)' }}
           >
             {isLoading || currentEffective === null ? '—' : `${currentEffective.toFixed(2)} PiB`}
           </div>
-          <CardSub className="mt-1">incl. PoC+ commitment boost</CardSub>
+          <CardSub className="mt-1">{t('dashboard.commitmentBoost')}</CardSub>
         </div>
       </div>
       <div className="mt-3">
@@ -51,8 +54,9 @@ export function CumulativeDifficultyCard({ current, isLoading }: CumulativeDiffi
           color="var(--blue2)"
         />
       </div>
-      <CardSub className="mt-1">
-        cumul. difficulty {isLoading ? '—' : current}
+      <CardSub className="mt-1 flex items-center gap-1.5">
+        <span>{t('dashboard.cumulDifficulty', { value: isLoading ? '—' : current })}</span>
+        <InfoTooltip text={t('info.cumulativeDifficulty')} />
       </CardSub>
     </Card>
   )

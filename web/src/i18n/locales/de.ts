@@ -115,6 +115,14 @@ const de: Locale = {
     rollback_other: '-{{depth}} Blöcke',
     status: 'Status',
     cumulDifficulty: 'Kum. Schwierigkeit',
+    chainLanes: 'Ketten-Verteilung',
+    ourChain: 'Unsere Kette',
+    forkLane: 'Fork {{index}}',
+    noActiveForks: 'Keine aktiven Forks erkannt',
+    sectionNetwork: 'Netzwerk & Peers',
+    sectionYourNode: 'Ihr Knoten',
+    branchView: 'Zweig',
+    radialView: 'Radial',
   },
   info: {
     chainConsensus:
@@ -139,6 +147,8 @@ const de: Locale = {
       'JVM heap memory currently in use vs the maximum allocated to this process. Sustained usage above 80% may cause GC pauses; above 90% risks OutOfMemoryError. Raise -Xmx in the startup script if this is consistently high.',
     dbTrimming:
       'When enabled, the node periodically removes derived-table data (balances, unconfirmed transactions) that can be recalculated from the chain. Keeps the database compact at the cost of a small background workload.',
+    chainLanes:
+      'Zeigt, welche Peers auf derselben Kette wie Ihr Knoten sind und welche auf konkurrierenden Ketten, gruppiert nach kumulativer Schwierigkeit.',
   },
 }
 

@@ -115,6 +115,14 @@ const ko: Locale = {
     rollback_other: '-{{depth}} 블록',
     status: '상태',
     cumulDifficulty: '누적 난이도',
+    chainLanes: '체인 분포',
+    ourChain: '우리 체인',
+    forkLane: '포크 {{index}}',
+    noActiveForks: '활성 포크 없음',
+    sectionNetwork: '네트워크 & 피어',
+    sectionYourNode: '내 노드',
+    branchView: '브랜치',
+    radialView: '방사형',
   },
   info: {
     chainConsensus:
@@ -139,6 +147,8 @@ const ko: Locale = {
       'JVM heap memory currently in use vs the maximum allocated to this process. Sustained usage above 80% may cause GC pauses; above 90% risks OutOfMemoryError. Raise -Xmx in the startup script if this is consistently high.',
     dbTrimming:
       'When enabled, the node periodically removes derived-table data (balances, unconfirmed transactions) that can be recalculated from the chain. Keeps the database compact at the cost of a small background workload.',
+    chainLanes:
+      '누적 난이도별로 그룹화하여 자신의 노드와 같은 체인의 피어와 경쟁 체인의 피어를 표시합니다.',
   },
 }
 

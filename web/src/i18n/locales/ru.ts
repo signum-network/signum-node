@@ -115,6 +115,14 @@ const ru: Locale = {
     rollback_other: '-{{depth}} блока',
     status: 'Статус',
     cumulDifficulty: 'Кум. сложность',
+    chainLanes: 'Распределение цепей',
+    ourChain: 'Наша цепь',
+    forkLane: 'Форк {{index}}',
+    noActiveForks: 'Активных форков не обнаружено',
+    sectionNetwork: 'Сеть и узлы',
+    sectionYourNode: 'Ваш узел',
+    branchView: 'Ветка',
+    radialView: 'Радиальный',
   },
   info: {
     chainConsensus:
@@ -139,6 +147,8 @@ const ru: Locale = {
       'JVM heap memory currently in use vs the maximum allocated to this process. Sustained usage above 80% may cause GC pauses; above 90% risks OutOfMemoryError. Raise -Xmx in the startup script if this is consistently high.',
     dbTrimming:
       'When enabled, the node periodically removes derived-table data (balances, unconfirmed transactions) that can be recalculated from the chain. Keeps the database compact at the cost of a small background workload.',
+    chainLanes:
+      'Показывает, какие узлы находятся на той же цепи, что и ваш, а какие — на конкурирующих, сгруппированных по накопленной сложности.',
   },
 }
 

@@ -115,6 +115,14 @@ const hi: Locale = {
     rollback_other: '-{{depth}} ब्लॉक',
     status: 'स्थिति',
     cumulDifficulty: 'संचयी कठिनाई',
+    chainLanes: 'चेन वितरण',
+    ourChain: 'हमारी चेन',
+    forkLane: 'फोर्क {{index}}',
+    noActiveForks: 'कोई सक्रिय फोर्क नहीं मिला',
+    sectionNetwork: 'नेटवर्क और पीयर',
+    sectionYourNode: 'आपका नोड',
+    branchView: 'शाखा',
+    radialView: 'रेडियल',
   },
   info: {
     chainConsensus:
@@ -139,6 +147,8 @@ const hi: Locale = {
       'JVM heap memory currently in use vs the maximum allocated to this process. Sustained usage above 80% may cause GC pauses; above 90% risks OutOfMemoryError. Raise -Xmx in the startup script if this is consistently high.',
     dbTrimming:
       'When enabled, the node periodically removes derived-table data (balances, unconfirmed transactions) that can be recalculated from the chain. Keeps the database compact at the cost of a small background workload.',
+    chainLanes:
+      'दिखाता है कि कौन से पीयर आपके नोड की चेन पर हैं और कौन से प्रतिस्पर्धी चेन पर, संचित कठिनाई द्वारा समूहीकृत।',
   },
 }
 

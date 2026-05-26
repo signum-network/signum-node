@@ -115,6 +115,14 @@ const ja: Locale = {
     rollback_other: '-{{depth}} ブロック',
     status: 'ステータス',
     cumulDifficulty: '累積難度',
+    chainLanes: 'チェーン分布',
+    ourChain: '自ノードのチェーン',
+    forkLane: 'フォーク {{index}}',
+    noActiveForks: 'アクティブなフォークなし',
+    sectionNetwork: 'ネットワーク & ピア',
+    sectionYourNode: '自ノード',
+    branchView: 'ブランチ',
+    radialView: 'ラジアル',
   },
   info: {
     chainConsensus:
@@ -139,6 +147,8 @@ const ja: Locale = {
       'JVM heap memory currently in use vs the maximum allocated to this process. Sustained usage above 80% may cause GC pauses; above 90% risks OutOfMemoryError. Raise -Xmx in the startup script if this is consistently high.',
     dbTrimming:
       'When enabled, the node periodically removes derived-table data (balances, unconfirmed transactions) that can be recalculated from the chain. Keeps the database compact at the cost of a small background workload.',
+    chainLanes:
+      '自ノードと同じチェーン上のピアと競合チェーン上のピアを累積難易度でグループ化して表示します。',
   },
 }
 

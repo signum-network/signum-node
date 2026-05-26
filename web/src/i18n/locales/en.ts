@@ -37,12 +37,16 @@ export interface Locale {
     }
     rollback: string; rollback_other: string
     status: string; cumulDifficulty: string
+    chainLanes: string; ourChain: string; forkLane: string; noActiveForks: string
+    sectionNetwork: string; sectionYourNode: string
+    branchView: string; radialView: string
   }
   info: {
     chainConsensus: string; cumulativeDifficulty: string; findFork: string
     networkCapacity: string; effectiveCapacity: string; baseTarget: string
     peersTable: string; blacklistRecommendations: string
     avgCommitment: string; jvmHeap: string; dbTrimming: string
+    chainLanes: string
   }
 }
 
@@ -161,6 +165,14 @@ const en: Locale = {
     rollback_other: '-{{depth}} blocks',
     status: 'Status',
     cumulDifficulty: 'Cumul. difficulty',
+    chainLanes: 'Chain Distribution',
+    ourChain: 'Our Chain',
+    forkLane: 'Fork {{index}}',
+    noActiveForks: 'No active forks detected',
+    sectionNetwork: 'Network & Peers',
+    sectionYourNode: 'Your Node',
+    branchView: 'Branch',
+    radialView: 'Radial',
   },
   info: {
     chainConsensus:
@@ -185,6 +197,8 @@ const en: Locale = {
       'JVM heap memory currently in use vs the maximum allocated to this process. Sustained usage above 80% may cause GC pauses; above 90% risks OutOfMemoryError. Raise -Xmx in the startup script if this is consistently high.',
     dbTrimming:
       'When enabled, the node periodically removes derived-table data (balances, unconfirmed transactions) that can be recalculated from the chain. Keeps the database compact at the cost of a small background workload.',
+    chainLanes:
+      'Shows which peers are on the same chain as your node and which are on competing chains, grouped by cumulative difficulty. The difficulty bar shows relative chain weight — the chain with the most accumulated work is canonical.',
   },
 }
 

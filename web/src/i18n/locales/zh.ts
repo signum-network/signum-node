@@ -115,6 +115,14 @@ const zh: Locale = {
     rollback_other: '-{{depth}} 个区块',
     status: '状态',
     cumulDifficulty: '累计难度',
+    chainLanes: '链分布',
+    ourChain: '我们的链',
+    forkLane: '分叉 {{index}}',
+    noActiveForks: '未检测到活跃分叉',
+    sectionNetwork: '网络与节点',
+    sectionYourNode: '本节点',
+    branchView: '分支',
+    radialView: '环形',
   },
   info: {
     chainConsensus:
@@ -139,6 +147,8 @@ const zh: Locale = {
       'JVM heap memory currently in use vs the maximum allocated to this process. Sustained usage above 80% may cause GC pauses; above 90% risks OutOfMemoryError. Raise -Xmx in the startup script if this is consistently high.',
     dbTrimming:
       'When enabled, the node periodically removes derived-table data (balances, unconfirmed transactions) that can be recalculated from the chain. Keeps the database compact at the cost of a small background workload.',
+    chainLanes:
+      '按累积难度分组显示哪些节点与您的节点在同一链上，哪些在竞争链上。',
   },
 }
 

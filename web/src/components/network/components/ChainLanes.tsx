@@ -13,12 +13,13 @@ function dotColor(peer: PeerStatusEntry): string {
 
 function PeerDot({ peer }: { peer: PeerStatusEntry }) {
   const { t } = useTranslation()
+  const color = dotColor(peer)
   const label = `${peer.address} · ${t('common.height')} ${peer.height.toLocaleString()} · ${peer.status}`
   return (
     <div
       title={label}
       className="h-2.5 w-2.5 flex-shrink-0 rounded-full cursor-default transition-transform hover:scale-125"
-      style={{ background: dotColor(peer), boxShadow: `0 0 5px ${dotColor(peer)}` }}
+      style={{ background: color, boxShadow: `0 0 5px ${color}` }}
     />
   )
 }

@@ -57,7 +57,7 @@ function ForkTable({ forks }: { forks: ForkEvent[] }) {
   }
 
   return (
-    <div className="themed-scroll overflow-y-auto max-h-64 space-y-2 pr-2">
+    <div className="themed-scroll overflow-y-auto max-h-[400px] space-y-2 pr-2">
       {forks.map((f, i) => {
         const depthColor = f.rollbackDepth >= 3 ? 'var(--red, #ff4444)' : 'var(--gold)'
         return (

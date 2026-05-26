@@ -5,7 +5,7 @@ import type { ForkEvent } from '@/lib/nodeApi'
 import { buildBranchLayout } from './branchTimeline.utils'
 import { ForkPointModal } from './ForkPointModal'
 
-const SVG_H = 200
+const SVG_H = 230
 const AXIS_START_X = 30
 const MIN_SVG_W = 400
 
@@ -59,10 +59,10 @@ export function BranchTimeline({ forks, myHeight, forkingPeerAddresses }: Props)
           <circle cx={nowX} cy={axisY} r={3} fill="var(--blue2)" />
 
           {/* NOW label */}
-          <text x={nowX} y={axisY - 8} fill="var(--blue2)" fontSize={8} textAnchor="middle" letterSpacing={1}>
+          <text x={nowX} y={axisY - 10} fill="var(--blue2)" fontSize={10} textAnchor="middle" letterSpacing={1} fontWeight={600}>
             NOW
           </text>
-          <text x={nowX} y={axisY - 18} fill="var(--blue2)" fontSize={7} textAnchor="middle" fontFamily="monospace">
+          <text x={nowX} y={axisY - 22} fill="var(--blue2)" fontSize={9} textAnchor="middle" fontFamily="monospace">
             {myHeight.toLocaleString()}
           </text>
 
@@ -94,31 +94,40 @@ export function BranchTimeline({ forks, myHeight, forkingPeerAddresses }: Props)
                 {/* right foot dot (fork detection point) */}
                 <circle cx={arch.rightX} cy={axisY} r={isHovered ? 5.5 : 4} fill={arch.color} opacity={0.9} />
 
-                {/* depth label at peak */}
+                {/* depth label at peak — background rect for contrast */}
+                <rect
+                  x={arch.midX - 14}
+                  y={arch.peakY - 22}
+                  width={28}
+                  height={16}
+                  rx={3}
+                  fill="var(--bg2)"
+                  opacity={0.75}
+                />
                 <text
                   x={arch.midX}
-                  y={arch.peakY - 6}
+                  y={arch.peakY - 10}
                   fill={arch.color}
-                  fontSize={9}
+                  fontSize={11}
                   textAnchor="middle"
                   fontFamily="monospace"
-                  fontWeight={isHovered ? 700 : 400}
+                  fontWeight={isHovered ? 700 : 600}
                 >
                   {`−${arch.depth}`}
                 </text>
 
                 {/* height label below axis */}
-                <text x={arch.rightX} y={axisY + 14} fill={arch.color} fontSize={7} textAnchor="middle" fontFamily="monospace">
+                <text x={arch.rightX} y={axisY + 16} fill={arch.color} fontSize={9} textAnchor="middle" fontFamily="monospace" fontWeight={600}>
                   {arch.fork.rollbackHeight.toLocaleString()}
                 </text>
 
                 {/* timestamp + peer below height */}
-                <text x={arch.rightX} y={axisY + 24} fill="var(--muted)" fontSize={7} textAnchor="middle">
+                <text x={arch.rightX} y={axisY + 29} fill="var(--muted)" fontSize={8} textAnchor="middle">
                   {new Date(arch.fork.detectedAt).toLocaleTimeString()}
                 </text>
 
                 {arch.fork.peerSource && (
-                  <text x={arch.rightX} y={axisY + 34} fill="var(--muted)" fontSize={6.5} textAnchor="middle" fontFamily="monospace">
+                  <text x={arch.rightX} y={axisY + 41} fill="var(--muted)" fontSize={8} textAnchor="middle" fontFamily="monospace">
                     {arch.fork.peerSource.length > 15
                       ? `${arch.fork.peerSource.slice(0, 15)}…`
                       : arch.fork.peerSource}
@@ -127,7 +136,7 @@ export function BranchTimeline({ forks, myHeight, forkingPeerAddresses }: Props)
 
                 {/* FORKING PEER badge when peer is still active */}
                 {isClickable && (
-                  <text x={arch.rightX} y={axisY + 46} fill="var(--red, #ff4444)" fontSize={6.5} textAnchor="middle" letterSpacing={0.5} opacity={0.8}>
+                  <text x={arch.rightX} y={axisY + 55} fill="var(--red, #ff4444)" fontSize={7} textAnchor="middle" letterSpacing={0.5} opacity={0.85} fontWeight={600}>
                     FORKING PEER ↗
                   </text>
                 )}

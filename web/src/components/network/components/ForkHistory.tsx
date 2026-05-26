@@ -29,15 +29,63 @@ function mergeReorgs(forks: ForkEvent[]): ForkEvent[] {
   return merged
 }
 
-type ViewMode = 'branch' | 'radial'
+type ViewMode = 'branch' | 'radial' | 'table'
 
 function readStoredView(): ViewMode {
   try {
     const v = localStorage.getItem(STORAGE_KEY)
-    return v === 'radial' ? 'radial' : 'branch'
+    if (v === 'radial' || v === 'table') return v
+    return 'branch'
   } catch {
     return 'branch'
   }
+}
+
+function fmtTs(ms: number) {
+  return new Date(ms).toLocaleString()
+}
+
+function ForkTable({ forks }: { forks: ForkEvent[] }) {
+  const { t } = useTranslation()
+
+  if (forks.length === 0) {
+    return (
+      <p className="py-4 text-center text-[11px]" style={{ color: 'var(--muted)' }}>
+        {t('network.noReorgs')}
+      </p>
+    )
+  }
+
+  return (
+    <div className="themed-scroll overflow-y-auto max-h-64 space-y-2 pr-2">
+      {forks.map((f, i) => {
+        const depthColor = f.rollbackDepth >= 3 ? 'var(--red, #ff4444)' : 'var(--gold)'
+        return (
+          <div
+            key={i}
+            className="flex items-center justify-between gap-3 border-b pb-2"
+            style={{ borderColor: 'var(--border)' }}
+          >
+            <div>
+              <div className="text-[11px]" style={{ color: 'var(--text)' }}>
+                {t('common.height')} {f.rollbackHeight.toLocaleString()}
+                <span className="ml-2 text-[10px]" style={{ color: depthColor }}>
+                  {t('network.rollback', { depth: f.rollbackDepth, count: f.rollbackDepth })}
+                </span>
+              </div>
+              <div className="text-[9px]" style={{ color: 'var(--muted)' }}>
+                {fmtTs(f.detectedAt)}{f.peerSource ? ` · ${f.peerSource}` : ''}
+              </div>
+            </div>
+            <div
+              className="h-2 w-2 flex-shrink-0 rounded-full"
+              style={{ background: depthColor, boxShadow: `0 0 6px ${depthColor}` }}
+            />
+          </div>
+        )
+      })}
+    </div>
+  )
 }
 
 export function ForkHistory() {
@@ -67,7 +115,7 @@ export function ForkHistory() {
           className="flex gap-1 rounded-sm p-0.5"
           style={{ background: 'rgba(0,0,0,.4)', border: '1px solid var(--border)' }}
         >
-          {(['branch', 'radial'] as const).map(v => (
+          {(['branch', 'radial', 'table'] as const).map(v => (
             <button
               key={v}
               type="button"
@@ -79,7 +127,7 @@ export function ForkHistory() {
               }}
               onClick={() => switchView(v)}
             >
-              {v === 'branch' ? `⌇ ${t('network.branchView')}` : `⊙ ${t('network.radialView')}`}
+              {v === 'branch' ? `⌇ ${t('network.branchView')}` : v === 'radial' ? `⊙ ${t('network.radialView')}` : `☰ ${t('network.tableView')}`}
             </button>
           ))}
         </div>
@@ -97,6 +145,10 @@ export function ForkHistory() {
 
       {!isLoading && view === 'radial' && (
         <RadialForkMap forks={forks} myHeight={myHeight} forkingPeerAddresses={forkingPeerAddresses} />
+      )}
+
+      {!isLoading && view === 'table' && (
+        <ForkTable forks={forks} />
       )}
     </Card>
   )

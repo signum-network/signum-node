@@ -1,13 +1,13 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import type { ForkEvent } from '@/lib/nodeApi'
 import { buildBranchLayout } from './branchTimeline.utils'
 import { ForkPointModal } from './ForkPointModal'
 
-const SVG_W = 640
 const SVG_H = 200
 const AXIS_START_X = 30
+const MIN_SVG_W = 400
 
 interface Props {
   forks: ForkEvent[]
@@ -19,6 +19,19 @@ export function BranchTimeline({ forks, myHeight, forkingPeerAddresses }: Props)
   const { t } = useTranslation()
   const [hovered, setHovered] = useState<number | null>(null)
   const [forkModalPeer, setForkModalPeer] = useState<string | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [svgW, setSvgW] = useState(MIN_SVG_W)
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const ro = new ResizeObserver(entries => {
+      const w = entries[0].contentRect.width
+      if (w > 0) setSvgW(Math.max(w, MIN_SVG_W))
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   if (forks.length === 0) {
     return (
@@ -28,17 +41,17 @@ export function BranchTimeline({ forks, myHeight, forkingPeerAddresses }: Props)
     )
   }
 
-  const layout = buildBranchLayout(forks, myHeight, SVG_W)
+  const layout = buildBranchLayout(forks, myHeight, svgW)
   const { arches, axisY, nowX } = layout
 
   return (
     <>
-      <div className="themed-scroll overflow-x-auto">
+      <div ref={containerRef} className="w-full overflow-x-auto themed-scroll">
         <svg
-          width={SVG_W}
+          width="100%"
           height={SVG_H}
-          viewBox={`0 0 ${SVG_W} ${SVG_H}`}
-          style={{ display: 'block', minWidth: SVG_W }}
+          viewBox={`0 0 ${svgW} ${SVG_H}`}
+          style={{ display: 'block', minWidth: MIN_SVG_W }}
         >
           {/* main chain axis */}
           <line x1={AXIS_START_X} y1={axisY} x2={nowX} y2={axisY} stroke="var(--blue2)" strokeWidth={2} />

@@ -123,6 +123,7 @@ const ja: Locale = {
     sectionYourNode: '自ノード',
     branchView: 'ブランチ',
     radialView: 'ラジアル',
+    tableView: 'テーブル',
   },
   info: {
     chainConsensus:

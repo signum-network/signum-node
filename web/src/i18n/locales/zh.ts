@@ -123,6 +123,7 @@ const zh: Locale = {
     sectionYourNode: '本节点',
     branchView: '分支',
     radialView: '环形',
+    tableView: '表格',
   },
   info: {
     chainConsensus:

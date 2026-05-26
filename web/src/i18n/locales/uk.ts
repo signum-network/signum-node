@@ -123,6 +123,7 @@ const uk: Locale = {
     sectionYourNode: 'Ваш вузол',
     branchView: 'Гілка',
     radialView: 'Радіальний',
+    tableView: 'Таблиця',
   },
   info: {
     chainConsensus:

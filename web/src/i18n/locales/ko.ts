@@ -123,6 +123,7 @@ const ko: Locale = {
     sectionYourNode: '내 노드',
     branchView: '브랜치',
     radialView: '방사형',
+    tableView: '테이블',
   },
   info: {
     chainConsensus:

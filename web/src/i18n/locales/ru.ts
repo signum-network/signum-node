@@ -123,6 +123,7 @@ const ru: Locale = {
     sectionYourNode: 'Ваш узел',
     branchView: 'Ветка',
     radialView: 'Радиальный',
+    tableView: 'Таблица',
   },
   info: {
     chainConsensus:

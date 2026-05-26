@@ -123,6 +123,7 @@ const pt: Locale = {
     sectionYourNode: 'Seu nó',
     branchView: 'Ramo',
     radialView: 'Radial',
+    tableView: 'Tabela',
   },
   info: {
     chainConsensus:

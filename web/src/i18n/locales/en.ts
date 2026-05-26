@@ -39,7 +39,7 @@ export interface Locale {
     status: string; cumulDifficulty: string
     chainLanes: string; ourChain: string; forkLane: string; noActiveForks: string
     sectionNetwork: string; sectionYourNode: string
-    branchView: string; radialView: string
+    branchView: string; radialView: string; tableView: string
   }
   info: {
     chainConsensus: string; cumulativeDifficulty: string; findFork: string
@@ -173,6 +173,7 @@ const en: Locale = {
     sectionYourNode: 'Your Node',
     branchView: 'Branch',
     radialView: 'Radial',
+    tableView: 'Table',
   },
   info: {
     chainConsensus:

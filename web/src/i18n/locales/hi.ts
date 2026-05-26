@@ -123,6 +123,7 @@ const hi: Locale = {
     sectionYourNode: 'आपका नोड',
     branchView: 'शाखा',
     radialView: 'रेडियल',
+    tableView: 'तालिका',
   },
   info: {
     chainConsensus:

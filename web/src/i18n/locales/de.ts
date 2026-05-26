@@ -123,6 +123,7 @@ const de: Locale = {
     sectionYourNode: 'Ihr Knoten',
     branchView: 'Zweig',
     radialView: 'Radial',
+    tableView: 'Tabelle',
   },
   info: {
     chainConsensus:

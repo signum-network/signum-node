@@ -281,7 +281,7 @@ public class Props {
     public static final Prop<Boolean> WEB_UI_ENABLED = new Prop<>("node.webUI.enabled", true);
     public static final Prop<Integer> WEB_UI_NETWORK_STATUS_INTERVAL_SECONDS = new Prop<>("node.webUI.networkStatus.intervalSeconds", 120);
     public static final Prop<Integer> WEB_UI_FORK_HISTORY_TTL_DAYS = new Prop<>("node.webUI.forkHistory.ttlDays", 30);
-    public static final Prop<Integer> WEB_UI_FORK_POINT_MAX_LOOKBACK = new Prop<>("node.webUI.forkPoint.maxLookback", 1440);
+    public static final Prop<Integer> WEB_UI_FORK_POINT_MAX_LOOKBACK = new Prop<>("node.webUI.forkPoint.maxLookback", 10000);
     public static final Prop<Integer> WEB_UI_BLACKLIST_RECOMMEND_MAX_FAILURES = new Prop<>("node.webUI.blacklistRecommend.maxFailures", 5);
     public static final Prop<Integer> WEB_UI_BLACKLIST_RECOMMEND_FORK_POLLS = new Prop<>("node.webUI.blacklistRecommend.forkPolls", 3);
 

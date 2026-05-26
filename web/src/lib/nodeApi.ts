@@ -177,6 +177,7 @@ export interface ForkPoint {
   ourBlockIdAtFork?: string
   searchSteps?: number
   error?: string
+  forkTooOld?: boolean
   requestProcessingTime: number
 }
 

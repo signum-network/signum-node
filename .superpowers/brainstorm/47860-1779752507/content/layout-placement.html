@@ -1,0 +1,115 @@
+<h2>Chain Lanes — Page Placement</h2>
+<p class="subtitle">Where does the new component live in the network page? Three options.</p>
+
+<style>
+  .layouts { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 20px; }
+  .layout-option {
+    border: 1px solid rgba(0,102,255,.22); border-radius: 6px;
+    overflow: hidden; cursor: pointer;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .layout-option:hover { border-color: rgba(0,170,255,.5); box-shadow: 0 0 18px rgba(0,170,255,.12); }
+  .layout-option.selected { border-color: #00aaff; box-shadow: 0 0 22px rgba(0,170,255,.25); }
+  .layout-preview { background: #050810; padding: 16px 14px; }
+  .layout-meta { padding: 12px 14px; border-top: 1px solid rgba(0,102,255,.14); background: rgba(8,16,40,.6); }
+  .layout-meta h3 { margin: 0 0 5px; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #00aaff; font-family: 'Orbitron', sans-serif; }
+  .layout-meta p { margin: 0; font-size: 10px; color: #5a7090; line-height: 1.5; }
+  .tag { display: inline-block; margin-top: 7px; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; padding: 2px 7px; border-radius: 2px; }
+  .tag-rec  { background: rgba(0,255,170,.08); color: #00ffaa; border: 1px solid rgba(0,255,170,.25); }
+  .tag-comp { background: rgba(0,170,255,.08); color: #00aaff; border: 1px solid rgba(0,170,255,.2); }
+  .tag-min  { background: rgba(255,215,0,.08);  color: #ffd700; border: 1px solid rgba(255,215,0,.2); }
+
+  /* page wireframe blocks */
+  .pg { display: flex; flex-direction: column; gap: 5px; }
+  .blk {
+    border-radius: 3px; padding: 6px 9px;
+    font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase;
+    font-family: 'Exo 2', sans-serif;
+  }
+  .blk-consensus { background: rgba(0,102,255,.12); border: 1px solid rgba(0,102,255,.3); color: #00aaff; }
+  .blk-peers     { background: rgba(0,102,255,.07); border: 1px solid rgba(0,102,255,.2); color: #5a7090; }
+  .blk-fork      { background: rgba(0,102,255,.07); border: 1px solid rgba(0,102,255,.2); color: #5a7090; }
+  .blk-blacklist { background: rgba(0,102,255,.07); border: 1px solid rgba(0,102,255,.2); color: #5a7090; }
+  .blk-new       { background: rgba(0,255,170,.08); border: 1px solid rgba(0,255,170,.4);  color: #00ffaa; position: relative; }
+  .blk-new::after { content: '← NEW'; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 7px; color: #00ffaa; opacity: .7; }
+  .blk-extended  { background: rgba(0,102,255,.15); border: 1px solid rgba(0,170,255,.45); color: #00aaff; position: relative; }
+  .blk-extended::after { content: '← EXTENDED'; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 7px; color: #00ffaa; opacity: .7; }
+
+  .row-half { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .row-thirds { display: grid; grid-template-columns: 2fr 1fr; gap: 5px; }
+</style>
+
+<div class="layouts">
+
+  <!-- Option A: own row between ConsensusBar and PeerTable -->
+  <div class="layout-option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="layout-preview">
+      <div class="pg">
+        <div class="blk blk-consensus">Chain Consensus · 94.2%</div>
+        <div class="blk blk-new" style="min-height:52px; display:flex; align-items:center;">
+          <div>
+            <div>Chain Lanes</div>
+            <div style="font-size:7px;color:#00ffaa;opacity:.7;margin-top:2px;letter-spacing:0">our chain · fork A · fork B</div>
+          </div>
+        </div>
+        <div class="blk blk-peers" style="min-height:36px;">Peers Table</div>
+        <div class="row-half">
+          <div class="blk blk-fork">Fork History</div>
+          <div class="blk blk-blacklist">Blacklist</div>
+        </div>
+      </div>
+    </div>
+    <div class="layout-meta">
+      <h3>A — Own Row</h3>
+      <p>Chain Lanes gets a dedicated card between ConsensusBar and PeerTable. Provides a structural overview before the detailed list. Most prominent placement.</p>
+      <span class="tag tag-rec">Recommended</span>
+    </div>
+  </div>
+
+  <!-- Option B: extend ConsensusBar -->
+  <div class="layout-option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="layout-preview">
+      <div class="pg">
+        <div class="blk blk-extended" style="min-height:72px;">
+          <div>Chain Consensus · 94.2%</div>
+          <div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(0,170,255,.2);">
+            <div style="font-size:7px;color:#00ffaa;letter-spacing:0;opacity:.8">▐▐▐▐▐▐▐▐▐ our chain &nbsp;▐▐ fork A &nbsp;▐ fork B</div>
+          </div>
+        </div>
+        <div class="blk blk-peers" style="min-height:36px;">Peers Table</div>
+        <div class="row-half">
+          <div class="blk blk-fork">Fork History</div>
+          <div class="blk blk-blacklist">Blacklist</div>
+        </div>
+      </div>
+    </div>
+    <div class="layout-meta">
+      <h3>B — Inside Consensus Card</h3>
+      <p>Chain Lanes sits inside the existing ConsensusBar card as a section below the percentage. No new card — keeps the page compact. Natural grouping: "consensus summary + breakdown."</p>
+      <span class="tag tag-comp">Most compact</span>
+    </div>
+  </div>
+
+  <!-- Option C: alongside Fork History -->
+  <div class="layout-option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="layout-preview">
+      <div class="pg">
+        <div class="blk blk-consensus">Chain Consensus · 94.2%</div>
+        <div class="blk blk-peers" style="min-height:36px;">Peers Table</div>
+        <div class="row-thirds">
+          <div class="blk blk-fork">Fork History ⌇⊙</div>
+          <div class="blk blk-new" style="min-height:42px;">
+            <div>Chain Lanes</div>
+          </div>
+        </div>
+        <div class="blk blk-blacklist">Blacklist</div>
+      </div>
+    </div>
+    <div class="layout-meta">
+      <h3>C — Alongside Fork History</h3>
+      <p>Chain Lanes replaces the Blacklist's current slot next to Fork History. Blacklist moves to its own full-width row. Groups "fork diagnosis" tools together.</p>
+      <span class="tag tag-min">Grouped by topic</span>
+    </div>
+  </div>
+
+</div>

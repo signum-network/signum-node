@@ -29,11 +29,11 @@ export interface Locale {
   network: {
     chainConsensus: string; peers: string; forkHistory: string; blacklistRecommendations: string
     agree: string; onOurChain: string; noReorgs: string; noRecommendations: string
-    noPeerData: string; blacklistHint: string
+    noPeerData: string; blacklistHint: string; copyForConfig: string
     peersOpen: string; peersOpen_other: string; peersClosed: string; peersClosed_other: string
     forkPoint: {
       title: string; findFork: string; findForkFull: string
-      forkHeight: string; forkBlockId: string; ourBlock: string; steps: string
+      forkHeight: string; forkBlockId: string; ourBlock: string; steps: string; tooOld: string; tooFarBehind: string
     }
     rollback: string; rollback_other: string
     status: string; cumulDifficulty: string
@@ -141,6 +141,7 @@ const en: Locale = {
     noRecommendations: 'No recommendations at this time',
     noPeerData: 'No peer data yet — status refreshes every 120 seconds',
     blacklistHint: 'Add addresses to P2P.BlacklistedPeers in node.properties to block them.',
+    copyForConfig: 'Copy for config',
     peersOpen: '{{count}} peer ▲',
     peersOpen_other: '{{count}} peers ▲',
     peersClosed: '{{count}} peer ▼',
@@ -153,6 +154,8 @@ const en: Locale = {
       forkBlockId: 'Fork block ID',
       ourBlock: 'Our block at fork',
       steps: 'Search steps',
+      tooOld: 'This peer diverged more than {{limit}} blocks ago and is on a permanently different chain.',
+      tooFarBehind: 'Peer is more than 10,000 blocks behind — fork search would exceed the lookback window.',
     },
     rollback: '-{{depth}} block',
     rollback_other: '-{{depth}} blocks',

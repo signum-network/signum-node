@@ -1,0 +1,171 @@
+<h2>Information Architecture — Own Node vs Network</h2>
+<p class="subtitle">Three ways to separate node-specific from network-wide information.</p>
+
+<style>
+  .options { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-top: 20px; }
+  .option {
+    border: 1px solid rgba(0,102,255,.22); border-radius: 6px;
+    overflow: hidden; cursor: pointer;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .option:hover { border-color: rgba(0,170,255,.5); box-shadow: 0 0 18px rgba(0,170,255,.12); }
+  .option.selected { border-color: #00aaff; box-shadow: 0 0 22px rgba(0,170,255,.25); }
+  .preview { background: #050810; padding: 16px 14px; }
+  .meta { padding: 12px 14px; border-top: 1px solid rgba(0,102,255,.14); background: rgba(8,16,40,.6); }
+  .meta h3 { margin: 0 0 5px; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #00aaff; font-family: 'Orbitron', sans-serif; }
+  .meta p { margin: 0; font-size: 10px; color: #5a7090; line-height: 1.5; }
+  .tag { display: inline-block; margin-top: 7px; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; padding: 2px 7px; border-radius: 2px; }
+  .tag-rec  { background: rgba(0,255,170,.08); color: #00ffaa; border: 1px solid rgba(0,255,170,.25); }
+  .tag-comp { background: rgba(0,170,255,.08); color: #00aaff; border: 1px solid rgba(0,170,255,.2); }
+  .tag-min  { background: rgba(255,215,0,.08);  color: #ffd700; border: 1px solid rgba(255,215,0,.2); }
+
+  /* nav bar mock */
+  .mock-nav {
+    display: flex; gap: 2px;
+    background: rgba(0,0,0,.5); border: 1px solid rgba(0,102,255,.18);
+    border-radius: 4px; padding: 3px; margin-bottom: 12px;
+  }
+  .nav-item {
+    padding: 4px 10px; border-radius: 2px;
+    font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: #5a7090; white-space: nowrap;
+  }
+  .nav-item.active { background: rgba(0,170,255,.15); color: #00aaff; }
+  .nav-item.future { opacity: .35; }
+  .nav-item.new-item { background: rgba(0,255,170,.08); color: #00ffaa; border: 1px solid rgba(0,255,170,.2); }
+
+  /* page wireframe */
+  .pg { display: flex; flex-direction: column; gap: 5px; }
+  .blk {
+    border-radius: 3px; padding: 5px 8px;
+    font-size: 8px; letter-spacing: 1px; text-transform: uppercase;
+    font-family: 'Exo 2', sans-serif;
+  }
+  .blk-node    { background: rgba(0,170,255,.10); border: 1px solid rgba(0,170,255,.3); color: #00aaff; }
+  .blk-net     { background: rgba(0,255,170,.06); border: 1px solid rgba(0,255,170,.22); color: #00ffaa; }
+  .blk-muted   { background: rgba(0,102,255,.05); border: 1px solid rgba(0,102,255,.15); color: #5a7090; }
+  .blk-new     { background: rgba(0,255,170,.08); border: 1px solid rgba(0,255,170,.35); color: #00ffaa; }
+  .blk-moved   { background: rgba(255,215,0,.07); border: 1px solid rgba(255,215,0,.25); color: #ffd700; }
+  .blk-section { font-size: 7px; letter-spacing: 2px; color: #5a7090; padding: 2px 0 1px; text-transform: uppercase; border: none; background: none; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .row3 { display: grid; grid-template-columns: 2fr 1fr; gap: 5px; }
+  .divider { height: 1px; background: rgba(0,102,255,.18); margin: 3px 0; }
+</style>
+
+<div class="options">
+
+  <!-- Option A: Move Fork History to Dashboard -->
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="preview">
+
+      <div class="mock-nav">
+        <div class="nav-item active">Dashboard</div>
+        <div class="nav-item">Network</div>
+        <div class="nav-item future">Blocks</div>
+        <div class="nav-item future">Wallet</div>
+      </div>
+
+      <div class="blk blk-section">Dashboard — your node</div>
+      <div class="pg">
+        <div class="blk blk-node">Chain Activity · Node Health</div>
+        <div class="blk blk-moved">↑ Fork / Reorg History ⌇⊙</div>
+      </div>
+
+      <div class="divider" style="margin: 10px 0 6px"></div>
+
+      <div class="mock-nav">
+        <div class="nav-item">Dashboard</div>
+        <div class="nav-item active">Network</div>
+        <div class="nav-item future">Blocks</div>
+        <div class="nav-item future">Wallet</div>
+      </div>
+
+      <div class="blk blk-section">Network — peers &amp; chains</div>
+      <div class="pg">
+        <div class="blk blk-net">Chain Consensus</div>
+        <div class="blk blk-new">Chain Lanes ← new</div>
+        <div class="blk blk-muted">Peers Table</div>
+        <div class="blk blk-muted">Blacklist</div>
+      </div>
+    </div>
+    <div class="meta">
+      <h3>A — Fork History → Dashboard</h3>
+      <p>No new nav item. Fork/Reorg diagram moves to Dashboard alongside node health. Network page becomes purely about peers and chain state. Clean and zero navigation cost.</p>
+      <span class="tag tag-rec">Recommended</span>
+    </div>
+  </div>
+
+  <!-- Option B: New "Node" page, rename Dashboard -->
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="preview">
+
+      <div class="mock-nav">
+        <div class="nav-item active new-item">Node</div>
+        <div class="nav-item">Network</div>
+        <div class="nav-item future">Blocks</div>
+        <div class="nav-item future">Wallet</div>
+      </div>
+
+      <div class="blk blk-section">Node — your node only</div>
+      <div class="pg">
+        <div class="blk blk-node">Chain Activity · Node Health</div>
+        <div class="blk blk-node">Fork / Reorg History ⌇⊙</div>
+      </div>
+
+      <div class="divider" style="margin: 10px 0 6px"></div>
+
+      <div class="mock-nav">
+        <div class="nav-item">Node</div>
+        <div class="nav-item active">Network</div>
+        <div class="nav-item future">Blocks</div>
+        <div class="nav-item future">Wallet</div>
+      </div>
+
+      <div class="blk blk-section">Network — peers &amp; chains</div>
+      <div class="pg">
+        <div class="blk blk-net">Chain Consensus</div>
+        <div class="blk blk-new">Chain Lanes ← new</div>
+        <div class="blk blk-muted">Peers Table</div>
+        <div class="blk blk-muted">Blacklist</div>
+      </div>
+    </div>
+    <div class="meta">
+      <h3>B — Rename Dashboard → "Node"</h3>
+      <p>Rename Dashboard to "Node" to make the intent explicit. Fork history moves there. Network page is pure network. Clearer labelling at the cost of a rename.</p>
+      <span class="tag tag-comp">Clearest labels</span>
+    </div>
+  </div>
+
+  <!-- Option C: Two sections within Network page -->
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="preview">
+      <div class="mock-nav">
+        <div class="nav-item">Dashboard</div>
+        <div class="nav-item active">Network</div>
+        <div class="nav-item future">Blocks</div>
+        <div class="nav-item future">Wallet</div>
+      </div>
+
+      <div class="blk blk-section">▸ YOUR NODE</div>
+      <div class="pg">
+        <div class="blk blk-moved">Fork / Reorg History ⌇⊙</div>
+      </div>
+
+      <div class="divider" style="margin:6px 0;"></div>
+
+      <div class="blk blk-section">▸ NETWORK</div>
+      <div class="pg">
+        <div class="blk blk-net">Chain Consensus</div>
+        <div class="blk blk-new">Chain Lanes ← new</div>
+        <div class="blk blk-muted">Peers Table</div>
+        <div class="blk blk-muted">Blacklist</div>
+      </div>
+    </div>
+    <div class="meta">
+      <h3>C — Two sections, one page</h3>
+      <p>Keep everything in Network but add clear "YOUR NODE" / "NETWORK" section headers as visual dividers. No navigation changes at all — easiest to implement.</p>
+      <span class="tag tag-min">Lowest effort</span>
+    </div>
+  </div>
+
+</div>

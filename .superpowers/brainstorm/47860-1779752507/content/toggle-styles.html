@@ -1,0 +1,142 @@
+<h2>View Toggle — Interaction Style</h2>
+<p class="subtitle">How should the user switch between Branch Timeline and Radial Fork Map?</p>
+
+<style>
+  /* ── shared reset ── */
+  .demo { background: #050810; border: 1px solid rgba(0,102,255,.18); border-radius: 6px; padding: 16px; margin-bottom: 0; }
+  .demo-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #5a7090; margin-bottom: 10px; }
+
+  /* ── Option A: pill toggle ── */
+  .pill-row { display: flex; gap: 4px; background: rgba(0,0,0,.4); border: 1px solid rgba(0,102,255,.18); border-radius: 4px; padding: 3px; width: fit-content; }
+  .pill { padding: 5px 14px; border-radius: 3px; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: all .15s; color: #5a7090; }
+  .pill.active { background: rgba(0,170,255,.15); color: #00aaff; box-shadow: 0 0 10px rgba(0,170,255,.2); }
+
+  /* ── Option B: icon buttons ── */
+  .icon-row { display: flex; gap: 6px; }
+  .icon-btn { width: 32px; height: 32px; border: 1px solid rgba(0,102,255,.22); border-radius: 4px; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .15s; color: #5a7090; }
+  .icon-btn.active { border-color: #00aaff; background: rgba(0,170,255,.12); color: #00aaff; box-shadow: 0 0 10px rgba(0,170,255,.2); }
+
+  /* ── Option C: tab strip ── */
+  .tab-strip { display: flex; border-bottom: 1px solid rgba(0,102,255,.18); }
+  .tab { padding: 7px 18px; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; color: #5a7090; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .15s; }
+  .tab.active { color: #00aaff; border-bottom-color: #00aaff; }
+
+  /* ── layout ── */
+  .options { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-top: 20px; }
+  .option { border: 1px solid rgba(0,102,255,.22); border-radius: 6px; overflow: hidden; cursor: pointer; transition: border-color .2s, box-shadow .2s; }
+  .option:hover { border-color: rgba(0,170,255,.5); box-shadow: 0 0 18px rgba(0,170,255,.12); }
+  .option.selected { border-color: #00aaff; box-shadow: 0 0 22px rgba(0,170,255,.25); }
+  .option-preview { background: #050810; padding: 20px 16px; }
+  .option-meta { padding: 12px 14px; border-top: 1px solid rgba(0,102,255,.14); background: rgba(8,16,40,.6); }
+  .option-meta h3 { margin: 0 0 5px; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #00aaff; font-family: 'Orbitron', sans-serif; }
+  .option-meta p { margin: 0; font-size: 10px; color: #5a7090; line-height: 1.5; }
+
+  /* diagram placeholder */
+  .dia-placeholder { height: 80px; display: flex; align-items: center; justify-content: center; }
+</style>
+
+<div class="options">
+
+  <!-- Option A: Pill toggle -->
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="option-preview">
+      <div class="demo-label">Fork / Reorg History</div>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+        <div class="pill-row">
+          <div class="pill active">⌇ Branch</div>
+          <div class="pill">⊙ Radial</div>
+        </div>
+        <span style="font-size:9px;color:#5a7090">3 reorgs</span>
+      </div>
+      <div class="dia-placeholder">
+        <svg width="200" height="60" viewBox="0 0 200 60">
+          <line x1="10" y1="40" x2="190" y2="40" stroke="#00aaff" stroke-width="2"/>
+          <path d="M50 40 C50 40 48 38 46 28 L40 12 C38 4 34 4 32 12 L26 28 C24 38 22 40 22 40" stroke="#ffd700" stroke-width="1.5" stroke-dasharray="3 2" fill="none"/>
+          <circle cx="50" cy="40" r="3" fill="#ffd700"/>
+          <path d="M130 40 C130 40 128 36 126 22 L120 6" stroke="#ff4444" stroke-width="1.5" stroke-dasharray="3 2" fill="none" opacity=".8"/>
+          <circle cx="130" cy="40" r="3.5" fill="#ff4444"/>
+          <circle cx="10" cy="40" r="2.5" fill="#00aaff"/>
+          <circle cx="190" cy="40" r="2.5" fill="#00aaff"/>
+        </svg>
+      </div>
+    </div>
+    <div class="option-meta">
+      <h3>A — Pill Toggle</h3>
+      <p>Compact inline switcher in the card header. Minimal footprint — feels native to the existing UI patterns.</p>
+    </div>
+  </div>
+
+  <!-- Option B: Icon buttons -->
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="option-preview">
+      <div class="demo-label">Fork / Reorg History</div>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+        <div class="icon-row">
+          <div class="icon-btn active" title="Branch view">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <line x1="2" y1="10" x2="14" y2="10" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M5 10 L5 4 L3 4" stroke="currentColor" stroke-width="1.2" stroke-dasharray="2 1.5" fill="none"/>
+              <path d="M10 10 L10 6" stroke="currentColor" stroke-width="1.2" stroke-dasharray="2 1.5" fill="none"/>
+            </svg>
+          </div>
+          <div class="icon-btn" title="Radial view">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.2"/>
+              <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1" stroke-dasharray="2 2" opacity=".5"/>
+              <line x1="8" y1="8" x2="3" y2="3" stroke="currentColor" stroke-width="1" stroke-dasharray="2 1.5" opacity=".7"/>
+              <line x1="8" y1="8" x2="13" y2="4" stroke="currentColor" stroke-width="1" stroke-dasharray="2 1.5" opacity=".7"/>
+              <line x1="8" y1="8" x2="4" y2="13" stroke="currentColor" stroke-width="1" stroke-dasharray="2 1.5" opacity=".7"/>
+            </svg>
+          </div>
+        </div>
+        <span style="font-size:9px;color:#5a7090">3 reorgs</span>
+      </div>
+      <div class="dia-placeholder">
+        <svg width="200" height="60" viewBox="0 0 200 60">
+          <circle cx="100" cy="30" r="10" fill="rgba(0,102,255,.2)" stroke="#00aaff" stroke-width="1.2"/>
+          <circle cx="100" cy="30" r="24" stroke="rgba(0,102,255,.1)" stroke-width="1" stroke-dasharray="2 3"/>
+          <line x1="100" y1="30" x2="68" y2="10" stroke="#ffd700" stroke-width="1.2" stroke-dasharray="3 2" opacity=".7"/>
+          <circle cx="68" cy="10" r="6" fill="rgba(255,215,0,.15)" stroke="#ffd700" stroke-width="1"/>
+          <line x1="100" y1="30" x2="136" y2="16" stroke="#ffd700" stroke-width="1" stroke-dasharray="3 2" opacity=".5"/>
+          <circle cx="136" cy="16" r="4" fill="rgba(255,215,0,.12)" stroke="#ffd700" stroke-width="1"/>
+          <line x1="100" y1="30" x2="64" y2="50" stroke="#ff4444" stroke-width="1.2" stroke-dasharray="3 2" opacity=".7"/>
+          <circle cx="64" cy="50" r="8" fill="rgba(255,68,68,.12)" stroke="#ff4444" stroke-width="1.2"/>
+        </svg>
+      </div>
+    </div>
+    <div class="option-meta">
+      <h3>B — Icon Buttons</h3>
+      <p>Two icon buttons, one per view. More visual, communicates the diagram type at a glance. Slightly more space in header.</p>
+    </div>
+  </div>
+
+  <!-- Option C: Segmented tabs -->
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="option-preview">
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <div class="demo-label" style="margin-bottom:0">Fork / Reorg History</div>
+        <span style="font-size:9px;color:#5a7090">3 reorgs</span>
+      </div>
+      <div class="tab-strip" style="margin: 10px 0 14px;">
+        <div class="tab active">⌇ Branch Timeline</div>
+        <div class="tab">⊙ Radial Map</div>
+      </div>
+      <div class="dia-placeholder">
+        <svg width="200" height="60" viewBox="0 0 200 60">
+          <line x1="10" y1="40" x2="190" y2="40" stroke="#00aaff" stroke-width="2"/>
+          <path d="M50 40 C50 40 48 38 46 28 L40 12 C38 4 34 4 32 12 L26 28 C24 38 22 40 22 40" stroke="#ffd700" stroke-width="1.5" stroke-dasharray="3 2" fill="none"/>
+          <circle cx="50" cy="40" r="3" fill="#ffd700"/>
+          <path d="M130 40 C130 40 128 36 126 22 L120 6" stroke="#ff4444" stroke-width="1.5" stroke-dasharray="3 2" fill="none" opacity=".8"/>
+          <circle cx="130" cy="40" r="3.5" fill="#ff4444"/>
+          <circle cx="10" cy="40" r="2.5" fill="#00aaff"/>
+          <circle cx="190" cy="40" r="2.5" fill="#00aaff"/>
+        </svg>
+      </div>
+    </div>
+    <div class="option-meta">
+      <h3>C — Tab Strip</h3>
+      <p>Full-width tabs below the card label. More space for longer labels, easy to extend with a third view later.</p>
+    </div>
+  </div>
+
+</div>

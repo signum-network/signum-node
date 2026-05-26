@@ -1,0 +1,211 @@
+<h2>Fork History Card — Full Mockup</h2>
+<p class="subtitle">Pill toggle switches between Branch Timeline and Radial Map. Click the toggle below to preview both views.</p>
+
+<style>
+  .card {
+    position: relative;
+    background: rgba(8,16,40,.85);
+    border: 1px solid rgba(0,102,255,.18);
+    border-radius: 4px;
+    padding: 20px;
+    max-width: 680px;
+    margin: 20px auto 0;
+    backdrop-filter: blur(8px);
+  }
+  .card::before {
+    content:''; position:absolute; top:-1px; left:-1px;
+    width:14px; height:14px;
+    border-left: 2px solid #00aaff; border-top: 2px solid #00aaff;
+  }
+  .card::after {
+    content:''; position:absolute; bottom:-1px; right:-1px;
+    width:14px; height:14px;
+    border-right: 2px solid #00aaff; border-bottom: 2px solid #00aaff;
+  }
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .card-label {
+    font-size: 9px; font-weight: 600; letter-spacing: 3px;
+    text-transform: uppercase; color: #00aaff;
+    font-family: 'Orbitron', sans-serif;
+  }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .reorg-count { font-size: 10px; color: #5a7090; }
+
+  /* Pill toggle */
+  .pill-row {
+    display: flex; gap: 3px;
+    background: rgba(0,0,0,.4);
+    border: 1px solid rgba(0,102,255,.18);
+    border-radius: 4px; padding: 3px;
+  }
+  .pill {
+    padding: 4px 12px; border-radius: 2px;
+    font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+    cursor: pointer; transition: all .15s; color: #5a7090;
+    font-family: 'Exo 2', sans-serif;
+    user-select: none;
+  }
+  .pill.active { background: rgba(0,170,255,.15); color: #00aaff; box-shadow: 0 0 10px rgba(0,170,255,.2); }
+
+  /* diagram area */
+  .diagram-area { min-height: 220px; position: relative; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── BRANCH VIEW ── */
+  .branch-wrap { overflow-x: auto; padding-bottom: 8px; }
+  .branch-svg { display: block; }
+
+  /* ── RADIAL VIEW ── */
+  .radial-wrap { display: flex; justify-content: center; align-items: center; padding: 8px 0; }
+
+  /* tooltip hint */
+  .hint { margin-top: 12px; font-size: 9px; color: #5a7090; letter-spacing: 1px; text-align: center; }
+</style>
+
+<div class="card">
+  <div class="card-header">
+    <span class="card-label">Fork / Reorg History</span>
+    <div class="header-right">
+      <span class="reorg-count" id="reorg-count">4 reorgs</span>
+      <div class="pill-row">
+        <div class="pill active" id="pill-branch" onclick="switchView('branch')">⌇ Branch</div>
+        <div class="pill"        id="pill-radial" onclick="switchView('radial')">⊙ Radial</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="diagram-area">
+
+    <!-- BRANCH VIEW -->
+    <div class="view active" id="view-branch">
+      <div class="branch-wrap">
+        <svg class="branch-svg" width="636" height="200" viewBox="0 0 636 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+          <!-- ── axis line ── -->
+          <line x1="30" y1="150" x2="606" y2="150" stroke="#00aaff" stroke-width="2"/>
+          <circle cx="30"  cy="150" r="3" fill="#00aaff"/>
+          <circle cx="606" cy="150" r="3" fill="#00aaff"/>
+
+          <!-- axis labels -->
+          <text x="20"  y="168" fill="#5a7090" font-size="8" font-family="monospace">1,543,050</text>
+          <text x="562" y="168" fill="#5a7090" font-size="8" font-family="monospace">1,543,080</text>
+          <text x="280" y="185" fill="#5a7090" font-size="8" letter-spacing="1" text-anchor="middle">block height →</text>
+
+          <!-- ── FORK A: depth 4, height 1,543,068, gold ── -->
+          <!-- branch curves up and back, arch shape -->
+          <path d="M 238 150 C 238 150 234 148 226 124 L 202 64 C 194 38 186 38 178 64 L 154 124 C 146 148 142 150 142 150"
+                stroke="#ffd700" stroke-width="1.8" stroke-dasharray="5 3" fill="none" opacity="0.85"/>
+          <circle cx="238" cy="150" r="5" fill="#ffd700" opacity="0.9"/>
+          <circle cx="142" cy="150" r="3" fill="#ffd700" opacity="0.4"/>
+          <!-- depth label at peak -->
+          <text x="175" y="50" fill="#ffd700" font-size="9" font-family="monospace" text-anchor="middle">−4 blocks</text>
+          <!-- height label -->
+          <text x="238" y="143" fill="#ffd700" font-size="7.5" font-family="monospace" text-anchor="middle">1,543,068</text>
+          <!-- time label -->
+          <text x="190" y="175" fill="#5a7090" font-size="7.5" font-family="monospace" text-anchor="middle">20:18:40</text>
+          <!-- peer label -->
+          <text x="190" y="184" fill="#5a7090" font-size="7" font-family="monospace" text-anchor="middle">peer: 192.168.1.5</text>
+
+          <!-- ── FORK B: depth 1, height 1,543,072, gold (small) ── -->
+          <path d="M 366 150 C 366 150 364 148 362 138 L 358 116 C 354 106 350 106 346 116 L 342 138 C 340 148 338 150 338 150"
+                stroke="#ffd700" stroke-width="1.5" stroke-dasharray="4 2.5" fill="none" opacity="0.7"/>
+          <circle cx="366" cy="150" r="4" fill="#ffd700" opacity="0.7"/>
+          <circle cx="338" cy="150" r="2.5" fill="#ffd700" opacity="0.35"/>
+          <text x="352" y="100" fill="#ffd700" font-size="9" font-family="monospace" text-anchor="middle">−1</text>
+          <text x="366" y="143" fill="#ffd700" font-size="7.5" font-family="monospace" text-anchor="middle">1,543,072</text>
+          <text x="352" y="175" fill="#5a7090" font-size="7.5" font-family="monospace" text-anchor="middle">19:55:11</text>
+
+          <!-- ── FORK C: depth 7, height 1,543,076, red (severe, open/trailing) ── -->
+          <path d="M 494 150 C 494 150 490 146 484 112 L 474 62"
+                stroke="#ff4444" stroke-width="1.8" stroke-dasharray="5 3" fill="none" opacity="0.85"/>
+          <circle cx="494" cy="150" r="5.5" fill="#ff4444" opacity="0.9"/>
+          <circle cx="474" cy="60"  r="4"   fill="#ff4444" opacity="0.4"/>
+          <text x="490" y="48" fill="#ff4444" font-size="9" font-family="monospace">−7 blocks</text>
+          <text x="494" y="143" fill="#ff4444" font-size="7.5" font-family="monospace" text-anchor="middle">1,543,076</text>
+          <text x="480" y="175" fill="#5a7090" font-size="7.5" font-family="monospace" text-anchor="middle">18:02:33</text>
+          <!-- "still open" indicator -->
+          <text x="494" y="184" fill="#ff4444" font-size="7" letter-spacing="1" text-anchor="middle" opacity=".7">FORKING PEER</text>
+
+          <!-- ── FORK D: depth 2, height 1,543,058, gold ── -->
+          <path d="M 110 150 C 110 150 108 148 104 128 L 98 100 C 94 86 90 86 86 100 L 80 128 C 76 148 74 150 74 150"
+                stroke="#ffd700" stroke-width="1.5" stroke-dasharray="4 2.5" fill="none" opacity="0.7"/>
+          <circle cx="110" cy="150" r="4" fill="#ffd700" opacity="0.7"/>
+          <circle cx="74"  cy="150" r="2.5" fill="#ffd700" opacity="0.35"/>
+          <text x="92" y="78" fill="#ffd700" font-size="9" font-family="monospace" text-anchor="middle">−2</text>
+          <text x="110" y="143" fill="#ffd700" font-size="7.5" font-family="monospace" text-anchor="middle">1,543,055</text>
+          <text x="92" y="175" fill="#5a7090" font-size="7.5" font-family="monospace" text-anchor="middle">17:40:02</text>
+
+          <!-- "NOW" marker -->
+          <line x1="606" y1="130" x2="606" y2="155" stroke="#00aaff" stroke-width="1" opacity=".5"/>
+          <text x="606" y="126" fill="#00aaff" font-size="8" letter-spacing="1" text-anchor="middle" font-family="monospace">NOW</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- RADIAL VIEW -->
+    <div class="view" id="view-radial">
+      <div class="radial-wrap">
+        <svg width="420" height="220" viewBox="0 0 420 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+          <!-- orbit rings -->
+          <circle cx="210" cy="110" r="50"  stroke="rgba(0,102,255,.10)" stroke-width="1" stroke-dasharray="3 5"/>
+          <circle cx="210" cy="110" r="88"  stroke="rgba(0,102,255,.07)" stroke-width="1" stroke-dasharray="2 6"/>
+
+          <!-- center: canonical tip -->
+          <circle cx="210" cy="110" r="18" fill="rgba(0,102,255,.18)" stroke="#00aaff" stroke-width="1.8"/>
+          <text x="210" y="107" fill="#00aaff" font-size="7.5" font-family="monospace" text-anchor="middle">1,543</text>
+          <text x="210" y="117" fill="#00aaff" font-size="7.5" font-family="monospace" text-anchor="middle">,080</text>
+
+          <!-- FORK A: depth 4 → medium distance, upper-left (most recent) -->
+          <line x1="210" y1="110" x2="138" y2="58" stroke="#ffd700" stroke-width="1.5" stroke-dasharray="4 3" opacity=".7"/>
+          <circle cx="138" cy="58" r="10" fill="rgba(255,215,0,.15)" stroke="#ffd700" stroke-width="1.5"/>
+          <text x="138" y="61" fill="#ffd700" font-size="8.5" font-family="monospace" text-anchor="middle">−4</text>
+          <text x="108" y="48" fill="#5a7090" font-size="7.5" font-family="monospace">1,543,068</text>
+
+          <!-- FORK B: depth 1 → inner ring, right -->
+          <line x1="210" y1="110" x2="262" y2="72" stroke="#ffd700" stroke-width="1.2" stroke-dasharray="4 3" opacity=".55"/>
+          <circle cx="262" cy="72" r="6.5" fill="rgba(255,215,0,.12)" stroke="#ffd700" stroke-width="1.2"/>
+          <text x="262" y="75" fill="#ffd700" font-size="8" font-family="monospace" text-anchor="middle">−1</text>
+          <text x="270" y="64" fill="#5a7090" font-size="7.5" font-family="monospace">1,543,072</text>
+
+          <!-- FORK C: depth 7 → outer ring, lower-left (red / severe) -->
+          <line x1="210" y1="110" x2="128" y2="168" stroke="#ff4444" stroke-width="1.8" stroke-dasharray="4 3" opacity=".8"/>
+          <circle cx="128" cy="168" r="14" fill="rgba(255,68,68,.12)" stroke="#ff4444" stroke-width="1.8"/>
+          <text x="128" y="171" fill="#ff4444" font-size="9" font-family="monospace" text-anchor="middle">−7</text>
+          <text x="80"  y="186" fill="#5a7090" font-size="7.5" font-family="monospace">1,543,076</text>
+          <!-- forking peer badge -->
+          <text x="128" y="187" fill="#ff4444" font-size="7" letter-spacing=".5" text-anchor="middle" opacity=".7">FORKING</text>
+
+          <!-- FORK D: depth 2 → inner, lower-right -->
+          <line x1="210" y1="110" x2="286" y2="158" stroke="#ffd700" stroke-width="1.2" stroke-dasharray="4 3" opacity=".55"/>
+          <circle cx="286" cy="158" r="8" fill="rgba(255,215,0,.12)" stroke="#ffd700" stroke-width="1.2"/>
+          <text x="286" y="161" fill="#ffd700" font-size="8" font-family="monospace" text-anchor="middle">−2</text>
+          <text x="295" y="172" fill="#5a7090" font-size="7.5" font-family="monospace">1,543,055</text>
+
+          <!-- legend -->
+          <text x="210" y="215" fill="#5a7090" font-size="7.5" letter-spacing="1" text-anchor="middle">distance = rollback depth · angle = recency</text>
+        </svg>
+      </div>
+    </div>
+
+  </div><!-- diagram-area -->
+
+  <div class="hint" id="hint-text">hover a node to inspect · click node to find fork point</div>
+</div>
+
+<script>
+function switchView(v) {
+  document.getElementById('view-branch').classList.toggle('active', v === 'branch');
+  document.getElementById('view-radial').classList.toggle('active', v === 'radial');
+  document.getElementById('pill-branch').classList.toggle('active', v === 'branch');
+  document.getElementById('pill-radial').classList.toggle('active', v === 'radial');
+  document.getElementById('hint-text').textContent =
+    v === 'branch'
+      ? 'hover a node to inspect · click node to find fork point'
+      : 'distance = rollback depth · angle = recency · click to inspect';
+}
+</script>

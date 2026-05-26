@@ -19,6 +19,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import brs.SignumException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -85,11 +86,12 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
 
     @Override
     public JsonObject findForkPoint(String peerAddress) {
-        Peer peer = Peers.getPeer(peerAddress);
+        Peer peer = lookupPeer(peerAddress);
         JsonObject result = new JsonObject();
         result.addProperty("peer", peerAddress);
 
         if (peer == null) {
+            logger.warn("findForkPoint: peer not found for address={}", peerAddress);
             result.addProperty("error", "Peer not found");
             return result;
         }
@@ -98,6 +100,7 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
         cdRequest.addProperty("requestType", "getCumulativeDifficulty");
         JsonObject cdResponse = peer.send(cdRequest);
         if (cdResponse == null || cdResponse.has("error")) {
+            logger.warn("findForkPoint: cannot reach peer={} via P2P (getCumulativeDifficulty failed), response={}", peerAddress, cdResponse);
             result.addProperty("error", "Cannot reach peer");
             return result;
         }
@@ -106,60 +109,122 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
         int myHeight = blockchain.getHeight();
         int maxLookback = propertyService.getInt(Props.WEB_UI_FORK_POINT_MAX_LOOKBACK);
 
-        int lo = Math.max(1, Math.min(myHeight, peerHeight) - maxLookback);
-        int hi = Math.min(myHeight, peerHeight) - 1;
-        int forkHeight = lo;
-        int steps = 0;
+        logger.debug("findForkPoint: peer={} peerHeight={} myHeight={} maxLookback={}", peerAddress, peerHeight, myHeight, maxLookback);
 
-        while (lo <= hi) {
-            int mid = (lo + hi) / 2;
+        int lo = Math.max(1, Math.min(myHeight, peerHeight) - maxLookback);
+        int hi = Math.min(myHeight, peerHeight); // include tip: fork may be at our own current height
+
+        // Fast-fail: if chains already disagree at the bottom of our window,
+        // the fork is older than maxLookback — no point searching further.
+        String ourBlockAtLo = Convert.toUnsignedLong(blockchain.getBlockIdAtHeight(lo));
+        String peerBlockAtLo = fetchPeerBlockId(peer, lo);
+        logger.debug("findForkPoint: fast-fail check at lo={} ourBlock={} peerBlock={}", lo, ourBlockAtLo, peerBlockAtLo);
+
+        if (peerBlockAtLo == null) {
+            logger.warn("findForkPoint: peer={} did not return block at lo={} — P2P fetch failed", peerAddress, lo);
+            result.addProperty("error", "Cannot reach peer during fork search");
+            return result;
+        }
+        if (!ourBlockAtLo.equals(peerBlockAtLo)) {
+            logger.info("findForkPoint: peer={} fork is older than {} blocks (disagree at lo={})", peerAddress, maxLookback, lo);
+            result.addProperty("error", "Fork is older than " + maxLookback + " blocks — peer is on a permanently diverged chain");
+            result.addProperty("forkTooOld", true);
+            return result;
+        }
+
+        // Binary search for the last height where both chains still agree.
+        // Invariant: chains agree at lo, may disagree at hi+1.
+        // Ceiling mid prevents lo from stalling when hi = lo + 1.
+        int steps = 1; // fast-fail check above counts as step 1
+        while (lo < hi) {
+            int mid = (lo + hi + 1) / 2;
             steps++;
 
             String ourBlockId = Convert.toUnsignedLong(blockchain.getBlockIdAtHeight(mid));
+            String peerBlockId = fetchPeerBlockId(peer, mid);
+            logger.debug("findForkPoint: step={} mid={} ourBlock={} peerBlock={}", steps, mid, ourBlockId, peerBlockId);
 
-            // Ask peer for blocks starting at height mid-1 with numBlocks=1
-            // nextBlocks[0] is block at height mid; its previousBlock field = block ID at mid-1
-            // Instead, we ask from mid-1 to get block at mid in nextBlocks[0]
-            // nextBlocks[0].previousBlock is not what we want — we need the block AT mid.
-            // Workaround: ask for getBlocksFromHeight with height=mid to get block at mid+1,
-            // then read nextBlocks[0].previousBlock = blockId at mid.
-            JsonObject req = new JsonObject();
-            req.addProperty("requestType", "getBlocksFromHeight");
-            req.addProperty("height", mid);
-            req.addProperty("numBlocks", 1);
-            JsonObject resp = peer.send(req);
-
-            if (resp == null || resp.has("error")) {
+            if (peerBlockId == null) {
+                logger.warn("findForkPoint: peer={} communication error at step={} mid={}", peerAddress, steps, mid);
                 result.addProperty("error", "Peer communication error during search");
                 return result;
             }
 
-            JsonArray nextBlocks = JSON.getAsJsonArray(resp.get("nextBlocks"));
-            if (nextBlocks == null || nextBlocks.size() == 0) {
-                // Peer has no block at mid+1 — search lower
-                hi = mid - 1;
-                continue;
-            }
-
-            String peerPrevBlockId = JSON.getAsString(nextBlocks.get(0).getAsJsonObject().get("previousBlock"));
-            String ourBlockIdAtMid = Convert.toUnsignedLong(blockchain.getBlockIdAtHeight(mid));
-
-            if (ourBlockIdAtMid.equals(peerPrevBlockId)) {
-                // Agree at height mid → fork is higher
-                forkHeight = mid;
-                lo = mid + 1;
+            if (ourBlockId.equals(peerBlockId)) {
+                lo = mid;
             } else {
-                // Disagree at height mid → fork is lower
                 hi = mid - 1;
             }
         }
 
-        Block forkBlock = blockchain.getBlockAtHeight(forkHeight);
-        result.addProperty("forkAtHeight", forkHeight);
+        logger.info("findForkPoint: peer={} fork found at height={} steps={}", peerAddress, lo, steps);
+        Block forkBlock = blockchain.getBlockAtHeight(lo);
+        result.addProperty("forkAtHeight", lo);
         result.addProperty("forkAtBlockId", forkBlock != null ? forkBlock.getStringId() : "unknown");
-        result.addProperty("ourBlockIdAtFork", Convert.toUnsignedLong(blockchain.getBlockIdAtHeight(forkHeight)));
+        result.addProperty("ourBlockIdAtFork", Convert.toUnsignedLong(blockchain.getBlockIdAtHeight(lo)));
         result.addProperty("searchSteps", steps);
         return result;
+    }
+
+    protected Peer lookupPeer(String peerAddress) {
+        return Peers.addPeer(peerAddress);
+    }
+
+    /**
+     * Fetches the block ID at the given height from the peer via the P2P channel.
+     *
+     * <p>Primary path: {@code getBlocksFromHeight(height, numBlocks=1)} asks the peer
+     * for the block immediately after {@code height}. The returned block's
+     * {@code previousBlock} field is the peer's block ID at {@code height}.
+     *
+     * <p>Fallback (peer is at its tip, nothing after {@code height}): fetch the block
+     * AT {@code height} via {@code getBlocksFromHeight(height-1, numBlocks=1)} and
+     * compute its ID by parsing the block data.
+     */
+    protected String fetchPeerBlockId(Peer peer, int height) {
+        // Primary: get block at height+1 → previousBlock = peer's block ID at height
+        JsonObject req = new JsonObject();
+        req.addProperty("requestType", "getBlocksFromHeight");
+        req.addProperty("height", height);
+        req.addProperty("numBlocks", 1);
+        JsonObject resp = peer.send(req);
+        if (resp == null || resp.has("error")) {
+            logger.warn("fetchPeerBlockId: height={} getBlocksFromHeight failed (resp={})", height, resp);
+            return null;
+        }
+        JsonArray nextBlocks = JSON.getAsJsonArray(resp.get("nextBlocks"));
+        if (nextBlocks != null && !nextBlocks.isEmpty()) {
+            String blockId = JSON.getAsString(nextBlocks.get(0).getAsJsonObject().get("previousBlock"));
+            logger.debug("fetchPeerBlockId: height={} → {} (via previousBlock)", height, blockId);
+            return blockId;
+        }
+
+        // Fallback: peer has no block after height (peer is at its tip).
+        // Fetch the block at height itself and compute its ID from the parsed block.
+        logger.debug("fetchPeerBlockId: height={} peer at tip, falling back to parse block", height);
+        JsonObject fallbackReq = new JsonObject();
+        fallbackReq.addProperty("requestType", "getBlocksFromHeight");
+        fallbackReq.addProperty("height", Math.max(0, height - 1));
+        fallbackReq.addProperty("numBlocks", 1);
+        JsonObject fallbackResp = peer.send(fallbackReq);
+        if (fallbackResp == null || fallbackResp.has("error")) {
+            logger.warn("fetchPeerBlockId: height={} fallback getBlocksFromHeight failed", height);
+            return null;
+        }
+        JsonArray fallbackBlocks = JSON.getAsJsonArray(fallbackResp.get("nextBlocks"));
+        if (fallbackBlocks == null || fallbackBlocks.isEmpty()) {
+            logger.debug("fetchPeerBlockId: height={} fallback returned empty nextBlocks", height);
+            return null;
+        }
+        try {
+            Block block = Block.parseBlock(fallbackBlocks.get(0).getAsJsonObject(), height);
+            String blockId = Convert.toUnsignedLong(block.getId());
+            logger.debug("fetchPeerBlockId: height={} → {} (via parseBlock fallback)", height, blockId);
+            return blockId;
+        } catch (SignumException.ValidationException e) {
+            logger.warn("fetchPeerBlockId: height={} parseBlock failed", height, e);
+            return null;
+        }
     }
 
     @Override

@@ -217,3 +217,34 @@ body {
     padding: 1.5rem;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   THEMED SCROLLBAR — adapts to active theme via CSS vars
+══════════════════════════════════════════════════════════════ */
+.themed-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2) transparent;
+}
+
+.themed-scroll::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.themed-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.themed-scroll::-webkit-scrollbar-thumb {
+  background: var(--border2);
+  border-radius: 3px;
+}
+
+.themed-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--blue2);
+  box-shadow: 0 0 6px var(--blue2);
+}
+
+.themed-scroll::-webkit-scrollbar-corner {
+  background: transparent;
+}

@@ -1,0 +1,180 @@
+<h2>Fork Structure — Diagram Style</h2>
+<p class="subtitle">Three approaches to visualising the network fork history. Which direction feels right?</p>
+
+<style>
+  .diagram-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 24px; }
+  .diagram-card {
+    border: 1px solid rgba(0,170,255,.22);
+    border-radius: 6px;
+    background: rgba(8,16,40,.7);
+    padding: 0;
+    cursor: pointer;
+    transition: border-color .2s, box-shadow .2s;
+    overflow: hidden;
+    user-select: none;
+  }
+  .diagram-card:hover { border-color: rgba(0,170,255,.5); box-shadow: 0 0 18px rgba(0,170,255,.15); }
+  .diagram-card.selected { border-color: #00aaff; box-shadow: 0 0 24px rgba(0,170,255,.3); }
+  .diagram-card .preview {
+    background: #050810;
+    padding: 16px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 180px;
+  }
+  .diagram-card .meta { padding: 14px 16px; border-top: 1px solid rgba(0,102,255,.18); }
+  .diagram-card .meta h3 { margin: 0 0 6px; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #00aaff; font-family: 'Orbitron', sans-serif; }
+  .diagram-card .meta p { margin: 0; font-size: 11px; color: #5a7090; line-height: 1.55; }
+  .diagram-card .tag { display: inline-block; margin-top: 8px; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; padding: 2px 7px; border-radius: 2px; }
+  .tag-new { background: rgba(0,255,170,.1); color: #00ffaa; border: 1px solid rgba(0,255,170,.3); }
+  .tag-simple { background: rgba(255,215,0,.08); color: #ffd700; border: 1px solid rgba(255,215,0,.2); }
+  .tag-rich { background: rgba(0,170,255,.1); color: #00aaff; border: 1px solid rgba(0,170,255,.25); }
+</style>
+
+<div class="diagram-cards">
+
+  <!-- Option A: Branch Timeline -->
+  <div class="diagram-card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="preview">
+      <svg width="240" height="150" viewBox="0 0 240 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Main chain line -->
+        <line x1="20" y1="90" x2="220" y2="90" stroke="#00aaff" stroke-width="2.5"/>
+        <!-- Height markers -->
+        <circle cx="20"  cy="90" r="3" fill="#00aaff"/>
+        <circle cx="220" cy="90" r="3" fill="#00aaff"/>
+        <text x="14" y="108" fill="#5a7090" font-size="8" font-family="monospace">1,543,040</text>
+        <text x="186" y="108" fill="#5a7090" font-size="8" font-family="monospace">1,543,080</text>
+
+        <!-- Fork A: depth 4 at height ~60 (x≈120) -->
+        <path d="M 80 90 C 80 90 76 90 72 72 L 56 38 C 52 22 48 22 44 38 L 28 72 C 24 88 20 90 20 90"
+              stroke="#ffd700" stroke-width="1.5" stroke-dasharray="4 3" fill="none"/>
+        <circle cx="80" cy="90" r="4" fill="#ffd700" opacity="0.9"/>
+        <text x="55" y="18" fill="#ffd700" font-size="8" font-family="monospace">-4 blk</text>
+        <text x="47" y="28" fill="#5a7090" font-size="7" font-family="monospace">08:18</text>
+
+        <!-- Fork B: depth 1 at height ~160 (x≈160) -->
+        <path d="M 160 90 C 160 90 156 90 154 80 L 152 60 C 150 52 148 52 146 60 L 144 80 C 142 88 140 90 140 90"
+              stroke="#ffd700" stroke-width="1.5" stroke-dasharray="4 3" fill="none"/>
+        <circle cx="160" cy="90" r="3" fill="#ffd700" opacity="0.7"/>
+        <text x="138" y="44" fill="#ffd700" font-size="8" font-family="monospace">-1</text>
+
+        <!-- Fork C: depth 7 (still forking, trailing off) at height ~200 -->
+        <path d="M 200 90 C 200 90 198 88 196 74 L 190 42"
+              stroke="#ff4444" stroke-width="1.5" stroke-dasharray="4 3" fill="none" opacity="0.8"/>
+        <circle cx="200" cy="90" r="4" fill="#ff4444" opacity="0.9"/>
+        <circle cx="190" cy="40" r="3" fill="#ff4444" opacity="0.5"/>
+        <text x="193" y="30" fill="#ff4444" font-size="8" font-family="monospace">-7</text>
+
+        <!-- Labels -->
+        <text x="96" y="80" fill="#5a7090" font-size="7" letter-spacing="1">CANONICAL CHAIN</text>
+        <text x="10" y="135" fill="#00aaff" font-size="8" font-family="monospace">older →</text>
+        <text x="180" y="135" fill="#00aaff" font-size="8" font-family="monospace">← newer</text>
+      </svg>
+    </div>
+    <div class="meta">
+      <h3>A — Branch Timeline</h3>
+      <p>Git-log style. Main chain as a horizontal axis, each reorg shown as a branch diverging upward. Depth = branch height. Color = severity.</p>
+      <span class="tag tag-rich">Most informative</span>
+    </div>
+  </div>
+
+  <!-- Option B: Sankey Flow -->
+  <div class="diagram-card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="preview">
+      <svg width="240" height="150" viewBox="0 0 240 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Left nodes: chain states -->
+        <rect x="12" y="30"  width="36" height="28" rx="2" fill="rgba(0,255,170,.15)" stroke="#00ffaa" stroke-width="1"/>
+        <rect x="12" y="68"  width="36" height="16" rx="2" fill="rgba(255,215,0,.12)" stroke="#ffd700" stroke-width="1"/>
+        <rect x="12" y="94"  width="36" height="16" rx="2" fill="rgba(255,68,68,.1)"  stroke="#ff4444" stroke-width="1"/>
+        <text x="14" y="48"  fill="#00ffaa" font-size="7" font-family="monospace">on-chain</text>
+        <text x="14" y="57"  fill="#00ffaa" font-size="7" font-family="monospace">12 peers</text>
+        <text x="14" y="79"  fill="#ffd700" font-size="7" font-family="monospace">stale 4</text>
+        <text x="14" y="105" fill="#ff4444" font-size="7" font-family="monospace">fork 3</text>
+
+        <!-- Right nodes: resolution -->
+        <rect x="192" y="22"  width="36" height="38" rx="2" fill="rgba(0,255,170,.15)" stroke="#00ffaa" stroke-width="1"/>
+        <rect x="192" y="70"  width="36" height="16" rx="2" fill="rgba(255,215,0,.12)" stroke="#ffd700" stroke-width="1"/>
+        <rect x="192" y="96"  width="36" height="16" rx="2" fill="rgba(100,100,100,.15)" stroke="#5a7090" stroke-width="1"/>
+        <text x="194" y="38"  fill="#00ffaa" font-size="7" font-family="monospace">on-chain</text>
+        <text x="194" y="47"  fill="#00ffaa" font-size="7" font-family="monospace">15 peers</text>
+        <text x="194" y="81"  fill="#ffd700" font-size="7" font-family="monospace">stale 3</text>
+        <text x="194" y="107" fill="#5a7090" font-size="7" font-family="monospace">blist 1</text>
+
+        <!-- Flows: thick gradient bands -->
+        <!-- on-chain → on-chain (big) -->
+        <path d="M48 38 C120 38 120 34 192 34" stroke="#00ffaa" stroke-width="14" opacity="0.18" fill="none"/>
+        <path d="M48 38 C120 38 120 34 192 34" stroke="#00ffaa" stroke-width="1.5" opacity="0.6" fill="none"/>
+
+        <!-- on-chain → on-chain (recovered forking peers) -->
+        <path d="M48 101 C100 101 140 46 192 46" stroke="#00ffaa" stroke-width="6" opacity="0.12" fill="none"/>
+        <path d="M48 101 C100 101 140 46 192 46" stroke="#ff4444" stroke-width="1" stroke-dasharray="3 2" opacity="0.5" fill="none"/>
+
+        <!-- stale → stale -->
+        <path d="M48 76 C120 76 120 78 192 78" stroke="#ffd700" stroke-width="6" opacity="0.15" fill="none"/>
+        <path d="M48 76 C120 76 120 78 192 78" stroke="#ffd700" stroke-width="1" opacity="0.5" fill="none"/>
+
+        <!-- fork → blacklisted -->
+        <path d="M48 101 C120 101 140 104 192 104" stroke="#5a7090" stroke-width="4" opacity="0.2" fill="none"/>
+        <path d="M48 101 C120 101 140 104 192 104" stroke="#5a7090" stroke-width="1" stroke-dasharray="3 2" opacity="0.4" fill="none"/>
+
+        <!-- Arrow labels -->
+        <text x="95" y="22"  fill="#5a7090" font-size="8" letter-spacing="1">PEER CONSENSUS FLOW</text>
+        <text x="55"  y="140" fill="#5a7090" font-size="7">before reorg</text>
+        <text x="180" y="140" fill="#5a7090" font-size="7">after</text>
+      </svg>
+    </div>
+    <div class="meta">
+      <h3>B — Sankey / Peer Flow</h3>
+      <p>Flows show how peers moved between consensus states across a reorg. Band width = peer count. Shows network-level impact, not chain structure.</p>
+      <span class="tag tag-new">Your idea</span>
+    </div>
+  </div>
+
+  <!-- Option C: Radial Fork Map -->
+  <div class="diagram-card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="preview">
+      <svg width="240" height="150" viewBox="0 0 240 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Central "now" node -->
+        <circle cx="120" cy="75" r="14" fill="rgba(0,102,255,.2)" stroke="#00aaff" stroke-width="1.5"/>
+        <text x="110" y="72"  fill="#00aaff" font-size="7" font-family="monospace">1,543</text>
+        <text x="112" y="81"  fill="#00aaff" font-size="7" font-family="monospace">,080</text>
+
+        <!-- Orbit rings -->
+        <circle cx="120" cy="75" r="36" stroke="rgba(0,102,255,.12)" stroke-width="1" stroke-dasharray="3 4"/>
+        <circle cx="120" cy="75" r="60" stroke="rgba(0,102,255,.07)" stroke-width="1" stroke-dasharray="2 5"/>
+
+        <!-- Fork A node: large depth, upper-left -->
+        <line x1="120" y1="75" x2="66" y2="38" stroke="#ffd700" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.7"/>
+        <circle cx="66" cy="38" r="9" fill="rgba(255,215,0,.15)" stroke="#ffd700" stroke-width="1.2"/>
+        <text x="60" y="41" fill="#ffd700" font-size="8" font-family="monospace">-4</text>
+        <text x="42" y="30" fill="#5a7090" font-size="7">1,543,068</text>
+
+        <!-- Fork B node: small depth, right -->
+        <line x1="120" y1="75" x2="172" y2="54" stroke="#ffd700" stroke-width="1" stroke-dasharray="3 3" opacity="0.5"/>
+        <circle cx="172" cy="54" r="6" fill="rgba(255,215,0,.12)" stroke="#ffd700" stroke-width="1"/>
+        <text x="168" y="57" fill="#ffd700" font-size="8" font-family="monospace">-1</text>
+
+        <!-- Fork C node: severe, lower-left -->
+        <line x1="120" y1="75" x2="58" y2="110" stroke="#ff4444" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.7"/>
+        <circle cx="58" cy="110" r="11" fill="rgba(255,68,68,.12)" stroke="#ff4444" stroke-width="1.5"/>
+        <text x="50" y="113" fill="#ff4444" font-size="8" font-family="monospace">-7</text>
+        <text x="36" y="128" fill="#5a7090" font-size="7">1,543,021</text>
+
+        <!-- Fork D node: resolved, lower-right -->
+        <line x1="120" y1="75" x2="176" y2="108" stroke="#5a7090" stroke-width="1" stroke-dasharray="2 4" opacity="0.4"/>
+        <circle cx="176" cy="108" r="5" fill="rgba(90,112,144,.1)" stroke="#5a7090" stroke-width="1"/>
+        <text x="172" y="111" fill="#5a7090" font-size="8" font-family="monospace">-2</text>
+
+        <!-- Legend -->
+        <text x="88" y="145" fill="#5a7090" font-size="7" letter-spacing="1">DISTANCE = DEPTH FROM CANON</text>
+      </svg>
+    </div>
+    <div class="meta">
+      <h3>C — Radial Fork Map</h3>
+      <p>Current height at center. Each reorg radiates outward — distance = rollback depth, angle = recency. Compact, spatial overview.</p>
+      <span class="tag tag-simple">Compact</span>
+    </div>
+  </div>
+
+</div>

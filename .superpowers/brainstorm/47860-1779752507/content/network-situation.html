@@ -1,0 +1,208 @@
+<h2>Current Network Situation — Visualisation Options</h2>
+<p class="subtitle">Three ways to show where peers stand <em>right now</em> relative to your node. Uses live peer data: height, status, cumulative difficulty.</p>
+
+<style>
+  .options { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-top: 20px; }
+  .option {
+    border: 1px solid rgba(0,102,255,.22); border-radius: 6px;
+    overflow: hidden; cursor: pointer;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .option:hover { border-color: rgba(0,170,255,.5); box-shadow: 0 0 18px rgba(0,170,255,.12); }
+  .option.selected { border-color: #00aaff; box-shadow: 0 0 22px rgba(0,170,255,.25); }
+  .preview { background: #050810; padding: 18px 14px; min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .meta { padding: 12px 14px; border-top: 1px solid rgba(0,102,255,.14); background: rgba(8,16,40,.6); }
+  .meta h3 { margin: 0 0 5px; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #00aaff; font-family: 'Orbitron', sans-serif; }
+  .meta p { margin: 0; font-size: 10px; color: #5a7090; line-height: 1.5; }
+  .tag { display: inline-block; margin-top: 7px; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; padding: 2px 7px; border-radius: 2px; }
+  .tag-a { background: rgba(0,255,170,.08); color: #00ffaa; border: 1px solid rgba(0,255,170,.25); }
+  .tag-b { background: rgba(0,170,255,.08); color: #00aaff; border: 1px solid rgba(0,170,255,.2); }
+  .tag-c { background: rgba(255,215,0,.08); color: #ffd700; border: 1px solid rgba(255,215,0,.2); }
+</style>
+
+<div class="options">
+
+  <!-- ── Option A: Peer Height Scatter ── -->
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="preview">
+      <svg width="230" height="170" viewBox="0 0 230 170" fill="none">
+
+        <!-- axis -->
+        <line x1="20" y1="120" x2="210" y2="120" stroke="#00aaff" stroke-width="1.5" opacity=".5"/>
+
+        <!-- axis ticks + labels -->
+        <line x1="20"  y1="117" x2="20"  y2="123" stroke="#5a7090" stroke-width="1"/>
+        <line x1="115" y1="117" x2="115" y2="123" stroke="#5a7090" stroke-width="1"/>
+        <line x1="210" y1="117" x2="210" y2="123" stroke="#5a7090" stroke-width="1"/>
+        <text x="20"  y="133" fill="#5a7090" font-size="7" font-family="monospace" text-anchor="middle">−50</text>
+        <text x="115" y="133" fill="#5a7090" font-size="7" font-family="monospace" text-anchor="middle">0</text>
+        <text x="210" y="133" fill="#5a7090" font-size="7" font-family="monospace" text-anchor="middle">+10</text>
+        <text x="115" y="145" fill="#5a7090" font-size="7.5" letter-spacing="1" text-anchor="middle">blocks from your tip</text>
+
+        <!-- MY NODE marker -->
+        <line x1="115" y1="60" x2="115" y2="118" stroke="#00aaff" stroke-width="1" stroke-dasharray="3 3" opacity=".5"/>
+        <polygon points="115,58 110,68 120,68" fill="#00aaff" opacity=".9"/>
+        <text x="115" y="52" fill="#00aaff" font-size="8" font-family="monospace" text-anchor="middle" letter-spacing="1">YOU</text>
+        <text x="115" y="44" fill="#00aaff" font-size="7.5" font-family="monospace" text-anchor="middle">1,543,080</text>
+
+        <!-- ON-CHAIN peers (cluster near 0) -->
+        <circle cx="112" cy="108" r="4.5" fill="#00ffaa" opacity=".85"/>
+        <circle cx="118" cy="104" r="4.5" fill="#00ffaa" opacity=".85"/>
+        <circle cx="108" cy="103" r="4.5" fill="#00ffaa" opacity=".75"/>
+        <circle cx="122" cy="107" r="4.5" fill="#00ffaa" opacity=".75"/>
+        <circle cx="116" cy="97"  r="3.5" fill="#00ffaa" opacity=".6"/>
+        <circle cx="106" cy="109" r="3.5" fill="#00ffaa" opacity=".6"/>
+
+        <!-- STALE peers (a bit behind) -->
+        <circle cx="90"  cy="106" r="4"   fill="#ffd700" opacity=".75"/>
+        <circle cx="82"  cy="103" r="4"   fill="#ffd700" opacity=".75"/>
+        <circle cx="75"  cy="108" r="4"   fill="#ffd700" opacity=".65"/>
+        <circle cx="98"  cy="110" r="3.5" fill="#ffd700" opacity=".6"/>
+
+        <!-- FORKING peers (far left, different cumDiff) -->
+        <circle cx="44"  cy="100" r="5.5" fill="#ff4444" opacity=".85"/>
+        <circle cx="36"  cy="106" r="4.5" fill="#ff4444" opacity=".7"/>
+        <circle cx="54"  cy="104" r="4"   fill="#ff4444" opacity=".7"/>
+
+        <!-- legend -->
+        <circle cx="24"  cy="160" r="3.5" fill="#00ffaa" opacity=".85"/>
+        <text x="30" y="163" fill="#5a7090" font-size="7.5">on-chain</text>
+        <circle cx="80"  cy="160" r="3.5" fill="#ffd700" opacity=".8"/>
+        <text x="86" y="163" fill="#5a7090" font-size="7.5">stale</text>
+        <circle cx="124" cy="160" r="3.5" fill="#ff4444" opacity=".8"/>
+        <text x="130" y="163" fill="#5a7090" font-size="7.5">forking</text>
+      </svg>
+    </div>
+    <div class="meta">
+      <h3>A — Height Scatter</h3>
+      <p>All peers plotted on a single height axis, relative to your tip. Clusters reveal consensus groups instantly. Simple and data-dense.</p>
+      <span class="tag tag-a">Most readable</span>
+    </div>
+  </div>
+
+  <!-- ── Option B: Chain Lane View ── -->
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="preview">
+      <svg width="230" height="170" viewBox="0 0 230 170" fill="none">
+
+        <!-- Lane: OUR CHAIN -->
+        <rect x="10" y="18" width="68" height="96" rx="3"
+              fill="rgba(0,255,170,.06)" stroke="rgba(0,255,170,.25)" stroke-width="1"/>
+        <text x="44" y="32" fill="#00ffaa" font-size="7.5" letter-spacing="1.5" text-anchor="middle" text-transform="uppercase">OUR CHAIN</text>
+        <text x="44" y="42" fill="#5a7090" font-size="7" text-anchor="middle">1,543,080</text>
+
+        <!-- peer dots in our chain -->
+        <circle cx="28" cy="58"  r="5" fill="#00ffaa" opacity=".8"/>
+        <circle cx="42" cy="54"  r="5" fill="#00ffaa" opacity=".8"/>
+        <circle cx="56" cy="60"  r="5" fill="#00ffaa" opacity=".75"/>
+        <circle cx="34" cy="70"  r="4.5" fill="#00ffaa" opacity=".65"/>
+        <circle cx="50" cy="68"  r="4.5" fill="#00ffaa" opacity=".65"/>
+        <circle cx="28" cy="80"  r="4" fill="#ffd700" opacity=".7"/>
+        <circle cx="44" cy="83"  r="4" fill="#ffd700" opacity=".7"/>
+        <circle cx="58" cy="78"  r="4" fill="#ffd700" opacity=".6"/>
+        <circle cx="36" cy="92"  r="3.5" fill="#ffd700" opacity=".55"/>
+
+        <!-- count -->
+        <text x="44" y="108" fill="#00ffaa" font-size="9" text-anchor="middle" font-weight="600">9 peers</text>
+
+        <!-- Lane: FORK A -->
+        <rect x="88" y="18" width="62" height="74" rx="3"
+              fill="rgba(255,68,68,.06)" stroke="rgba(255,68,68,.3)" stroke-width="1"/>
+        <text x="119" y="32" fill="#ff4444" font-size="7.5" letter-spacing="1.5" text-anchor="middle">FORK A</text>
+        <text x="119" y="42" fill="#5a7090" font-size="7" text-anchor="middle">1,543,046</text>
+
+        <circle cx="104" cy="58"  r="5.5" fill="#ff4444" opacity=".85"/>
+        <circle cx="120" cy="54"  r="5"   fill="#ff4444" opacity=".75"/>
+        <circle cx="136" cy="60"  r="4.5" fill="#ff4444" opacity=".7"/>
+
+        <text x="119" y="86" fill="#ff4444" font-size="9" text-anchor="middle" font-weight="600">3 peers</text>
+
+        <!-- Lane: FORK B (minor) -->
+        <rect x="160" y="18" width="58" height="58" rx="3"
+              fill="rgba(255,68,68,.04)" stroke="rgba(255,68,68,.18)" stroke-width="1" stroke-dasharray="3 2"/>
+        <text x="189" y="32" fill="#ff4444" font-size="7.5" letter-spacing="1.5" text-anchor="middle" opacity=".7">FORK B</text>
+        <text x="189" y="42" fill="#5a7090" font-size="7" text-anchor="middle" opacity=".7">1,543,073</text>
+
+        <circle cx="179" cy="55" r="4.5" fill="#ff4444" opacity=".6"/>
+        <circle cx="198" cy="58" r="4"   fill="#ff4444" opacity=".5"/>
+        <text x="189" y="70" fill="#ff4444" font-size="9" text-anchor="middle" font-weight="600" opacity=".7">2 peers</text>
+
+        <!-- cumDiff bar at bottom -->
+        <text x="10" y="128" fill="#5a7090" font-size="7.5" letter-spacing="1">CUMUL. DIFFICULTY</text>
+        <rect x="10"  y="134" width="68" height="5" rx="2" fill="#00ffaa" opacity=".7"/>
+        <rect x="88"  y="134" width="30" height="5" rx="2" fill="#ff4444" opacity=".5"/>
+        <rect x="160" y="134" width="14" height="5" rx="2" fill="#ff4444" opacity=".3"/>
+
+        <text x="44"  y="148" fill="#00ffaa" font-size="7" text-anchor="middle">highest</text>
+        <text x="103" y="148" fill="#ff4444" font-size="7" text-anchor="middle">lower</text>
+        <text x="167" y="148" fill="#ff4444" font-size="7" opacity=".6">lowest</text>
+      </svg>
+    </div>
+    <div class="meta">
+      <h3>B — Chain Lanes</h3>
+      <p>Each distinct chain (grouped by cumulative difficulty) gets its own lane. Peer count + cumDiff bar shows which chain is winning. Great for multi-fork situations.</p>
+      <span class="tag tag-b">Most structural</span>
+    </div>
+  </div>
+
+  <!-- ── Option C: Peer Constellation (radial, live) ── -->
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="preview">
+      <svg width="230" height="170" viewBox="0 0 230 170" fill="none">
+
+        <!-- orbit rings: height bands -->
+        <circle cx="115" cy="85" r="28"  stroke="rgba(0,255,170,.15)" stroke-width="1" stroke-dasharray="3 4"/>
+        <circle cx="115" cy="85" r="55"  stroke="rgba(255,215,0,.08)"  stroke-width="1" stroke-dasharray="2 5"/>
+        <circle cx="115" cy="85" r="76"  stroke="rgba(255,68,68,.08)"  stroke-width="1" stroke-dasharray="2 6"/>
+
+        <!-- ring labels -->
+        <text x="148" y="60"  fill="#00ffaa" font-size="7" opacity=".6">on-chain</text>
+        <text x="170" y="44"  fill="#ffd700"  font-size="7" opacity=".5">stale</text>
+        <text x="186" y="26"  fill="#ff4444"  font-size="7" opacity=".5">forking</text>
+
+        <!-- center: YOU -->
+        <circle cx="115" cy="85" r="14" fill="rgba(0,102,255,.2)" stroke="#00aaff" stroke-width="1.8"/>
+        <text x="115" y="82" fill="#00aaff" font-size="7" font-family="monospace" text-anchor="middle">YOUR</text>
+        <text x="115" y="91" fill="#00aaff" font-size="7" font-family="monospace" text-anchor="middle">NODE</text>
+
+        <!-- ON-CHAIN peers (inner ring, green) -->
+        <circle cx="115" cy="57" r="5"   fill="#00ffaa" opacity=".85"/>
+        <circle cx="138" cy="63" r="4.5" fill="#00ffaa" opacity=".8"/>
+        <circle cx="141" cy="87" r="4.5" fill="#00ffaa" opacity=".8"/>
+        <circle cx="132" cy="108" r="4"  fill="#00ffaa" opacity=".7"/>
+        <circle cx="97"  cy="111" r="4"  fill="#00ffaa" opacity=".7"/>
+        <circle cx="90"  cy="87"  r="4"  fill="#00ffaa" opacity=".7"/>
+
+        <!-- STALE peers (middle ring, gold) -->
+        <circle cx="115" cy="30"  r="5"   fill="#ffd700" opacity=".75"/>
+        <circle cx="155" cy="51"  r="4.5" fill="#ffd700" opacity=".7"/>
+        <circle cx="78"  cy="51"  r="4.5" fill="#ffd700" opacity=".7"/>
+        <circle cx="68"  cy="95"  r="4"   fill="#ffd700" opacity=".65"/>
+
+        <!-- FORKING peers (outer ring, red) -->
+        <circle cx="55"  cy="30"  r="6"   fill="#ff4444" opacity=".85"/>
+        <circle cx="170" cy="35"  r="5.5" fill="#ff4444" opacity=".75"/>
+        <circle cx="46"  cy="135" r="5"   fill="#ff4444" opacity=".7"/>
+
+        <!-- spokes to forking peers -->
+        <line x1="115" y1="85" x2="55"  y2="30"  stroke="#ff4444" stroke-width="1" stroke-dasharray="3 3" opacity=".3"/>
+        <line x1="115" y1="85" x2="170" y2="35"  stroke="#ff4444" stroke-width="1" stroke-dasharray="3 3" opacity=".3"/>
+        <line x1="115" y1="85" x2="46"  y2="135" stroke="#ff4444" stroke-width="1" stroke-dasharray="3 3" opacity=".3"/>
+
+        <!-- legend -->
+        <circle cx="22" cy="162" r="3.5" fill="#00ffaa" opacity=".8"/>
+        <text x="28" y="165" fill="#5a7090" font-size="7">on-chain</text>
+        <circle cx="78" cy="162" r="3.5" fill="#ffd700"  opacity=".8"/>
+        <text x="84" y="165" fill="#5a7090" font-size="7">stale</text>
+        <circle cx="122" cy="162" r="3.5" fill="#ff4444" opacity=".8"/>
+        <text x="128" y="165" fill="#5a7090" font-size="7">forking</text>
+      </svg>
+    </div>
+    <div class="meta">
+      <h3>C — Peer Constellation</h3>
+      <p>Your node at center. Each peer orbits at a distance = how far their height deviates. Rings mark on-chain / stale / forking zones. Forking peers have visible spokes.</p>
+      <span class="tag tag-c">Most visual</span>
+    </div>
+  </div>
+
+</div>

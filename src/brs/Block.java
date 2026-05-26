@@ -534,7 +534,7 @@ public class Block {
     // Option 1: Move variables closer to when they're needed
     // Option 2: Make variables final, if possible
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistanceCheck")
-    static Block parseBlock(JsonObject blockData, int height)
+    public static Block parseBlock(JsonObject blockData, int height)
             throws SignumException.ValidationException {
         try {
             int version = JSON.getAsInt(blockData.get("version"));

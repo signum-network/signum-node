@@ -7,6 +7,7 @@ import { ForkPointModal } from './ForkPointModal'
 
 const SVG_W = 640
 const SVG_H = 200
+const AXIS_START_X = 30
 
 interface Props {
   forks: ForkEvent[]
@@ -40,8 +41,8 @@ export function BranchTimeline({ forks, myHeight, forkingPeerAddresses }: Props)
           style={{ display: 'block', minWidth: SVG_W }}
         >
           {/* main chain axis */}
-          <line x1={30} y1={axisY} x2={nowX} y2={axisY} stroke="var(--blue2)" strokeWidth={2} />
-          <circle cx={30} cy={axisY} r={3} fill="var(--blue2)" />
+          <line x1={AXIS_START_X} y1={axisY} x2={nowX} y2={axisY} stroke="var(--blue2)" strokeWidth={2} />
+          <circle cx={AXIS_START_X} cy={axisY} r={3} fill="var(--blue2)" />
           <circle cx={nowX} cy={axisY} r={3} fill="var(--blue2)" />
 
           {/* NOW label */}
@@ -106,7 +107,7 @@ export function BranchTimeline({ forks, myHeight, forkingPeerAddresses }: Props)
                 {arch.fork.peerSource && (
                   <text x={arch.rightX} y={axisY + 34} fill="var(--muted)" fontSize={6.5} textAnchor="middle" fontFamily="monospace">
                     {arch.fork.peerSource.length > 15
-                      ? `${arch.fork.peerSource.slice(0, 14)}…`
+                      ? `${arch.fork.peerSource.slice(0, 15)}…`
                       : arch.fork.peerSource}
                   </text>
                 )}

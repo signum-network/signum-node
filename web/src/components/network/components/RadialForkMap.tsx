@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import type { ForkEvent } from '@/lib/nodeApi'
 import { buildRadialLayout } from './radialForkMap.utils'
 import { ForkPointModal } from './ForkPointModal'
+import { ForkTooltip } from './ForkTooltip'
 
 const SVG_SIZE = 300
 const CX = 150
@@ -19,6 +20,7 @@ export function RadialForkMap({ forks, myHeight, forkingPeerAddresses }: Props) 
   const { t } = useTranslation()
   const [hovered, setHovered] = useState<number | null>(null)
   const [forkModalPeer, setForkModalPeer] = useState<string | null>(null)
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null)
 
   if (forks.length === 0) {
     return (
@@ -29,6 +31,7 @@ export function RadialForkMap({ forks, myHeight, forkingPeerAddresses }: Props) 
   }
 
   const { nodes } = buildRadialLayout(forks, CX, CY)
+  const hoveredNode = hovered !== null ? nodes[hovered] : null
 
   return (
     <>
@@ -62,8 +65,9 @@ export function RadialForkMap({ forks, myHeight, forkingPeerAddresses }: Props) 
               <g
                 key={i}
                 style={{ opacity, cursor: isClickable ? 'pointer' : 'default' }}
-                onMouseEnter={() => setHovered(i)}
-                onMouseLeave={() => setHovered(null)}
+                onMouseEnter={(e) => { setHovered(i); setTooltipPos({ x: e.clientX, y: e.clientY }) }}
+                onMouseMove={(e) => setTooltipPos({ x: e.clientX, y: e.clientY })}
+                onMouseLeave={() => { setHovered(null); setTooltipPos(null) }}
                 onClick={() => {
                   if (isClickable && node.fork.peerSource) setForkModalPeer(node.fork.peerSource)
                 }}
@@ -95,19 +99,6 @@ export function RadialForkMap({ forks, myHeight, forkingPeerAddresses }: Props) 
                 >
                   {`−${node.fork.rollbackDepth}`}
                 </text>
-                {/* height label offset away from center — shown on hover */}
-                {isHovered && (
-                  <text
-                    x={node.x + (node.x > CX ? node.nodeR + 4 : -(node.nodeR + 4))}
-                    y={node.y + 3}
-                    fill="var(--muted)"
-                    fontSize={7}
-                    textAnchor={node.x > CX ? 'start' : 'end'}
-                    fontFamily="monospace"
-                  >
-                    {node.fork.rollbackHeight.toLocaleString()}
-                  </text>
-                )}
               </g>
             )
           })}
@@ -117,6 +108,16 @@ export function RadialForkMap({ forks, myHeight, forkingPeerAddresses }: Props) 
           distance = rollback depth · angle = recency
         </p>
       </div>
+
+      {hoveredNode && tooltipPos && (
+        <ForkTooltip
+          fork={hoveredNode.fork}
+          isForking={hoveredNode.fork.peerSource != null && forkingPeerAddresses.has(hoveredNode.fork.peerSource)}
+          color={hoveredNode.color}
+          x={tooltipPos.x}
+          y={tooltipPos.y}
+        />
+      )}
 
       <AnimatePresence>
         {forkModalPeer && (

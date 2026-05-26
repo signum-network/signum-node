@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import type { ForkEvent } from '@/lib/nodeApi'
 import { buildBranchLayout } from './branchTimeline.utils'
 import { ForkPointModal } from './ForkPointModal'
+import { ForkTooltip } from './ForkTooltip'
 
 const SVG_H = 230
 const AXIS_START_X = 30
@@ -19,6 +20,7 @@ export function BranchTimeline({ forks, myHeight, forkingPeerAddresses }: Props)
   const { t } = useTranslation()
   const [hovered, setHovered] = useState<number | null>(null)
   const [forkModalPeer, setForkModalPeer] = useState<string | null>(null)
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [svgW, setSvgW] = useState(MIN_SVG_W)
 
@@ -43,6 +45,7 @@ export function BranchTimeline({ forks, myHeight, forkingPeerAddresses }: Props)
 
   const layout = buildBranchLayout(forks, myHeight, svgW)
   const { arches, axisY, nowX } = layout
+  const hoveredArch = hovered !== null ? arches[hovered] : null
 
   return (
     <>
@@ -76,8 +79,9 @@ export function BranchTimeline({ forks, myHeight, forkingPeerAddresses }: Props)
               <g
                 key={i}
                 style={{ opacity, cursor: isClickable ? 'pointer' : 'default' }}
-                onMouseEnter={() => setHovered(i)}
-                onMouseLeave={() => setHovered(null)}
+                onMouseEnter={(e) => { setHovered(i); setTooltipPos({ x: e.clientX, y: e.clientY }) }}
+                onMouseMove={(e) => setTooltipPos({ x: e.clientX, y: e.clientY })}
+                onMouseLeave={() => { setHovered(null); setTooltipPos(null) }}
                 onClick={() => {
                   if (isClickable && arch.fork.peerSource) setForkModalPeer(arch.fork.peerSource)
                 }}
@@ -145,6 +149,16 @@ export function BranchTimeline({ forks, myHeight, forkingPeerAddresses }: Props)
           })}
         </svg>
       </div>
+
+      {hoveredArch && tooltipPos && (
+        <ForkTooltip
+          fork={hoveredArch.fork}
+          isForking={hoveredArch.fork.peerSource != null && forkingPeerAddresses.has(hoveredArch.fork.peerSource)}
+          color={hoveredArch.color}
+          x={tooltipPos.x}
+          y={tooltipPos.y}
+        />
+      )}
 
       <AnimatePresence>
         {forkModalPeer && (

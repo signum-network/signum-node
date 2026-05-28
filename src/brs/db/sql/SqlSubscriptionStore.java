@@ -14,6 +14,7 @@ import org.jooq.Record;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.function.Consumer;
 
 import static brs.schema.Tables.SUBSCRIPTION;
@@ -129,14 +130,11 @@ public class SqlSubscriptionStore implements SubscriptionStore {
                         List<Subscription> batch = subscriptionList.subList(i, end);
 
                         // remove the latest flag for past entries
-                        txCtx.batched(c -> {
-                            for (Subscription s : batch) {
-                                c.dsl().update(SUBSCRIPTION)
-                                        .set(SUBSCRIPTION.LATEST, false)
-                                        .where(SUBSCRIPTION.ID.eq(s.id).and(SUBSCRIPTION.LATEST.isTrue()))
-                                        .execute();
-                            }
-                        });
+                        List<Long> ids = batch.stream().map(s -> s.id).collect(Collectors.toList());
+                        txCtx.update(SUBSCRIPTION)
+                                .set(SUBSCRIPTION.LATEST, false)
+                                .where(SUBSCRIPTION.ID.in(ids).and(SUBSCRIPTION.LATEST.isTrue()))
+                                .execute();
 
                         BatchBindStep insertBatch = txCtx.batch(
                                 txCtx.insertInto(SUBSCRIPTION, SUBSCRIPTION.ID, SUBSCRIPTION.SENDER_ID,

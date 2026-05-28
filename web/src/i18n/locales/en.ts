@@ -25,6 +25,8 @@ export interface Locale {
     commitmentBoost: string; cumulDifficulty: string
     peerVersionDist: string; outdatedCount: string; noPeerDataYet: string
     versionCurrent: string; versionOutdated: string; versionForkRisk: string
+    ecosystem: string; accounts: string; trades: string; transfers: string
+    aliases: string; subscriptions: string
   }
   network: {
     chainConsensus: string; peers: string; forkHistory: string; blacklistRecommendations: string
@@ -133,6 +135,12 @@ const en: Locale = {
     versionCurrent: 'current',
     versionOutdated: 'outdated',
     versionForkRisk: 'fork risk',
+    ecosystem: 'Ecosystem',
+    accounts: 'Accounts',
+    trades: 'Trades',
+    transfers: 'Transfers',
+    aliases: 'Aliases',
+    subscriptions: 'Subscriptions',
   },
   network: {
     chainConsensus: 'Chain Consensus',

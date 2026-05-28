@@ -83,6 +83,12 @@ const ko: Locale = {
     versionCurrent: '최신',
     versionOutdated: '구버전',
     versionForkRisk: '포크 위험',
+    ecosystem: '생태계',
+    accounts: '계정',
+    trades: '거래',
+    transfers: '전송',
+    aliases: '별칭',
+    subscriptions: '구독',
   },
   network: {
     chainConsensus: '체인 합의',

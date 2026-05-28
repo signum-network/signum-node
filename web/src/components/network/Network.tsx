@@ -38,6 +38,10 @@ export function Network() {
         </div>
 
         <div className="grid grid-cols-1 gap-3 md:gap-4">
+          <ForkHistory />
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 md:gap-4">
           <PeerTable />
         </div>
 
@@ -45,11 +49,7 @@ export function Network() {
           <BlacklistPanel />
         </div>
 
-        <SectionDivider label={t('network.sectionYourNode')} />
 
-        <div className="grid grid-cols-1 gap-3 md:gap-4">
-          <ForkHistory />
-        </div>
       </div>
     </PageWrapper>
   )

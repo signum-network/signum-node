@@ -83,6 +83,12 @@ const hi: Locale = {
     versionCurrent: 'वर्तमान',
     versionOutdated: 'पुराना',
     versionForkRisk: 'फोर्क जोखिम',
+    ecosystem: 'पारिस्थितिकी तंत्र',
+    accounts: 'खाते',
+    trades: 'व्यापार',
+    transfers: 'हस्तांतरण',
+    aliases: 'उपनाम',
+    subscriptions: 'सदस्यताएँ',
   },
   network: {
     chainConsensus: 'चेन सहमति',

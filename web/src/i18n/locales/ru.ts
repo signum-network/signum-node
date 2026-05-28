@@ -83,6 +83,12 @@ const ru: Locale = {
     versionCurrent: 'актуально',
     versionOutdated: 'устарело',
     versionForkRisk: 'риск форка',
+    ecosystem: 'Экосистема',
+    accounts: 'Аккаунты',
+    trades: 'Сделки',
+    transfers: 'Переводы',
+    aliases: 'Псевдонимы',
+    subscriptions: 'Подписки',
   },
   network: {
     chainConsensus: 'Консенсус цепи',

@@ -83,6 +83,12 @@ const uk: Locale = {
     versionCurrent: 'актуальна',
     versionOutdated: 'застаріла',
     versionForkRisk: 'ризик форку',
+    ecosystem: 'Екосистема',
+    accounts: 'Акаунти',
+    trades: 'Угоди',
+    transfers: 'Перекази',
+    aliases: 'Псевдоніми',
+    subscriptions: 'Підписки',
   },
   network: {
     chainConsensus: 'Консенсус ланцюга',

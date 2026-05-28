@@ -83,6 +83,12 @@ const zh: Locale = {
     versionCurrent: '最新',
     versionOutdated: '过时',
     versionForkRisk: '分叉风险',
+    ecosystem: '生态系统',
+    accounts: '账户',
+    trades: '交易',
+    transfers: '转账',
+    aliases: '别名',
+    subscriptions: '订阅',
   },
   network: {
     chainConsensus: '链共识',

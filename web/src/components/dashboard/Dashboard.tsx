@@ -16,6 +16,7 @@ import { CumulativeDifficultyCard } from './components/CumulativeDifficultyCard'
 import { PeerVersionCard } from './components/PeerVersionCard'
 import { ChainActivityRow } from './components/ChainActivityRow'
 import { NodeHealthStrip } from './components/NodeHealthStrip'
+import { EcosystemStrip } from './components/EcosystemStrip'
 
 
 function SectionHeading({ label }: { label: string }) {
@@ -70,6 +71,9 @@ export function Dashboard() {
         <div className="grid grid-cols-2 gap-3 md:gap-4 xl:grid-cols-4">
           <ChainActivityRow fullStatus={fullStatus} isLoading={fullStatusLoading} />
         </div>
+
+        <SectionHeading label={t('dashboard.ecosystem')} />
+        <EcosystemStrip fullStatus={fullStatus} isLoading={fullStatusLoading} />
 
         <SectionHeading label={t('dashboard.network')} />
         <div className="grid grid-cols-2 gap-3 md:gap-4 xl:grid-cols-4">

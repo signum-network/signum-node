@@ -83,6 +83,12 @@ const ja: Locale = {
     versionCurrent: '最新',
     versionOutdated: '古い',
     versionForkRisk: 'フォークリスク',
+    ecosystem: 'エコシステム',
+    accounts: 'アカウント',
+    trades: '取引',
+    transfers: '転送',
+    aliases: 'エイリアス',
+    subscriptions: 'サブスクリプション',
   },
   network: {
     chainConsensus: 'チェーンコンセンサス',

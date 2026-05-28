@@ -83,6 +83,12 @@ const es: Locale = {
     versionCurrent: 'actual',
     versionOutdated: 'desactualizado',
     versionForkRisk: 'riesgo de fork',
+    ecosystem: 'Ecosistema',
+    accounts: 'Cuentas',
+    trades: 'Operaciones',
+    transfers: 'Transferencias',
+    aliases: 'Alias',
+    subscriptions: 'Suscripciones',
   },
   network: {
     chainConsensus: 'Consenso de cadena',

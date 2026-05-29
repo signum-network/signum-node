@@ -119,7 +119,7 @@ public class SqlSubscriptionStore implements SubscriptionStore {
     @Override
     public void saveSubscriptions(Collection<Subscription> subscriptions) {
         if (!subscriptions.isEmpty()) {
-            Db.useDSLContext((Consumer<DSLContext>) ctx -> {
+            Db.useDSLContext(ctx -> {
                 List<Subscription> subscriptionList = new ArrayList<>(subscriptions);
                 int totalSize = subscriptionList.size();
 

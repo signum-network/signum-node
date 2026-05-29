@@ -9,7 +9,6 @@ import brs.props.PropertyService;
 import brs.props.Props;
 import org.jooq.Cursor;
 import brs.schema.tables.records.TransactionRecord;
-import org.jooq.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -148,38 +147,8 @@ public final class ATProcessorCache {
         lastLoadedBlockHeight = currentBlockHeight;
     }
 
-    private void loadTransactionsPerATs() {
-        logger.debug("Loading tx for lo: {}, hi: {}, amount: {}, no ATs: {}", startBlockHeight, currentBlockHeight,
-                minimumActivationAmount, getAtMap().size());
-        Db.useDSLContext(ctx -> {
-            try (Cursor<TransactionRecord> cursor = ctx.selectFrom(TRANSACTION)
-                    .where(TRANSACTION.HEIGHT.between(startBlockHeight, currentBlockHeight))
-                    .and(TRANSACTION.RECIPIENT_ID.in(getCurrentBlockAtIds()))
-                    .and(TRANSACTION.AMOUNT.greaterOrEqual(minimumActivationAmount))
-                    .orderBy(TRANSACTION.HEIGHT, TRANSACTION.ID)
-                    .fetchLazy()) {
-
-                TransactionDb db = Db.getDbsByDatabaseType().getTransactionDb();
-                for (TransactionRecord r : cursor) {
-                    try {
-                        ATContext context = this.atMap.get(r.getRecipientId());
-                        if (context != null) {
-                            context.transactions.add(db.loadTransaction(r));
-                        }
-                    } catch (SignumException.ValidationException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            }
-            return null;
-        });
-    }
-
     private void loadTransactionsFromHeightUntilCurrentBlock(int startHeight, boolean shallRemoveOldest) {
         logger.debug("Loading AT transactions for heights from {} to {}", startHeight, currentBlockHeight - 1);
-
-        // Csak a valódi AT-k ID-it kérjük le a szűréshez
-        Set<Long> atIds = new HashSet<>(Signum.getStores().getAtStore().getAllATIds(null));
 
         HashSet<Long> processedRecipients = new HashSet<>();
 
@@ -195,15 +164,16 @@ public final class ATProcessorCache {
                 for (TransactionRecord r : cursor) {
                     Long recipientId = r.getRecipientId();
 
-                    // Csak akkor dolgozzuk fel, ha ez egy AT címe
-                    if (!atIds.contains(recipientId)) {
+                    // Only collect transactions for ATs already in the cache (O(1) lookup)
+                    ATContext context = this.atMap.get(recipientId);
+                    if (context == null) {
                         continue;
                     }
 
-                    ATContext context = this.atMap.computeIfAbsent(recipientId, k -> new ATContext());
+                    processedRecipients.add(recipientId);
                     long txId = r.getId();
 
-                    // Duplikáció ellenőrzés optimalizálása (stream helyett ciklus)
+                    // Optimization for duplication check (loop instead of stream)
                     boolean alreadyExists = false;
                     for (Transaction t : context.transactions) {
                         if (t.getId() == txId) {
@@ -215,7 +185,6 @@ public final class ATProcessorCache {
                     if (!alreadyExists) {
                         try {
                             context.transactions.add(db.loadTransaction(r));
-                            processedRecipients.add(recipientId);
                         } catch (SignumException.ValidationException e) {
                             throw new RuntimeException(e);
                         }
@@ -226,7 +195,6 @@ public final class ATProcessorCache {
                     processedRecipients.forEach(this::pruneTransactionList);
                 }
             }
-            return null;
         });
     }
 

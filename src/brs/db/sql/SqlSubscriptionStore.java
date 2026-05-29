@@ -14,8 +14,8 @@ import org.jooq.Record;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static brs.schema.Tables.SUBSCRIPTION;
 
@@ -120,37 +120,34 @@ public class SqlSubscriptionStore implements SubscriptionStore {
     public void saveSubscriptions(Collection<Subscription> subscriptions) {
         if (!subscriptions.isEmpty()) {
             Db.useDSLContext((Consumer<DSLContext>) ctx -> {
-                ctx.transaction(config -> {
-                    DSLContext txCtx = config.dsl();
-                    List<Subscription> subscriptionList = new ArrayList<>(subscriptions);
-                    int totalSize = subscriptionList.size();
+                List<Subscription> subscriptionList = new ArrayList<>(subscriptions);
+                int totalSize = subscriptionList.size();
 
-                    for (int i = 0; i < totalSize; i += InsertMaxBatchSize) {
-                        int end = Math.min(i + InsertMaxBatchSize, totalSize);
-                        List<Subscription> batch = subscriptionList.subList(i, end);
+                for (int i = 0; i < totalSize; i += InsertMaxBatchSize) {
+                    int end = Math.min(i + InsertMaxBatchSize, totalSize);
+                    List<Subscription> batch = subscriptionList.subList(i, end);
 
-                        // remove the latest flag for past entries
-                        List<Long> ids = batch.stream().map(s -> s.id).collect(Collectors.toList());
-                        txCtx.update(SUBSCRIPTION)
-                                .set(SUBSCRIPTION.LATEST, false)
-                                .where(SUBSCRIPTION.ID.in(ids).and(SUBSCRIPTION.LATEST.isTrue()))
-                                .execute();
+                    // remove the latest flag for past entries
+                    List<Long> ids = batch.stream().map(s -> s.id).collect(Collectors.toList());
+                    ctx.update(SUBSCRIPTION)
+                            .set(SUBSCRIPTION.LATEST, false)
+                            .where(SUBSCRIPTION.ID.in(ids).and(SUBSCRIPTION.LATEST.isTrue()))
+                            .execute();
 
-                        BatchBindStep insertBatch = txCtx.batch(
-                                txCtx.insertInto(SUBSCRIPTION, SUBSCRIPTION.ID, SUBSCRIPTION.SENDER_ID,
-                                        SUBSCRIPTION.RECIPIENT_ID,
-                                        SUBSCRIPTION.AMOUNT, SUBSCRIPTION.FREQUENCY, SUBSCRIPTION.TIME_NEXT,
-                                        SUBSCRIPTION.HEIGHT, SUBSCRIPTION.LATEST)
-                                        .values((Long) null, null, null, null, null, null, null, null));
-                        for (Subscription subscription : batch) {
-                            insertBatch.bind(
-                                    subscription.id, subscription.senderId, subscription.recipientId,
-                                    subscription.amountNQT, subscription.frequency,
-                                    subscription.getTimeNext(), Signum.getBlockchain().getHeight(), true);
-                        }
-                        insertBatch.execute();
+                    BatchBindStep insertBatch = ctx.batch(
+                            ctx.insertInto(SUBSCRIPTION, SUBSCRIPTION.ID, SUBSCRIPTION.SENDER_ID,
+                                    SUBSCRIPTION.RECIPIENT_ID,
+                                    SUBSCRIPTION.AMOUNT, SUBSCRIPTION.FREQUENCY, SUBSCRIPTION.TIME_NEXT,
+                                    SUBSCRIPTION.HEIGHT, SUBSCRIPTION.LATEST)
+                                    .values((Long) null, null, null, null, null, null, null, null));
+                    for (Subscription subscription : batch) {
+                        insertBatch.bind(
+                                subscription.id, subscription.senderId, subscription.recipientId,
+                                subscription.amountNQT, subscription.frequency,
+                                subscription.getTimeNext(), Signum.getBlockchain().getHeight(), true);
                     }
-                });
+                    insertBatch.execute();
+                }
             });
         }
     }

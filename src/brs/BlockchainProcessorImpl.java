@@ -755,7 +755,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                     block.setHeight(height);
                                     block.setPeer(peer);
                                     block.setByteLength(JSON.toJsonString(blockData).length());
-                                    blockService.calculateBaseTarget(block, lastBlock);
+                                    synchronized (transactionProcessor.getUnconfirmedTransactionsSyncObj()) {
+                                        blockService.calculateBaseTarget(block, lastBlock);
+                                    }
                                     if (saveInCache) {
                                         if (downloadCache.getLastBlockId() == block.getPreviousBlockId()) {
                                             // ↑ still maps back? we might have got announced/forged blocks

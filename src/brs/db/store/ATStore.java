@@ -25,6 +25,8 @@ public interface ATStore {
 
   Collection<Long> getAllATIds(Long codeHashId);
 
+  int getATCount();
+
   SignumKey.LongKeyFactory<AT> getAtDbKeyFactory();
 
   VersionedEntityTable<AT> getAtTable();

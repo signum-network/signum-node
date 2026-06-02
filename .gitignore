@@ -35,9 +35,10 @@ target
 launch.json
 *.pem
 *.p12
-*.log.lck
+*.log.*
 
 result
 
 # Visual brainstorming sessions
-.superpowers/
+/.superpowers/*
+/docs/superpowers/*

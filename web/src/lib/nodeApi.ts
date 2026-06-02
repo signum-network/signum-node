@@ -87,6 +87,7 @@ export interface FullBlockchainStatus {
   "totalBurntNQT": number,
   "circulatingSupplyNQT": number,
   "numberOfBlocks": number,
+  "numberOfAccounts": number,
   "numberOfTransactions": number,
   "numberOfATs": number,
   "numberOfAssets": number,

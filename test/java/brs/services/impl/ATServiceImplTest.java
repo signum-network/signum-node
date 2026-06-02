@@ -50,6 +50,12 @@ public class ATServiceImplTest {
   }
 
   @Test
+  public void getATCount() {
+    when(mockATStore.getATCount()).thenReturn(42);
+    assertEquals(42, t.getATCount());
+  }
+
+  @Test
   public void getAT() {
     final long atId = 123L;
 

@@ -21,6 +21,11 @@ public class ATServiceImpl implements ATService {
   }
 
   @Override
+  public int getATCount() {
+    return atStore.getATCount();
+  }
+
+  @Override
   public CollectionWithIndex<Long> getATsIssuedBy(Long accountId, Long codeHashId, int from, int to) {
     return new CollectionWithIndex<Long>(atStore.getATsIssuedBy(accountId, codeHashId, from, to), from, to);
   }

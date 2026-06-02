@@ -42,12 +42,11 @@ function MetricCard({ label, value, sub, color, glow, isLoading, signa, formatte
 
 interface MetricGridProps {
   peerCount: number
-  pendingTxCount: number
   mining?: MiningInfo
   isLoading: boolean
 }
 
-export function MetricGrid({ peerCount, pendingTxCount, mining, isLoading }: MetricGridProps) {
+export function MetricGrid({ peerCount, mining, isLoading }: MetricGridProps) {
   const { t } = useTranslation()
   const avgCommitment = mining ? Number(fmtSigna(mining.averageCommitmentNQT)) : 0
 
@@ -59,14 +58,6 @@ export function MetricGrid({ peerCount, pendingTxCount, mining, isLoading }: Met
         sub={t('dashboard.activeConnections')}
         color="var(--green)"
         glow="var(--glow-g)"
-        isLoading={isLoading}
-      />
-      <MetricCard
-        label={t('dashboard.pendingTxs')}
-        value={pendingTxCount}
-        sub={t('dashboard.unconfirmedInMempool')}
-        color="var(--mag)"
-        glow="var(--glow-m)"
         isLoading={isLoading}
       />
       <MetricCard

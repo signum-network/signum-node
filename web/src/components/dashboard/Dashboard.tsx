@@ -5,7 +5,6 @@ import {
   useMiningInfo,
   usePeers,
   usePeerDetails,
-  useUnconfirmedTxCount,
 } from '@/hooks/useNodeQuery'
 import { categorizeVersion } from '@/lib/utils'
 import { sfx, useAudio } from '@/audio'
@@ -37,8 +36,6 @@ export function Dashboard() {
   const { data: fullStatus, isLoading: fullStatusLoading } = useFullBlockchainStatus()
   const { data: mining, isLoading: miningLoading } = useMiningInfo()
   const { data: peers } = usePeers()
-  const txCount = useUnconfirmedTxCount()
-
   const peerAddresses = peers?.peers ?? []
   const peerDetails = usePeerDetails(peerAddresses)
   const resolvedPeers = peerDetails.filter((q) => q.data).map((q) => q.data!)
@@ -79,7 +76,6 @@ export function Dashboard() {
         <div className="grid grid-cols-2 gap-3 md:gap-4 xl:grid-cols-4">
           <MetricGrid
             peerCount={peerAddresses.length}
-            pendingTxCount={txCount.data ?? 0}
             mining={mining}
             isLoading={isLoading}
           />

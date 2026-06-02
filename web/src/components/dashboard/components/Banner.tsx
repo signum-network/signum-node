@@ -7,7 +7,7 @@ import { AnimatedNumber } from '@/components/ui/AnimatedNumber'
 import { fmt, fmtDuration } from '@/lib/utils'
 import type { FullBlockchainStatus, MiningInfo } from '@/lib/nodeApi'
 import { useNodeSocket } from '@/hooks/useNodeSocket'
-import { useRecentBlocks } from '@/hooks/useNodeQuery'
+import { useRecentBlocks, useUnconfirmedTxCount } from '@/hooks/useNodeQuery'
 import { Sparkline } from '@/components/ui/Sparkline'
 
 interface BannerProps {
@@ -19,6 +19,7 @@ interface BannerProps {
 function BannerLeft({ status, isLoading }: { status?: FullBlockchainStatus; isLoading: boolean }) {
   const { t } = useTranslation()
   const { latestBlock } = useNodeSocket()
+  const pendingTxCount = useUnconfirmedTxCount()
   const height = latestBlock?.localHeight ?? (status ? status.numberOfBlocks - 1 : 0)
   const isSyncing = latestBlock
     ? latestBlock.progress < 1
@@ -28,19 +29,40 @@ function BannerLeft({ status, isLoading }: { status?: FullBlockchainStatus; isLo
 
   return (
     <div className="flex flex-col justify-center gap-3 px-7 py-7 md:px-9">
-      <CardLabel className="mb-0">{t('dashboard.currentBlockHeight')}</CardLabel>
-      {isLoading ? (
-        <div className="h-12 w-44">
-          <CardSkeleton />
+      <div className="flex items-start gap-6">
+        <div className="flex flex-col gap-3">
+          <CardLabel className="mb-0">{t('dashboard.currentBlockHeight')}</CardLabel>
+          {isLoading ? (
+            <div className="h-12 w-44">
+              <CardSkeleton />
+            </div>
+          ) : (
+            <div
+              className="tabular-nums text-[36px] font-bold leading-none tracking-[-1px] md:text-[44px] md:tracking-[-2px]"
+              style={{ fontFamily: 'var(--font-display)', color: 'var(--blue2)', textShadow: 'var(--glow-b)' }}
+            >
+              <AnimatedNumber value={height} formatter={fmt} />
+            </div>
+          )}
         </div>
-      ) : (
         <div
-          className="tabular-nums text-[36px] font-bold leading-none tracking-[-1px] md:text-[44px] md:tracking-[-2px]"
-          style={{ fontFamily: 'var(--font-display)', color: 'var(--blue2)', textShadow: 'var(--glow-b)' }}
+          className="flex flex-col gap-1 rounded px-3 py-2"
+          style={{ background: 'var(--surface-tint)', border: '1px solid var(--border)' }}
         >
-          <AnimatedNumber value={height} formatter={fmt} />
+          <CardLabel className="mb-0">{t('dashboard.pendingTxs')}</CardLabel>
+          {isLoading ? (
+            <div className="h-7 w-12"><CardSkeleton /></div>
+          ) : (
+            <div
+              className="tabular-nums text-[22px] font-bold leading-none"
+              style={{ fontFamily: 'var(--font-display)', color: 'var(--mag)', textShadow: 'var(--glow-m)' }}
+            >
+              <AnimatedNumber value={pendingTxCount.data ?? 0} formatter={fmt} />
+            </div>
+          )}
+          <CardSub>{t('dashboard.unconfirmedInMempool')}</CardSub>
         </div>
-      )}
+      </div>
       <div className="flex flex-wrap gap-2">
         <Pill variant={isSyncing ? 'amber' : 'green'} dot={isSyncing ? 'warn' : 'ok'}>
           {isSyncing ? t('dashboard.syncing') : t('dashboard.synced')}

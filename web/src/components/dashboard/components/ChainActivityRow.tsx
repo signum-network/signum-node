@@ -41,7 +41,6 @@ interface ChainActivityRowProps {
 
 export function ChainActivityRow({ fullStatus, isLoading }: ChainActivityRowProps) {
   const { t } = useTranslation()
-  const liveOrders = (fullStatus?.numberOfAskOrders ?? 0) + (fullStatus?.numberOfBidOrders ?? 0)
 
   return (
     <>
@@ -54,27 +53,19 @@ export function ChainActivityRow({ fullStatus, isLoading }: ChainActivityRowProp
         isLoading={isLoading}
       />
       <ChainMetricCard
-        label={t('dashboard.smartContracts')}
-        value={fullStatus?.numberOfATs ?? 0}
-        sub={t('dashboard.atsDeployed')}
+        label={t('dashboard.accounts')}
+        value={fullStatus?.numberOfAccounts ?? 0}
+        sub={t('dashboard.registeredOnChain')}
         color="var(--blue2)"
         glow="var(--glow-b)"
         isLoading={isLoading}
       />
       <ChainMetricCard
-        label={t('dashboard.digitalAssets')}
-        value={fullStatus?.numberOfAssets ?? 0}
-        sub={t('dashboard.tokensIssued')}
-        color="var(--green)"
-        glow="var(--glow-g)"
-        isLoading={isLoading}
-      />
-      <ChainMetricCard
-        label={t('dashboard.liveDexOrders')}
-        value={liveOrders}
-        sub={t('dashboard.askBid', { ask: fullStatus?.numberOfAskOrders ?? 0, bid: fullStatus?.numberOfBidOrders ?? 0 })}
-        color="var(--mag)"
-        glow="var(--glow-m)"
+        label={t('dashboard.smartContracts')}
+        value={fullStatus?.numberOfATs ?? 0}
+        sub={t('dashboard.atsDeployed')}
+        color="var(--blue2)"
+        glow="var(--glow-b)"
         isLoading={isLoading}
       />
     </>

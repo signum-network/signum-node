@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import type { ForkEvent } from '@/lib/nodeApi'
 
@@ -40,7 +41,7 @@ export function ForkTooltip({ fork, isForking, color, x, y }: Props) {
 
   const depth = fork.rollbackDepth
 
-  return (
+  return createPortal(
     <div
       ref={ref}
       className="pointer-events-none fixed z-50 p-3 text-[10px] leading-relaxed"
@@ -84,6 +85,7 @@ export function ForkTooltip({ fork, isForking, color, x, y }: Props) {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

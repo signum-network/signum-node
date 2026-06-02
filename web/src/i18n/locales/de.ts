@@ -57,6 +57,7 @@ const de: Locale = {
     signaRemovedFromSupply: 'SIGNA aus dem Umlauf entfernt',
     allTimeTransactions: 'Transaktionen gesamt',
     confirmedOnChain: 'on-chain bestätigt',
+    avgTxPerBlock: 'Avg TX / Block',
     smartContracts: 'Smart Contracts',
     atsDeployed: 'ATs deployed',
     digitalAssets: 'Digitale Assets',

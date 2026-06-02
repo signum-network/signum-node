@@ -57,6 +57,7 @@ const ko: Locale = {
     signaRemovedFromSupply: '공급에서 제거된 SIGNA',
     allTimeTransactions: '누적 트랜잭션 수',
     confirmedOnChain: '체인에서 확인됨',
+    avgTxPerBlock: 'Avg TX / Block',
     smartContracts: '스마트 컨트랙트',
     atsDeployed: 'AT 배포됨',
     digitalAssets: '디지털 자산',

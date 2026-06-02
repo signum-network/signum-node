@@ -57,6 +57,7 @@ const ru: Locale = {
     signaRemovedFromSupply: 'SIGNA изъято из обращения',
     allTimeTransactions: 'Всего транзакций',
     confirmedOnChain: 'подтверждено в сети',
+    avgTxPerBlock: 'Avg TX / Block',
     smartContracts: 'Умные контракты',
     atsDeployed: 'AT развёрнуто',
     digitalAssets: 'Цифровые активы',

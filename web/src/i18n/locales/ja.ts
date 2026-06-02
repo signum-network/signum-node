@@ -57,6 +57,7 @@ const ja: Locale = {
     signaRemovedFromSupply: '供給から除去された SIGNA',
     allTimeTransactions: '累計トランザクション数',
     confirmedOnChain: 'チェーン上で確認済み',
+    avgTxPerBlock: 'Avg TX / Block',
     smartContracts: 'スマートコントラクト',
     atsDeployed: 'AT デプロイ済み',
     digitalAssets: 'デジタル資産',

@@ -38,10 +38,11 @@ export interface MiningInfo {
 export interface BlockSummary {
   block: string
   height: number
-  timestamp: number   // Signum epoch seconds
-  blockReward: string // SIGNA integer
-  totalFeeNQT: string // NQT
+  timestamp: number         // Signum epoch seconds
+  blockReward: string       // SIGNA integer
+  totalFeeNQT: string       // NQT
   baseTarget: string
+  numberOfTransactions: number
 }
 
 export interface BlocksResponse {

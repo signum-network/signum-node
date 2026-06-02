@@ -57,6 +57,7 @@ const pt: Locale = {
     signaRemovedFromSupply: 'SIGNA removido do fornecimento',
     allTimeTransactions: 'Transações totais',
     confirmedOnChain: 'confirmadas na cadeia',
+    avgTxPerBlock: 'Avg TX / Block',
     smartContracts: 'Contratos inteligentes',
     atsDeployed: 'ATs implantados',
     digitalAssets: 'Ativos digitais',

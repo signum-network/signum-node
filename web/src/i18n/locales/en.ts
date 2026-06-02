@@ -16,6 +16,7 @@ export interface Locale {
     signaInCirculation: string; feederPeer: string; feederAt: string
     totalBurned: string; signaRemovedFromSupply: string
     allTimeTransactions: string; confirmedOnChain: string
+    avgTxPerBlock: string
     smartContracts: string; atsDeployed: string; digitalAssets: string
     tokensIssued: string; liveDexOrders: string; askBid: string
     peersConnected: string; activeConnections: string; pendingTxs: string
@@ -110,6 +111,7 @@ const en: Locale = {
     signaRemovedFromSupply: 'SIGNA removed from supply',
     allTimeTransactions: 'All-time Transactions',
     confirmedOnChain: 'confirmed on-chain',
+    avgTxPerBlock: 'Avg TX / Block',
     smartContracts: 'Smart Contracts',
     atsDeployed: 'ATs deployed',
     digitalAssets: 'Digital Assets',

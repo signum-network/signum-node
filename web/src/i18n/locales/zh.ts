@@ -57,6 +57,7 @@ const zh: Locale = {
     signaRemovedFromSupply: '从供应中移除的 SIGNA',
     allTimeTransactions: '历史总交易数',
     confirmedOnChain: '链上已确认',
+    avgTxPerBlock: 'Avg TX / Block',
     smartContracts: '智能合约',
     atsDeployed: '已部署 AT',
     digitalAssets: '数字资产',

@@ -57,6 +57,7 @@ const uk: Locale = {
     signaRemovedFromSupply: 'SIGNA вилучено з обігу',
     allTimeTransactions: 'Всього транзакцій',
     confirmedOnChain: 'підтверджено в мережі',
+    avgTxPerBlock: 'Avg TX / Block',
     smartContracts: 'Смарт-контракти',
     atsDeployed: 'AT розгорнуто',
     digitalAssets: 'Цифрові активи',

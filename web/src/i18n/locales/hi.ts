@@ -57,6 +57,7 @@ const hi: Locale = {
     signaRemovedFromSupply: 'आपूर्ति से हटाया SIGNA',
     allTimeTransactions: 'कुल लेनदेन',
     confirmedOnChain: 'चेन पर पुष्टि',
+    avgTxPerBlock: 'Avg TX / Block',
     smartContracts: 'स्मार्ट अनुबंध',
     atsDeployed: 'AT तैनात',
     digitalAssets: 'डिजिटल संपत्ति',

@@ -75,6 +75,9 @@ function BannerCenter({
   const avgBlockTimeSec = blocks.length >= 2
     ? (blocks[0].timestamp - blocks[blocks.length - 1].timestamp) / (blocks.length - 1)
     : null
+  const avgTxPerBlock = blocks.length > 0
+    ? blocks.reduce((sum, b) => sum + b.numberOfTransactions, 0) / blocks.length
+    : null
 
   const intervalSlice = blocks.slice(0, 31)
   const blockIntervals = intervalSlice.length >= 2
@@ -109,7 +112,7 @@ function BannerCenter({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <div>
           <CardLabel>{t('dashboard.avgBlockTime')}</CardLabel>
           <div className="flex items-end gap-3">
@@ -122,6 +125,16 @@ function BannerCenter({
             {blockIntervals.length > 0 && (
               <Sparkline data={blockIntervals} height={24} color="var(--gold)" className="flex-1" />
             )}
+          </div>
+          <CardSub>{t('dashboard.lastNBlocks', { count: blocks.length })}</CardSub>
+        </div>
+        <div>
+          <CardLabel>{t('dashboard.avgTxPerBlock')}</CardLabel>
+          <div
+            className="tabular-nums text-[18px] leading-none md:text-[20px]"
+            style={{ fontFamily: 'var(--font-display)', color: 'var(--gold)' }}
+          >
+            {avgTxPerBlock !== null ? avgTxPerBlock.toFixed(1) : '—'}
           </div>
           <CardSub>{t('dashboard.lastNBlocks', { count: blocks.length })}</CardSub>
         </div>

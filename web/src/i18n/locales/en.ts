@@ -8,7 +8,7 @@ export interface Locale {
   }
   status: { onChain: string; stale: string; forking: string; blacklisted: string }
   dashboard: {
-    chainActivity: string; network: string; nodeHealth: string
+    chainOverview: string; network: string; nodeHealth: string
     currentBlockHeight: string; syncing: string; synced: string
     syncProgress: string; localHeight: string; globalHeight: string
     avgBlockTime: string; lastNBlocks: string; minerReward: string
@@ -25,8 +25,9 @@ export interface Locale {
     commitmentBoost: string; cumulDifficulty: string
     peerVersionDist: string; outdatedCount: string; noPeerDataYet: string
     versionCurrent: string; versionOutdated: string; versionForkRisk: string
-    ecosystem: string; accounts: string; trades: string; transfers: string
+    accounts: string; registeredOnChain: string; trades: string; transfers: string
     aliases: string; subscriptions: string
+    assetExchange: string; tradesExecuted: string; tokenMovements: string
   }
   network: {
     chainConsensus: string; peers: string; forkHistory: string; blacklistRecommendations: string
@@ -87,7 +88,7 @@ const en: Locale = {
     blacklisted: 'blacklisted',
   },
   dashboard: {
-    chainActivity: 'Chain Activity',
+    chainOverview: 'Chain Overview',
     network: 'Network',
     nodeHealth: 'Node Health',
     currentBlockHeight: 'Current Block Height',
@@ -135,12 +136,15 @@ const en: Locale = {
     versionCurrent: 'current',
     versionOutdated: 'outdated',
     versionForkRisk: 'fork risk',
-    ecosystem: 'Ecosystem',
     accounts: 'Accounts',
+    registeredOnChain: 'registered on-chain',
     trades: 'Trades',
     transfers: 'Transfers',
     aliases: 'Aliases',
     subscriptions: 'Subscriptions',
+    assetExchange: 'Asset Exchange',
+    tradesExecuted: 'trades executed',
+    tokenMovements: 'token movements',
   },
   network: {
     chainConsensus: 'Chain Consensus',

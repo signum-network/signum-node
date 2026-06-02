@@ -38,3 +38,6 @@ launch.json
 *.log.lck
 
 result
+
+# Visual brainstorming sessions
+.superpowers/

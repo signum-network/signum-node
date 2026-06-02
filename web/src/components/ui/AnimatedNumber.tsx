@@ -15,23 +15,16 @@ export function AnimatedNumber({
   className,
 }: AnimatedNumberProps) {
   const ref = useRef<HTMLSpanElement>(null)
-  const prevRef = useRef(value)
+  const isFirst = useRef(true)
 
   useEffect(() => {
-    const from = prevRef.current
-    prevRef.current = value
-
-    const controls = animate(from, value, {
-      duration: 0.7,
-      ease: 'easeOut',
-      onUpdate(latest) {
-        if (ref.current) {
-          ref.current.textContent = formatter(latest)
-        }
-      },
-    })
-    return controls.stop
-  }, [value, formatter])
+    if (isFirst.current) {
+      isFirst.current = false
+      return
+    }
+    if (!ref.current) return
+    animate(ref.current, { opacity: [0.2, 1], y: [5, 0] }, { duration: 0.35, ease: 'easeOut' })
+  }, [value])
 
   return (
     <span ref={ref} className={className}>

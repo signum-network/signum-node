@@ -15,8 +15,8 @@ import { MetricGrid } from './components/MetricGrid'
 import { CumulativeDifficultyCard } from './components/CumulativeDifficultyCard'
 import { PeerVersionCard } from './components/PeerVersionCard'
 import { ChainActivityRow } from './components/ChainActivityRow'
+import { ChainSecondaryRow } from './components/ChainSecondaryRow'
 import { NodeHealthStrip } from './components/NodeHealthStrip'
-import { EcosystemStrip } from './components/EcosystemStrip'
 
 
 function SectionHeading({ label }: { label: string }) {
@@ -67,13 +67,13 @@ export function Dashboard() {
 
         <Banner status={fullStatus} mining={mining} isLoading={isLoading} />
 
-        <SectionHeading label={t('dashboard.chainActivity')} />
-        <div className="grid grid-cols-2 gap-3 md:gap-4 xl:grid-cols-4">
+        <SectionHeading label={t('dashboard.chainOverview')} />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 md:gap-4">
           <ChainActivityRow fullStatus={fullStatus} isLoading={fullStatusLoading} />
         </div>
-
-        <SectionHeading label={t('dashboard.ecosystem')} />
-        <EcosystemStrip fullStatus={fullStatus} isLoading={fullStatusLoading} />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 md:gap-4">
+          <ChainSecondaryRow fullStatus={fullStatus} isLoading={fullStatusLoading} />
+        </div>
 
         <SectionHeading label={t('dashboard.network')} />
         <div className="grid grid-cols-2 gap-3 md:gap-4 xl:grid-cols-4">

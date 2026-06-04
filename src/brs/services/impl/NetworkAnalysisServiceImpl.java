@@ -98,7 +98,7 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
 
         JsonObject cdRequest = new JsonObject();
         cdRequest.addProperty("requestType", "getCumulativeDifficulty");
-        JsonObject cdResponse = peer.send(cdRequest);
+        JsonObject cdResponse = peer.send(JSON.prepareRequest(cdRequest));
         if (cdResponse == null || cdResponse.has("error")) {
             logger.warn("findForkPoint: cannot reach peer={} via P2P (getCumulativeDifficulty failed), response={}", peerAddress, cdResponse);
             result.addProperty("error", "Cannot reach peer");
@@ -187,7 +187,7 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
         req.addProperty("requestType", "getBlocksFromHeight");
         req.addProperty("height", height);
         req.addProperty("numBlocks", 1);
-        JsonObject resp = peer.send(req);
+        JsonObject resp = peer.send(JSON.prepareRequest(req));
         if (resp == null || resp.has("error")) {
             logger.warn("fetchPeerBlockId: height={} getBlocksFromHeight failed (resp={})", height, resp);
             return null;
@@ -206,7 +206,7 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
         fallbackReq.addProperty("requestType", "getBlocksFromHeight");
         fallbackReq.addProperty("height", Math.max(0, height - 1));
         fallbackReq.addProperty("numBlocks", 1);
-        JsonObject fallbackResp = peer.send(fallbackReq);
+        JsonObject fallbackResp = peer.send(JSON.prepareRequest(fallbackReq));
         if (fallbackResp == null || fallbackResp.has("error")) {
             logger.warn("fetchPeerBlockId: height={} fallback getBlocksFromHeight failed", height);
             return null;

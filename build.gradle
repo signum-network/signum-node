@@ -37,7 +37,7 @@ dependencies {
     implementation 'org.ehcache:ehcache:3.12.0'
     implementation 'com.google.code.gson:gson:2.14.0'
     implementation 'commons-cli:commons-cli:1.11.0'
-    implementation 'com.zaxxer:HikariCP:7.0.2'
+    implementation 'com.zaxxer:HikariCP:7.1.0'
     implementation 'org.jocl:jocl:2.0.6'
 
     implementation 'org.jooq:jooq:3.21.5'

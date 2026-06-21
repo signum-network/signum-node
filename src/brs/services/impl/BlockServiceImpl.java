@@ -253,8 +253,8 @@ public class BlockServiceImpl implements BlockService {
                 Account distAccount = accountService.getOrAddAccount(distAccountId);
                 if (distAccount != null) {
                     @SuppressWarnings("checkstyle:LineLengthCheck")
-                    long distAmount = (blockRewardTotal * blockDistribution.get(distAccountId)) / 1000L;
-                    blockReward -= distAmount;
+                    long distAmount = Convert.safeMultiply(blockRewardTotal, blockDistribution.get(distAccountId)) / 1000L;
+                    blockReward = Convert.safeSubtract(blockReward, distAmount);
                     accountService.addToBalanceAndUnconfirmedBalanceNQT(distAccount, distAmount);
                     accountService.addToForgedBalanceNQT(distAccount, distAmount);
                 }
@@ -263,10 +263,10 @@ public class BlockServiceImpl implements BlockService {
         if (!Signum.getFluxCapacitor().getValue(FluxValues.REWARD_RECIPIENT_ENABLE)) {
             accountService.addToBalanceAndUnconfirmedBalanceNQT(
                     generatorAccount,
-                    block.getTotalFeeNqt() + blockReward);
+                    Convert.safeAdd(block.getTotalFeeNqt(), blockReward));
             accountService.addToForgedBalanceNQT(
                     generatorAccount,
-                    block.getTotalFeeNqt() + blockReward);
+                    Convert.safeAdd(block.getTotalFeeNqt(), blockReward));
         } else {
             Account rewardAccount = getRewardAccount(block);
 
@@ -291,10 +291,10 @@ public class BlockServiceImpl implements BlockService {
             }
             accountService.addToBalanceAndUnconfirmedBalanceNQT(
                     rewardAccount,
-                    rewardFeesNqt + blockReward);
+                    Convert.safeAdd(rewardFeesNqt, blockReward));
             accountService.addToForgedBalanceNQT(
                     rewardAccount,
-                    rewardFeesNqt + blockReward);
+                    Convert.safeAdd(rewardFeesNqt, blockReward));
         }
 
         for (Transaction transaction : block.getTransactions()) {

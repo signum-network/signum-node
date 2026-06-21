@@ -755,7 +755,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                     block.setHeight(height);
                                     block.setPeer(peer);
                                     block.setByteLength(JSON.toJsonString(blockData).length());
-                                    blockService.calculateBaseTarget(block, lastBlock);
+                                    blockImporterLock.readLock().lock();
+                                    try {
+                                        blockService.calculateBaseTarget(block, lastBlock);
+                                    } finally {
+                                        blockImporterLock.readLock().unlock();
+                                    }
                                     if (saveInCache) {
                                         if (downloadCache.getLastBlockId() == block.getPreviousBlockId()) {
                                             // ↑ still maps back? we might have got announced/forged blocks
@@ -2301,8 +2306,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         throw new TransactionNotAcceptedException(e.getMessage(), transaction);
                     }
 
-                    calculatedTotalAmount += transaction.getAmountNqt();
-                    calculatedTotalFee += transaction.getFeeNqt();
+                    calculatedTotalAmount = Convert.safeAdd(calculatedTotalAmount, transaction.getAmountNqt());
+                    calculatedTotalFee = Convert.safeAdd(calculatedTotalFee, transaction.getFeeNqt());
                     digest.update(transaction.getBytes());
                     indirectIncomingService.processTransaction(transaction);
                     feeArray[slotIdx] = transaction.getFeeNqt();
@@ -2484,12 +2489,13 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
         long calculatedRemainingAmount = 0;
         long calculatedRemainingFee = 0;
-        calculatedRemainingAmount += atBlock.getTotalAmount();
-        calculatedRemainingFee += atBlock.getTotalFees();
+        calculatedRemainingAmount = Convert.safeAdd(calculatedRemainingAmount, atBlock.getTotalAmount());
+        calculatedRemainingFee = Convert.safeAdd(calculatedRemainingFee, atBlock.getTotalFees());
 
         start = System.nanoTime();
         if (subscriptionService.isEnabled()) {
-            calculatedRemainingFee += subscriptionService.applyUnconfirmed(block.getTimestamp(), block.getHeight());
+            calculatedRemainingFee = Convert.safeAdd(calculatedRemainingFee,
+                    subscriptionService.applyUnconfirmed(block.getTimestamp(), block.getHeight()));
         }
         subscriptionTimeNanos = (System.nanoTime() - start);
 
@@ -2987,8 +2993,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                             try {
                                 transactionService.validate(transaction);
                                 payloadSize -= transaction.getSize();
-                                totalAmountNqt += transaction.getAmountNqt();
-                                totalFeeNqt += transaction.getFeeNqt();
+                                totalAmountNqt = Convert.safeAdd(totalAmountNqt, transaction.getAmountNqt());
+                                totalFeeNqt = Convert.safeAdd(totalFeeNqt, transaction.getFeeNqt());
                                 if (Signum.getFluxCapacitor().getValue(FluxValues.SMART_FEES, blockHeight)) {
                                     totalFeeCashBackNqt = Convert.safeAdd(totalFeeCashBackNqt, transaction.getFeeNqt()
                                             / propertyService.getInt(Props.CASH_BACK_FACTOR));

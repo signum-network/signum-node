@@ -236,12 +236,13 @@ public abstract class AtController {
             long atAccountBalance = getATAccountBalance(id);
             long atStateBalance = at.getgBalance();
 
-            if (at.freezeOnSameBalance() && (atAccountBalance - atStateBalance < at.minActivationAmount())) {
+            if (at.freezeOnSameBalance()
+                    && (Convert.safeSubtract(atAccountBalance, atStateBalance) < at.minActivationAmount())) {
                 continue;
             }
 
-            if (atAccountBalance >= AtConstants.getInstance().stepFee(at.getVersion())
-                    * AtConstants.getInstance().apiStepMultiplier(at.getVersion())) {
+            if (atAccountBalance >= Convert.safeMultiply(AtConstants.getInstance().stepFee(at.getVersion()),
+                    AtConstants.getInstance().apiStepMultiplier(at.getVersion()))) {
                 try {
                     at.setgBalance(atAccountBalance);
                     at.setHeight(blockHeight);
@@ -251,9 +252,10 @@ public abstract class AtController {
                     runSteps(at);
                     indirectsCount = at.getIndirectsCount();
 
-                    long fee = at.getMachineState().steps * AtConstants.getInstance().stepFee(at.getVersion());
+                    long fee = Convert.safeMultiply(at.getMachineState().steps,
+                            AtConstants.getInstance().stepFee(at.getVersion()));
                     if (at.getMachineState().dead) {
-                        fee += at.getgBalance();
+                        fee = Convert.safeAdd(fee, at.getgBalance());
                         at.setgBalance(0L);
                     }
                     at.setpBalance(at.getgBalance());
@@ -262,10 +264,10 @@ public abstract class AtController {
                     if (!Signum.getFluxCapacitor().getValue(FluxValues.AT_FIX_BLOCK_4, blockHeight)) {
                         totalAmount = amount;
                     } else {
-                        totalAmount += amount;
+                        totalAmount = Convert.safeAdd(totalAmount, amount);
                     }
 
-                    totalFee += fee;
+                    totalFee = Convert.safeAdd(totalFee, fee);
                     AT.addPendingFee(id, fee, blockHeight, generatorId);
 
                     payload += costOfOneAT;
@@ -314,12 +316,13 @@ public abstract class AtController {
                 at.setWaitForNumberOfBlocks(at.getSleepBetween());
 
                 long atAccountBalance = getATAccountBalance(atIdLong);
-                if (atAccountBalance < AtConstants.getInstance().stepFee(at.getVersion())
-                        * AtConstants.getInstance().apiStepMultiplier(at.getVersion())) {
+                if (atAccountBalance < Convert.safeMultiply(AtConstants.getInstance().stepFee(at.getVersion()),
+                        AtConstants.getInstance().apiStepMultiplier(at.getVersion()))) {
                     throw new AtException("AT has insufficient balance to run");
                 }
 
-                if (at.freezeOnSameBalance() && (atAccountBalance - at.getgBalance() < at.minActivationAmount())) {
+                if (at.freezeOnSameBalance()
+                        && (Convert.safeSubtract(atAccountBalance, at.getgBalance()) < at.minActivationAmount())) {
                     throw new AtException("AT should be frozen due to unchanged balance");
                 }
 
@@ -333,9 +336,10 @@ public abstract class AtController {
 
                 runSteps(at);
 
-                long fee = at.getMachineState().steps * AtConstants.getInstance().stepFee(at.getVersion());
+                long fee = Convert.safeMultiply(at.getMachineState().steps,
+                        AtConstants.getInstance().stepFee(at.getVersion()));
                 if (at.getMachineState().dead) {
-                    fee += at.getgBalance();
+                    fee = Convert.safeAdd(fee, at.getgBalance());
                     at.setgBalance(0L);
                 }
                 at.setpBalance(at.getgBalance());
@@ -343,10 +347,10 @@ public abstract class AtController {
                 if (!Signum.getFluxCapacitor().getValue(FluxValues.AT_FIX_BLOCK_4, blockHeight)) {
                     totalAmount = makeTransactions(at, blockHeight, generatorId);
                 } else {
-                    totalAmount += makeTransactions(at, blockHeight, generatorId);
+                    totalAmount = Convert.safeAdd(totalAmount, makeTransactions(at, blockHeight, generatorId));
                 }
 
-                totalFee += fee;
+                totalFee = Convert.safeAdd(totalFee, fee);
                 AT.addPendingFee(atIdLong, fee, blockHeight, generatorId);
 
                 processedATs.add(at);
@@ -398,12 +402,13 @@ public abstract class AtController {
                 at.setWaitForNumberOfBlocks(at.getSleepBetween());
 
                 long atAccountBalance = getATAccountBalance(atIdLong);
-                if (atAccountBalance < AtConstants.getInstance().stepFee(at.getVersion())
-                        * AtConstants.getInstance().apiStepMultiplier(at.getVersion())) {
+                if (atAccountBalance < Convert.safeMultiply(AtConstants.getInstance().stepFee(at.getVersion()),
+                        AtConstants.getInstance().apiStepMultiplier(at.getVersion()))) {
                     throw new AtException("AT has insufficient balance to run");
                 }
 
-                if (at.freezeOnSameBalance() && (atAccountBalance - at.getgBalance() < at.minActivationAmount())) {
+                if (at.freezeOnSameBalance()
+                        && (Convert.safeSubtract(atAccountBalance, at.getgBalance()) < at.minActivationAmount())) {
                     throw new AtException("AT should be frozen due to unchanged balance");
                 }
 
@@ -417,9 +422,10 @@ public abstract class AtController {
 
                 runSteps(at);
 
-                long fee = at.getMachineState().steps * AtConstants.getInstance().stepFee(at.getVersion());
+                long fee = Convert.safeMultiply(at.getMachineState().steps,
+                        AtConstants.getInstance().stepFee(at.getVersion()));
                 if (at.getMachineState().dead) {
-                    fee += at.getgBalance();
+                    fee = Convert.safeAdd(fee, at.getgBalance());
                     at.setgBalance(0L);
                 }
                 at.setpBalance(at.getgBalance());
@@ -427,10 +433,10 @@ public abstract class AtController {
                 if (!Signum.getFluxCapacitor().getValue(FluxValues.AT_FIX_BLOCK_4, blockHeight)) {
                     totalAmount = makeTransactions(at, blockHeight, generatorId);
                 } else {
-                    totalAmount += makeTransactions(at, blockHeight, generatorId);
+                    totalAmount = Convert.safeAdd(totalAmount, makeTransactions(at, blockHeight, generatorId));
                 }
 
-                totalFee += fee;
+                totalFee = Convert.safeAdd(totalFee, fee);
                 AT.addPendingFee(atIdLong, fee, blockHeight, generatorId);
 
                 processedATs.add(at);
@@ -548,7 +554,7 @@ public abstract class AtController {
         }
 
         for (AtTransaction tx : ordered) {
-            totalAmount += tx.getAmount();
+            totalAmount = Convert.safeAdd(totalAmount, tx.getAmount());
             AT.addPendingTransaction(tx, blockHeight, generatorId);
             if (logger.isDebugEnabled()) {
                 logger.debug(

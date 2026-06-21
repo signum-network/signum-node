@@ -60,8 +60,9 @@ public final class SendMoneyMultiSame extends CreateTransaction {
 
     Collection<Long> recipients = new ArrayList<>();
 
-    long totalAmountNQT = amountNQT * recipientsArray.length;
+    long totalAmountNQT;
     try {
+      totalAmountNQT = Convert.safeMultiply(amountNQT, recipientsArray.length);
       for(String recipientId : recipientsArray) {
         recipients.add(Convert.parseUnsignedLong(recipientId));
       }

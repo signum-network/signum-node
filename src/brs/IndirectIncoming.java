@@ -1,5 +1,7 @@
 package brs;
 
+import brs.util.Convert;
+
 public class IndirectIncoming {
   private final long accountId;
   private final long transactionId;
@@ -28,7 +30,7 @@ public class IndirectIncoming {
   }
   
   public void addAmount(long add) {
-    amount += add;
+    amount = Convert.safeAdd(amount, add);
   }
   
   public long getQuantity() {
@@ -36,7 +38,7 @@ public class IndirectIncoming {
   }
   
   public void addQuantity(long add) {
-    quantity += add;
+    quantity = Convert.safeAdd(quantity, add);
   }
 
   public int getHeight() {

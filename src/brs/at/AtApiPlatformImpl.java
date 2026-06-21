@@ -13,6 +13,7 @@ import brs.Account.AccountAsset;
 import brs.crypto.Crypto;
 import brs.fluxcapacitor.FluxValues;
 import brs.props.Props;
+import brs.util.Convert;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -633,7 +634,7 @@ public class AtApiPlatformImpl extends AtApiImpl {
 
     boolean unconfirmed = !Signum.getFluxCapacitor().getValue(FluxValues.DISTRIBUTION_FIX, state.getHeight());
     long circulatingSupply = Signum.getAssetExchange().getAssetCirculatingSupply(asset, false, unconfirmed);
-    long newSupply = circulatingSupply + quantity;
+    long newSupply = Convert.safeAdd(circulatingSupply, quantity);
     if (newSupply > Constants.MAX_ASSET_QUANTITY_QNT) {
       // do not mint extra to keep the limit
       logger.debug(

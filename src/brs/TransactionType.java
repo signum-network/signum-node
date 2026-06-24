@@ -1657,6 +1657,9 @@ public abstract class TransactionType {
         if (circulatingQuantity <= 0L) {
           throw new SignumException.NotValidException("Asset has no circulating supply: " + JSON.toJsonString(attachment.getJsonObject()));
         }
+        if (attachment.getQuantityQnt() < 0L) {
+          throw new SignumException.NotValidException("Quantity to distribute cannot be negative: " + JSON.toJsonString(attachment.getJsonObject()));
+        }
         if (attachment.getQuantityQnt() == 0L && transaction.getAmountNqt() == 0L){
           throw new SignumException.NotValidException("Nothing to distribute");
         }

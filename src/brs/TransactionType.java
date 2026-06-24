@@ -2777,6 +2777,11 @@ public abstract class TransactionType {
         if (!Signum.getFluxCapacitor().getValue(FluxValues.SIGNUM, height)) {
           throw new SignumException.NotCurrentlyValidException("Add commitment not allowed before block " + Signum.getFluxCapacitor().getStartingHeight(FluxValues.SIGNUM));
         }
+
+        Attachment.CommitmentAdd attachment = (Attachment.CommitmentAdd) transaction.getAttachment();
+        if (attachment.getAmountNqt() < 0L) {
+          throw new SignumException.NotValidException("Commitment amount cannot be negative: " + JSON.toJsonString(attachment.getJsonObject()));
+        }
       }
 
       @Override
@@ -2860,6 +2865,11 @@ public abstract class TransactionType {
 
         if (!Signum.getFluxCapacitor().getValue(FluxValues.SIGNUM, height)) {
           throw new SignumException.NotCurrentlyValidException("Add commitment not allowed before block " + Signum.getFluxCapacitor().getStartingHeight(FluxValues.SIGNUM));
+        }
+
+        Attachment.CommitmentRemove attachment = (Attachment.CommitmentRemove) transaction.getAttachment();
+        if (attachment.getAmountNqt() < 0L) {
+          throw new SignumException.NotValidException("Commitment amount cannot be negative: " + JSON.toJsonString(attachment.getJsonObject()));
         }
       }
 

@@ -69,6 +69,7 @@ public final class JSONResponses {
   public static final JsonElement INCORRECT_ARBITRARY_MESSAGE = incorrect(MESSAGE_PARAMETER);
   public static final JsonElement MISSING_AMOUNT = missing(AMOUNT_NQT_PARAMETER);
   public static final JsonElement INCORRECT_AMOUNT = incorrect(AMOUNT_PARAMETER);
+  public static final JsonElement INCORRECT_COMMITMENT_EXCEEDS_MAX = incorrect(AMOUNT_NQT_PARAMETER, "(total committed amount would exceed the maximum of " + (Constants.MAX_TOTAL_COMMITMENT_NQT / Constants.ONE_SIGNA) + " SIGNA)");
   public static final JsonElement INCORRECT_ACCOUNT_NAME_LENGTH = incorrect(NAME_PARAMETER, "(length must be less than " + Constants.MAX_ACCOUNT_NAME_LENGTH + " characters)");
   public static final JsonElement INCORRECT_ACCOUNT_DESCRIPTION_LENGTH = incorrect(DESCRIPTION_PARAMETER, "(length must be less than " + Constants.MAX_ACCOUNT_DESCRIPTION_LENGTH + " characters)");
   public static final JsonElement MISSING_PERIOD = missing(PERIOD_PARAMETER);

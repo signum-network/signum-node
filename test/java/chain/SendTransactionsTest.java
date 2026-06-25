@@ -239,6 +239,13 @@ public class SendTransactionsTest {
     @Test
     public void testAddCommitment() {
         SignumValue amount = SignumValue.fromSigna(1);
+
+        // Reserved = balance - unconfirmedBalance. Other tests share the @BeforeClass
+        // chain state and may have left reservations on ACCOUNT1, so assert the delta
+        // caused by this commitment rather than an absolute value (order-independent).
+        Account before = nodeService.getAccount(ACCOUNT1, null, true, true).blockingGet();
+        SignumValue reservedBefore = before.getBalance().subtract(before.getUnconfirmedBalance());
+
         TransactionBuilder tb = new TransactionBuilder(TransactionBuilder.ADD_COMMITMENT,
                 ACCOUNT1.getPublicKey(), SignumValue.fromSigna(0.01), 1440)
                 .amount(amount);
@@ -251,7 +258,8 @@ public class SendTransactionsTest {
         forgeBlock(PASS1, tx);
 
         Account account1 = nodeService.getAccount(ACCOUNT1, null, true, true).blockingGet();
-        assertEquals(amount, account1.getBalance().subtract(account1.getUnconfirmedBalance()));
+        SignumValue reservedAfter = account1.getBalance().subtract(account1.getUnconfirmedBalance());
+        assertEquals(amount, reservedAfter.subtract(reservedBefore));
     }
 
     @Test

@@ -1,6 +1,7 @@
 package chain;
 
 import brs.Signum;
+import java.io.File;
 import signumj.Constants;
 import signumj.crypto.SignumCrypto;
 import signumj.entity.SignumAddress;
@@ -28,7 +29,12 @@ public class ChainUtils {
         if(nodeService != null) {
             return true;
         }
-        
+
+        // Remove any chain left over from a previous run so every JVM starts at genesis.
+        // The junit DB is a file (conf/junit -> ./db/signum-mock.sqlite.db); without this
+        // the chain accumulates across runs, making height-dependent tests order-/run-dependent.
+        deleteMockDb();
+
         // a mock node with memory DB
         String[] args = {"-l", "-c", "conf/junit"};
         Signum.main(args);
@@ -59,7 +65,16 @@ public class ChainUtils {
         }
         return false;
     }
-    
+
+    private static void deleteMockDb() {
+        for (String suffix : new String[] {"", "-shm", "-wal"}) {
+            File dbFile = new File("db/signum-mock.sqlite.db" + suffix);
+            if (dbFile.exists()) {
+                dbFile.delete();
+            }
+        }
+    }
+
     public static void forgeBlock(String pass, TransactionBroadcast ... txs) {
         for (int i = 0; i < 4; i++) {
             // retries

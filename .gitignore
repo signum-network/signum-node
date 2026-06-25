@@ -34,6 +34,8 @@ target
 launch.json
 *.pem
 *.p12
-*.log.lck
+*.log.*
 
+.superpowers/
+/docs/superpowers/
 result

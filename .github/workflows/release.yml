@@ -5,10 +5,16 @@ on:
     tags:
       - 'v*'
 
+# create-release needs to write the draft release + upload assets.
+permissions:
+  contents: write
+
 jobs:
   build-node:
     name: Build and Package
     runs-on: windows-latest
+    env:
+      REF_NAME: ${{ github.ref_name }}
 
     steps:
       - name: Checkout code
@@ -20,8 +26,8 @@ jobs:
         id: get_version
         shell: bash
         run: |
-          echo VERSION=${{github.ref_name}}
-          echo VERSION=${{github.ref_name}} >> $GITHUB_ENV
+          echo "VERSION=$REF_NAME"
+          echo "VERSION=$REF_NAME" >> "$GITHUB_ENV"
 
       - name: Show version
         shell: bash
@@ -31,7 +37,7 @@ jobs:
         id: notes
         shell: bash
         run: |
-          TAG="${{ github.ref_name }}"   # e.g. v3.9.12
+          TAG="$REF_NAME"   # e.g. v3.9.12
           # Pull the section starting at "## <TAG>" up to the next "## " heading.
           SECTION=$(awk -v tag="## ${TAG} " '
             $0 ~ "^"tag {flag=1; next}

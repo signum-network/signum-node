@@ -49,8 +49,9 @@ jobs:
 
       - name: Create tag if missing
         shell: bash
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
         run: |
-          VERSION="${{ steps.ver.outputs.version }}"
           TAG="v$VERSION"
           if gh api "repos/$REPO/git/ref/tags/$TAG" >/dev/null 2>&1; then
             echo "Tag $TAG already exists; nothing to do."

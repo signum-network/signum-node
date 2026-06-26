@@ -306,13 +306,27 @@ Once WSL is set up, access the distribution and navigate to the folder containin
 
 # Releasing
 
-To cut a new (pre)-release just create a tag of the following format `vD.D.D[-suffix]`. Githubs actions automatically creates
-a pre-release with entirely build executable as zip.
+Releases are cut with a single command from an up-to-date, clean `develop`:
 
 ```bash
-git tag v3.0.1-beta
-git push --tags
+./gradlew releaseTag
 ```
+
+It asks for the version bump (`patch`/`minor`/`major`), whether the release is a
+hard fork (mandatory upgrade), and one line of release notes. It then runs the
+full build and tests, creates a `release/<version>` branch, bumps the version,
+updates `CHANGELOG.md`, and opens a pull request into `develop`.
+
+Once that PR is merged and `develop` is promoted to `main`, a GitHub Action tags
+`main` automatically, which triggers the build of the executables and Docker
+images and drafts the GitHub release.
+
+The version is defined in a single place — `gradle.properties` — and injected
+into the node, the API spec, and the installer at build time; you never edit
+version strings by hand.
+
+See [RELEASING.md](./RELEASING.md) for the full process, the non-interactive
+options, and required one-time setup.
 
 # Docker
 

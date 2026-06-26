@@ -29,6 +29,16 @@ repositories {
 def baseNodeFileName = "signum-node"
 def details = versionDetails()
 
+// Single source of truth: gradle.properties `version`.
+// Official CI builds pass -PreleaseBuild to force a clean (non-prerelease) version.
+// Otherwise a clean tag (isCleanTag) also yields a clean version; all other builds
+// are flagged as `-dev` so Signum.VERSION.isPrelease() is true.
+def baseVersion = (project.version == null || project.version.toString() == 'unspecified')
+        ? '0.0.0' : project.version.toString()
+def isReleaseBuild = project.hasProperty('releaseBuild') || details.isCleanTag
+def nodeVersion = isReleaseBuild ? baseVersion : "${baseVersion}-dev"
+project.ext.nodeVersion = nodeVersion
+
 dependencies {
     implementation 'com.github.signum-network:signumj:v1.3.2'
     implementation 'io.reactivex.rxjava2:rxjava:2.2.21'
@@ -116,10 +126,25 @@ application {
     mainClass.set('signum.Launcher')
 }
 
+def generatedResourcesDir = layout.buildDirectory.dir("generated/resources")
+
+def generateVersionProperties = tasks.register('generateVersionProperties') {
+    outputs.dir(generatedResourcesDir)
+    inputs.property("version", nodeVersion)
+    doLast {
+        def outFile = generatedResourcesDir.get().file("version.properties").asFile
+        outFile.parentFile.mkdirs()
+        outFile.text = "version=${nodeVersion}\n"
+    }
+}
+
 sourceSets {
     main {
         java.srcDir "src"
         resources.srcDir "resources"
+        // Passing the TaskProvider wires the build dependency for every consumer
+        // (processResources, sourcesJar, ...) onto its output directory.
+        resources.srcDir generateVersionProperties
     }
     if (!project.hasProperty('skipTests')) {
         test {
@@ -142,6 +167,15 @@ shadowJar {
 tasks.register('buildOpenApi', NpmTask) {
     dependsOn npmInstall
     args = ['run', 'dist']
+    doLast {
+        ['openapi/dist/signum-api.json', 'html/api-doc/signum-api.json'].each { path ->
+            def f = file(path)
+            if (f.exists()) {
+                // Replace the first "version": "..." (info.version) with the build version.
+                f.text = f.text.replaceFirst(/("version"\s*:\s*)"[^"]*"/, "\$1\"${nodeVersion}\"")
+            }
+        }
+    }
 }
 
 node {
@@ -171,8 +205,7 @@ tasks.register('jpackageWin', Exec) {
     description = 'Builds a Windows EXE using jpackage'
     dependsOn shadowJar
 
-    def rawVersion = details.lastTag ?: "1.0.0"
-    def version = rawVersion.replaceAll("[^0-9.]", "")
+    def version = nodeVersion.replaceAll("[^0-9.]", "")
     if (!version.contains(".")) version = "${version}.0"
     def parts = version.tokenize('.').collect { it as int }
     while (parts.size() < 2) parts << 0
@@ -367,3 +400,5 @@ jooq {
 }
 
 generateJooq.dependsOn(flywayMigrate)
+
+apply from: 'gradle/release.gradle'

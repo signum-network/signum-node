@@ -3,6 +3,11 @@ name: Auto-tag release on main
 # Runs only after the build+test workflow ("Build Signum Node") finishes on main.
 # This makes the tag a *hard* guarantee that main's build and tests were green,
 # rather than relying on the promotion always being a clean merge of tested code.
+#
+# This is a privileged context (workflow_run has write access and secrets), so it
+# deliberately does NOT check out the repository. It reads the version and creates
+# the tag entirely through the GitHub API, so no repository code is ever placed on
+# the runner or executed.
 on:
   workflow_run:
     workflows: ["Build Signum Node"]
@@ -10,7 +15,7 @@ on:
       - completed
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   auto-tag:
@@ -21,37 +26,44 @@ jobs:
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'main'
+    env:
+      # The PAT is required so the created tag triggers the downstream
+      # release.yml / dockerhub.yml workflows (a tag from GITHUB_TOKEN would not).
+      GH_TOKEN: ${{ secrets.RELEASE_TAG_PAT }}
+      REPO: ${{ github.repository }}
+      SHA: ${{ github.event.workflow_run.head_sha }}
     steps:
-      - name: Checkout the built commit (full history + tags)
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.workflow_run.head_sha }}
-          token: ${{ secrets.RELEASE_TAG_PAT }}
-
-      - name: Read version from gradle.properties
+      - name: Read version from gradle.properties at the built commit
         id: ver
         shell: bash
         run: |
-          VERSION=$(grep -E '^version=' gradle.properties | head -1 | cut -d= -f2 | tr -d '[:space:]')
+          CONTENT=$(gh api "repos/$REPO/contents/gradle.properties?ref=$SHA" \
+            -H "Accept: application/vnd.github.raw")
+          VERSION=$(printf '%s\n' "$CONTENT" | grep -E '^version=' | head -1 | cut -d= -f2 | tr -d '[:space:]')
+          if [ -z "$VERSION" ]; then
+            echo "Could not read version from gradle.properties at $SHA" >&2
+            exit 1
+          fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Version on main is $VERSION (commit ${{ github.event.workflow_run.head_sha }})"
+          echo "Version at $SHA is $VERSION"
 
-      - name: Create and push tag if missing
+      - name: Create tag if missing
         shell: bash
         run: |
           VERSION="${{ steps.ver.outputs.version }}"
           TAG="v$VERSION"
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
+          if gh api "repos/$REPO/git/ref/tags/$TAG" >/dev/null 2>&1; then
             echo "Tag $TAG already exists; nothing to do."
             exit 0
           fi
-          if git ls-remote --tags origin "refs/tags/$TAG" | grep -q "$TAG"; then
-            echo "Tag $TAG already exists on origin; nothing to do."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a "$TAG" -m "Release $TAG"
-          git push origin "$TAG"
-          echo "Created and pushed $TAG"
+          # Create an annotated tag object pointing at the built commit, then the ref.
+          TAG_SHA=$(gh api "repos/$REPO/git/tags" \
+            -f tag="$TAG" \
+            -f message="Release $TAG" \
+            -f object="$SHA" \
+            -f type="commit" \
+            --jq '.sha')
+          gh api "repos/$REPO/git/refs" \
+            -f ref="refs/tags/$TAG" \
+            -f sha="$TAG_SHA" >/dev/null
+          echo "Created tag $TAG at $SHA"

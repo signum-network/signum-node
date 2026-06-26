@@ -67,9 +67,12 @@ PR; it is intentionally a human action.
 
 ### 4. Automatic tag, build, and release
 
-On push to `main`, the **auto-tag** workflow reads the version from
-`gradle.properties` and, if no `vX.Y.Z` tag exists yet, creates and pushes it.
-That tag triggers:
+After the push to `main`, the **Build Signum Node** workflow runs the build and
+tests. Only when it succeeds does the **auto-tag** workflow run (it is triggered
+by that workflow's successful completion, not by the raw push). It reads the
+version from `gradle.properties` at the built commit and, if no `vX.Y.Z` tag
+exists yet, creates and pushes it. This means a tag can only exist for a commit
+whose build and tests were green. That tag triggers:
 
 - **release.yml** — builds the Windows artifacts and drafts a GitHub release whose
   body is the matching `CHANGELOG.md` section (titled with a hard-fork warning when

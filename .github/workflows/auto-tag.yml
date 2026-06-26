@@ -1,9 +1,13 @@
 name: Auto-tag release on main
 
+# Runs only after the build+test workflow ("Build Signum Node") finishes on main.
+# This makes the tag a *hard* guarantee that main's build and tests were green,
+# rather than relying on the promotion always being a clean merge of tested code.
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Build Signum Node"]
+    types:
+      - completed
 
 permissions:
   contents: write
@@ -11,11 +15,18 @@ permissions:
 jobs:
   auto-tag:
     runs-on: ubuntu-latest
+    # Only when the build succeeded, it was a push to main (not a PR build),
+    # so the tagged commit is exactly the one that passed CI.
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main'
     steps:
-      - name: Checkout main (full history + tags)
+      - name: Checkout the built commit (full history + tags)
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_sha }}
           token: ${{ secrets.RELEASE_TAG_PAT }}
 
       - name: Read version from gradle.properties
@@ -24,7 +35,7 @@ jobs:
         run: |
           VERSION=$(grep -E '^version=' gradle.properties | head -1 | cut -d= -f2 | tr -d '[:space:]')
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Version on main is $VERSION"
+          echo "Version on main is $VERSION (commit ${{ github.event.workflow_run.head_sha }})"
 
       - name: Create and push tag if missing
         shell: bash

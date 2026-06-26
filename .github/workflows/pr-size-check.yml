@@ -78,12 +78,18 @@ jobs:
       - name: Enforce size limits
         id: limits
         uses: actions/github-script@v9
+        env:
+          FILE_COUNT: ${{ steps.stats.outputs.file_count }}
+          ADDITIONS: ${{ steps.stats.outputs.additions }}
+          PROTOCOL_COUNT: ${{ steps.stats.outputs.protocol_files_count }}
+          # Untrusted (contains attacker-controlled filenames) — never inline into the script.
+          PROTOCOL_FILES: ${{ steps.stats.outputs.protocol_files }}
         with:
           script: |
-            const fileCount = parseInt('${{ steps.stats.outputs.file_count }}');
-            const additions = parseInt('${{ steps.stats.outputs.additions }}');
-            const protocolCount = parseInt('${{ steps.stats.outputs.protocol_files_count }}');
-            const protocolFiles = JSON.parse('${{ steps.stats.outputs.protocol_files }}');
+            const fileCount = parseInt(process.env.FILE_COUNT);
+            const additions = parseInt(process.env.ADDITIONS);
+            const protocolCount = parseInt(process.env.PROTOCOL_COUNT);
+            const protocolFiles = JSON.parse(process.env.PROTOCOL_FILES);
 
             const MAX_FILES = 10;
             const MAX_ADDITIONS = 1000;
@@ -154,6 +160,21 @@ jobs:
 
       - name: Upload PR metadata
         if: success()
+        env:
+          # All values passed via env (not inlined) so attacker-controlled fields
+          # — titles, bodies, branch names, filenames — cannot inject code.
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
+          FILE_COUNT: ${{ steps.stats.outputs.file_count }}
+          ADDITIONS: ${{ steps.stats.outputs.additions }}
+          DELETIONS: ${{ steps.stats.outputs.deletions }}
+          PROTOCOL_FILES: ${{ steps.stats.outputs.protocol_files }}
         run: |
           mkdir -p pr-metadata
 
@@ -161,18 +182,18 @@ jobs:
           import json, os
 
           metadata = {
-              "pr_number": int("${{ github.event.pull_request.number }}"),
+              "pr_number": int(os.environ["PR_NUMBER"]),
               "pr_title": os.environ.get("PR_TITLE", ""),
               "pr_body": os.environ.get("PR_BODY", ""),
-              "pr_author": "${{ github.event.pull_request.user.login }}",
-              "base_ref": "${{ github.event.pull_request.base.ref }}",
-              "head_ref": "${{ github.event.pull_request.head.ref }}",
-              "head_sha": "${{ github.event.pull_request.head.sha }}",
-              "is_fork": "${{ github.event.pull_request.head.repo.fork }}" == "true",
-              "file_count": int("${{ steps.stats.outputs.file_count }}"),
-              "additions": int("${{ steps.stats.outputs.additions }}"),
-              "deletions": int("${{ steps.stats.outputs.deletions }}"),
-              "protocol_files": json.loads('${{ steps.stats.outputs.protocol_files }}'),
+              "pr_author": os.environ.get("PR_AUTHOR", ""),
+              "base_ref": os.environ.get("BASE_REF", ""),
+              "head_ref": os.environ.get("HEAD_REF", ""),
+              "head_sha": os.environ.get("HEAD_SHA", ""),
+              "is_fork": os.environ.get("IS_FORK", "") == "true",
+              "file_count": int(os.environ["FILE_COUNT"]),
+              "additions": int(os.environ["ADDITIONS"]),
+              "deletions": int(os.environ["DELETIONS"]),
+              "protocol_files": json.loads(os.environ.get("PROTOCOL_FILES", "[]")),
           }
 
           with open("pr-metadata/metadata.json", "w") as f:
@@ -180,9 +201,6 @@ jobs:
 
           print(f"Metadata saved for PR #{metadata['pr_number']}")
           PYEOF
-        env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
-          PR_BODY: ${{ github.event.pull_request.body }}
 
       - name: Upload metadata artifact
         if: success()

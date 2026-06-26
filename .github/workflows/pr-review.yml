@@ -20,6 +20,7 @@ on:
 permissions:
   contents: read
   pull-requests: write
+  id-token: write # required by claude-code-action to fetch an OIDC token
 
 jobs:
   review:

@@ -76,7 +76,7 @@ import signumj.util.SignumUtils;
  */
 public final class Signum {
 
-    public static final Version VERSION = Version.parse("v3.9.9");
+    public static final Version VERSION = Version.parse("v3.9.11");
     public static final String APPLICATION = "BRS";
 
     public static final String CONF_FOLDER = "./conf";
@@ -444,15 +444,6 @@ public final class Signum {
                     blockchainProcessor,
                     stores.getUnconfirmedTransactionStore());
 
-            final brs.services.NetworkAnalysisService networkAnalysisService =
-                    new brs.services.impl.NetworkAnalysisServiceImpl(blockchain, propertyService);
-            blockchainProcessor.addListener(
-                    networkAnalysisService::recordForkAsync,
-                    BlockchainProcessor.Event.BLOCK_AUTO_POPPED);
-            blockchainProcessor.addListener(
-                    networkAnalysisService::recordForkAsync,
-                    BlockchainProcessor.Event.BLOCK_MANUAL_POPPED);
-
             webServer = new WebServerImpl(new WebServerContext(transactionProcessor,
                     blockchain,
                     blockchainProcessor,
@@ -475,7 +466,6 @@ public final class Signum {
                     feeSuggestionCalculator,
                     deepLinkQrCodeGenerator,
                     indirectIncomingService,
-                    networkAnalysisService,
                     params));
             webServer.start();
 

@@ -37,6 +37,8 @@ launch.json
 *.p12
 *.log.*
 
+.superpowers/
+/docs/superpowers/
 result
 
 # Visual brainstorming sessions

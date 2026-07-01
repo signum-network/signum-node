@@ -27,6 +27,8 @@ public final class Constants {
   public static final long INITIAL_COMMITMENT = 1000 * ONE_SIGNA;
   public static final int COMMITMENT_WAIT = 60;
 
+  public static final long MAX_TOTAL_COMMITMENT_NQT = 500_000_000L * ONE_SIGNA;
+
   public static final long MAX_BALANCE_NQT = MAX_BALANCE_SIGNA * ONE_SIGNA;
   public static final long INITIAL_BASE_TARGET = 18325193796L;
   public static final int CAPACITY_ESTIMATION_BLOCKS_MAX = 10800 * 3;

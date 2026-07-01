@@ -3,6 +3,7 @@ package brs.web.api.http.handler;
 import brs.Account;
 import brs.Attachment;
 import brs.Blockchain;
+import brs.Constants;
 import brs.Signum;
 import brs.SignumException;
 import brs.fluxcapacitor.FluxValues;
@@ -17,6 +18,7 @@ import com.google.gson.JsonElement;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import static brs.web.api.http.common.JSONResponses.INCORRECT_COMMITMENT_EXCEEDS_MAX;
 import static brs.web.api.http.common.JSONResponses.INCORRECT_FEE;
 import static brs.web.api.http.common.JSONResponses.NOT_ENOUGH_FUNDS;
 import static brs.web.api.http.common.Parameters.AMOUNT_NQT_PARAMETER;
@@ -50,6 +52,11 @@ public final class AddCommitment extends CreateTransaction {
       }
     } catch (ArithmeticException e) {
       return NOT_ENOUGH_FUNDS;
+    }
+
+    long totalCommitted = blockchain.getCommittedAmount(account.getId(), blockchain.getHeight(), blockchain.getHeight(), null);
+    if (totalCommitted + amountNQT > Constants.MAX_TOTAL_COMMITMENT_NQT) {
+      return INCORRECT_COMMITMENT_EXCEEDS_MAX;
     }
 
     Attachment attachment = new Attachment.CommitmentAdd(amountNQT, blockchain.getHeight());

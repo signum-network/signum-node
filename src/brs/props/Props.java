@@ -109,12 +109,12 @@ public class Props {
     public static final Prop<String> BRS_PK_CHECKS = new Prop<>("node.pkChecks",
             "dba639ec3450e0b1;169b3b99ce28a350;a83c47e772a35586;6db77a51a7def19d;c4823aa7028f6735;fb0e32a5bc032257;15a35aa0515e3584;27fcf52c3bc40fba;981454e22b5ac976;0cb15471ad76fcd1;");
 
-    // FIXME: this is a temporary workaround for a known issue - has to be reviewed once mitigation is done
+    // FIXME: this is a temporary workaround for a known issue - has to be reviewed
+    // once mitigation is done
     // format: accountId:blockheight;accountId:blockheight;...
-    public static final Prop<String> BRS_ACC_BLOCKING = new Prop<>("node.accBlocking","9418715215596353226:1541070");
+    public static final Prop<String> BRS_ACC_BLOCKING = new Prop<>("node.accBlocking", "9418715215596353226:1541070");
 
-
-  // GPU options
+    // GPU options
     public static final Prop<Boolean> GPU_ACCELERATION = new Prop<>("GPU.Acceleration", false);
     public static final Prop<Boolean> GPU_AUTODETECT = new Prop<>("GPU.AutoDetect", true);
     public static final Prop<Integer> GPU_PLATFORM_IDX = new Prop<>("GPU.PlatformIdx", 0);
@@ -160,9 +160,9 @@ public class Props {
     public static final Prop<Boolean> P2P_SHARE_MY_ADDRESS = new Prop<>("P2P.shareMyAddress", true);
     public static final Prop<Boolean> P2P_ENABLE_TX_REBROADCAST = new Prop<>("P2P.enableTxRebroadcast", true);
     public static final Prop<String> P2P_REBROADCAST_TO = new Prop<>("P2P.rebroadcastTo",
-            "216.114.232.67:8123; 51.235.143.229:8123; signode.ddns.net:8123; 188.34.159.176:8123;signum.mega-bit.ru:8123; storjserver2.cryptomass.de:8123; 89.58.10.207:8123; 84.54.46.176:8123; signumwallet.ddns.net:8123; taylorforce.synology.me:8123; zwurg.feste-ip.net:51940; zmail.cloudns.ph:8123; wallet.signa-coin.eu:8123; wekuz-signa-node.duckdns.org:8123; austria-sn.albatros.cc:8123; signumwallet.lucentinian.com:8123; 85.238.97.205:8123; 124.246.79.194:8123");
+            "australia.signum.network:8123;europe.signum.network:8123; europe3.signum.network:8123; us-central.signum.network:8123; us-east.signum.network:8123; p2p.notallmine.net:8080;wallet.signumcoin.ro;wallet.signumcoin.ro:8088;wallet2.signumcoin.ro:8087");
     public static final Prop<String> P2P_BOOTSTRAP_PEERS = new Prop<>("P2P.BootstrapPeers",
-            "australia.signum.network:8123; brazil.signum.network:8123; canada.signum.network:8123; europe.signum.network:8123; europe1.signum.network:8123; europe2.signum.network:8123; europe3.signum.network:8123; latam.signum.network:8123; singapore.signum.network:8123; ru.signum.network:8123; us-central.signum.network:8123; us-east.signum.network:8123");
+            "australia.signum.network:8123;europe.signum.network:8123; europe3.signum.network:8123;singapore.signum.network:8123; us-central.signum.network:8123; us-east.signum.network:8123; p2p.notallmine.net:8080;wallet.signumcoin.ro;wallet.signumcoin.ro:8088;wallet2.signumcoin.ro:8087");
     public static final Prop<Integer> P2P_NUM_BOOTSTRAP_CONNECTIONS = new Prop<>("P2P.NumBootstrapConnections", 3);
     public static final Prop<String> P2P_BLACKLISTED_PEERS = new Prop<>("P2P.BlacklistedPeers", "");
     public static final Prop<Integer> P2P_MAX_CONNECTIONS = new Prop<>("P2P.MaxConnections", 20);

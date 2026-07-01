@@ -4,6 +4,7 @@ import brs.*;
 import brs.assetexchange.AssetExchange;
 import brs.fluxcapacitor.FluxValues;
 import brs.services.ParameterService;
+import brs.util.Convert;
 import brs.web.api.http.common.APITransactionManager;
 import brs.web.api.http.common.JSONResponses;
 import brs.web.api.http.common.LegacyDocTag;
@@ -50,7 +51,12 @@ public final class MintAsset extends CreateTransaction {
 
     boolean unconfirmed = !Signum.getFluxCapacitor().getValue(FluxValues.DISTRIBUTION_FIX);
     long circulatingSupply = assetExchange.getAssetCirculatingSupply(asset, false, unconfirmed);
-    long newSupply = circulatingSupply + quantityQNT;
+    long newSupply;
+    try {
+      newSupply = Convert.safeAdd(circulatingSupply, quantityQNT);
+    } catch (ArithmeticException e) {
+      throw new ParameterException(INCORRECT_ASSET_QUANTITY);
+    }
     if (newSupply > Constants.MAX_ASSET_QUANTITY_QNT) {
       throw new ParameterException(INCORRECT_ASSET_QUANTITY);
     }

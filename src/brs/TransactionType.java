@@ -1393,7 +1393,7 @@ public abstract class TransactionType {
 
         boolean unconfirmed = !Signum.getFluxCapacitor().getValue(FluxValues.DISTRIBUTION_FIX);
         long circulatingSupply = assetExchange.getAssetCirculatingSupply(asset, false, unconfirmed);
-        long newSupply = circulatingSupply + attachment.getQuantityQnt();
+        long newSupply = Convert.safeAdd(circulatingSupply, attachment.getQuantityQnt());
         if (newSupply > Constants.MAX_ASSET_QUANTITY_QNT) {
           return false;
         }
@@ -1437,7 +1437,7 @@ public abstract class TransactionType {
 
         boolean unconfirmed = !Signum.getFluxCapacitor().getValue(FluxValues.DISTRIBUTION_FIX);
         long circulatingSupply = assetExchange.getAssetCirculatingSupply(asset, false, unconfirmed);
-        long newSupply = circulatingSupply + attachment.getQuantityQnt();
+        long newSupply = Convert.safeAdd(circulatingSupply, attachment.getQuantityQnt());
         if (newSupply > Constants.MAX_ASSET_QUANTITY_QNT) {
           throw new SignumException.NotCurrentlyValidException("Maximum circulating supply QNT is " + Constants.MAX_ASSET_QUANTITY_QNT);
         }
@@ -1595,7 +1595,7 @@ public abstract class TransactionType {
           if(Signum.getFluxCapacitor().getValue(FluxValues.DISTRIBUTION_FIX, transaction.getHeight()) && holder.getAccountId() == senderAccount.getId()){
             continue;
           }
-          circulatingQuantityQNT += holder.getUnconfirmedQuantityQnt();
+          circulatingQuantityQNT = Convert.safeAdd(circulatingQuantityQNT, holder.getUnconfirmedQuantityQnt());
         }
         if(circulatingQuantityQNT <= 0L) {
           accountService.addToUnconfirmedAssetBalanceQNT(senderAccount, assetToDistribute, attachment.getQuantityQnt());
@@ -1657,6 +1657,9 @@ public abstract class TransactionType {
         if (circulatingQuantity <= 0L) {
           throw new SignumException.NotValidException("Asset has no circulating supply: " + JSON.toJsonString(attachment.getJsonObject()));
         }
+        if (attachment.getQuantityQnt() < 0L) {
+          throw new SignumException.NotValidException("Quantity to distribute cannot be negative: " + JSON.toJsonString(attachment.getJsonObject()));
+        }
         if (attachment.getQuantityQnt() == 0L && transaction.getAmountNqt() == 0L){
           throw new SignumException.NotValidException("Nothing to distribute");
         }
@@ -1695,7 +1698,7 @@ public abstract class TransactionType {
           }
           long holderQuantity = Signum.getFluxCapacitor().getValue(FluxValues.DISTRIBUTION_FIX, transaction.getHeight()) ?
             holder.getQuantityQnt() : holder.getUnconfirmedQuantityQnt();
-          circulatingQuantityQNT += holderQuantity;
+          circulatingQuantityQNT = Convert.safeAdd(circulatingQuantityQNT, holderQuantity);
         }
         BigInteger circulatingQuantity = BigInteger.valueOf(circulatingQuantityQNT);
 
@@ -1722,14 +1725,14 @@ public abstract class TransactionType {
             quantity = quantityToDistribute.multiply(BigInteger.valueOf(holderQuantity))
                 .divide(circulatingQuantity).longValue();
 
-            quantityDistributed += quantity;
+            quantityDistributed = Convert.safeAdd(quantityDistributed, quantity);
           }
 
           long amount = 0L;
           if(transaction.getAmountNqt() > 0L) {
             amount = amountToDistribute.multiply(BigInteger.valueOf(holderQuantity))
                 .divide(circulatingQuantity).longValue();
-            amountDistributed += amount;
+            amountDistributed = Convert.safeAdd(amountDistributed, amount);
           }
 
           IndirectIncoming indirect = new IndirectIncoming(holder.getAccountId(), transaction.getId(),
@@ -2737,6 +2740,14 @@ public abstract class TransactionType {
         if(totalAmountNQT < 0L)
           return false;
 
+        // Best-effort, non-consensus cap: refuse to relay/mine commitments that would
+        // push the account's total committed amount above MAX_TOTAL_COMMITMENT_NQT.
+        Blockchain currentBlockchain = Signum.getBlockchain();
+        long alreadyCommitted = currentBlockchain.getCommittedAmount(senderAccount.getId(), currentBlockchain.getHeight(), currentBlockchain.getHeight(), null);
+        if (alreadyCommitted + totalAmountNQT > Constants.MAX_TOTAL_COMMITMENT_NQT) {
+          return false;
+        }
+
         if (senderAccount.getUnconfirmedBalanceNqt() >= totalAmountNQT ) {
           accountService.addToUnconfirmedBalanceNQT(senderAccount, -totalAmountNQT);
           return true;
@@ -2773,6 +2784,20 @@ public abstract class TransactionType {
 
         if (!Signum.getFluxCapacitor().getValue(FluxValues.SIGNUM, height)) {
           throw new SignumException.NotCurrentlyValidException("Add commitment not allowed before block " + Signum.getFluxCapacitor().getStartingHeight(FluxValues.SIGNUM));
+        }
+
+        Attachment.CommitmentAdd attachment = (Attachment.CommitmentAdd) transaction.getAttachment();
+        if (attachment.getAmountNqt() < 0L) {
+          throw new SignumException.NotValidException("Commitment amount cannot be negative: " + JSON.toJsonString(attachment.getJsonObject()));
+        }
+
+        // Cap the total amount a single account may have committed. Enforced here in
+        // validateAttachment so it applies on every ingress path (API, raw broadcast,
+        // peer relay and block acceptance), not only via the API handler.
+        long alreadyCommitted = blockchain.getCommittedAmount(transaction.getSenderId(), blockchain.getHeight(), blockchain.getHeight(), null);
+        if (alreadyCommitted + attachment.getAmountNqt() > Constants.MAX_TOTAL_COMMITMENT_NQT) {
+          throw new SignumException.NotValidException("Commitment would exceed the maximum total committed amount of "
+              + Constants.MAX_TOTAL_COMMITMENT_NQT + " NQT: " + JSON.toJsonString(attachment.getJsonObject()));
         }
       }
 
@@ -2857,6 +2882,11 @@ public abstract class TransactionType {
 
         if (!Signum.getFluxCapacitor().getValue(FluxValues.SIGNUM, height)) {
           throw new SignumException.NotCurrentlyValidException("Add commitment not allowed before block " + Signum.getFluxCapacitor().getStartingHeight(FluxValues.SIGNUM));
+        }
+
+        Attachment.CommitmentRemove attachment = (Attachment.CommitmentRemove) transaction.getAttachment();
+        if (attachment.getAmountNqt() < 0L) {
+          throw new SignumException.NotValidException("Commitment amount cannot be negative: " + JSON.toJsonString(attachment.getJsonObject()));
         }
       }
 

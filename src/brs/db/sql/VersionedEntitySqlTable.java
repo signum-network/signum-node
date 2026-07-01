@@ -183,7 +183,7 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
             throw new IllegalStateException("Not in transaction");
         }
         DbKey dbKey = (DbKey) dbKeyFactory.newKey(t);
-        return Db.useDSLContext(ctx -> {
+        return Db.fetchWithDSLContext(ctx -> {
             try {
                 SelectQuery<Record> countQuery = ctx.selectQuery();
                 countQuery.addFrom(tableClass);

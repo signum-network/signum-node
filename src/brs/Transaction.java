@@ -252,6 +252,7 @@ public class Transaction implements Comparable<Transaction> {
 
         if ((type == null || type.isSigned()) && (deadline < 1
                 || feeNqt > Constants.MAX_BALANCE_NQT
+                || feeNqt < 0
                 || amountNqt < 0
                 || amountNqt > Constants.MAX_BALANCE_NQT
                 || type == null)) {

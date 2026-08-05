@@ -57,7 +57,7 @@ dependencies {
     implementation 'org.postgresql:postgresql:42.7.13'
     implementation 'com.kohlschutter.junixsocket:junixsocket-core:2.10.1'
     implementation 'org.mariadb.jdbc:mariadb-java-client:3.5.10'
-    implementation 'org.xerial:sqlite-jdbc:3.53.2.0'
+    implementation 'org.xerial:sqlite-jdbc:3.53.2.1'
 
     implementation 'org.owasp.encoder:encoder:1.4.0'
     implementation 'org.bitlet:weupnp:0.1.4'

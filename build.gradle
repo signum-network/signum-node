@@ -56,7 +56,7 @@ dependencies {
     implementation 'org.flywaydb:flyway-database-postgresql:12.11.0'
     implementation 'org.postgresql:postgresql:42.7.13'
     implementation 'com.kohlschutter.junixsocket:junixsocket-core:2.10.1'
-    implementation 'org.mariadb.jdbc:mariadb-java-client:3.5.9'
+    implementation 'org.mariadb.jdbc:mariadb-java-client:3.5.10'
     implementation 'org.xerial:sqlite-jdbc:3.53.2.0'
 
     implementation 'org.owasp.encoder:encoder:1.4.0'
@@ -78,7 +78,7 @@ dependencies {
     implementation 'org.apache.logging.log4j:log4j-api:2.26.1'
     implementation 'org.apache.logging.log4j:log4j-core:2.26.1'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.22.1'
-    implementation 'org.eclipse.jgit:org.eclipse.jgit:7.7.0.202606012155-r'
+    implementation 'org.eclipse.jgit:org.eclipse.jgit:7.7.1.202607240634-r'
     implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.5'
     implementation "org.glassfish.jaxb:jaxb-runtime:4.0.9"
 

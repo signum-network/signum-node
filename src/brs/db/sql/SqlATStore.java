@@ -327,7 +327,7 @@ public class SqlATStore implements ATStore {
 
   @Override
   public int getATCount() {
-    return Db.<Integer>useDSLContext(ctx -> {
+    return Db.<Integer>fetchWithDSLContext(ctx -> {
       Integer count = ctx.selectCount().from(AT).where(AT.LATEST.isTrue()).fetchOne(0, int.class);
       return count != null ? count : 0;
     });

@@ -444,6 +444,15 @@ public final class Signum {
                     blockchainProcessor,
                     stores.getUnconfirmedTransactionStore());
 
+            final brs.services.NetworkAnalysisService networkAnalysisService =
+                    new brs.services.impl.NetworkAnalysisServiceImpl(blockchain, propertyService);
+            blockchainProcessor.addListener(
+                    networkAnalysisService::recordFork,
+                    BlockchainProcessor.Event.BLOCK_AUTO_POPPED);
+            blockchainProcessor.addListener(
+                    networkAnalysisService::recordFork,
+                    BlockchainProcessor.Event.BLOCK_MANUAL_POPPED);
+
             webServer = new WebServerImpl(new WebServerContext(transactionProcessor,
                     blockchain,
                     blockchainProcessor,
@@ -466,6 +475,7 @@ public final class Signum {
                     feeSuggestionCalculator,
                     deepLinkQrCodeGenerator,
                     indirectIncomingService,
+                    networkAnalysisService,
                     params));
             webServer.start();
 

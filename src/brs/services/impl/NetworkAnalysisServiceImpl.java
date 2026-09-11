@@ -2,6 +2,8 @@ package brs.services.impl;
 
 import brs.Block;
 import brs.Blockchain;
+import brs.SignumException;
+import brs.db.sql.Db;
 import brs.peer.Peer;
 import brs.peer.Peers;
 import brs.props.PropertyService;
@@ -11,15 +13,14 @@ import brs.util.Convert;
 import brs.util.JSON;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.jooq.Field;
+import org.jooq.Record;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import brs.SignumException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -28,11 +29,17 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static brs.db.sql.Db.getConnection;
-
 public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
 
     private static final Logger logger = LoggerFactory.getLogger(NetworkAnalysisServiceImpl.class);
+
+    private static final Table<Record> FORK_HISTORY = DSL.table("fork_history");
+    private static final Field<Long> DETECTED_AT = DSL.field("detected_at", Long.class);
+    private static final Field<Integer> ROLLBACK_HEIGHT = DSL.field("rollback_height", Integer.class);
+    private static final Field<Integer> ROLLBACK_DEPTH = DSL.field("rollback_depth", Integer.class);
+    private static final Field<String> OLD_TOP_BLOCK_ID = DSL.field("old_top_block_id", String.class);
+    private static final Field<String> NEW_TOP_BLOCK_ID = DSL.field("new_top_block_id", String.class);
+    private static final Field<String> PEER_SOURCE = DSL.field("peer_source", String.class);
 
     private final Blockchain blockchain;
     private final PropertyService propertyService;
@@ -61,24 +68,24 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
     @Override
     public List<JsonObject> getForkHistory(int limit) {
         List<JsonObject> result = new ArrayList<>();
-        try (Connection con = getConnection();
-             PreparedStatement ps = con.prepareStatement(
-                     "SELECT detected_at, rollback_height, rollback_depth, old_top_block_id, new_top_block_id, peer_source " +
-                     "FROM fork_history ORDER BY detected_at DESC LIMIT ?")) {
-            ps.setInt(1, Math.min(limit, 200));
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    JsonObject entry = new JsonObject();
-                    entry.addProperty("detectedAt", rs.getLong("detected_at"));
-                    entry.addProperty("rollbackHeight", rs.getInt("rollback_height"));
-                    entry.addProperty("rollbackDepth", rs.getInt("rollback_depth"));
-                    entry.addProperty("oldTopBlockId", rs.getString("old_top_block_id"));
-                    entry.addProperty("newTopBlockId", rs.getString("new_top_block_id"));
-                    entry.addProperty("peerSource", rs.getString("peer_source"));
-                    result.add(entry);
-                }
+        try {
+            var records = Db.fetchWithDSLContext(ctx -> ctx
+                    .select(DETECTED_AT, ROLLBACK_HEIGHT, ROLLBACK_DEPTH, OLD_TOP_BLOCK_ID, NEW_TOP_BLOCK_ID, PEER_SOURCE)
+                    .from(FORK_HISTORY)
+                    .orderBy(DETECTED_AT.desc())
+                    .limit(Math.min(limit, 200))
+                    .fetch());
+            for (var r : records) {
+                JsonObject entry = new JsonObject();
+                entry.addProperty("detectedAt", r.get(DETECTED_AT));
+                entry.addProperty("rollbackHeight", r.get(ROLLBACK_HEIGHT));
+                entry.addProperty("rollbackDepth", r.get(ROLLBACK_DEPTH));
+                entry.addProperty("oldTopBlockId", r.get(OLD_TOP_BLOCK_ID));
+                entry.addProperty("newTopBlockId", r.get(NEW_TOP_BLOCK_ID));
+                entry.addProperty("peerSource", r.get(PEER_SOURCE));
+                result.add(entry);
             }
-        } catch (SQLException e) {
+        } catch (RuntimeException e) {
             logger.error("Error reading fork_history", e);
         }
         return result;
@@ -254,17 +261,12 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
 
     public void recordFork(Block poppedBlock) {
         if (poppedBlock == null) return;
-        try (Connection con = getConnection();
-             PreparedStatement ps = con.prepareStatement(
-                     "INSERT INTO fork_history (detected_at, rollback_height, rollback_depth, old_top_block_id, new_top_block_id, peer_source) " +
-                     "VALUES (?, ?, 1, ?, ?, ?)")) {
-            ps.setLong(1, System.currentTimeMillis());
-            ps.setInt(2, poppedBlock.getHeight());
-            ps.setString(3, poppedBlock.getStringId());
-            ps.setString(4, null);
-            ps.setString(5, null);
-            ps.executeUpdate();
-        } catch (SQLException e) {
+        try {
+            Db.useDSLContext(ctx -> ctx.insertInto(FORK_HISTORY)
+                    .columns(DETECTED_AT, ROLLBACK_HEIGHT, ROLLBACK_DEPTH, OLD_TOP_BLOCK_ID, NEW_TOP_BLOCK_ID, PEER_SOURCE)
+                    .values(System.currentTimeMillis(), poppedBlock.getHeight(), 1, poppedBlock.getStringId(), null, null)
+                    .execute());
+        } catch (RuntimeException e) {
             logger.error("Error recording fork event", e);
         }
     }
@@ -345,14 +347,14 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
     private void pruneOldForkHistory() {
         int ttlDays = propertyService.getInt(Props.WEB_UI_FORK_HISTORY_TTL_DAYS);
         long cutoff = System.currentTimeMillis() - (long) ttlDays * 24 * 60 * 60 * 1000;
-        try (Connection con = getConnection();
-             PreparedStatement ps = con.prepareStatement("DELETE FROM fork_history WHERE detected_at < ?")) {
-            ps.setLong(1, cutoff);
-            int deleted = ps.executeUpdate();
+        try {
+            int deleted = Db.fetchWithDSLContext(ctx -> ctx.deleteFrom(FORK_HISTORY)
+                    .where(DETECTED_AT.lt(cutoff))
+                    .execute());
             if (deleted > 0) {
                 logger.info("Pruned {} old fork_history rows (older than {} days)", deleted, ttlDays);
             }
-        } catch (SQLException e) {
+        } catch (RuntimeException e) {
             logger.error("Error pruning fork_history", e);
         }
     }

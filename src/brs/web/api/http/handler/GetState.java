@@ -69,8 +69,10 @@ public final class GetState extends ApiServlet.JsonRequestHandler {
     response.addProperty(CUMULATIVE_DIFFICULTY_RESPONSE, lastBlock.getCumulativeDifficulty().toString());
 
     long totalMined = blockchain.getTotalMined();
-    long totalBurnt = Signum.getStores().getAccountStore().getAccountBalanceTable().get(
-            Signum.getStores().getAccountStore().getAccountKeyFactory().newKey(0L)).getBalanceNqt();
+    Account.Balance burnAccountBalance = Signum.getStores().getAccountStore().getAccountBalanceTable().get(
+            Signum.getStores().getAccountStore().getAccountKeyFactory().newKey(0L));
+    // A chain on which nothing was ever burnt has no balance row for the burn account (id 0).
+    long totalBurnt = burnAccountBalance == null ? 0L : burnAccountBalance.getBalanceNqt();
     response.addProperty("totalMinedNQT", totalMined);
     response.addProperty("totalBurntNQT", totalBurnt);
     response.addProperty("circulatingSupplyNQT", totalMined - totalBurnt);

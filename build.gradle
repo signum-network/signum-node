@@ -8,7 +8,7 @@ plugins {
   id 'com.palantir.git-version' version '5.1.0'
   id 'io.spring.dependency-management' version '1.1.7'
   id 'nu.studer.jooq' version '10.2.1'
-  id "org.flywaydb.flyway" version "13.6.0"
+  id "org.flywaydb.flyway" version "13.8.0"
   id "de.undercouch.download" version "5.7.0"
   id 'jacoco'
   id "com.github.node-gradle.node" version "7.1.0"
@@ -51,9 +51,9 @@ dependencies {
     implementation 'org.jocl:jocl:2.0.6'
 
     implementation 'org.jooq:jooq:3.21.8'
-    implementation 'org.flywaydb:flyway-core:13.6.0'
-    implementation 'org.flywaydb:flyway-mysql:13.6.0'
-    implementation 'org.flywaydb:flyway-database-postgresql:13.6.0'
+    implementation 'org.flywaydb:flyway-core:13.8.0'
+    implementation 'org.flywaydb:flyway-mysql:13.8.0'
+    implementation 'org.flywaydb:flyway-database-postgresql:13.8.0'
     implementation 'org.postgresql:postgresql:42.7.13'
     implementation 'com.kohlschutter.junixsocket:junixsocket-core:2.11.1'
     implementation 'org.mariadb.jdbc:mariadb-java-client:3.5.10'
@@ -63,8 +63,8 @@ dependencies {
     implementation 'org.bitlet:weupnp:0.1.4'
     implementation 'com.google.zxing:core:3.5.4'
     implementation 'com.google.zxing:javase:3.5.4'
-    implementation 'org.slf4j:slf4j-api:2.0.19'
-    implementation 'org.slf4j:slf4j-jdk14:2.0.19'
+    implementation 'org.slf4j:slf4j-api:2.0.20'
+    implementation 'org.slf4j:slf4j-jdk14:2.0.20'
 
     implementation 'org.eclipse.jetty.ee10:jetty-ee10-servlet:12.1.13'
     implementation 'org.eclipse.jetty.ee10:jetty-ee10-servlets:12.1.13'
@@ -77,7 +77,7 @@ dependencies {
     implementation 'com.github.jiconfont:jiconfont-font_awesome:4.7.0.1'
     implementation 'org.apache.logging.log4j:log4j-api:2.26.1'
     implementation 'org.apache.logging.log4j:log4j-core:2.26.1'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.22.2'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.22.3'
     implementation 'org.eclipse.jgit:org.eclipse.jgit:7.8.0.202609011348-r'
     implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.5'
     implementation "org.glassfish.jaxb:jaxb-runtime:4.0.9"
@@ -91,7 +91,7 @@ dependencies {
     testRuntimeOnly("org.junit.vintage:junit-vintage-engine:6.1.3")
 
     testImplementation 'org.apache.httpcomponents:httpclient:4.5.14'
-    testImplementation 'org.mockito:mockito-core:5.23.0'
+    testImplementation 'org.mockito:mockito-core:5.24.0'
     testImplementation 'org.powermock:powermock-module-junit4:2.0.9'
     testImplementation 'org.powermock:powermock-api-mockito2:2.0.9'
 }

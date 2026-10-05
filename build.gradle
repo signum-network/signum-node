@@ -8,7 +8,7 @@ plugins {
   id 'com.palantir.git-version' version '5.1.0'
   id 'io.spring.dependency-management' version '1.1.7'
   id 'nu.studer.jooq' version '10.2.1'
-  id "org.flywaydb.flyway" version "13.8.0"
+  id "org.flywaydb.flyway" version "13.9.0"
   id "de.undercouch.download" version "5.7.0"
   id 'jacoco'
   id "com.github.node-gradle.node" version "7.1.0"
@@ -50,16 +50,16 @@ dependencies {
     implementation 'com.zaxxer:HikariCP:7.1.0'
     implementation 'org.jocl:jocl:2.0.6'
 
-    implementation 'org.jooq:jooq:3.21.8'
-    implementation 'org.flywaydb:flyway-core:13.8.0'
-    implementation 'org.flywaydb:flyway-mysql:13.8.0'
-    implementation 'org.flywaydb:flyway-database-postgresql:13.8.0'
+    implementation 'org.jooq:jooq:3.21.9'
+    implementation 'org.flywaydb:flyway-core:13.9.0'
+    implementation 'org.flywaydb:flyway-mysql:13.9.0'
+    implementation 'org.flywaydb:flyway-database-postgresql:13.9.0'
     implementation 'org.postgresql:postgresql:42.7.13'
     implementation 'com.kohlschutter.junixsocket:junixsocket-core:2.11.1'
     implementation 'org.mariadb.jdbc:mariadb-java-client:3.5.10'
     implementation 'org.xerial:sqlite-jdbc:3.53.4.0'
 
-    implementation 'org.owasp.encoder:encoder:1.4.0'
+    implementation 'org.owasp.encoder:encoder:1.5.0'
     implementation 'org.bitlet:weupnp:0.1.4'
     implementation 'com.google.zxing:core:3.5.4'
     implementation 'com.google.zxing:javase:3.5.4'

@@ -520,10 +520,11 @@ public abstract class TransactionType {
           throw new SignumException.NotCurrentlyValidException("Multi Same Out Payments are not allowed before the Pre POC2 block");
         }
 
-        Attachment.PaymentMultiSameOutCreation attachment = (Attachment.PaymentMultiSameOutCreation) transaction.getAttachment();
-        if (attachment.getRecipients().size() < 2 && (transaction.getAmountNqt() % attachment.getRecipients().size() == 0 ) ) {
-          throw new SignumException.NotValidException("Invalid multi out payment");
-        }
+        // Recipient count (2..MAX_MULTI_SAME_OUT_RECIPIENTS) is already enforced when the
+        // attachment is parsed. The per-recipient share is floor(amountNqt / recipients), so any
+        // indivisible remainder is burned (never minted). Divisibility is intentionally NOT
+        // enforced here: tightening this consensus rule would reject historically-accepted
+        // transactions on resync.
       }
 
       @Override
@@ -2976,6 +2977,9 @@ public abstract class TransactionType {
       @Override
       protected void validateAttachment(Transaction transaction) throws SignumException.ValidationException {
         Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
+        if (attachment.getAmountNqt() < 0L) {
+          throw new SignumException.NotValidException("Escrow amount cannot be negative: " + JSON.toJsonString(attachment.getJsonObject()));
+        }
         Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNqt(), transaction.getFeeNqt());
         if (transaction.getSenderId() == transaction.getRecipientId()) {
           throw new SignumException.NotValidException("Escrow must have different sender and recipient");

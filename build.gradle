@@ -8,7 +8,7 @@ plugins {
   id 'com.palantir.git-version' version '5.1.0'
   id 'io.spring.dependency-management' version '1.1.7'
   id 'nu.studer.jooq' version '10.2.1'
-  id "org.flywaydb.flyway" version "13.9.0"
+  id "org.flywaydb.flyway" version "13.10.0"
   id "de.undercouch.download" version "5.7.0"
   id 'jacoco'
   id "com.github.node-gradle.node" version "7.1.0"
@@ -51,10 +51,10 @@ dependencies {
     implementation 'org.jocl:jocl:2.0.6'
 
     implementation 'org.jooq:jooq:3.21.9'
-    implementation 'org.flywaydb:flyway-core:13.9.0'
-    implementation 'org.flywaydb:flyway-mysql:13.9.0'
-    implementation 'org.flywaydb:flyway-database-postgresql:13.9.0'
-    implementation 'org.postgresql:postgresql:42.7.13'
+    implementation 'org.flywaydb:flyway-core:13.10.0'
+    implementation 'org.flywaydb:flyway-mysql:13.10.0'
+    implementation 'org.flywaydb:flyway-database-postgresql:13.10.0'
+    implementation 'org.postgresql:postgresql:42.7.14'
     implementation 'com.kohlschutter.junixsocket:junixsocket-core:2.11.1'
     implementation 'org.mariadb.jdbc:mariadb-java-client:3.5.10'
     implementation 'org.xerial:sqlite-jdbc:3.53.4.0'
@@ -66,11 +66,11 @@ dependencies {
     implementation 'org.slf4j:slf4j-api:2.0.20'
     implementation 'org.slf4j:slf4j-jdk14:2.0.20'
 
-    implementation 'org.eclipse.jetty.ee10:jetty-ee10-servlet:12.1.13'
-    implementation 'org.eclipse.jetty.ee10:jetty-ee10-servlets:12.1.13'
-    implementation 'org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jetty-server:12.1.13'
-    implementation 'org.eclipse.jetty.compression:jetty-compression-server:12.1.13' 
-    implementation 'org.eclipse.jetty.compression:jetty-compression-gzip:12.1.13'   
+    implementation 'org.eclipse.jetty.ee10:jetty-ee10-servlet:12.1.14'
+    implementation 'org.eclipse.jetty.ee10:jetty-ee10-servlets:12.1.14'
+    implementation 'org.eclipse.jetty.ee10.websocket:jetty-ee10-websocket-jetty-server:12.1.14'
+    implementation 'org.eclipse.jetty.compression:jetty-compression-server:12.1.14' 
+    implementation 'org.eclipse.jetty.compression:jetty-compression-gzip:12.1.14'   
 
     implementation 'com.github.jiconfont:jiconfont:1.0.0'
     implementation 'com.github.jiconfont:jiconfont-swing:1.0.1'

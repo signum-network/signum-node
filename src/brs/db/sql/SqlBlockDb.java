@@ -198,9 +198,4 @@ public class SqlBlockDb implements BlockDb {
         logger.info("Deleting blockchain...");
         Db.clean();
     }
-
-    @Override
-    public void optimize() {
-        Db.optimizeTable(BLOCK.getName());
-    }
 }

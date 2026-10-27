@@ -1,6 +1,6 @@
 package brs.db;
 
-public interface DerivedTable extends Table {
+public interface DerivedTable {
   String getTable();
   
   void rollback(int height);

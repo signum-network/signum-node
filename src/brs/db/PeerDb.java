@@ -3,7 +3,7 @@ package brs.db;
 import java.util.Collection;
 import java.util.List;
 
-public interface PeerDb extends Table {
+public interface PeerDb {
   List<String> loadPeers();
 
   void deletePeers(Collection<String> peers);

@@ -210,23 +210,6 @@ public final class Db {
         DbUtils.close(con);
     }
 
-    public static void optimizeTable(String tableName) {
-        useDSLContext(ctx -> {
-            try {
-                switch (ctx.dialect()) {
-                    case MYSQL:
-                    case MARIADB:
-                        ctx.execute("OPTIMIZE NO_WRITE_TO_BINLOG TABLE " + tableName);
-                        break;
-                    default:
-                        break;
-                }
-            } catch (Exception e) {
-                logger.debug("Failed to optimize table {}", tableName, e);
-            }
-        });
-    }
-
     private static String getDatabaseVersion() {
         String version = "N/A";
         try {

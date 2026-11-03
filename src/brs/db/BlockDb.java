@@ -5,7 +5,7 @@ import brs.SignumException;
 import brs.schema.tables.records.BlockRecord;
 import org.jooq.DSLContext;
 
-public interface BlockDb extends Table {
+public interface BlockDb {
   Block findBlock(long blockId);
 
   boolean hasBlock(long blockId);

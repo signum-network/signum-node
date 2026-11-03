@@ -36,9 +36,4 @@ public class SqlPeerDb implements PeerDb {
             ctx.batch(inserts).execute();
         });
     }
-
-    @Override
-    public void optimize() {
-        Db.optimizeTable(PEER.getName());
-    }
 }

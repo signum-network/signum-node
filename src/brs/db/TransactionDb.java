@@ -6,7 +6,7 @@ import brs.schema.tables.records.TransactionRecord;
 
 import java.util.List;
 
-public interface TransactionDb extends Table {
+public interface TransactionDb {
   Transaction findTransaction(long transactionId);
 
   Transaction findTransactionByFullHash(String fullHash); // TODO add byte[] method

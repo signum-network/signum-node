@@ -58,9 +58,4 @@ public abstract class DerivedSqlTable implements DerivedTable {
   public void finish() {
 
   }
-
-  @Override
-  public void optimize() {
-    Db.optimizeTable(table);
-  }
 }

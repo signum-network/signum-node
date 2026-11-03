@@ -187,9 +187,4 @@ public class SqlTransactionDb implements TransactionDb {
             });
         }
     }
-
-    @Override
-    public void optimize() {
-        Db.optimizeTable(TRANSACTION.getName());
-    }
 }

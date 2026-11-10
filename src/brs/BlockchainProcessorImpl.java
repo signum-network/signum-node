@@ -1087,7 +1087,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                             logger.debug("block was not preverified");
                         }
                         pushBlock(currentBlock); // pushblock removes the block from cache.
-                        consecutivePersistenceFailures.set(0);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     } catch (BlockNotAcceptedException e) {
@@ -1956,6 +1955,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     private void restoreAfterFailedPush(Block previousLastBlock) {
         try {
             stores.rollbackTransaction();
+        } catch (RuntimeException rollbackFailure) {
+            // don't let a failed rollback mask the exception that caused it
+            logger.warn("Rollback after failed block push failed: {}", rollbackFailure.toString());
         } finally {
             if (previousLastBlock != null) {
                 blockchain.setLastBlock(previousLastBlock);
@@ -1973,6 +1975,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         int failures = consecutivePersistenceFailures.incrementAndGet();
         downloadCache.resetCache();
         atProcessorCache.reset();
+        // the generator pushes blocks without holding blockImporterLock, so guard the tip reload
+        // with the same lock pushBlock uses
         synchronized (transactionProcessor.getUnconfirmedTransactionsSyncObj()) {
             Block persistedTip = blockDb.findLastBlock();
             blockchain.setLastBlock(persistedTip);
@@ -2229,6 +2233,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             stores.beginTransaction();
             int curTime = timeService.getEpochTime();
             Block previousLastBlock = null;
+            boolean committed = false;
             try {
                 long stepStart = System.nanoTime();
 
@@ -2418,6 +2423,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 long commitStart = System.nanoTime();
                 derivedTableManager.getDerivedTables().forEach(DerivedTable::finish);
                 stores.commitTransaction();
+                committed = true;
+                consecutivePersistenceFailures.set(0);
                 commitTime = System.nanoTime() - commitStart;
 
                 // We make sure downloadCache do not have this block anymore, but only after all
@@ -2427,10 +2434,13 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 restoreAfterFailedPush(previousLastBlock);
                 throw e;
             } catch (RuntimeException e) {
-                // e.g. a database error: the block was not persisted, so undo the in-memory side effects
-                logger.error("Failed to persist block {} at height {} (previous block {}), rolling back",
-                        block.getStringId(), block.getHeight(), Convert.toUnsignedLong(block.getPreviousBlockId()));
-                restoreAfterFailedPush(previousLastBlock);
+                // e.g. a database error: the block was not persisted, so undo the in-memory side effects.
+                // Once committed the block is in the database and the in-memory tip is correct.
+                if (!committed) {
+                    logger.error("Failed to persist block {} at height {} (previous block {}), rolling back",
+                            block.getStringId(), block.getHeight(), Convert.toUnsignedLong(block.getPreviousBlockId()));
+                    restoreAfterFailedPush(previousLastBlock);
+                }
                 throw e;
             } finally {
                 stores.endTransaction();

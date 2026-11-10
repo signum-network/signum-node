@@ -191,10 +191,12 @@ public final class Db {
             con.rollback();
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
+        } finally {
+            // drop cached state even if the rollback itself failed, e.g. on a lost connection
+            transactionCaches.get().clear();
+            transactionBatches.get().clear();
+            dbCacheManager.flushCache();
         }
-        transactionCaches.get().clear();
-        transactionBatches.get().clear();
-        dbCacheManager.flushCache();
     }
 
     public static void endTransaction() {

@@ -85,6 +85,7 @@ import java.util.stream.Stream;
 
 import com.sun.management.OperatingSystemMXBean;
 import org.bouncycastle.util.encoders.Hex;
+import org.jooq.exception.DataAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import signumj.entity.SignumID;
@@ -168,6 +169,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     // Automatic pause for functions when needed
     private final AtomicBoolean getMoreBlocksAutoPause = new AtomicBoolean(false);
     private final AtomicBoolean blockImporterAutoPause = new AtomicBoolean(false);
+    // Consecutive database failures while persisting a block, reset on success
+    private final AtomicInteger consecutivePersistenceFailures = new AtomicInteger(0);
 
     private final ReentrantReadWriteLock getMoreBlocksLock = new ReentrantReadWriteLock();
     private final ReentrantReadWriteLock blockImporterLock = new ReentrantReadWriteLock();
@@ -1084,6 +1087,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                             logger.debug("block was not preverified");
                         }
                         pushBlock(currentBlock); // pushblock removes the block from cache.
+                        consecutivePersistenceFailures.set(0);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     } catch (BlockNotAcceptedException e) {
@@ -1096,6 +1100,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                     if (exception.toString().contains("[SQLITE_BUSY]")
                             || exception.toString().contains("[SQLITE_BUSY_SNAPSHOT]")) {
                         logger.warn("SQLite busy, trying again later...");
+                    } else if (isDatabaseError(exception)) {
+                        recoverFromPersistenceFailure(exception);
+                        break;
                     } else {
                         exception.printStackTrace();
                         logger.error("Uncaught exception in blockImporterThread", exception);
@@ -1946,6 +1953,48 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         blockchain.setLastBlock(block);
     }
 
+    private void restoreAfterFailedPush(Block previousLastBlock) {
+        try {
+            stores.rollbackTransaction();
+        } finally {
+            if (previousLastBlock != null) {
+                blockchain.setLastBlock(previousLastBlock);
+            }
+            downloadCache.resetCache();
+            atProcessorCache.reset();
+        }
+    }
+
+    /**
+     * Re-syncs the in-memory chain with the database after a block could not be persisted,
+     * so the importer does not keep retrying children of a block that was never committed.
+     */
+    private void recoverFromPersistenceFailure(Exception exception) {
+        int failures = consecutivePersistenceFailures.incrementAndGet();
+        downloadCache.resetCache();
+        atProcessorCache.reset();
+        synchronized (transactionProcessor.getUnconfirmedTransactionsSyncObj()) {
+            Block persistedTip = blockDb.findLastBlock();
+            blockchain.setLastBlock(persistedTip);
+            if (failures == 1) {
+                logger.error("Block persistence failed, download cache reset and tip reloaded from database at height {}",
+                        persistedTip.getHeight(), exception);
+            } else {
+                logger.error("Block persistence failed ({} consecutive failures), tip reloaded from database at height {}: {}",
+                        failures, persistedTip.getHeight(), exception.toString());
+            }
+        }
+    }
+
+    static boolean isDatabaseError(Throwable throwable) {
+        for (Throwable cause = throwable; cause != null; cause = cause.getCause()) {
+            if (cause instanceof SQLException || cause instanceof DataAccessException) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private int checkDatabaseState() {
         logger.debug("Block height {}, checking database state...", blockchain.getHeight());
         long totalMined = blockchain.getTotalMined();
@@ -2375,10 +2424,13 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 // DBs have it
                 downloadCache.removeBlock(block);
             } catch (BlockNotAcceptedException | ArithmeticException e) {
-                stores.rollbackTransaction();
-                blockchain.setLastBlock(previousLastBlock);
-                downloadCache.resetCache();
-                atProcessorCache.reset();
+                restoreAfterFailedPush(previousLastBlock);
+                throw e;
+            } catch (RuntimeException e) {
+                // e.g. a database error: the block was not persisted, so undo the in-memory side effects
+                logger.error("Failed to persist block {} at height {} (previous block {}), rolling back",
+                        block.getStringId(), block.getHeight(), Convert.toUnsignedLong(block.getPreviousBlockId()));
+                restoreAfterFailedPush(previousLastBlock);
                 throw e;
             } finally {
                 stores.endTransaction();

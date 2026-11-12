@@ -99,23 +99,14 @@ public final class ThreadPool {
     logger.debug("Starting {} background jobs", totalThreads);
     scheduledThreadPool = Executors.newScheduledThreadPool(totalThreads);
     for (Map.Entry<Runnable,Long> entry : backgroundJobs.entrySet()) {
-      final Runnable inner = entry.getKey();
-      Runnable toRun = () -> {
-        try {
-          inner.run();
-        }
-        catch (Exception e) {
-          logger.warn("Uncaught exception while running background thread "+inner.getClass().getSimpleName(), e);
-        }
-      };
-      scheduledThreadPool.scheduleWithFixedDelay(toRun, 0, Math.max(entry.getValue() / timeMultiplier, 1), TimeUnit.MILLISECONDS);
+      scheduledThreadPool.scheduleWithFixedDelay(guarded(entry.getKey()), 0, Math.max(entry.getValue() / timeMultiplier, 1), TimeUnit.MILLISECONDS);
     }
     backgroundJobs.clear();
 
     // Starting multicore-Threads:
     for (Map.Entry<Runnable,Long> entry : backgroundJobsCores.entrySet()) {
       for (int i=0; i < cores; i++)
-        scheduledThreadPool.scheduleWithFixedDelay(entry.getKey(), 0, Math.max(entry.getValue() / timeMultiplier, 1), TimeUnit.MILLISECONDS);
+        scheduledThreadPool.scheduleWithFixedDelay(guarded(entry.getKey()), 0, Math.max(entry.getValue() / timeMultiplier, 1), TimeUnit.MILLISECONDS);
     }
     backgroundJobsCores.clear();
 
@@ -128,6 +119,25 @@ public final class ThreadPool {
     });
     thread.setDaemon(true);
     thread.start();
+  }
+
+  /**
+   * Wraps a background job so that nothing it throws escapes to the executor. A scheduled job
+   * that throws is cancelled by {@link ScheduledExecutorService#scheduleWithFixedDelay} for good,
+   * silently, which would e.g. stop block syncing until restart after a single
+   * {@link OutOfMemoryError} (#1084). The job is logged and runs again at its next turn.
+   */
+  static Runnable guarded(Runnable job) {
+    return () -> {
+      try {
+        job.run();
+      } catch (Exception e) {
+        logger.warn("Uncaught exception while running background thread {}", job.getClass().getSimpleName(), e);
+      } catch (Throwable t) {
+        logger.error("Uncaught error while running background thread {}, it will run again at its next turn",
+            job.getClass().getSimpleName(), t);
+      }
+    };
   }
 
   public synchronized void shutdown() {

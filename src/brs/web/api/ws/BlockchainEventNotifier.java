@@ -91,6 +91,11 @@ public class BlockchainEventNotifier {
     heartbeat.start();
   }
 
+  /** The number of currently open websocket connections. */
+  public int getConnectionCount() {
+    return connections.size();
+  }
+
   public void removeConnection(WebSocketConnection connection) {
     connections.remove(connection.getId());
   }

@@ -68,19 +68,30 @@ final class ForkProcessor {
 
     /**
      * Waits until the download cache is processed, then switches to the fork starting after
-     * {@code forkBlockId} if it is stronger than our chain. The fork blocks and the download
-     * cache are reset afterwards, also on unexpected errors.
+     * {@code forkBlockId} if it is stronger than our chain. Fork processing is skipped if the
+     * wait is interrupted, the node is shutting down or the common block is no longer in our
+     * chain. The fork blocks and the download cache are reset afterwards, also on unexpected
+     * errors.
      */
     void process(Peer peer, List<Block> forkBlocks, long forkBlockId) {
         logger.debug("A fork is detected. Waiting for cache to be processed.");
         downloadCache.lockCache(); // dont let anything add to cache!
-        awaitEmptyCache();
+        boolean cacheProcessed = awaitEmptyCache();
         synchronized (downloadCache) {
             synchronized (transactionProcessor.getUnconfirmedTransactionsSyncObj()) {
-                logger.debug("Cache is now processed. Starting to process fork.");
-                Block forkBlock = blockchain.getBlock(forkBlockId);
-                BigInteger curCumulativeDifficulty = blockchain.getLastBlock().getCumulativeDifficulty();
                 try {
+                    if (!cacheProcessed) {
+                        logger.info("Skipping fork processing: interrupted or shutting down");
+                        return;
+                    }
+                    Block forkBlock = blockchain.getBlock(forkBlockId);
+                    if (forkBlock == null) {
+                        logger.warn("Skipping fork processing: common block {} is no longer in our chain",
+                                Long.toUnsignedString(forkBlockId));
+                        return;
+                    }
+                    logger.debug("Cache is now processed. Starting to process fork.");
+                    BigInteger curCumulativeDifficulty = blockchain.getLastBlock().getCumulativeDifficulty();
                     switchToFork(peer, forkBlocks, forkBlockId, forkBlock, curCumulativeDifficulty);
                     logger.info("Forkprocessing complete.");
                 } finally {
@@ -92,9 +103,20 @@ final class ForkProcessor {
         }
     }
 
-    private void awaitEmptyCache() {
-        while (!Thread.currentThread().isInterrupted() && ThreadPool.running.get()
-                && downloadCache.size() != 0) {
+    /**
+     * Waits until the download cache is empty.
+     *
+     * @return {@code false} if the wait ended because the thread was interrupted or the node is
+     *         shutting down
+     */
+    private boolean awaitEmptyCache() {
+        while (true) {
+            if (Thread.currentThread().isInterrupted() || !ThreadPool.running.get()) {
+                return false;
+            }
+            if (downloadCache.size() == 0) {
+                return true;
+            }
             try {
                 Thread.sleep(CACHE_POLL_INTERVAL_MS);
             } catch (InterruptedException ex) {
@@ -152,7 +174,9 @@ final class ForkProcessor {
                 chain.pushBlock(block);
                 pushed += 1;
             } catch (InterruptedException e) {
+                // the remaining blocks would not connect to the tip anymore
                 Thread.currentThread().interrupt();
+                break;
             } catch (BlockNotAcceptedException e) {
                 peer.blacklist(e, "during processing a fork");
                 break;
@@ -182,29 +206,36 @@ final class ForkProcessor {
      */
     private void restoreOwnChain(List<Block> myPoppedOffBlocks) {
         for (int i = myPoppedOffBlocks.size() - 1; i >= 0; i--) {
-            Block block = myPoppedOffBlocks.remove(i);
-            try {
-                if (!block.isVerified()) {
-                    blockService.preVerify(block, blockchain.getLastBlock());
-                }
-                chain.pushBlock(block);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            } catch (BlockNotAcceptedException e) {
-                logger.warn("Popped off block no longer acceptable: " + JSON.toJsonString(block.getJsonObject()), e);
-                break;
-            } catch (BlockNotPersistedException e) {
-                logger.warn("Could not persist own popped off block {} at height {} while restoring chain",
-                        block.getStringId(), block.getHeight());
-                transactionProcessor.processLater(block.getTransactions());
-                break;
+            if (!restoreBlock(myPoppedOffBlocks.get(i))) {
+                // the failed block and all newer ones (lower indexes) are not on the chain
+                List<Block> unrestored = myPoppedOffBlocks.subList(0, i + 1);
+                logger.warn("Could not restore {} popped off blocks, returning their transactions to the unconfirmed pool",
+                        unrestored.size());
+                requeue(unrestored);
+                return;
             }
         }
-        if (!myPoppedOffBlocks.isEmpty()) {
-            logger.warn("Could not restore {} popped off blocks, returning their transactions to the unconfirmed pool",
-                    myPoppedOffBlocks.size());
-            requeue(myPoppedOffBlocks);
+    }
+
+    /** Re-pushes one of our own popped off blocks, returns {@code false} if that failed. */
+    private boolean restoreBlock(Block block) {
+        try {
+            if (!block.isVerified()) {
+                blockService.preVerify(block, blockchain.getLastBlock());
+            }
+            chain.pushBlock(block);
+            return true;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.warn("Interrupted while restoring own popped off block {} at height {}",
+                    block.getStringId(), block.getHeight());
+        } catch (BlockNotAcceptedException e) {
+            logger.warn("Popped off block no longer acceptable: " + JSON.toJsonString(block.getJsonObject()), e);
+        } catch (BlockNotPersistedException e) {
+            logger.warn("Could not persist own popped off block {} at height {} while restoring chain",
+                    block.getStringId(), block.getHeight());
         }
+        return false;
     }
 
     private void requeue(List<Block> blocks) {

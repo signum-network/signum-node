@@ -85,7 +85,6 @@ import java.util.stream.Stream;
 
 import com.sun.management.OperatingSystemMXBean;
 import org.bouncycastle.util.encoders.Hex;
-import org.jooq.exception.DataAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import signumj.entity.SignumID;
@@ -114,6 +113,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     private final BlockDb blockDb;
     private final TransactionDb transactionDb;
     private final DownloadCacheImpl downloadCache;
+    private final BlockPushRecovery blockPushRecovery;
     private final DerivedTableManager derivedTableManager;
     private final StatisticsManagerImpl statisticsManager;
     private final Generator generator;
@@ -387,6 +387,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         this.blockchainStore = blockchainStore;
         this.stores = stores;
         this.downloadCache = downloadCache;
+        this.blockPushRecovery = new BlockPushRecovery(stores, blockchain, blockDb, downloadCache, atProcessorCache);
         this.generator = generator;
         this.economicClustering = economicClustering;
         this.escrowService = escrowService;
@@ -1096,10 +1097,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         break;
                     }
                 } catch (Exception exception) {
-                    if (exception.toString().contains("[SQLITE_BUSY]")
-                            || exception.toString().contains("[SQLITE_BUSY_SNAPSHOT]")) {
+                    if (BlockPushRecovery.isSqliteBusy(exception)) {
+                        // pushBlock kept the download cache, so retry with the next scheduled run
                         logger.warn("SQLite busy, trying again later...");
-                    } else if (isDatabaseError(exception)) {
+                        break;
+                    } else if (BlockPushRecovery.isDatabaseError(exception)) {
                         recoverFromPersistenceFailure(exception);
                         break;
                     } else {
@@ -1952,51 +1954,24 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         blockchain.setLastBlock(block);
     }
 
-    private void restoreAfterFailedPush(Block previousLastBlock) {
-        try {
-            stores.rollbackTransaction();
-        } catch (RuntimeException rollbackFailure) {
-            // don't let a failed rollback mask the exception that caused it
-            logger.warn("Rollback after failed block push failed: {}", rollbackFailure.toString());
-        } finally {
-            if (previousLastBlock != null) {
-                blockchain.setLastBlock(previousLastBlock);
-            }
-            downloadCache.resetCache();
-            atProcessorCache.reset();
-        }
-    }
-
     /**
      * Re-syncs the in-memory chain with the database after a block could not be persisted,
      * so the importer does not keep retrying children of a block that was never committed.
      */
     private void recoverFromPersistenceFailure(Exception exception) {
         int failures = consecutivePersistenceFailures.incrementAndGet();
-        downloadCache.resetCache();
-        atProcessorCache.reset();
         // the generator pushes blocks without holding blockImporterLock, so guard the tip reload
         // with the same lock pushBlock uses
         synchronized (transactionProcessor.getUnconfirmedTransactionsSyncObj()) {
-            Block persistedTip = blockDb.findLastBlock();
-            blockchain.setLastBlock(persistedTip);
+            Block persistedTip = blockPushRecovery.resyncWithDatabase();
             if (failures == 1) {
-                logger.error("Block persistence failed, download cache reset and tip reloaded from database at height {}",
+                logger.error("Block persistence failed, tip reloaded from database at height {} and download cache reset",
                         persistedTip.getHeight(), exception);
             } else {
                 logger.error("Block persistence failed ({} consecutive failures), tip reloaded from database at height {}: {}",
                         failures, persistedTip.getHeight(), exception.toString());
             }
         }
-    }
-
-    static boolean isDatabaseError(Throwable throwable) {
-        for (Throwable cause = throwable; cause != null; cause = cause.getCause()) {
-            if (cause instanceof SQLException || cause instanceof DataAccessException) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private int checkDatabaseState() {
@@ -2234,6 +2209,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             int curTime = timeService.getEpochTime();
             Block previousLastBlock = null;
             boolean committed = false;
+            BlockPushRecovery.Failure failure = null;
             try {
                 long stepStart = System.nanoTime();
 
@@ -2431,19 +2407,26 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 // DBs have it
                 downloadCache.removeBlock(block);
             } catch (BlockNotAcceptedException | ArithmeticException e) {
-                restoreAfterFailedPush(previousLastBlock);
+                blockPushRecovery.rollback();
+                failure = BlockPushRecovery.Failure.REJECTED;
                 throw e;
             } catch (RuntimeException e) {
                 // e.g. a database error: the block was not persisted, so undo the in-memory side effects.
                 // Once committed the block is in the database and the in-memory tip is correct.
                 if (!committed) {
-                    logger.error("Failed to persist block {} at height {} (previous block {}), rolling back",
-                            block.getStringId(), block.getHeight(), Convert.toUnsignedLong(block.getPreviousBlockId()));
-                    restoreAfterFailedPush(previousLastBlock);
+                    failure = BlockPushRecovery.classify(e);
+                    logger.error("Failed to persist block {} at height {} (previous block {}), rolling back ({})",
+                            block.getStringId(), block.getHeight(), Convert.toUnsignedLong(block.getPreviousBlockId()),
+                            failure);
+                    blockPushRecovery.rollback();
                 }
                 throw e;
             } finally {
                 stores.endTransaction();
+                if (failure != null) {
+                    // after endTransaction, so a persisted tip is reloaded through a fresh connection
+                    blockPushRecovery.restore(previousLastBlock, failure);
+                }
             }
 
             long totalEndTime = System.nanoTime();

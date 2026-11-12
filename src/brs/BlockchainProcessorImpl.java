@@ -169,8 +169,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     // Automatic pause for functions when needed
     private final AtomicBoolean getMoreBlocksAutoPause = new AtomicBoolean(false);
     private final AtomicBoolean blockImporterAutoPause = new AtomicBoolean(false);
-    // Consecutive database failures while persisting a block, reset on success
-    private final AtomicInteger consecutivePersistenceFailures = new AtomicInteger(0);
+    // Consecutive failures to persist a block, drives importer retry backoff and auto pop off
+    private final PersistenceFailureBackoff persistenceFailureBackoff;
 
     private final ReentrantReadWriteLock getMoreBlocksLock = new ReentrantReadWriteLock();
     private final ReentrantReadWriteLock blockImporterLock = new ReentrantReadWriteLock();
@@ -453,6 +453,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         Peers.listeners.addListener(netVolumeListener, Peers.Event.DOWNLOADED_VOLUME);
 
         autoPopOffEnabled = propertyService.getBoolean(Props.AUTO_POP_OFF_ENABLED);
+        persistenceFailureBackoff = new PersistenceFailureBackoff(
+                Math.max(1, propertyService.getInt(Props.BLOCK_PROCESS_THREAD_DELAY)),
+                Math.max(1, propertyService.getInt(Props.PERSISTENCE_FAILURE_MAX_RETRY_DELAY)),
+                Math.max(1, propertyService.getInt(Props.PERSISTENCE_FAILURE_POP_OFF_THRESHOLD)),
+                () -> TimeUnit.NANOSECONDS.toMillis(System.nanoTime()));
 
         oclVerify = propertyService.getBoolean(Props.GPU_ACCELERATION); // use GPU acceleration ?
         oclUnverifiedQueue = propertyService.getInt(Props.GPU_UNVERIFIED_QUEUE);
@@ -1060,7 +1065,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         // pushblock removes the block from cache.
         Runnable blockImporterThread = () -> {
             while (!Thread.interrupted() && ThreadPool.running.get() && downloadCache.size() > 0) {
-                if (blockImporterPause.get() || blockImporterAutoPause.get()) {
+                if (blockImporterPause.get() || blockImporterAutoPause.get()
+                        || !persistenceFailureBackoff.isRetryDue()) {
                     return;
                 }
                 blockImporterLock.writeLock().lock();
@@ -1096,13 +1102,18 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         autoPopOff(currentBlock.getHeight());
                         break;
                     }
+                } catch (BlockNotPersistedException exception) {
+                    // pushBlock already restored the chain state and logged the failure
+                    if (!exception.isTransient() && persistenceFailureBackoff.isPopOffDue()) {
+                        autoPopOff(exception.getHeight());
+                    }
+                    break;
                 } catch (Exception exception) {
                     if (BlockPushRecovery.isSqliteBusy(exception)) {
-                        // pushBlock kept the download cache, so retry with the next scheduled run
                         logger.warn("SQLite busy, trying again later...");
                         break;
                     } else if (BlockPushRecovery.isDatabaseError(exception)) {
-                        recoverFromPersistenceFailure(exception);
+                        logger.error("Database error in blockImporterThread", exception);
                         break;
                     } else {
                         exception.printStackTrace();
@@ -1954,23 +1965,21 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         blockchain.setLastBlock(block);
     }
 
-    /**
-     * Re-syncs the in-memory chain with the database after a block could not be persisted,
-     * so the importer does not keep retrying children of a block that was never committed.
-     */
-    private void recoverFromPersistenceFailure(Exception exception) {
-        int failures = consecutivePersistenceFailures.incrementAndGet();
-        // the generator pushes blocks without holding blockImporterLock, so guard the tip reload
-        // with the same lock pushBlock uses
-        synchronized (transactionProcessor.getUnconfirmedTransactionsSyncObj()) {
-            Block persistedTip = blockPushRecovery.resyncWithDatabase();
-            if (failures == 1) {
-                logger.error("Block persistence failed, tip reloaded from database at height {} and download cache reset",
-                        persistedTip.getHeight(), exception);
-            } else {
-                logger.error("Block persistence failed ({} consecutive failures), tip reloaded from database at height {}: {}",
-                        failures, persistedTip.getHeight(), exception.toString());
-            }
+    private void logPersistenceFailure(Block block, BlockPushRecovery.Failure failure, RuntimeException exception) {
+        if (failure == BlockPushRecovery.Failure.TRANSIENT) {
+            logger.warn("SQLite busy while pushing block {} at height {}, rolled back, trying again later...",
+                    block.getStringId(), block.getHeight());
+            return;
+        }
+        int failures = persistenceFailureBackoff.recordFailure();
+        long retryDelayMs = persistenceFailureBackoff.retryDelayMs();
+        if (failures == 1) {
+            logger.error("Failed to persist block {} at height {} (previous block {}), rolled back, next import attempt in {} ms",
+                    block.getStringId(), block.getHeight(), Convert.toUnsignedLong(block.getPreviousBlockId()),
+                    retryDelayMs, exception);
+        } else {
+            logger.error("Failed to persist block {} at height {} ({} consecutive failures), rolled back, next import attempt in {} ms: {}",
+                    block.getStringId(), block.getHeight(), failures, retryDelayMs, exception.toString());
         }
     }
 
@@ -2400,7 +2409,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 derivedTableManager.getDerivedTables().forEach(DerivedTable::finish);
                 stores.commitTransaction();
                 committed = true;
-                consecutivePersistenceFailures.set(0);
+                persistenceFailureBackoff.recordSuccess();
                 commitTime = System.nanoTime() - commitStart;
 
                 // We make sure downloadCache do not have this block anymore, but only after all
@@ -2415,10 +2424,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 // Once committed the block is in the database and the in-memory tip is correct.
                 if (!committed) {
                     failure = BlockPushRecovery.classify(e);
-                    logger.error("Failed to persist block {} at height {} (previous block {}), rolling back ({})",
-                            block.getStringId(), block.getHeight(), Convert.toUnsignedLong(block.getPreviousBlockId()),
-                            failure);
                     blockPushRecovery.rollback();
+                    logPersistenceFailure(block, failure, e);
+                    throw new BlockNotPersistedException(block.getHeight(), failure, e);
                 }
                 throw e;
             } finally {

@@ -14,8 +14,6 @@ import java.sql.SQLException;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -130,28 +128,6 @@ class BlockPushRecoveryTest {
         order.verify(blockchain).setLastBlock(previousTip);
         order.verify(downloadCache).resetCache();
         order.verify(atProcessorCache).reset();
-    }
-
-    @Test
-    void testResyncWithDatabase_GivenPersistedTip_RestoresTipBeforeResettingCaches() {
-        when(blockDb.findLastBlock()).thenReturn(persistedTip);
-
-        Block tip = recovery.resyncWithDatabase();
-
-        assertSame(persistedTip, tip);
-        InOrder order = inOrder(blockchain, downloadCache, atProcessorCache);
-        order.verify(blockchain).setLastBlock(persistedTip);
-        order.verify(downloadCache).resetCache();
-        order.verify(atProcessorCache).reset();
-    }
-
-    @Test
-    void testResyncWithDatabase_GivenReloadFails_ThrowsWithoutResettingCaches() {
-        when(blockDb.findLastBlock()).thenThrow(new DataAccessException("connection lost"));
-
-        assertThrows(DataAccessException.class, () -> recovery.resyncWithDatabase());
-
-        verifyNoInteractions(downloadCache, atProcessorCache);
     }
 
     @Test

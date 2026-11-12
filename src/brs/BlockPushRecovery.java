@@ -80,19 +80,6 @@ final class BlockPushRecovery {
         atProcessorCache.reset();
     }
 
-    /**
-     * Re-syncs the in-memory tip with the database and resets the caches afterwards.
-     *
-     * @return the tip now in effect
-     */
-    Block resyncWithDatabase() {
-        Block persistedTip = blockDb.findLastBlock();
-        blockchain.setLastBlock(persistedTip);
-        downloadCache.resetCache();
-        atProcessorCache.reset();
-        return persistedTip;
-    }
-
     private Block loadPersistedTip(Block fallback) {
         try {
             Block persistedTip = blockDb.findLastBlock();

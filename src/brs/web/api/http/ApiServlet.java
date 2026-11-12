@@ -117,7 +117,7 @@ public final class ApiServlet extends HttpServlet {
     map.put("getBalance", new GetBalance(parameterService));
     map.put("getBlock", new GetBlock(blockchain, blockService));
     map.put("getBlockId", new GetBlockId(blockchain));
-    map.put("getBlocks", new GetBlocks(blockchain, blockService));
+    map.put("getBlocks", new GetBlocks(blockchain, blockService, propertyService.getInt(Props.API_GET_BLOCKS_MAX_TRANSACTIONS)));
     map.put("getBlockchainStatus", new GetBlockchainStatus(blockchainProcessor, blockchain, timeService));
     map.put("getConstants", GetConstants.instance);
     map.put("getDGSGoods", new GetDGSGoods(digitalGoodsStoreService));

@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Restores a consistent in-memory chain state after a block could not be pushed.
@@ -17,6 +19,8 @@ import java.sql.SQLException;
  * reloaded from it, because the block the push was based on may itself never have been
  * committed (#1079). Caches are reset only after the tip is restored, since
  * {@link DownloadCacheImpl#resetCache()} derives its state from the current tip.
+ * Transactions that were already taken out of the unconfirmed pool are put back, so a failed
+ * push does not silently drop them.
  */
 final class BlockPushRecovery {
 
@@ -37,14 +41,17 @@ final class BlockPushRecovery {
     private final BlockDb blockDb;
     private final DownloadCacheImpl downloadCache;
     private final ATProcessorCache atProcessorCache;
+    private final TransactionProcessorImpl transactionProcessor;
 
     BlockPushRecovery(Stores stores, BlockchainImpl blockchain, BlockDb blockDb,
-            DownloadCacheImpl downloadCache, ATProcessorCache atProcessorCache) {
+            DownloadCacheImpl downloadCache, ATProcessorCache atProcessorCache,
+            TransactionProcessorImpl transactionProcessor) {
         this.stores = stores;
         this.blockchain = blockchain;
         this.blockDb = blockDb;
         this.downloadCache = downloadCache;
         this.atProcessorCache = atProcessorCache;
+        this.transactionProcessor = transactionProcessor;
     }
 
     static Failure classify(RuntimeException exception) {
@@ -59,25 +66,40 @@ final class BlockPushRecovery {
         try {
             stores.rollbackTransaction();
         } catch (RuntimeException rollbackFailure) {
-            logger.warn("Rollback after failed block push failed", rollbackFailure);
+            logger.error("Rollback after failed block push failed", rollbackFailure);
         }
     }
 
     /**
-     * Restores the tip and resets the caches. Should be called after the transaction has
-     * ended, so the tip is reloaded through a fresh connection.
+     * Restores the tip, returns transactions to the unconfirmed pool and resets the caches.
+     * Should be called after the transaction has ended, so the tip is reloaded through a fresh
+     * connection.
      *
      * @param previousLastBlock the tip the failed push was based on, may be {@code null}
+     * @param removedFromPool transactions the failed push had already removed from the unconfirmed pool
      */
-    void restore(Block previousLastBlock, Failure failure) {
+    void restore(Block previousLastBlock, Failure failure, List<Transaction> removedFromPool) {
         Block tip = failure == Failure.REJECTED ? previousLastBlock : loadPersistedTip(previousLastBlock);
         if (tip != null) {
             blockchain.setLastBlock(tip);
         }
+        requeue(removedFromPool);
         if (failure != Failure.TRANSIENT) {
             downloadCache.resetCache();
         }
         atProcessorCache.reset();
+    }
+
+    private void requeue(List<Transaction> transactions) {
+        if (transactions.isEmpty()) {
+            return;
+        }
+        try {
+            transactionProcessor.processLater(transactions);
+        } catch (RuntimeException e) {
+            logger.warn("Could not return {} transactions to the unconfirmed pool after failed block push",
+                    transactions.size(), e);
+        }
     }
 
     private Block loadPersistedTip(Block fallback) {
@@ -88,6 +110,20 @@ final class BlockPushRecovery {
             logger.warn("Could not reload tip from database after failed block push, keeping previous tip", e);
             return fallback;
         }
+    }
+
+    /** Returns {@code transactions} without the one with the id of {@code excluded}. */
+    static List<Transaction> without(List<Transaction> transactions, Transaction excluded) {
+        if (excluded == null || transactions.isEmpty()) {
+            return transactions;
+        }
+        List<Transaction> remaining = new ArrayList<>(transactions.size());
+        for (Transaction transaction : transactions) {
+            if (transaction.getId() != excluded.getId()) {
+                remaining.add(transaction);
+            }
+        }
+        return remaining;
     }
 
     static boolean isDatabaseError(Throwable throwable) {

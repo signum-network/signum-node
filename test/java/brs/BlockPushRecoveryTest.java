@@ -10,10 +10,13 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 
 import java.sql.SQLException;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -31,6 +34,7 @@ class BlockPushRecoveryTest {
     private BlockDb blockDb;
     private DownloadCacheImpl downloadCache;
     private ATProcessorCache atProcessorCache;
+    private TransactionProcessorImpl transactionProcessor;
     private Block previousTip;
     private Block persistedTip;
 
@@ -43,10 +47,12 @@ class BlockPushRecoveryTest {
         blockDb = mock(BlockDb.class);
         downloadCache = mock(DownloadCacheImpl.class);
         atProcessorCache = mock(ATProcessorCache.class);
+        transactionProcessor = mock(TransactionProcessorImpl.class);
         previousTip = mock(Block.class);
         persistedTip = mock(Block.class);
 
-        recovery = new BlockPushRecovery(stores, blockchain, blockDb, downloadCache, atProcessorCache);
+        recovery = new BlockPushRecovery(stores, blockchain, blockDb, downloadCache, atProcessorCache,
+                transactionProcessor);
     }
 
     @Test
@@ -67,7 +73,7 @@ class BlockPushRecoveryTest {
     void testRestore_GivenPersistenceFailure_RestoresTipFromDatabaseBeforeResettingCaches() {
         when(blockDb.findLastBlock()).thenReturn(persistedTip);
 
-        recovery.restore(previousTip, BlockPushRecovery.Failure.PERSISTENCE);
+        recovery.restore(previousTip, BlockPushRecovery.Failure.PERSISTENCE, Collections.emptyList());
 
         // resetCache() derives its state from the current tip, so the tip must be restored first
         InOrder order = inOrder(blockchain, downloadCache, atProcessorCache);
@@ -81,7 +87,7 @@ class BlockPushRecoveryTest {
     void testRestore_GivenPersistenceFailureAndReloadFails_FallsBackToPreviousTip() {
         when(blockDb.findLastBlock()).thenThrow(new DataAccessException("connection lost"));
 
-        recovery.restore(previousTip, BlockPushRecovery.Failure.PERSISTENCE);
+        recovery.restore(previousTip, BlockPushRecovery.Failure.PERSISTENCE, Collections.emptyList());
 
         InOrder order = inOrder(blockchain, downloadCache);
         order.verify(blockchain).setLastBlock(previousTip);
@@ -92,7 +98,7 @@ class BlockPushRecoveryTest {
     void testRestore_GivenPersistenceFailureAndEmptyDatabase_FallsBackToPreviousTip() {
         when(blockDb.findLastBlock()).thenReturn(null);
 
-        recovery.restore(previousTip, BlockPushRecovery.Failure.PERSISTENCE);
+        recovery.restore(previousTip, BlockPushRecovery.Failure.PERSISTENCE, Collections.emptyList());
 
         verify(blockchain).setLastBlock(previousTip);
     }
@@ -101,7 +107,7 @@ class BlockPushRecoveryTest {
     void testRestore_GivenPersistenceFailureAndNoTipAvailable_LeavesTipUntouched() {
         when(blockDb.findLastBlock()).thenReturn(null);
 
-        recovery.restore(null, BlockPushRecovery.Failure.PERSISTENCE);
+        recovery.restore(null, BlockPushRecovery.Failure.PERSISTENCE, Collections.emptyList());
 
         verify(blockchain, never()).setLastBlock(any());
         verify(downloadCache).resetCache();
@@ -112,7 +118,7 @@ class BlockPushRecoveryTest {
     void testRestore_GivenTransientFailure_KeepsDownloadCache() {
         when(blockDb.findLastBlock()).thenReturn(persistedTip);
 
-        recovery.restore(previousTip, BlockPushRecovery.Failure.TRANSIENT);
+        recovery.restore(previousTip, BlockPushRecovery.Failure.TRANSIENT, Collections.emptyList());
 
         verify(blockchain).setLastBlock(persistedTip);
         verify(downloadCache, never()).resetCache();
@@ -121,13 +127,67 @@ class BlockPushRecoveryTest {
 
     @Test
     void testRestore_GivenRejectedBlock_RestoresPreviousTipWithoutDatabaseLookup() {
-        recovery.restore(previousTip, BlockPushRecovery.Failure.REJECTED);
+        recovery.restore(previousTip, BlockPushRecovery.Failure.REJECTED, Collections.emptyList());
 
         verifyNoInteractions(blockDb);
         InOrder order = inOrder(blockchain, downloadCache, atProcessorCache);
         order.verify(blockchain).setLastBlock(previousTip);
         order.verify(downloadCache).resetCache();
         order.verify(atProcessorCache).reset();
+    }
+
+    @Test
+    void testRestore_GivenRemovedTransactions_ReturnsThemToPoolAfterRestoringTip() {
+        List<Transaction> removed = List.of(transaction(1), transaction(2));
+        when(blockDb.findLastBlock()).thenReturn(persistedTip);
+
+        recovery.restore(previousTip, BlockPushRecovery.Failure.PERSISTENCE, removed);
+
+        InOrder order = inOrder(blockchain, transactionProcessor);
+        order.verify(blockchain).setLastBlock(persistedTip);
+        order.verify(transactionProcessor).processLater(removed);
+    }
+
+    @Test
+    void testRestore_GivenNoRemovedTransactions_DoesNotTouchPool() {
+        recovery.restore(previousTip, BlockPushRecovery.Failure.REJECTED, Collections.emptyList());
+
+        verifyNoInteractions(transactionProcessor);
+    }
+
+    @Test
+    void testRestore_GivenRequeueFails_StillResetsCaches() {
+        List<Transaction> removed = List.of(transaction(1));
+        doThrow(new DataAccessException("connection lost")).when(transactionProcessor).processLater(removed);
+
+        assertDoesNotThrow(() -> recovery.restore(previousTip, BlockPushRecovery.Failure.REJECTED, removed));
+
+        verify(downloadCache).resetCache();
+        verify(atProcessorCache).reset();
+    }
+
+    @Test
+    void testWithout_GivenContainedTransaction_RemovesItById() {
+        Transaction first = transaction(1);
+        Transaction second = transaction(2);
+
+        List<Transaction> remaining = BlockPushRecovery.without(List.of(first, second), transaction(2));
+
+        assertEquals(List.of(first), remaining);
+    }
+
+    @Test
+    void testWithout_GivenNullExcluded_ReturnsSameList() {
+        List<Transaction> transactions = List.of(transaction(1));
+
+        assertSame(transactions, BlockPushRecovery.without(transactions, null));
+    }
+
+    @Test
+    void testWithout_GivenEmptyList_ReturnsSameList() {
+        List<Transaction> transactions = Collections.emptyList();
+
+        assertSame(transactions, BlockPushRecovery.without(transactions, transaction(1)));
     }
 
     @Test
@@ -198,5 +258,11 @@ class BlockPushRecoveryTest {
     @Test
     void testIsDatabaseError_GivenNull_ReturnsFalse() {
         assertFalse(BlockPushRecovery.isDatabaseError(null));
+    }
+
+    private static Transaction transaction(long id) {
+        Transaction transaction = mock(Transaction.class);
+        when(transaction.getId()).thenReturn(id);
+        return transaction;
     }
 }

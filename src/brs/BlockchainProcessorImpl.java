@@ -387,7 +387,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         this.blockchainStore = blockchainStore;
         this.stores = stores;
         this.downloadCache = downloadCache;
-        this.blockPushRecovery = new BlockPushRecovery(stores, blockchain, blockDb, downloadCache, atProcessorCache);
+        this.blockPushRecovery = new BlockPushRecovery(stores, blockchain, blockDb, downloadCache, atProcessorCache,
+                transactionProcessor);
         this.generator = generator;
         this.economicClustering = economicClustering;
         this.escrowService = escrowService;
@@ -978,82 +979,120 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         // we read the current cumulative difficulty
                         BigInteger curCumulativeDifficulty = blockchain.getLastBlock().getCumulativeDifficulty();
 
-                        // We remove blocks from chain back to where we start our fork
-                        // and save it in a list if we need to restore
-                        List<Block> myPoppedOffBlocks = popOffTo(forkBlock, forkBlocks);
-                        logger.debug("Popped {} blocks", myPoppedOffBlocks.size());
-
-                        // now we check that our chain is popped off.
-                        // If all seems ok is we try to push fork.
-                        int pushedForkBlocks = 0;
-                        if (blockchain.getLastBlock().getId() == forkBlockId) {
-                            for (Block block : forkBlocks) {
-                                if (blockchain.getLastBlock().getId() == block.getPreviousBlockId()) {
-                                    try {
-                                        blockService.preVerify(block, blockchain.getLastBlock());
-
-                                        logger.debug("Pushing block {} generator {} sig {}", block.getHeight(),
-                                                SignumID.fromLong(block.getGeneratorId()),
-                                                Hex.toHexString(block.getBlockSignature()));
-                                        logger.debug("Block timestamp {} base target {} difficulty {} commitment {}",
-                                                block.getTimestamp(), block.getBaseTarget(),
-                                                block.getCumulativeDifficulty(), block.getCommitment());
-
-                                        pushBlock(block);
-                                        pushedForkBlocks += 1;
-                                    } catch (InterruptedException e) {
-                                        Thread.currentThread().interrupt();
-                                    } catch (BlockNotAcceptedException e) {
-                                        peer.blacklist(e, "during processing a fork");
-                                        break;
-                                    }
-                                }
-                            }
+                        try {
+                            switchToFork(peer, forkBlocks, forkBlockId, forkBlock, curCumulativeDifficulty);
+                            logger.info("Forkprocessing complete.");
+                        } finally {
+                            // also on unexpected errors, so neither the fork nor a stale cache is kept around
+                            downloadCache.resetForkBlocks();
+                            downloadCache.resetCache(); // Reset and set cached vars to chaindata.
                         }
-
-                        /*
-                         * we check if we succeeded to push any block. if we did we check against
-                         * cumulative
-                         * difficulty If it is lower we blacklist peer and set chain to be processed
-                         * later.
-                         */
-                        if (pushedForkBlocks > 0 && blockchain.getLastBlock().getCumulativeDifficulty()
-                                .compareTo(curCumulativeDifficulty) < 0) {
-                            logger.warn("Fork was bad and pop off was caused by peer {}, blacklisting",
-                                    peer.getPeerAddress());
-                            peer.blacklist("got a bad fork");
-                            List<Block> peerPoppedOffBlocks = popOffTo(forkBlock, null);
-                            pushedForkBlocks = 0;
-                            peerPoppedOffBlocks
-                                    .forEach(block -> transactionProcessor.processLater(block.getTransactions()));
-                        }
-
-                        // if we did not push any blocks we try to restore chain.
-                        if (pushedForkBlocks == 0) {
-                            for (int i = myPoppedOffBlocks.size() - 1; i >= 0; i--) {
-                                Block block = myPoppedOffBlocks.remove(i);
-                                try {
-                                    if (!block.isVerified()) {
-                                        blockService.preVerify(block, blockchain.getLastBlock());
-                                    }
-                                    pushBlock(block);
-                                } catch (InterruptedException e) {
-                                    Thread.currentThread().interrupt();
-                                } catch (BlockNotAcceptedException e) {
-                                    logger.warn("Popped off block no longer acceptable: "
-                                            + JSON.toJsonString(block.getJsonObject()), e);
-                                    break;
-                                }
-                            }
-                        } else {
-                            myPoppedOffBlocks
-                                    .forEach(block -> transactionProcessor.processLater(block.getTransactions()));
-                            logger.debug("Successfully switched to better chain.");
-                        }
-                        logger.info("Forkprocessing complete.");
-                        downloadCache.resetForkBlocks();
-                        downloadCache.resetCache(); // Reset and set cached vars to chaindata.
                     }
+                }
+            }
+
+            private void switchToFork(Peer peer, List<Block> forkBlocks, long forkBlockId, Block forkBlock,
+                    BigInteger curCumulativeDifficulty) {
+                // We remove blocks from chain back to where we start our fork
+                // and save it in a list if we need to restore
+                List<Block> myPoppedOffBlocks = popOffTo(forkBlock, forkBlocks);
+                logger.debug("Popped {} blocks", myPoppedOffBlocks.size());
+
+                // now we check that our chain is popped off.
+                // If all seems ok is we try to push fork.
+                int pushedForkBlocks = 0;
+                boolean persistenceFailed = false;
+                if (blockchain.getLastBlock().getId() == forkBlockId) {
+                    for (Block block : forkBlocks) {
+                        if (blockchain.getLastBlock().getId() == block.getPreviousBlockId()) {
+                            try {
+                                blockService.preVerify(block, blockchain.getLastBlock());
+
+                                logger.debug("Pushing block {} generator {} sig {}", block.getHeight(),
+                                        SignumID.fromLong(block.getGeneratorId()),
+                                        Hex.toHexString(block.getBlockSignature()));
+                                logger.debug("Block timestamp {} base target {} difficulty {} commitment {}",
+                                        block.getTimestamp(), block.getBaseTarget(),
+                                        block.getCumulativeDifficulty(), block.getCommitment());
+
+                                pushBlock(block);
+                                pushedForkBlocks += 1;
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                            } catch (BlockNotAcceptedException e) {
+                                peer.blacklist(e, "during processing a fork");
+                                break;
+                            } catch (BlockNotPersistedException e) {
+                                // our database failed, not the peer: don't blacklist it
+                                logger.warn("Could not persist fork block {} at height {}, stopping fork processing",
+                                        block.getStringId(), block.getHeight());
+                                persistenceFailed = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                /*
+                 * we check if we succeeded to push any block. if we did we check against
+                 * cumulative
+                 * difficulty If it is lower we blacklist peer and set chain to be processed
+                 * later.
+                 */
+                if (pushedForkBlocks > 0 && blockchain.getLastBlock().getCumulativeDifficulty()
+                        .compareTo(curCumulativeDifficulty) < 0) {
+                    if (persistenceFailed) {
+                        logger.warn("Fork could only be pushed partially, restoring own chain");
+                    } else {
+                        logger.warn("Fork was bad and pop off was caused by peer {}, blacklisting",
+                                peer.getPeerAddress());
+                        peer.blacklist("got a bad fork");
+                    }
+                    List<Block> peerPoppedOffBlocks = popOffTo(forkBlock, null);
+                    pushedForkBlocks = 0;
+                    peerPoppedOffBlocks
+                            .forEach(block -> transactionProcessor.processLater(block.getTransactions()));
+                }
+
+                // if we did not push any blocks we try to restore chain.
+                if (pushedForkBlocks == 0) {
+                    restoreOwnChain(myPoppedOffBlocks);
+                } else {
+                    myPoppedOffBlocks
+                            .forEach(block -> transactionProcessor.processLater(block.getTransactions()));
+                    logger.debug("Successfully switched to better chain.");
+                }
+            }
+
+            /**
+             * Re-pushes our own popped off blocks, newest last. Transactions of blocks that could not
+             * be restored go back to the unconfirmed pool.
+             */
+            private void restoreOwnChain(List<Block> myPoppedOffBlocks) {
+                for (int i = myPoppedOffBlocks.size() - 1; i >= 0; i--) {
+                    Block block = myPoppedOffBlocks.remove(i);
+                    try {
+                        if (!block.isVerified()) {
+                            blockService.preVerify(block, blockchain.getLastBlock());
+                        }
+                        pushBlock(block);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    } catch (BlockNotAcceptedException e) {
+                        logger.warn("Popped off block no longer acceptable: "
+                                + JSON.toJsonString(block.getJsonObject()), e);
+                        break;
+                    } catch (BlockNotPersistedException e) {
+                        logger.warn("Could not persist own popped off block {} at height {} while restoring chain",
+                                block.getStringId(), block.getHeight());
+                        transactionProcessor.processLater(block.getTransactions());
+                        break;
+                    }
+                }
+                if (!myPoppedOffBlocks.isEmpty()) {
+                    logger.warn("Could not restore {} popped off blocks, returning their transactions to the unconfirmed pool",
+                            myPoppedOffBlocks.size());
+                    myPoppedOffBlocks.forEach(block -> transactionProcessor.processLater(block.getTransactions()));
                 }
             }
         };
@@ -2219,6 +2258,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             Block previousLastBlock = null;
             boolean committed = false;
             BlockPushRecovery.Failure failure = null;
+            List<Transaction> removedFromPool = Collections.emptyList();
             try {
                 long stepStart = System.nanoTime();
 
@@ -2395,6 +2435,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 blockService.setPrevious(block, previousLastBlock);
                 blockListeners.notify(block, Event.BEFORE_BLOCK_ACCEPT);
                 transactionProcessor.removeForgedTransactions(transactions);
+                removedFromPool = transactions;
                 transactionProcessor.requeueAllUnconfirmedTransactions();
                 accountService.flushAccountTable();
                 addBlock(block);
@@ -2418,6 +2459,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             } catch (BlockNotAcceptedException | ArithmeticException e) {
                 blockPushRecovery.rollback();
                 failure = BlockPushRecovery.Failure.REJECTED;
+                if (e instanceof TransactionNotAcceptedException) {
+                    // don't put the offending transaction back into the pool
+                    removedFromPool = BlockPushRecovery.without(removedFromPool, ((TransactionNotAcceptedException) e).getTransaction());
+                }
                 throw e;
             } catch (RuntimeException e) {
                 // e.g. a database error: the block was not persisted, so undo the in-memory side effects.
@@ -2433,7 +2478,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 stores.endTransaction();
                 if (failure != null) {
                     // after endTransaction, so a persisted tip is reloaded through a fresh connection
-                    blockPushRecovery.restore(previousLastBlock, failure);
+                    blockPushRecovery.restore(previousLastBlock, failure, removedFromPool);
                 }
             }
 

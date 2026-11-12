@@ -187,11 +187,36 @@ public final class Db {
         if (con == null) {
             throw new IllegalStateException("Not in transaction");
         }
+        rollbackAndClear(con, Db::clearTransactionState);
+    }
+
+    /**
+     * Rolls back and drops cached transaction state even if the rollback itself failed, e.g. on a
+     * lost connection. A rollback failure is never masked by a failure to clear the state: the
+     * latter is attached to it as suppressed exception.
+     */
+    static void rollbackAndClear(Connection con, Runnable clearState) {
+        RuntimeException failure = null;
         try {
             con.rollback();
         } catch (SQLException e) {
-            throw new RuntimeException(e.toString(), e);
+            failure = new RuntimeException(e.toString(), e);
         }
+        try {
+            clearState.run();
+        } catch (RuntimeException e) {
+            if (failure == null) {
+                failure = e;
+            } else {
+                failure.addSuppressed(e);
+            }
+        }
+        if (failure != null) {
+            throw failure;
+        }
+    }
+
+    private static void clearTransactionState() {
         transactionCaches.get().clear();
         transactionBatches.get().clear();
         dbCacheManager.flushCache();

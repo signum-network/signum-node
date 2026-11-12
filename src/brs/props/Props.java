@@ -270,6 +270,10 @@ public class Props {
             "node.indirectIncomingService.enable", true);
 
     public static final Prop<Boolean> AUTO_POP_OFF_ENABLED = new Prop<>("node.autoPopOff.enable", true);
+    public static final Prop<Integer> PERSISTENCE_FAILURE_POP_OFF_THRESHOLD = new Prop<>(
+            "node.persistenceFailure.popOffThreshold", 5);
+    public static final Prop<Integer> PERSISTENCE_FAILURE_MAX_RETRY_DELAY = new Prop<>(
+            "node.persistenceFailure.maxRetryDelay", 60000);
 
     public static final Prop<Boolean> ENABLE_AT_DEBUG_LOG = new Prop<>("node.ATDebugLog.enable", false);
 

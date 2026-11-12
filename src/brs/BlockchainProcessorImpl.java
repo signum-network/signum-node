@@ -1850,7 +1850,13 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
         lastTrimHeight.set(Math.max(block.getHeight() - Constants.MAX_ROLLBACK, 0));
         if (lastTrimHeight.get() > 0) {
-            stores.beginTransaction();
+            try {
+                stores.beginTransaction();
+            } catch (RuntimeException e) {
+                // otherwise isTrimming stays set and no trim would ever run again
+                isTrimming.set(false);
+                throw e;
+            }
             try {
                 long totalStartTime = System.currentTimeMillis();
                 blockListeners.notify(block, Event.TRIM_START);
@@ -2531,21 +2537,35 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 autoPopOffNumberOfBlocks = 0;
             }
 
-            // Trim after push block if needed
-            if (trimDerivedTables && (block.getHeight() % Constants.MAX_ROLLBACK) == 0) {
-                if (checkDatabaseState() == 0) {
-                    // Only trim a consistent database, otherwise it would be impossible to fix it
-                    // by roll back
-                    if (block.getHeight() % (Constants.MAX_ROLLBACK * 10) == 0) {
-                        // Trim within its own transaction
-                        trimDatabase(block);
-                    }
-                } else {
-                    lastTrimHeight.set(0);
-                    logger.error("Balance mismatch on the database, please try popping off to block {}",
-                            getMinRollbackHeight());
+            maintainDatabaseAfterPush(block);
+        }
+    }
+
+    /**
+     * Checks the database state and trims derived tables if due. Runs after the block was
+     * committed, so a failure here is logged instead of thrown: callers must not mistake it for a
+     * failed push and discard or re-download a block that is already persisted.
+     */
+    private void maintainDatabaseAfterPush(Block block) {
+        if (!trimDerivedTables || (block.getHeight() % Constants.MAX_ROLLBACK) != 0) {
+            return;
+        }
+        try {
+            if (checkDatabaseState() == 0) {
+                // Only trim a consistent database, otherwise it would be impossible to fix it
+                // by roll back
+                if (block.getHeight() % (Constants.MAX_ROLLBACK * 10) == 0) {
+                    // Trim within its own transaction
+                    trimDatabase(block);
                 }
+            } else {
+                lastTrimHeight.set(0);
+                logger.error("Balance mismatch on the database, please try popping off to block {}",
+                        getMinRollbackHeight());
             }
+        } catch (RuntimeException e) {
+            logger.error("Database maintenance after block {} at height {} failed, the block itself was persisted",
+                    block.getStringId(), block.getHeight(), e);
         }
     }
 

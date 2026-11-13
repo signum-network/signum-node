@@ -1,8 +1,9 @@
 name: "PR Size Check"
 
 # Gatekeeper: enforces PR size limits before any AI review runs.
-# Fails the check if the PR exceeds 10 files or 500 new lines.
-# On success, uploads PR metadata for the downstream review workflow.
+# Fails the check if the PR exceeds MAX_FILES files or MAX_ADDITIONS new lines,
+# and comments when protocol-frozen files are touched. A failure is a signal for
+# reviewers, not a merge blocker. Independent of the Claude review (pr-review.yml).
 
 on:
   pull_request:
@@ -12,6 +13,10 @@ on:
 permissions:
   contents: read
   pull-requests: write
+
+env:
+  MAX_FILES: 10
+  MAX_ADDITIONS: 1000
 
 jobs:
   size-check:
@@ -91,8 +96,8 @@ jobs:
             const protocolCount = parseInt(process.env.PROTOCOL_COUNT);
             const protocolFiles = JSON.parse(process.env.PROTOCOL_FILES);
 
-            const MAX_FILES = 10;
-            const MAX_ADDITIONS = 1000;
+            const MAX_FILES = parseInt(process.env.MAX_FILES);
+            const MAX_ADDITIONS = parseInt(process.env.MAX_ADDITIONS);
 
             const violations = [];
 
@@ -123,7 +128,7 @@ jobs:
                 '',
                 ...violations,
                 '',
-                'Please split this PR into smaller, focused changes (max 10 files, max 500 new lines each).',
+                `Please split this PR into smaller, focused changes (max ${MAX_FILES} files, max ${MAX_ADDITIONS} new lines each).`,
                 '',
                 'Smaller PRs are:',
                 '- Easier to review thoroughly for security issues',
@@ -158,63 +163,11 @@ jobs:
               }
             }
 
-      - name: Upload PR metadata
-        if: success()
-        env:
-          # All values passed via env (not inlined) so attacker-controlled fields
-          # — titles, bodies, branch names, filenames — cannot inject code.
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          PR_TITLE: ${{ github.event.pull_request.title }}
-          PR_BODY: ${{ github.event.pull_request.body }}
-          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-          BASE_REF: ${{ github.event.pull_request.base.ref }}
-          HEAD_REF: ${{ github.event.pull_request.head.ref }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
-          FILE_COUNT: ${{ steps.stats.outputs.file_count }}
-          ADDITIONS: ${{ steps.stats.outputs.additions }}
-          DELETIONS: ${{ steps.stats.outputs.deletions }}
-          PROTOCOL_FILES: ${{ steps.stats.outputs.protocol_files }}
-        run: |
-          mkdir -p pr-metadata
-
-          python3 << 'PYEOF'
-          import json, os
-
-          metadata = {
-              "pr_number": int(os.environ["PR_NUMBER"]),
-              "pr_title": os.environ.get("PR_TITLE", ""),
-              "pr_body": os.environ.get("PR_BODY", ""),
-              "pr_author": os.environ.get("PR_AUTHOR", ""),
-              "base_ref": os.environ.get("BASE_REF", ""),
-              "head_ref": os.environ.get("HEAD_REF", ""),
-              "head_sha": os.environ.get("HEAD_SHA", ""),
-              "is_fork": os.environ.get("IS_FORK", "") == "true",
-              "file_count": int(os.environ["FILE_COUNT"]),
-              "additions": int(os.environ["ADDITIONS"]),
-              "deletions": int(os.environ["DELETIONS"]),
-              "protocol_files": json.loads(os.environ.get("PROTOCOL_FILES", "[]")),
-          }
-
-          with open("pr-metadata/metadata.json", "w") as f:
-              json.dump(metadata, f, indent=2)
-
-          print(f"Metadata saved for PR #{metadata['pr_number']}")
-          PYEOF
-
-      - name: Upload metadata artifact
-        if: success()
-        uses: actions/upload-artifact@v7
-        with:
-          name: pr-metadata
-          path: pr-metadata/
-          retention-days: 1
-
       - name: Summary
         if: always()
         run: |
           echo "## PR Size Check" >> $GITHUB_STEP_SUMMARY
-          echo "- **Files changed:** ${{ steps.stats.outputs.file_count }} / 10" >> $GITHUB_STEP_SUMMARY
-          echo "- **Lines added:** ${{ steps.stats.outputs.additions }} / 500" >> $GITHUB_STEP_SUMMARY
+          echo "- **Files changed:** ${{ steps.stats.outputs.file_count }} / ${{ env.MAX_FILES }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Lines added:** ${{ steps.stats.outputs.additions }} / ${{ env.MAX_ADDITIONS }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Lines deleted:** ${{ steps.stats.outputs.deletions }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Protocol files touched:** ${{ steps.stats.outputs.protocol_files_count }}" >> $GITHUB_STEP_SUMMARY

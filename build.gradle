@@ -90,7 +90,6 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:6.1.3")
     testRuntimeOnly("org.junit.vintage:junit-vintage-engine:6.1.3")
 
-    testImplementation 'org.apache.httpcomponents:httpclient:4.5.14'
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.mockito:mockito-core:5.24.0'
 }
@@ -110,9 +109,6 @@ test {
         "--add-opens=java.base/java.net=ALL-UNNAMED",
         "--add-opens=java.base/jdk.internal.reflect=ALL-UNNAMED"
     ]
-
-    // Integration tests start a full node and don't run in this setup yet (DB migrations missing).
-    exclude '**/it/java/brs/**'
 }
 
 application {

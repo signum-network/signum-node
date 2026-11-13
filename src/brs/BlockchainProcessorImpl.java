@@ -118,6 +118,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     private final DerivedTableManager derivedTableManager;
     private final StatisticsManagerImpl statisticsManager;
     private final Generator generator;
+    private final BatchPocVerifier batchPocVerifier;
+    // blocks per CPU pre-verification batch, 1 = one block at a time
+    private final int verifyBatchSize;
     private final DBCacheManagerImpl dbCacheManager;
     private final IndirectIncomingService indirectIncomingService;
     private final long genesisBlockId;
@@ -390,6 +393,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         this.downloadCache = downloadCache;
         this.blockPushRecovery = new BlockPushRecovery(stores, blockchain, blockDb, downloadCache, atProcessorCache,
                 transactionProcessor);
+        this.batchPocVerifier = new BatchPocVerifier(blockService, generator,
+                propertyService.getInt(Props.BRS_CHECKPOINT_HEIGHT));
+        this.verifyBatchSize = Math.max(1, propertyService.getInt(Props.CPU_VERIFY_BATCH_SIZE));
         this.forkProcessor = new ForkProcessor(blockchain, blockService, downloadCache, transactionProcessor,
                 new ForkChainOperations());
         this.generator = generator;
@@ -1087,6 +1093,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         } finally {
                             gpuUsage.release();
                         }
+                    } else if (verifyBatchSize > 1) { // verify using java, scoops in one batch
+                        try {
+                            preVerifyBatchOnCpu();
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
                     } else { // verify using java
                         try {
                             Block block = downloadCache.getFirstUnverifiedBlock();
@@ -1137,6 +1149,26 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         this.uploadedVolume.set(sumUploadedVolume);
         this.downloadedVolume.set(sumDownloadedVolume);
         blockListeners.notify(null, Event.NET_VOLUME_CHANGED);
+    }
+
+    /**
+     * Takes a batch of blocks from the unverified queue and pre-verifies them, computing their PoC
+     * scoops in one call.
+     */
+    private void preVerifyBatchOnCpu() throws InterruptedException {
+        List<BatchPocVerifier.Task> tasks = new ArrayList<>();
+        for (Block block : downloadCache.takeUnverifiedBlocks(verifyBatchSize)) {
+            Block previousBlock = downloadCache.getBlock(block.getPreviousBlockId());
+            if (previousBlock == null) {
+                previousBlock = blockchain.getBlock(block.getPreviousBlockId());
+            }
+            // without a previous block the block no longer connects (e.g. after a pop off),
+            // the importer resets the cache for it
+            if (previousBlock != null) {
+                tasks.add(new BatchPocVerifier.Task(block, previousBlock));
+            }
+        }
+        batchPocVerifier.preVerify(tasks);
     }
 
     private void blacklistClean(Block block, Exception e, String description) {

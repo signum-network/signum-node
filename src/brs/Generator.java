@@ -32,6 +32,19 @@ public interface Generator {
 
   BigInteger calculateHit(byte[] genSig, byte[] scoopData);
 
+  /**
+   * Calculates the scoops of a batch of blocks in one call, using SIMD instructions where the native
+   * library supports them. The hit of block {@code i} is {@code calculateHit(genSig, scoop i)}.
+   *
+   * @param accountIds generator ids of the blocks
+   * @param nonces nonces of the blocks
+   * @param scoops scoop numbers of the blocks, see {@link #calculateScoop(byte[], long)}
+   * @param blockHeights heights of the blocks, they determine the PoC version
+   * @return {@code accountIds.length * 64} bytes, the scoop of block {@code i} starts at offset {@code i * 64}
+   * @throws IllegalArgumentException if the arrays differ in length or a scoop is out of range
+   */
+  byte[] calculateScoops(long[] accountIds, long[] nonces, int[] scoops, int[] blockHeights);
+
   BigInteger calculateDeadline(BigInteger hit, long capacityBaseTarget, long commitment, long averageCommitment, int blockHeight);
 
   long estimateCommitment(long generatorId, Block prevBlock);

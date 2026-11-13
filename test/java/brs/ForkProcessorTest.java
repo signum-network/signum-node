@@ -4,6 +4,7 @@ import brs.BlockchainProcessor.BlockNotAcceptedException;
 import brs.peer.Peer;
 import brs.services.BlockService;
 import brs.util.DownloadCacheImpl;
+import brs.util.ThreadPool;
 import com.google.gson.JsonObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -201,7 +203,7 @@ class ForkProcessorTest {
     }
 
     @Test
-    void testProcess_GivenOwnBlockNoLongerAcceptable_RequeuesRemainingBlocks() {
+    void testProcess_GivenOwnBlockNoLongerAcceptable_RequeuesItAndRemainingBlocks() {
         Block fork1 = block(12, COMMON_ID, 40);
         chain.failOnPush(fork1, notPersisted());
         chain.failOnPush(own1, new BlockNotAcceptedException("no longer valid"));
@@ -209,7 +211,44 @@ class ForkProcessorTest {
         forkProcessor.process(peer, List.of(fork1), COMMON_ID);
 
         assertEquals(List.of(common), chain.blocks);
+        verify(transactionProcessor).processLater(own1.getTransactions());
         verify(transactionProcessor).processLater(own2.getTransactions());
+    }
+
+    @Test
+    void testProcess_GivenInterruptWhileRestoringOwnBlock_RequeuesItAndRemainingBlocks() throws Exception {
+        Block fork1 = block(12, COMMON_ID, 40);
+        chain.failOnPush(fork1, notPersisted());
+        when(own1.isVerified()).thenReturn(false);
+        doThrow(new InterruptedException()).when(blockService).preVerify(eq(own1), any());
+
+        try {
+            forkProcessor.process(peer, List.of(fork1), COMMON_ID);
+            assertTrue(Thread.currentThread().isInterrupted());
+        } finally {
+            Thread.interrupted(); // clear the flag for other tests
+        }
+
+        assertEquals(List.of(common), chain.blocks);
+        verify(transactionProcessor).processLater(own1.getTransactions());
+        verify(transactionProcessor).processLater(own2.getTransactions());
+    }
+
+    @Test
+    void testProcess_GivenInterruptWhilePushingFork_RestoresOwnChainWithoutBlacklisting() throws Exception {
+        Block fork1 = block(12, COMMON_ID, 35);
+        Block fork2 = block(13, 12, 45);
+        doThrow(new InterruptedException()).when(blockService).preVerify(eq(fork1), any());
+
+        try {
+            forkProcessor.process(peer, List.of(fork1, fork2), COMMON_ID);
+        } finally {
+            Thread.interrupted(); // clear the flag for other tests
+        }
+
+        assertEquals(List.of(common, own1, own2), chain.blocks);
+        verify(blockService, never()).preVerify(eq(fork2), any());
+        verify(peer, never()).blacklist(any(), anyString());
     }
 
     @Test
@@ -237,9 +276,8 @@ class ForkProcessorTest {
     }
 
     @Test
-    void testProcess_GivenForkBlockNotInChain_KeepsOwnChain() {
-        Block unknown = block(50, 0, 5);
-        when(blockchain.getBlock(50L)).thenReturn(unknown);
+    void testProcess_GivenCommonBlockNoLongerInChain_SkipsForkProcessing() {
+        // e.g. removed by a manual pop off after the fork was detected
         Block fork1 = block(12, 50, 40);
 
         forkProcessor.process(peer, List.of(fork1), 50);
@@ -247,6 +285,8 @@ class ForkProcessorTest {
         assertEquals(List.of(common, own1, own2), chain.blocks);
         assertTrue(chain.pushed.isEmpty());
         verify(peer, never()).blacklist(anyString());
+        verify(downloadCache).resetForkBlocks();
+        verify(downloadCache).resetCache();
     }
 
     @Test
@@ -276,7 +316,7 @@ class ForkProcessorTest {
     }
 
     @Test
-    void testProcess_GivenInterruptedThread_DoesNotWaitForCache() {
+    void testProcess_GivenInterruptedThread_SkipsForkProcessing() {
         when(downloadCache.size()).thenReturn(1);
         Block fork1 = block(12, COMMON_ID, 40);
 
@@ -287,7 +327,27 @@ class ForkProcessorTest {
             Thread.interrupted(); // clear the flag for other tests
         }
 
-        assertEquals(List.of(common, fork1), chain.blocks);
+        assertEquals(List.of(common, own1, own2), chain.blocks);
+        assertTrue(chain.pushed.isEmpty());
+        verify(downloadCache).resetForkBlocks();
+        verify(downloadCache).resetCache();
+    }
+
+    @Test
+    void testProcess_GivenShutdown_SkipsForkProcessing() {
+        Block fork1 = block(12, COMMON_ID, 40);
+
+        boolean wasRunning = ThreadPool.running.getAndSet(false);
+        try {
+            forkProcessor.process(peer, List.of(fork1), COMMON_ID);
+        } finally {
+            ThreadPool.running.set(wasRunning);
+        }
+
+        assertEquals(List.of(common, own1, own2), chain.blocks);
+        assertTrue(chain.pushed.isEmpty());
+        verify(downloadCache).resetForkBlocks();
+        verify(downloadCache).resetCache();
     }
 
     private static BlockNotPersistedException notPersisted() {
@@ -329,7 +389,9 @@ class ForkProcessorTest {
 
         @Override
         public List<Block> popOffTo(Block commonBlock, List<Block> forkBlocks) {
-            if (!blocks.contains(commonBlock)) { // like BlockchainProcessorImpl: nothing to pop off
+            // like BlockchainProcessorImpl: fails on null, nothing to pop off if not in the chain
+            Objects.requireNonNull(commonBlock, "commonBlock");
+            if (!blocks.contains(commonBlock)) {
                 return Collections.emptyList();
             }
             List<Block> poppedOff = new ArrayList<>();

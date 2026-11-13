@@ -1,6 +1,9 @@
 package brs.web.api.http.common;
 
 import brs.Block;
+import brs.props.Props;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,6 +23,22 @@ import java.util.OptionalInt;
  * @param nextIndex where the next page starts, empty if the range reached the end of the chain
  */
 public record BlockPage(List<Block> blocks, OptionalInt nextIndex) {
+
+    private static final Logger logger = LoggerFactory.getLogger(BlockPage.class);
+
+    /**
+     * The transaction budget to use for a configured {@code API.BlocksMaxTransactions}: a value
+     * {@code <= 0} would turn every page into a single block, so it falls back to the default.
+     */
+    public static int budget(int configured) {
+        if (configured > 0) {
+            return configured;
+        }
+        int fallback = Props.API_BLOCKS_MAX_TRANSACTIONS.getDefaultValue();
+        logger.warn("{} = {} is not allowed, using {}", Props.API_BLOCKS_MAX_TRANSACTIONS.getName(), configured,
+                fallback);
+        return fallback;
+    }
 
     /**
      * @param range      the blocks of the requested range {@code [firstIndex, lastIndex]}, may be

@@ -63,7 +63,8 @@ public class GetAccountBlocksTest extends AbstractUnitTest {
     when(Signum.getPropertyService()).thenReturn(propertyService);
     doReturn((int)Constants.ONE_SIGNA).when(propertyService).getInt(eq(Props.ONE_COIN_NQT));
 
-    t = new GetAccountBlocks(blockchainMock, parameterServiceMock, blockServiceMock);
+    t = new GetAccountBlocks(blockchainMock, parameterServiceMock, blockServiceMock,
+        Props.API_BLOCKS_MAX_TRANSACTIONS.getDefaultValue());
   }
 
   @Test

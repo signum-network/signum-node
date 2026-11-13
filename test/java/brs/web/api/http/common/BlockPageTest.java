@@ -2,6 +2,7 @@ package brs.web.api.http.common;
 
 import brs.Block;
 import brs.Transaction;
+import brs.props.Props;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -114,6 +115,21 @@ class BlockPageTest {
 
         assertEquals(range.subList(0, 1), page.blocks());
         assertEquals(OptionalInt.of(8), page.nextIndex());
+    }
+
+    @Test
+    void testBudget_GivenPositiveValue_UsesIt() {
+        assertEquals(250, BlockPage.budget(250));
+    }
+
+    @Test
+    void testBudget_GivenZero_FallsBackToDefault() {
+        assertEquals(Props.API_BLOCKS_MAX_TRANSACTIONS.getDefaultValue(), BlockPage.budget(0));
+    }
+
+    @Test
+    void testBudget_GivenNegativeValue_FallsBackToDefault() {
+        assertEquals(Props.API_BLOCKS_MAX_TRANSACTIONS.getDefaultValue(), BlockPage.budget(-1));
     }
 
     /** {@code count} blocks with {@code transactionsPerBlock} transactions each. */

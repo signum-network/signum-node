@@ -44,7 +44,7 @@ jobs:
             // Check which files are protocol-frozen
             const protocolPaths = [
               'brs/GeneratorImpl.java', 'brs/util/MiningPlot.java', 'brs/OCLPoC.java',
-              'brs/BlockchainProcessorImpl.java', 'brs/BlockchainImpl.java',
+              'brs/BlockchainProcessorImpl.java', 'brs/ForkProcessor.java', 'brs/BlockchainImpl.java',
               'brs/services/impl/BlockServiceImpl.java',
               'brs/TransactionType.java', 'brs/Transaction.java', 'brs/Attachment.java',
               'brs/services/impl/TransactionServiceImpl.java', 'brs/EconomicClustering.java',

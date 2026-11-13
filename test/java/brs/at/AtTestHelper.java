@@ -16,6 +16,7 @@ import brs.props.PropertyService;
 import brs.props.Props;
 import brs.util.Convert;
 import org.mockito.ArgumentMatchers;
+import org.mockito.MockedStatic;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -25,12 +26,14 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
-import static org.powermock.api.mockito.PowerMockito.*;
+import static org.mockito.Mockito.*;
 
 public class AtTestHelper {
 
     private static List<AT> addedAts = new ArrayList<>();
     private static Consumer<AT> onAtAdded;
+    private static MockedStatic<Signum> signumMock;
+    private static MockedStatic<Account> accountMock;
 
     // Hello World example compiled with BlockTalk v0.0.0
     static byte[] HELLO_WORLD_CREATION_BYTES = getCreationBytes((short)2, 1, Convert.parseHexString("3033040300000000350001010000001e0100000007283507030000000012270000001a0100000033100101000000320a03350401020000001002000000110200000033160102000000010200000048656c6c6f2c20573310010200000001020000006f726c6400000000331101020000000102000000000000000000000033120102000000010200000000000000000000003313010200000032050413"));
@@ -51,6 +54,10 @@ public class AtTestHelper {
     static byte[] TIP_THANKS_CREATION_BYTES_V3 = getCreationBytes((short)3, 2, Convert.parseHexString("12fb0000003033040301000000350001020000001e02000000072835070301000000122c0000001a0600000033100102000000320a0335040103000000100300000011030000003316010300000001030000005468616e6b20796f33100103000000010300000075210000000000003311010300000001030000000000000000000000331201030000000103000000000000000000000033130103000000320504350004030000001003000000010300000000e87648170000001003000000110400000011030000000703000000040000001003000000110300000003040000001f03000000040000000f1afa00000033160100000000320304130103000000d70faeecffc5c4e41003000000110000000013"));
 
     static void setupMocks() {
+        // static state is shared across test classes, start each test from scratch
+        addedAts.clear();
+        onAtAdded = null;
+
         Stores mockStores = mock(Stores.class);
         ATStore mockAtStore = mock(ATStore.class);
 
@@ -59,7 +66,7 @@ public class AtTestHelper {
         SignumKey.LongKeyFactory<AT> atLongKeyFactory = mock(SignumKey.LongKeyFactory.class);
         //noinspection unchecked
         SignumKey.LongKeyFactory<AT.ATState> atStateLongKeyFactory = mock(SignumKey.LongKeyFactory.class);
-        mockStatic(Signum.class);
+        signumMock = mockStatic(Signum.class);
         Blockchain mockBlockchain = mock(Blockchain.class);
         PropertyService mockPropertyService = mock(PropertyService.class);
         //noinspection unchecked
@@ -73,7 +80,7 @@ public class AtTestHelper {
         SignumKey.LongKeyFactory<Account> mockAccountKeyFactory = mock(SignumKey.LongKeyFactory.class);
         Account mockAccount = mock(Account.class);
         Account.Balance mockAccountBalance = mock(Account.Balance.class);
-        mockStatic(Account.class);
+        accountMock = mockStatic(Account.class);
 
         doAnswer(invoke -> {
             AT at = invoke.getArgument(0);
@@ -131,6 +138,18 @@ public class AtTestHelper {
         when(mockStores.getAtStore()).thenReturn(mockAtStore);
         when(Signum.getStores()).thenReturn(mockStores);
         when(Signum.getFluxCapacitor()).thenReturn(mockFluxCapacitor);
+    }
+
+    /** Closes the static mocks opened by {@link #setupMocks()}; call it after each test. */
+    static void closeMocks() {
+        if (accountMock != null) {
+            accountMock.close();
+            accountMock = null;
+        }
+        if (signumMock != null) {
+            signumMock.close();
+            signumMock = null;
+        }
     }
 
     static void clearAddedAts() {

@@ -1,6 +1,6 @@
 package it.common;
 
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.mockito.Mockito.mockStatic;
 
 import brs.Signum;
 import brs.common.TestInfrastructure;
@@ -12,22 +12,17 @@ import com.google.gson.JsonObject;
 import java.util.Properties;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
 
 // TODO: Remove this and add javadoc and rename type
 @SuppressWarnings({
     "checkstyle:MissingJavadocTypeCheck",
     "checkstyle:AbbreviationAsWordInNameCheck" })
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Peers.class)
-@PowerMockIgnore("javax.net.ssl.*")
 public abstract class AbstractIT {
 
     private ProcessBlock processBlock;
+    private MockedStatic<Peers> peersMock;
 
     protected APISender apiSender = new APISender();
 
@@ -35,7 +30,7 @@ public abstract class AbstractIT {
     @SuppressWarnings("checkstyle:MissingJavadocMethodCheck")
     @Before
     public void setUp() {
-        mockStatic(Peers.class);
+        peersMock = mockStatic(Peers.class);
         Signum.init(testProperties());
 
         processBlock = new ProcessBlock(Signum.getBlockchain(), Signum.getBlockchainProcessor());
@@ -44,6 +39,7 @@ public abstract class AbstractIT {
     @After
     public void shutdown() {
         Signum.shutdown(true);
+        peersMock.close();
     }
 
     private CaselessProperties testProperties() {

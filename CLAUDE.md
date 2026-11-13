@@ -10,7 +10,7 @@ Signum Node is the reference implementation of the Signum blockchain - a cryptoc
 
 ### Core Build Commands
 - `./gradlew build` - Compile and build the project
-- `./gradlew test` - Run unit tests (excludes some problematic tests by default)
+- `./gradlew test` - Run unit tests (integration tests in `test/java/it/` are excluded)
 - `./gradlew dist` - Create distribution ZIP package
 - `./gradlew shadowJar` - Create fat JAR with all dependencies
 - `./gradlew release` - Full release build including tests, dist, and Windows executable
@@ -21,10 +21,9 @@ Signum Node is the reference implementation of the Signum blockchain - a cryptoc
 - `java -jar signum-node.jar --config <path>` - Use custom config folder
 
 ### Testing Commands
-- `./gradlew test` - Run unit tests (some tests excluded by default in build.gradle)
+- `./gradlew test` - Run unit tests (integration tests excluded in build.gradle)
 - Tests are located in `test/java/` directory
 - Integration tests are in `test/java/it/` 
-- Test configuration excludes problematic tests like ATTest, FeeSuggestionCalculatorTest
 
 ### Web UI Components
 - `./gradlew buildOpenApi` - Build OpenAPI documentation (requires Node.js)
@@ -106,7 +105,7 @@ Signum Node is the reference implementation of the Signum blockchain - a cryptoc
 - JUnit 5 for unit tests
 - Mockito for mocking
 - Some integration tests for blockchain functionality
-- Test configuration excludes flaky tests by default
+- Static methods (e.g. `Signum.getXxx()`) are mocked with Mockito's `mockStatic`; close the `MockedStatic` after each test. PowerMock is not used
 
 ### Database Development
 - See `DB_DEV.md` for detailed database development guide
@@ -130,7 +129,7 @@ Signum Node is the reference implementation of the Signum blockchain - a cryptoc
 - Gradle multi-project setup with main node + OpenAPI generation
 - Windows executable generation via jpackage
 - Distribution includes JRE bundling for Windows
-- Some tests are excluded by default due to reliability issues
+- Integration tests (`test/java/it/`) are excluded from `./gradlew test`
 
 ## Clean Code Guidelines for AI Development
 

@@ -10,11 +10,10 @@ import brs.services.SubscriptionService;
 import brs.util.JSON;
 import brs.web.api.http.common.APITransactionManager;
 import com.google.gson.JsonObject;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -26,12 +25,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Signum.class)
 public class SubscriptionCancelTest extends AbstractTransactionTest {
+
+  private MockedStatic<Signum> signumMock;
 
   private SubscriptionCancel t;
 
@@ -42,6 +41,7 @@ public class SubscriptionCancelTest extends AbstractTransactionTest {
 
   @Before
   public void setUp() {
+    signumMock = mockStatic(Signum.class);
     parameterServiceMock = mock(ParameterService.class);
     subscriptionServiceMock = mock(SubscriptionService.class);
     blockchainMock = mock(Blockchain.class);
@@ -68,8 +68,6 @@ public class SubscriptionCancelTest extends AbstractTransactionTest {
 
     when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockSender);
     when(subscriptionServiceMock.getSubscription(eq(subscriptionIdParameter))).thenReturn(mockSubscription);
-
-    mockStatic(Signum.class);
     final FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(FluxValues.DIGITAL_GOODS_STORE);
     when(Signum.getFluxCapacitor()).thenReturn(fluxCapacitor);
     doReturn(Constants.FEE_QUANT_SIP3).when(fluxCapacitor).getValue(eq(FluxValues.FEE_QUANT));
@@ -141,5 +139,10 @@ public class SubscriptionCancelTest extends AbstractTransactionTest {
     assertNotNull(response);
 
     assertEquals(7, JSON.getAsInt(response.get(ERROR_CODE_RESPONSE)));
+  }
+
+  @After
+  public void tearDownSignumMock() {
+    signumMock.close();
   }
 }

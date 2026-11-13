@@ -9,11 +9,10 @@ import brs.fluxcapacitor.FluxValues;
 import brs.services.AliasService;
 import brs.services.ParameterService;
 import brs.web.api.http.common.APITransactionManager;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -25,12 +24,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({Signum.class})
 public class BuyAliasTest extends AbstractTransactionTest {
+
+  private MockedStatic<Signum> signumMock;
 
   private BuyAlias t;
 
@@ -41,6 +40,7 @@ public class BuyAliasTest extends AbstractTransactionTest {
 
   @Before
   public void init() {
+    signumMock = mockStatic(Signum.class);
     parameterServiceMock = mock(ParameterService.class);
     blockchain = mock(Blockchain.class);
     aliasService = mock(AliasService.class);
@@ -51,7 +51,6 @@ public class BuyAliasTest extends AbstractTransactionTest {
 
   @Test
   public void processRequest() throws SignumException {
-    mockStatic(Signum.class);
     final HttpServletRequest req = QuickMocker.httpServletRequestDefaultKeys(new MockParam(AMOUNT_NQT_PARAMETER, "" + Constants.ONE_SIGNA));
 
     final Offer mockOfferOnAlias = mock(Offer.class);
@@ -66,8 +65,6 @@ public class BuyAliasTest extends AbstractTransactionTest {
     when(aliasService.getOffer(eq(mockAlias))).thenReturn(mockOfferOnAlias);
 
     when(parameterServiceMock.getAlias(eq(req))).thenReturn(mockAlias);
-
-    mockStatic(Signum.class);
     final FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(FluxValues.DIGITAL_GOODS_STORE);
     when(Signum.getFluxCapacitor()).thenReturn(fluxCapacitor);
     doReturn(Constants.FEE_QUANT_SIP3).when(fluxCapacitor).getValue(eq(FluxValues.FEE_QUANT));
@@ -91,4 +88,8 @@ public class BuyAliasTest extends AbstractTransactionTest {
     assertEquals(INCORRECT_ALIAS_NOTFORSALE, t.processRequest(req));
   }
 
+  @After
+  public void tearDownSignumMock() {
+    signumMock.close();
+  }
 }

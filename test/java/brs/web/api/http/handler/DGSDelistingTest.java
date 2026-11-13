@@ -7,11 +7,10 @@ import brs.fluxcapacitor.FluxCapacitor;
 import brs.fluxcapacitor.FluxValues;
 import brs.services.ParameterService;
 import brs.web.api.http.common.APITransactionManager;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -22,12 +21,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Signum.class)
 public class DGSDelistingTest extends AbstractTransactionTest {
+
+  private MockedStatic<Signum> signumMock;
 
   private DGSDelisting t;
 
@@ -37,6 +36,7 @@ public class DGSDelistingTest extends AbstractTransactionTest {
 
   @Before
   public void setUp() {
+    signumMock = mockStatic(Signum.class);
     mockParameterService = mock(ParameterService.class);
     mockBlockchain = mock(Blockchain.class);
     apiTransactionManagerMock = mock(APITransactionManager.class);
@@ -57,8 +57,6 @@ public class DGSDelistingTest extends AbstractTransactionTest {
 
     when(mockParameterService.getSenderAccount(eq(req))).thenReturn(mockAccount);
     when(mockParameterService.getGoods(eq(req))).thenReturn(mockGoods);
-
-    mockStatic(Signum.class);
     final FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(FluxValues.DIGITAL_GOODS_STORE);
     when(Signum.getFluxCapacitor()).thenReturn(fluxCapacitor);
     doReturn(Constants.FEE_QUANT_SIP3).when(fluxCapacitor).getValue(eq(FluxValues.FEE_QUANT));
@@ -102,4 +100,8 @@ public class DGSDelistingTest extends AbstractTransactionTest {
     assertEquals(UNKNOWN_GOODS, t.processRequest(req));
   }
 
+  @After
+  public void tearDownSignumMock() {
+    signumMock.close();
+  }
 }

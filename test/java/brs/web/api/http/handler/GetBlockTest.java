@@ -10,11 +10,10 @@ import brs.props.PropertyService;
 import brs.props.Props;
 import brs.services.BlockService;
 import com.google.gson.JsonObject;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -25,14 +24,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 import java.math.BigInteger;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Signum.class)
 public class GetBlockTest {
+
+  private MockedStatic<Signum> signumMock;
 
   private GetBlock t;
 
@@ -41,10 +40,9 @@ public class GetBlockTest {
 
   @Before
   public void setUp() {
+    signumMock = mockStatic(Signum.class);
     blockchainMock = mock(Blockchain.class);
     blockServiceMock = mock(BlockService.class);
-
-    mockStatic(Signum.class);
     PropertyService propertyService = mock(PropertyService.class);
     when(Signum.getPropertyService()).thenReturn(propertyService);
     doReturn((int)Constants.ONE_SIGNA).when(propertyService).getInt(eq(Props.ONE_COIN_NQT));
@@ -177,4 +175,8 @@ public class GetBlockTest {
     assertEquals(UNKNOWN_BLOCK, t.processRequest(req));
   }
 
+  @After
+  public void tearDownSignumMock() {
+    signumMock.close();
+  }
 }

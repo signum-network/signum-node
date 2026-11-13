@@ -119,14 +119,6 @@ test {
             '**/UnconfirmedTransactionStoreTest.class',
             '**/it/java/brs/**',
             '**/brs/at/AtControllerTest.class'
-
-    // The PowerMock based handler tests don't run with Mockito 5. Handler tests moved to plain
-    // Mockito/JUnit 5 are listed here so they run.
-    def runnableHandlerTests = ['GetBlocksTest', 'GetAccountBlocksTest']
-    exclude { element ->
-        element.relativePath.pathString.startsWith('brs/web/api/http/handler/') &&
-            !runnableHandlerTests.any { element.name == "${it}.class" || element.name.startsWith("${it}\$") }
-    }
 }
 
 application {

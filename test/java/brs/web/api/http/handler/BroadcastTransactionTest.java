@@ -10,12 +10,11 @@ import brs.services.ParameterService;
 import brs.services.TransactionService;
 import brs.util.JSON;
 import com.google.gson.JsonObject;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -26,12 +25,12 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Signum.class)
 public class BroadcastTransactionTest {
+
+  private MockedStatic<Signum> signumMock;
 
   private BroadcastTransaction t;
 
@@ -41,11 +40,10 @@ public class BroadcastTransactionTest {
 
   @Before
   public void setUp() {
+    signumMock = mockStatic(Signum.class);
     this.transactionProcessorMock = mock(TransactionProcessor.class);
     this.parameterServiceMock = mock(ParameterService.class);
     this.transactionServiceMock = mock(TransactionService.class);
-
-    mockStatic(Signum.class);
     FluxCapacitor mockFluxCapacitor = QuickMocker.latestValueFluxCapacitor();
     when(Signum.getFluxCapacitor()).thenReturn(mockFluxCapacitor);
 
@@ -103,5 +101,10 @@ public class BroadcastTransactionTest {
   @Test
   public void requirePost() {
     assertTrue(t.requirePost());
+  }
+
+  @After
+  public void tearDownSignumMock() {
+    signumMock.close();
   }
 }

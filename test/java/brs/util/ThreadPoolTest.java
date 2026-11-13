@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -19,9 +20,11 @@ import static org.mockito.Mockito.when;
 class ThreadPoolTest {
 
     private ThreadPool threadPool;
+    private boolean wasRunning;
 
     @BeforeEach
     void setUp() {
+        wasRunning = ThreadPool.running.get();
         PropertyService propertyService = mock(PropertyService.class);
         when(propertyService.getInt(Props.CPU_NUM_CORES)).thenReturn(1);
         when(propertyService.getInt(Props.BLOCK_PROCESS_THREAD_DELAY)).thenReturn(1);
@@ -31,11 +34,23 @@ class ThreadPoolTest {
     @AfterEach
     void tearDown() {
         threadPool.shutdown();
+        // shutdown() clears the static running flag; later tests in this JVM (the chain tests
+        // start a node) would otherwise run with every background loop disabled
+        ThreadPool.running.set(wasRunning);
+    }
+
+    @Test
+    void testShutdown_GivenStartedPool_LeavesRunningFlagForTearDownToRestore() {
+        threadPool.start(1);
+
+        threadPool.shutdown();
+
+        assertFalse(ThreadPool.running.get(), "shutdown() is expected to clear the static flag");
     }
 
     @Test
     void testGuarded_GivenJobThrowsError_DoesNotPropagateIt() {
-        Runnable guarded = ThreadPool.guarded(() -> {
+        Runnable guarded = ThreadPool.guarded("Test", () -> {
             throw new OutOfMemoryError("Java heap space");
         });
 
@@ -44,7 +59,7 @@ class ThreadPoolTest {
 
     @Test
     void testGuarded_GivenJobThrowsException_DoesNotPropagateIt() {
-        Runnable guarded = ThreadPool.guarded(() -> {
+        Runnable guarded = ThreadPool.guarded("Test", () -> {
             throw new IllegalStateException("boom");
         });
 
@@ -55,7 +70,7 @@ class ThreadPoolTest {
     void testGuarded_GivenJobSucceeds_RunsIt() {
         AtomicInteger runs = new AtomicInteger();
 
-        ThreadPool.guarded(runs::incrementAndGet).run();
+        ThreadPool.guarded("Test", runs::incrementAndGet).run();
 
         assertEquals(1, runs.get());
     }

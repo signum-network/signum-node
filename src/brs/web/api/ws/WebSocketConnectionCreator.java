@@ -6,6 +6,7 @@ import org.eclipse.jetty.ee10.websocket.server.JettyWebSocketCreator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
@@ -14,8 +15,11 @@ import java.util.function.Supplier;
  * connections; beyond it the upgrade is refused with HTTP 503.
  * <p>
  * Every event goes to every open connection, so the cost of each event grows with the number
- * of connections. The check runs before the connection is opened, so connections upgrading at
- * the same moment can overshoot the limit by a few.
+ * of connections. A connection is only counted once its handshake has completed, so the limit
+ * can be overshot by the number of handshakes in progress at the same time.
+ * <p>
+ * Reaching the limit is logged once at WARN until connections are accepted again; individual
+ * refusals are logged at DEBUG only, so a flood of refused requests cannot flood the log.
  */
 public class WebSocketConnectionCreator implements JettyWebSocketCreator {
 
@@ -26,6 +30,7 @@ public class WebSocketConnectionCreator implements JettyWebSocketCreator {
   private final int maxConnections;
   private final IntSupplier openConnections;
   private final Supplier<Object> socketFactory;
+  private final AtomicBoolean limitReached = new AtomicBoolean(false);
 
   /**
    * @param maxConnections  the maximum number of open connections, {@code <= 0} for no limit
@@ -41,10 +46,19 @@ public class WebSocketConnectionCreator implements JettyWebSocketCreator {
   @Override
   public Object createWebSocket(JettyServerUpgradeRequest request, JettyServerUpgradeResponse response) throws Exception {
     if (maxConnections > 0 && openConnections.getAsInt() >= maxConnections) {
-      logger.debug("Refusing websocket connection: limit of {} connections reached", maxConnections);
-      response.sendError(SERVICE_UNAVAILABLE, "Too many websocket connections");
+      refuse(response);
       return null;
     }
+    limitReached.set(false);
     return socketFactory.get();
+  }
+
+  private void refuse(JettyServerUpgradeResponse response) throws Exception {
+    if (limitReached.compareAndSet(false, true)) {
+      logger.warn("Websocket connection limit of {} reached - refusing new connections", maxConnections);
+    } else {
+      logger.debug("Refusing websocket connection: limit of {} connections reached", maxConnections);
+    }
+    response.sendError(SERVICE_UNAVAILABLE, "Too many websocket connections");
   }
 }

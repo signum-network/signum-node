@@ -13,11 +13,10 @@ import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.util.JSON;
 import com.google.gson.JsonObject;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -26,11 +25,11 @@ import static brs.web.api.http.common.ResultFields.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.powermock.api.mockito.PowerMockito.*;
+import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Signum.class)
 public class GetAssetTest extends AbstractUnitTest {
+
+  private MockedStatic<Signum> signumMock;
 
   private ParameterService parameterServiceMock;
   private AssetExchange mockAssetExchange;
@@ -40,12 +39,11 @@ public class GetAssetTest extends AbstractUnitTest {
 
   @Before
   public void setUp() {
+    signumMock = mockStatic(Signum.class);
     parameterServiceMock = mock(ParameterService.class);
     mockAssetExchange = mock(AssetExchange.class);
     mockAccountService = mock(AccountService.class);
     FluxCapacitor mockFluxCapacitor = QuickMocker.latestValueFluxCapacitor();
-
-    mockStatic(Signum.class);
     Blockchain mockBlockchain = mock(Blockchain.class);
     when(Signum.getBlockchain()).thenReturn(mockBlockchain);
     when(mockBlockchain.getHeight()).thenReturn(Integer.MAX_VALUE);
@@ -89,5 +87,10 @@ public class GetAssetTest extends AbstractUnitTest {
     assertEquals(tradeCount, JSON.getAsInt(result.get(NUMBER_OF_TRADES_RESPONSE)));
     assertEquals(transferCount, JSON.getAsInt(result.get(NUMBER_OF_TRANSFERS_RESPONSE)));
     assertEquals(assetAccountsCount, JSON.getAsInt(result.get(NUMBER_OF_ACCOUNTS_RESPONSE)));
+  }
+
+  @After
+  public void tearDownSignumMock() {
+    signumMock.close();
   }
 }

@@ -117,7 +117,7 @@ test {
             '**/AliasServiceImplTest.class',
             '**/TransactionDuplicatesCheckerImplTest.class',
             '**/UnconfirmedTransactionStoreTest.class',
-            '**/brs/web/api/http/handler/**',
+            '**/brs/web/api/http/handler/GetAccountBlocksTest.class', // moves off PowerMock in #1085
             '**/it/java/brs/**',
             '**/brs/at/AtControllerTest.class'
 }

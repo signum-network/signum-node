@@ -9,11 +9,10 @@ import brs.fluxcapacitor.FluxCapacitor;
 import brs.fluxcapacitor.FluxValues;
 import brs.services.ParameterService;
 import brs.web.api.http.common.APITransactionManager;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -25,12 +24,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Signum.class)
 public class CancelAskOrderTest extends AbstractTransactionTest {
+
+  private MockedStatic<Signum> signumMock;
 
   private CancelAskOrder t;
 
@@ -41,6 +40,7 @@ public class CancelAskOrderTest extends AbstractTransactionTest {
 
   @Before
   public void setUp() {
+    signumMock = mockStatic(Signum.class);
     parameterServiceMock = mock(ParameterService.class);
     blockchainMock = mock(Blockchain.class);
     assetExchangeMock = mock(AssetExchange.class);
@@ -66,8 +66,6 @@ public class CancelAskOrderTest extends AbstractTransactionTest {
 
     when(assetExchangeMock.getAskOrder(eq(orderId))).thenReturn(order);
     when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(sellerAccount);
-
-    mockStatic(Signum.class);
     final FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(FluxValues.DIGITAL_GOODS_STORE);
     when(Signum.getFluxCapacitor()).thenReturn(fluxCapacitor);
     doReturn(Constants.FEE_QUANT_SIP3).when(fluxCapacitor).getValue(eq(FluxValues.FEE_QUANT));
@@ -113,5 +111,10 @@ public class CancelAskOrderTest extends AbstractTransactionTest {
     when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(sellerAccount);
 
     assertEquals(UNKNOWN_ORDER, t.processRequest(req));
+  }
+
+  @After
+  public void tearDownSignumMock() {
+    signumMock.close();
   }
 }

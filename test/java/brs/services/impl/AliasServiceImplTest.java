@@ -15,12 +15,11 @@ import brs.db.store.AliasStore;
 import brs.fluxcapacitor.FluxCapacitor;
 import brs.fluxcapacitor.FluxValues;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
 
 import java.util.Collection;
 
@@ -28,12 +27,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.mockito.Mockito.mock;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Signum.class)
 public class AliasServiceImplTest extends AbstractUnitTest {
+
+  private MockedStatic<Signum> signumMock;
 
   private AliasServiceImpl t;
 
@@ -45,8 +43,7 @@ public class AliasServiceImplTest extends AbstractUnitTest {
 
   @Before
   public void setUp() {
-    mockStatic(Signum.class);
-
+    signumMock = mockStatic(Signum.class);
     aliasStoreMock = mock(AliasStore.class);
     aliasTableMock = mock(VersionedEntityTable.class);
     aliasDbKeyFactoryMock = mock(LongKeyFactory.class);
@@ -294,5 +291,10 @@ public class AliasServiceImplTest extends AbstractUnitTest {
     verify(aliasTableMock).insert(mockAlias);
 
     verify(offerTableMock).delete(eq(mockOffer));
+  }
+
+  @After
+  public void tearDownSignumMock() {
+    signumMock.close();
   }
 }

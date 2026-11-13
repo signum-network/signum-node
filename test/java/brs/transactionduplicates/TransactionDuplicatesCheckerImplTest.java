@@ -14,32 +14,30 @@ import brs.common.QuickMocker;
 import brs.common.TestConstants;
 import brs.fluxcapacitor.FluxCapacitor;
 import brs.fluxcapacitor.FluxValues;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
 
 import static org.junit.Assert.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doReturn;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Signum.class)
 public class TransactionDuplicatesCheckerImplTest {
+
+  private MockedStatic<Signum> signumMock;
 
   private TransactionDuplicatesCheckerImpl t = new TransactionDuplicatesCheckerImpl();
 
   @Before
   public void setUp() {
-    mockStatic(Signum.class);
-
+    signumMock = mockStatic(Signum.class);
     final FluxCapacitor mockFluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(FluxValues.PRE_POC2);
     when(Signum.getFluxCapacitor()).thenReturn(mockFluxCapacitor);
     BlockchainImpl mockBlockchain = mock(BlockchainImpl.class);
@@ -176,5 +174,10 @@ public class TransactionDuplicatesCheckerImplTest {
     t.clear();
 
     assertFalse(t.hasAnyDuplicate(duplicate));
+  }
+
+  @After
+  public void tearDownSignumMock() {
+    signumMock.close();
   }
 }

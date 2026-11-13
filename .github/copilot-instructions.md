@@ -47,7 +47,7 @@ an existing migration.
 
 ### Build
 - `./gradlew build` — compile and build
-- `./gradlew test` — unit tests (some flaky tests are excluded in `build.gradle`)
+- `./gradlew test` — unit tests and the chain tests in `test/java/chain/`
 
 ---
 

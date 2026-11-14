@@ -52,6 +52,7 @@ import brs.web.api.http.common.APITransactionManagerImpl;
 import brs.web.server.WebServer;
 import brs.web.server.WebServerContext;
 import brs.web.server.WebServerImpl;
+import java.io.PrintWriter;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -64,6 +65,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.slf4j.Logger;
@@ -246,8 +249,17 @@ public final class Signum {
      * @return the process exit code
      */
     public static int verifyChain(String[] args) {
+        CommandLine cmd;
         try {
-            CommandLine cmd = new DefaultParser().parse(CLI_OPTIONS, args);
+            cmd = new DefaultParser().parse(CLI_OPTIONS, args);
+        } catch (ParseException e) {
+            System.err.println("Chain scan: " + e.getMessage());
+            new HelpFormatter().printHelp(new PrintWriter(System.err, true), HelpFormatter.DEFAULT_WIDTH,
+                    "java -jar signum-node.jar --verify-chain", null, CLI_OPTIONS, HelpFormatter.DEFAULT_LEFT_PAD,
+                    HelpFormatter.DEFAULT_DESC_PAD, null, true);
+            return ChainScanLauncher.EXIT_FAILED;
+        }
+        try {
             LoggerConfigurator.init();
             PropertyService properties = loadProperties(cmd.getOptionValue(CONF_FOLDER_OPTION.getOpt(), CONF_FOLDER));
             if (!applyNetworkParameters(properties)) {

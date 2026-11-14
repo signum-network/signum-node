@@ -57,6 +57,7 @@ public final class ChainScanLauncher {
 
     private static final Logger logger = LoggerFactory.getLogger(ChainScanLauncher.class);
     private static final int CHUNK_SIZE = 1000;
+    static final int MAX_THREADS = 256;
     private static final String TOOL_VERSION = "1";
     private static final List<String> KNOWN_LIMITATIONS = List.of(
             "No replay of account state: balances, ATs, assets and other derived tables are not checked.",
@@ -74,7 +75,7 @@ public final class ChainScanLauncher {
         int threads;
         try {
             groups = parseChecks(cmd.getOptionValue(OPT_CHECKS, "tx,block"));
-            threads = Integer.parseInt(cmd.getOptionValue(OPT_THREADS,
+            threads = parseThreads(cmd.getOptionValue(OPT_THREADS,
                     Integer.toString(Runtime.getRuntime().availableProcessors())));
         } catch (IllegalArgumentException e) {
             logger.error("Chain scan: {}", e.getMessage());
@@ -150,6 +151,34 @@ public final class ChainScanLauncher {
                 new ChainLinkCheck(),
                 new GenerationSignatureCheck(SignumCrypto.getInstance()));
         return all.stream().filter(check -> groups.contains(check.group())).toList();
+    }
+
+    /**
+     * Whether the arguments ask for the chain scan. Checked on the raw arguments, so that the scan is
+     * chosen even if the other arguments don't parse; any prefix of the option counts, as commons-cli
+     * matches partial long options.
+     */
+    public static boolean isRequested(String[] args) {
+        String option = "--" + OPT_VERIFY_CHAIN;
+        for (String arg : args) {
+            if (arg.length() > 2 && option.startsWith(arg)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static int parseThreads(String value) {
+        int threads;
+        try {
+            threads = Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("--threads must be a number: " + value);
+        }
+        if (threads < 1 || threads > MAX_THREADS) {
+            throw new IllegalArgumentException("--threads must be between 1 and " + MAX_THREADS + ": " + threads);
+        }
+        return threads;
     }
 
     static Set<String> parseChecks(String value) {

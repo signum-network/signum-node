@@ -26,6 +26,10 @@ public class Launcher {
                         "Check for updates at https://github.com/signum-network/signum-node", true);
                 return;
             }
+            if (cmd.hasOption("verify-chain")) {
+                System.exit(Signum.verifyChain(args));
+                return;
+            }
             if (cmd.hasOption("l")) {
                 logger.info("Running in headless mode as specified by argument");
                 canRunGui = false;

@@ -98,6 +98,40 @@ public final class Signum {
                     .build())
             .addOption(Option.builder("h")
                     .longOpt("help")
+                    .build())
+            .addOption(Option.builder()
+                    .longOpt(ChainScanLauncher.OPT_VERIFY_CHAIN)
+                    .desc("Scan the stored chain read-only for consensus rule violations, then exit")
+                    .build())
+            .addOption(Option.builder()
+                    .longOpt(ChainScanLauncher.OPT_FROM_HEIGHT)
+                    .argName("height")
+                    .numberOfArgs(1)
+                    .desc("Chain scan: first height to scan (default 0)")
+                    .build())
+            .addOption(Option.builder()
+                    .longOpt(ChainScanLauncher.OPT_TO_HEIGHT)
+                    .argName("height")
+                    .numberOfArgs(1)
+                    .desc("Chain scan: last height to scan (default: last stored block)")
+                    .build())
+            .addOption(Option.builder()
+                    .longOpt(ChainScanLauncher.OPT_CHECKS)
+                    .argName("groups")
+                    .numberOfArgs(1)
+                    .desc("Chain scan: check groups tx, block or all (default tx,block)")
+                    .build())
+            .addOption(Option.builder()
+                    .longOpt(ChainScanLauncher.OPT_THREADS)
+                    .argName("n")
+                    .numberOfArgs(1)
+                    .desc("Chain scan: worker threads (default: available processors)")
+                    .build())
+            .addOption(Option.builder()
+                    .longOpt(ChainScanLauncher.OPT_REPORT)
+                    .argName("file")
+                    .numberOfArgs(1)
+                    .desc("Chain scan: report file (default chain-scan-<network>-<timestamp>.jsonl)")
                     .build());
 
     private static final Logger logger = LoggerFactory.getLogger(Signum.class);
@@ -204,6 +238,55 @@ public final class Signum {
             logger.error("Exception parsing command line arguments", e);
         }
         init(confFolder);
+    }
+
+    /**
+     * Runs the read-only chain scan instead of the node, see {@link ChainScanLauncher}.
+     *
+     * @return the process exit code
+     */
+    public static int verifyChain(String[] args) {
+        try {
+            CommandLine cmd = new DefaultParser().parse(CLI_OPTIONS, args);
+            LoggerConfigurator.init();
+            PropertyService properties = loadProperties(cmd.getOptionValue(CONF_FOLDER_OPTION.getOpt(), CONF_FOLDER));
+            if (!applyNetworkParameters(properties)) {
+                return ChainScanLauncher.EXIT_FAILED;
+            }
+            return new ChainScanLauncher(properties).run(cmd);
+        } catch (Exception e) {
+            logger.error("Chain scan failed to start", e);
+            return ChainScanLauncher.EXIT_FAILED;
+        }
+    }
+
+    /**
+     * Scan mode starts no node: only the statics that block and transaction parsing read are set.
+     * The transaction types get no services, which only validating and applying transactions use.
+     */
+    static void installForChainScan(PropertyService propertyService, Blockchain blockchain,
+            FluxCapacitor fluxCapacitor) {
+        Signum.propertyService = propertyService;
+        Signum.fluxCapacitor = fluxCapacitor;
+        TransactionType.init(blockchain, fluxCapacitor, null, null, null, null, null, null);
+    }
+
+    private static boolean applyNetworkParameters(PropertyService propertyService) {
+        String networkParametersClass = propertyService.getString(Props.NETWORK_PARAMETERS);
+        if (networkParametersClass == null) {
+            return true;
+        }
+        try {
+            NetworkParameters params = (NetworkParameters) Class
+                    .forName(networkParametersClass)
+                    .getConstructor()
+                    .newInstance();
+            propertyService.setNetworkParameters(params);
+            return true;
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return false;
+        }
     }
 
     private static boolean validateVersionNotDev(PropertyService propertyService) {

@@ -120,7 +120,11 @@ public class Block {
     private volatile Peer downloadedFrom = null;
     private volatile int byteLength = 0;
 
-    Block(
+    /**
+     * Creates a block with its signed transactions. The id is computed from the block bytes on first
+     * use.
+     */
+    public Block(
             int version,
             int timestamp,
             long previousBlockId,

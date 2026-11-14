@@ -62,16 +62,23 @@ java -jar signum-node.jar --verify-chain [--config <folder>]
 
 Every finding has a check id, a severity (`ERROR`, `WARN`, `INFO`), the height, the block id, the transaction id (if any) and a detail text.
 
+Implementation notes (first version):
+- `Block`'s constructor with transactions does not set `height`; the scan sets it, and checks use the stored height.
+- The constructor also rejects transactions that are not sorted by id; that surfaces as `BLOCK_LOAD`.
+- `TransactionType.init` must run in scan mode, with blockchain and flux capacitor only, or no type can be parsed.
+- Implemented: tier 1, `CHAIN_LINK`, `PREV_BLOCK_HASH`, `GENERATION_SIGNATURE`. Not yet: `BLOCK_SIGNATURE`, tier 3.
+
 ### Tier 1: stateless, per block (`--checks tx,block`)
 
 | Id | Rule | Severity |
 |---|---|---|
 | `TX_REBUILD_MISMATCH` | Rebuild the transaction with `SqlTransactionDb.loadTransaction` (`src/brs/db/sql/SqlTransactionDb.java:67`), but don't preset `id`/`fullHash`. Recompute both from the rebuilt bytes and compare with the stored `id` and `full_hash`. On a mismatch, skip `TX_SIGNATURE` for that transaction: we can't trust the bytes. | ERROR |
 | `TX_SIGNATURE` | For every transaction with `signature IS NOT NULL`: `Transaction.verifySignature()` must be true. **This is the main result** and is collected for the accept list (§7). | ERROR |
-| `TX_UNSIGNED` | `signature IS NULL` is only valid for system transactions: `AT_PAYMENT`, `ESCROW_RESULT` and `SUBSCRIPTION_PAYMENT`. Any other type without a signature is a finding. | ERROR |
+| `TX_UNSIGNED` | A system transaction type (`AT_PAYMENT`, `ESCROW_RESULT`, `SUBSCRIPTION_PAYMENT`) that carries a signature. Rows **without** a signature are not findings: they are transactions the node derives while applying a block, including asset operations of ATs (types 2/0, 2/1, 2/6, 2/8 on testnet). They are not part of the payload. A received transaction is stored with the signature bytes it came with, so an invalid one is a `TX_SIGNATURE` finding, and a dropped one breaks `BLOCK_PAYLOAD`. | INFO |
 | `TX_BLOCK_CONSISTENCY` | Transaction `height` and `block_timestamp` match the block. Timestamp ≤ block timestamp + 15. Expiration ≥ block timestamp. Same rules as `pushBlock` (`src/brs/BlockchainProcessorImpl.java:~2190`). | ERROR |
 | `BLOCK_ID` | Rebuild the block with `id = 0` and recompute the id from `getBytes()` (as in `Block.getId()`, `src/brs/Block.java:419`). Compare with the stored id. | ERROR |
-| `BLOCK_PAYLOAD` | SHA-256 over the bytes of the signed transactions **in `db_id` order** equals `payload_hash`. The sum of transaction sizes equals `payload_length`. Sum of amounts ≤ `total_amount` and sum of fees ≤ `total_fee`. Cash back total as in `pushBlock`, when `SMART_FEES` is active at that height. | ERROR |
+| `BLOCK_PAYLOAD` | SHA-256 over the bytes of the signed transactions **in `db_id` order** equals `payload_hash`. Sum of amounts ≤ `total_amount` and sum of fees ≤ `total_fee`. Cash back total as in `pushBlock`, when `SMART_FEES` is active at that height. | ERROR |
+| `BLOCK_PAYLOAD_LENGTH` | The sum of transaction sizes **plus the AT bytes** (`block.ats`, 24 bytes per AT) equals `payload_length`, as the generator computes it. Nodes only check it against the maximum, so it is no consensus rule. | WARN |
 
 Note: `SqlTransactionDb.findBlockTransactions` (`:117`) has **no ORDER BY**. The scan must sort by `db_id` explicitly, because PostgreSQL does not guarantee row order.
 

@@ -7,6 +7,7 @@ import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import brs.ChainScanLauncher;
 import brs.Signum;
 
 import java.awt.*;
@@ -16,6 +17,13 @@ public class Launcher {
     public static void main(String[] args) {
         Logger logger = LoggerFactory.getLogger(Launcher.class);
         boolean canRunGui = true;
+
+        // decided on the raw arguments: if parsing failed, falling through would start the node
+        // read-write on the database the operator only meant to scan
+        if (ChainScanLauncher.isRequested(args)) {
+            System.exit(Signum.verifyChain(args));
+            return;
+        }
 
         try {
             CommandLine cmd = new DefaultParser().parse(Signum.CLI_OPTIONS, args);

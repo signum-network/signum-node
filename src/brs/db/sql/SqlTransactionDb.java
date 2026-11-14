@@ -68,7 +68,19 @@ public class SqlTransactionDb implements TransactionDb {
         if (tr == null) {
             return null;
         }
+        return newTransactionBuilder(tr)
+                .id(tr.getId())
+                .fullHash(tr.getFullHash())
+                .build();
+    }
 
+    /**
+     * Rebuilds a transaction from its database record without the stored {@code id} and
+     * {@code full_hash}, so that both are recomputed from the transaction bytes. The chain scan
+     * uses this to check the stored values.
+     */
+    public static Transaction.Builder newTransactionBuilder(TransactionRecord tr)
+            throws SignumException.ValidationException {
         ByteBuffer buffer = null;
         if (tr.getAttachmentBytes() != null) {
             buffer = ByteBuffer.wrap(tr.getAttachmentBytes());
@@ -83,10 +95,8 @@ public class SqlTransactionDb implements TransactionDb {
                 .signature(tr.getSignature())
                 .blockId(tr.getBlockId())
                 .height(tr.getHeight())
-                .id(tr.getId())
                 .senderId(tr.getSenderId())
-                .blockTimestamp(tr.getBlockTimestamp())
-                .fullHash(tr.getFullHash());
+                .blockTimestamp(tr.getBlockTimestamp());
         if (transactionType.hasRecipient()) {
             builder.recipientId(Optional.ofNullable(tr.getRecipientId()).orElse(0L));
         }
@@ -110,7 +120,7 @@ public class SqlTransactionDb implements TransactionDb {
             builder.cashBackId(tr.getCashBackId());
         }
 
-        return builder.build();
+        return builder;
     }
 
     @Override

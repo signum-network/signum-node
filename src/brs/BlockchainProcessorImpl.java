@@ -119,6 +119,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     private final StatisticsManagerImpl statisticsManager;
     private final Generator generator;
     private final SyncPreVerifier syncPreVerifier;
+    private final DownloadedBlockAppender downloadedBlockAppender;
     // blocks per CPU pre-verification batch, 1 = one block at a time
     private final int verifyBatchSize;
     private final DBCacheManagerImpl dbCacheManager;
@@ -478,6 +479,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         if (decoupledSync) {
             logger.info("Experimental decoupled sync pipeline enabled");
         }
+        downloadedBlockAppender = new DownloadedBlockAppender(downloadCache, blockchain, blockService,
+                Signum::getFluxCapacitor, Block::parseBlock, blockImporterLock, decoupledSync);
 
         oclVerify = propertyService.getBoolean(Props.GPU_ACCELERATION); // use GPU acceleration ?
         oclUnverifiedQueue = propertyService.getInt(Props.GPU_UNVERIFIED_QUEUE);
@@ -775,82 +778,18 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                 downloadCache.resetCache();
                                 continue; // Re-evaluate state in the next loop
                             }
-
-                            // loop blocks and make sure they fit in chain
-                            Block block;
-                            JsonObject blockData;
+                            List<ParallelBlockFetcher.Segment> segments = List.of(
+                                    new ParallelBlockFetcher.Segment(peer, lastBlock.getHeight(), nextBlocks));
 
                             // Without the decoupled pipeline, the read lock is taken per block, and with
                             // a non-fair lock each block can wait for several block pushes.
                             lockImporterForBatch();
-                            for (JsonElement o : nextBlocks) {
-                                int height = lastBlock.getHeight() + 1;
-                                blockData = JSON.getAsJsonObject(o);
-                                try {
-                                    if (Signum.getFluxCapacitor().getValue(FluxValues.POC_PLUS, height)
-                                            && height - blockchain.getHeight() >= Constants.MAX_ROLLBACK) {
-                                        logger.debug("GetMoreBlocks, wait for other threads to catch up");
-                                        break;
-                                    }
-                                    block = Block.parseBlock(blockData, height);
-                                    // Make sure it maps back to chain
-                                    if (lastBlock.getId() != block.getPreviousBlockId()) {
-                                        logger.debug("Discarding downloaded data. Last downloaded blocks is rubbish");
-                                        logger.debug("DB blockID: {} DB blockheight: {} Downloaded previd: {}",
-                                                lastBlock.getId(), lastBlock.getHeight(), block.getPreviousBlockId());
-                                        return;
-                                    }
-                                    // set height and cumulative difficulty to block
-                                    block.setHeight(height);
-                                    block.setPeer(peer);
-                                    block.setByteLength(JSON.toJsonString(blockData).length());
-                                    if (decoupledSync) {
-                                        blockService.calculateBaseTarget(block, lastBlock);
-                                    } else {
-                                        blockImporterLock.readLock().lock();
-                                        try {
-                                            blockService.calculateBaseTarget(block, lastBlock);
-                                        } finally {
-                                            blockImporterLock.readLock().unlock();
-                                        }
-                                    }
-                                    if (saveInCache) {
-                                        if (downloadCache.getLastBlockId() == block.getPreviousBlockId()) {
-                                            // ↑ still maps back? we might have got announced/forged blocks
-                                            if (!downloadCache.addBlock(block)) {
-                                                // we stop the loop since cahce has been locked
-                                                return;
-                                            }
-                                            if (logger.isDebugEnabled()) {
-                                                logger.debug("Added from download: Id: {} Height: {}", block.getId(),
-                                                        block.getHeight());
-                                            }
-                                        }
-                                    } else {
-                                        downloadCache.addForkBlock(block);
-                                    }
-                                    lastBlock = block;
-                                } catch (BlockOutOfOrderException e) {
-                                    logger.info(e.toString() + " - autoflushing cache to get rid of it", e);
-                                    downloadCache.resetCache();
-                                    return;
-                                } catch (RuntimeException | SignumException.ValidationException e) {
-                                    logger.info("Failed to parse block: {}", e.getMessage());
-                                    if (logger.isDebugEnabled()) {
-                                        logger.debug("Failed to parse block trace: {}",
-                                                Arrays.toString(e.getStackTrace()));
-                                    }
-                                    peer.blacklist(e, "pulled invalid data using getCumulativeDifficulty");
-                                    return;
-                                } catch (Exception e) {
-                                    logger.warn("Unhandled exception {}" + e.toString(), e);
-                                    logger.warn("Unhandled exception trace: {}", Arrays.toString(e.getStackTrace()));
-                                }
-                                // executor shutdown?
-                                if (Thread.currentThread().isInterrupted() || !ThreadPool.running.get()) {
-                                    return;
-                                }
-                            } // end block loop
+                            DownloadedBlockAppender.Result appended = downloadedBlockAppender.append(segments,
+                                    lastBlock, saveInCache);
+                            if (appended.stopped()) {
+                                return;
+                            }
+                            lastBlock = appended.lastBlock();
                             // the fork processor below pushes blocks, keep the importer free for that
                             releaseImporterBatchLock();
 

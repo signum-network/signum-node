@@ -118,7 +118,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     private final DerivedTableManager derivedTableManager;
     private final StatisticsManagerImpl statisticsManager;
     private final Generator generator;
-    private final BatchPocVerifier batchPocVerifier;
+    private final SyncPreVerifier syncPreVerifier;
     // blocks per CPU pre-verification batch, 1 = one block at a time
     private final int verifyBatchSize;
     private final DBCacheManagerImpl dbCacheManager;
@@ -395,8 +395,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         this.downloadCache = downloadCache;
         this.blockPushRecovery = new BlockPushRecovery(stores, blockchain, blockDb, downloadCache, atProcessorCache,
                 transactionProcessor);
-        this.batchPocVerifier = new BatchPocVerifier(blockService, generator,
-                propertyService.getInt(Props.BRS_CHECKPOINT_HEIGHT));
+        this.syncPreVerifier = new SyncPreVerifier(downloadCache, blockchain, blockService,
+                new BatchPocVerifier(blockService, generator, propertyService.getInt(Props.BRS_CHECKPOINT_HEIGHT)));
         this.verifyBatchSize = checkedVerifyBatchSize(propertyService, generator);
         this.forkProcessor = new ForkProcessor(blockchain, blockService, downloadCache, transactionProcessor,
                 new ForkChainOperations());
@@ -1017,7 +1017,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                     return;
                 }
                 if (decoupledSync) {
-                    preVerifyNextBlockOutsideImporterLock();
+                    syncPreVerifier.preVerifyNextBlock();
                 }
                 blockImporterLock.writeLock().lock();
                 try {
@@ -1135,7 +1135,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         }
                     } else if (verifyBatchSize > 1) { // verify using java, scoops in one batch
                         try {
-                            preVerifyBatchOnCpu();
+                            syncPreVerifier.preVerifyBatch(verifyBatchSize);
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
                         }
@@ -1189,51 +1189,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         this.uploadedVolume.set(sumUploadedVolume);
         this.downloadedVolume.set(sumDownloadedVolume);
         blockListeners.notify(null, Event.NET_VOLUME_CHANGED);
-    }
-
-    /**
-     * Takes a batch of blocks from the unverified queue and pre-verifies them, computing their PoC
-     * scoops in one call.
-     */
-    private void preVerifyBatchOnCpu() throws InterruptedException {
-        List<BatchPocVerifier.Task> tasks = new ArrayList<>();
-        for (Block block : downloadCache.takeUnverifiedBlocks(verifyBatchSize)) {
-            Block previousBlock = downloadCache.getBlock(block.getPreviousBlockId());
-            if (previousBlock == null) {
-                previousBlock = blockchain.getBlock(block.getPreviousBlockId());
-            }
-            // without a previous block the block no longer connects (e.g. after a pop off),
-            // the importer resets the cache for it
-            if (previousBlock != null) {
-                tasks.add(new BatchPocVerifier.Task(block, previousBlock));
-            }
-        }
-        batchPocVerifier.preVerify(tasks);
-    }
-
-    /**
-     * Decoupled sync: pre-verifies the next block to import before the importer takes its write
-     * lock, so the PoC calculation does not block the download thread. Invalid blocks are not
-     * handled here: they stay unverified and are verified again under the lock, where rejection
-     * (blacklisting, pop off) is handled as before.
-     */
-    private void preVerifyNextBlockOutsideImporterLock() {
-        Block lastBlock = blockchain.getLastBlock();
-        Block nextBlock = downloadCache.getNextBlock(lastBlock.getId());
-        if (nextBlock == null || nextBlock.isVerified()) {
-            return;
-        }
-        try {
-            blockService.preVerify(nextBlock, lastBlock);
-            if (nextBlock.isVerified()) {
-                downloadCache.removeUnverified(nextBlock.getId());
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        } catch (BlockNotAcceptedException e) {
-            logger.debug("Pre-verification of block {} failed, it is verified again on import",
-                    nextBlock.getStringId(), e);
-        }
     }
 
     private void blacklistClean(Block block, Exception e, String description) {

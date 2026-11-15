@@ -30,7 +30,7 @@ import static brs.schema.Tables.INDIRECT_INCOMING;
 
 public class SqlBlockchainStore implements BlockchainStore {
 
-    private final Logger logger = LoggerFactory.getLogger(SqlBlockchainStore.class);
+    private static final Logger logger = LoggerFactory.getLogger(SqlBlockchainStore.class);
 
     private final TransactionDb transactionDb = Signum.getDbs().getTransactionDb();
     private final BlockDb blockDb = Signum.getDbs().getBlockDb();
@@ -67,15 +67,18 @@ public class SqlBlockchainStore implements BlockchainStore {
 
     @Override
     public int getBlocksCount(long accountId, int from, int to) {
+        return Db.fetchWithDSLContext(ctx -> getBlocksCount(ctx, accountId, from, to));
+    }
+
+    /** {@link #getBlocksCount(long, int, int)} on the given context; the chain scan uses it on its own data source. */
+    static int getBlocksCount(DSLContext ctx, long accountId, int from, int to) {
         if (from > to) {
             return 0;
         }
-        return Db.fetchWithDSLContext(ctx -> {
-            SelectConditionStep<BlockRecord> query = ctx.selectFrom(BLOCK).where(BLOCK.GENERATOR_ID.eq(accountId))
-                    .and(BLOCK.HEIGHT.between(from).and(to));
+        SelectConditionStep<BlockRecord> query = ctx.selectFrom(BLOCK).where(BLOCK.GENERATOR_ID.eq(accountId))
+                .and(BLOCK.HEIGHT.between(from).and(to));
 
-            return ctx.fetchCount(query);
-        });
+        return ctx.fetchCount(query);
     }
 
     @Override
@@ -400,29 +403,35 @@ public class SqlBlockchainStore implements BlockchainStore {
 
     @Override
     public long getCommittedAmount(long accountId, int height, int endHeight, Transaction skipTransaction) {
+        return Db.fetchWithDSLContext(ctx -> getCommittedAmount(ctx, accountId, height, endHeight, skipTransaction));
+    }
+
+    /**
+     * {@link #getCommittedAmount(long, int, int, Transaction)} on the given context; the chain scan uses it
+     * on its own data source.
+     */
+    static long getCommittedAmount(DSLContext ctx, long accountId, int height, int endHeight,
+            Transaction skipTransaction) {
         int commitmentWait = Signum.getFluxCapacitor().getValue(FluxValues.COMMITMENT_WAIT, height);
         int commitmentHeight = Math.min(height - commitmentWait, endHeight);
 
-        Collection<byte[]> commitmmentAddBytes = Db.fetchWithDSLContext(ctx -> {
-            SelectConditionStep<Record1<byte[]>> select = ctx.select(TRANSACTION.ATTACHMENT_BYTES).from(TRANSACTION)
-                    .where(TRANSACTION.TYPE.eq(TransactionType.TYPE_SIGNA_MINING.getType()))
-                    .and(TRANSACTION.SUBTYPE.eq(TransactionType.SUBTYPE_SIGNA_MINING_COMMITMENT_ADD))
-                    .and(TRANSACTION.HEIGHT.le(commitmentHeight));
-            if (accountId != 0L)
-                select = select.and(TRANSACTION.SENDER_ID.equal(accountId));
-            return select.fetch().getValues(TRANSACTION.ATTACHMENT_BYTES);
-        });
-        Collection<byte[]> commitmmentRemoveBytes = Db.fetchWithDSLContext(ctx -> {
-            SelectConditionStep<Record1<byte[]>> select = ctx.select(TRANSACTION.ATTACHMENT_BYTES).from(TRANSACTION)
-                    .where(TRANSACTION.TYPE.eq(TransactionType.TYPE_SIGNA_MINING.getType()))
-                    .and(TRANSACTION.SUBTYPE.eq(TransactionType.SUBTYPE_SIGNA_MINING_COMMITMENT_REMOVE))
-                    .and(TRANSACTION.HEIGHT.le(endHeight));
-            if (accountId != 0L)
-                select = select.and(TRANSACTION.SENDER_ID.equal(accountId));
-            if (skipTransaction != null)
-                select = select.and(TRANSACTION.ID.ne(skipTransaction.getId()));
-            return select.fetch().getValues(TRANSACTION.ATTACHMENT_BYTES);
-        });
+        SelectConditionStep<Record1<byte[]>> addSelect = ctx.select(TRANSACTION.ATTACHMENT_BYTES).from(TRANSACTION)
+                .where(TRANSACTION.TYPE.eq(TransactionType.TYPE_SIGNA_MINING.getType()))
+                .and(TRANSACTION.SUBTYPE.eq(TransactionType.SUBTYPE_SIGNA_MINING_COMMITMENT_ADD))
+                .and(TRANSACTION.HEIGHT.le(commitmentHeight));
+        if (accountId != 0L)
+            addSelect = addSelect.and(TRANSACTION.SENDER_ID.equal(accountId));
+        Collection<byte[]> commitmmentAddBytes = addSelect.fetch().getValues(TRANSACTION.ATTACHMENT_BYTES);
+
+        SelectConditionStep<Record1<byte[]>> removeSelect = ctx.select(TRANSACTION.ATTACHMENT_BYTES).from(TRANSACTION)
+                .where(TRANSACTION.TYPE.eq(TransactionType.TYPE_SIGNA_MINING.getType()))
+                .and(TRANSACTION.SUBTYPE.eq(TransactionType.SUBTYPE_SIGNA_MINING_COMMITMENT_REMOVE))
+                .and(TRANSACTION.HEIGHT.le(endHeight));
+        if (accountId != 0L)
+            removeSelect = removeSelect.and(TRANSACTION.SENDER_ID.equal(accountId));
+        if (skipTransaction != null)
+            removeSelect = removeSelect.and(TRANSACTION.ID.ne(skipTransaction.getId()));
+        Collection<byte[]> commitmmentRemoveBytes = removeSelect.fetch().getValues(TRANSACTION.ATTACHMENT_BYTES);
 
         BigInteger amountCommitted = BigInteger.ZERO;
         for (byte[] bytes : commitmmentAddBytes) {

@@ -42,6 +42,16 @@ class ChainScanServiceImplTest {
                             null))
                     .toList();
         }
+
+        @Override
+        public int getBlocksCount(long accountId, int fromHeight, int toHeight) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public long getCommittedAmount(long accountId, int height, int endHeight) {
+            throw new UnsupportedOperationException();
+        }
     }
 
     /** Reports every block at a height divisible by 100. */

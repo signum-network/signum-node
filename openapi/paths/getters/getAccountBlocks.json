@@ -1,7 +1,7 @@
 {
   "get": {
     "summary": "Get Accounts Forged Blocks",
-    "description": "Gets the blocks an account forged.",
+    "description": "Gets the blocks an account forged, newest first. A response stops early once the returned blocks hold `API.BlocksMaxTransactions` transactions (default 10000); continue with `nextIndex` until it is absent. At least one block is always returned.",
     "tags": [
       "account",
       "mining"
@@ -44,6 +44,9 @@
                 "blocks"
               ],
               "properties": {
+                "nextIndex": {
+                  "$ref": "../../schemas/nextIndex.json"
+                },
                 "blocks": {
                   "type": "array",
                   "items": {

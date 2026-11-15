@@ -15,7 +15,7 @@ import static brs.web.api.http.common.ResultFields.FULL_HASH_RESPONSE;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.mockito.Mockito.mock;
 
 public class CalculateFullHashTest {
 

@@ -21,6 +21,7 @@ public class Props {
     public static final Prop<Integer> API_PORT = new Prop<>("API.Port", 8125);
     public static final Prop<Integer> API_WEBSOCKET_PORT = new Prop<>("API.WebSocketPort", 8126);
     public static final Prop<Boolean> API_WEBSOCKET_ENABLE = new Prop<>("API.WebSocketEnable", true);
+    public static final Prop<Integer> API_WEBSOCKET_MAX_CONNECTIONS = new Prop<>("API.WebSocketMaxConnections", 500);
     public static final Prop<Integer> API_WEBSOCKET_HEARTBEAT_INTERVAL = new Prop<>("API.WebSocketHeartbeatInterval",
             30);
 
@@ -205,6 +206,7 @@ public class Props {
     public static final Prop<String> API_SSL_KEY_STORE_PASSWORD = new Prop<>("API.SSL_keyStorePassword", "password");
     public static final Prop<String> API_SSL_LETSENCRYPT_PATH = new Prop<>("API.SSL_letsencryptPath", "");
     public static final Prop<Integer> API_SERVER_IDLE_TIMEOUT = new Prop<>("API.ServerIdleTimeout", 60_000);
+    public static final Prop<Integer> API_BLOCKS_MAX_TRANSACTIONS = new Prop<>("API.BlocksMaxTransactions", 10_000);
     public static final Prop<Boolean> API_SERVER_ENFORCE_POST = new Prop<>("API.ServerEnforcePOST", true);
     public static final Prop<String> API_ALLOWED_ORIGINS = new Prop<>("API.AllowedOrigins", "*");
 
@@ -270,6 +272,10 @@ public class Props {
             "node.indirectIncomingService.enable", true);
 
     public static final Prop<Boolean> AUTO_POP_OFF_ENABLED = new Prop<>("node.autoPopOff.enable", true);
+    public static final Prop<Integer> PERSISTENCE_FAILURE_POP_OFF_THRESHOLD = new Prop<>(
+            "node.persistenceFailure.popOffThreshold", 5);
+    public static final Prop<Integer> PERSISTENCE_FAILURE_MAX_RETRY_DELAY = new Prop<>(
+            "node.persistenceFailure.maxRetryDelay", 60000);
 
     public static final Prop<Boolean> ENABLE_AT_DEBUG_LOG = new Prop<>("node.ATDebugLog.enable", false);
 

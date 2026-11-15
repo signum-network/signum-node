@@ -11,12 +11,11 @@ import brs.fluxcapacitor.FluxCapacitor;
 import brs.fluxcapacitor.FluxValues;
 import brs.unconfirmedtransactions.UnconfirmedTransactionStore;
 import brs.util.Listener;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
 
 import java.util.ArrayList;
 
@@ -26,12 +25,12 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Signum.class)
 public class FeeSuggestionCalculatorTest extends AbstractUnitTest {
+
+  private MockedStatic<Signum> signumMock;
 
   private FeeSuggestionCalculator t;
 
@@ -42,8 +41,7 @@ public class FeeSuggestionCalculatorTest extends AbstractUnitTest {
 
   @Before
   public void setUp() {
-    mockStatic(Signum.class);
-
+    signumMock = mockStatic(Signum.class);
     blockchainProcessorMock = mock(BlockchainProcessor.class);
     unconfirmedTransactionStoreMock = mock(UnconfirmedTransactionStore.class);
 
@@ -74,5 +72,10 @@ public class FeeSuggestionCalculatorTest extends AbstractUnitTest {
     assertEquals(1 * FEE_QUANT_SIP3, feeSuggestionOne.getCheapFee());
     assertEquals(2 * FEE_QUANT_SIP3, feeSuggestionOne.getStandardFee());
     assertEquals(12 * FEE_QUANT_SIP3, feeSuggestionOne.getPriorityFee());
+  }
+
+  @After
+  public void tearDownSignumMock() {
+    signumMock.close();
   }
 }

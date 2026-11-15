@@ -2,20 +2,26 @@ package brs.services.impl;
 
 import brs.Account;
 import brs.Block;
+import brs.BlockchainProcessor;
 import brs.Blockchain;
 import brs.Generator;
 import brs.Signum;
+import brs.Transaction;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.fluxcapacitor.FluxCapacitor;
 import brs.fluxcapacitor.FluxEnable;
 import brs.fluxcapacitor.FluxValues;
+import brs.props.PropertyService;
+import brs.props.Props;
 import brs.services.AccountService;
 import brs.services.TransactionService;
 import brs.util.DownloadCacheImpl;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
+import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -25,6 +31,8 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class BlockServiceImplTest extends AbstractUnitTest {
@@ -109,6 +117,165 @@ class BlockServiceImplTest extends AbstractUnitTest {
             assertThrows(ArithmeticException.class, () -> subject.apply(block),
                     "cashback + burnt exceeding totalFee must be rejected");
         }
+    }
+
+    private static final int CHECKPOINT_HEIGHT = 1_000;
+    private static final long PREVIOUS_BLOCK_ID = 42L;
+
+    private static Block mockUnverifiedBlock(int height, Transaction... transactions) {
+        Block block = mock(Block.class);
+        when(block.getHeight()).thenReturn(height);
+        when(block.getPreviousBlockId()).thenReturn(PREVIOUS_BLOCK_ID);
+        when(block.getGenerationSignature()).thenReturn(new byte[32]);
+        when(block.getTransactions()).thenReturn(Arrays.asList(transactions));
+        return block;
+    }
+
+    private static Block mockPreviousBlock() {
+        Block previousBlock = mock(Block.class);
+        when(previousBlock.getId()).thenReturn(PREVIOUS_BLOCK_ID);
+        return previousBlock;
+    }
+
+    private static Transaction mockTransaction(boolean validSignature) {
+        Transaction transaction = mock(Transaction.class);
+        when(transaction.verifySignature()).thenReturn(validSignature);
+        return transaction;
+    }
+
+    private static MockedStatic<Signum> mockCheckpointHeight() {
+        PropertyService propertyService = mock(PropertyService.class);
+        when(propertyService.getInt(Props.BRS_CHECKPOINT_HEIGHT)).thenReturn(CHECKPOINT_HEIGHT);
+        MockedStatic<Signum> signumMock = mockStatic(Signum.class);
+        signumMock.when(Signum::getPropertyService).thenReturn(propertyService);
+        return signumMock;
+    }
+
+    private static BlockServiceImpl buildPreVerifySubject(Generator generator) {
+        return new BlockServiceImpl(mock(AccountService.class), mock(TransactionService.class),
+                mock(Blockchain.class), mock(DownloadCacheImpl.class), generator, null);
+    }
+
+    @Test
+    void preVerify_GivenInvalidTransactionSignature_LeavesBlockUnverified() {
+        // Arrange
+        Generator generator = mock(Generator.class);
+        when(generator.calculateHit(anyLong(), anyLong(), any(byte[].class), anyInt(), anyInt()))
+                .thenReturn(BigInteger.TEN);
+        BlockServiceImpl subject = buildPreVerifySubject(generator);
+        Block block = mockUnverifiedBlock(CHECKPOINT_HEIGHT + 1, mockTransaction(true), mockTransaction(false));
+
+        try (MockedStatic<Signum> ignored = mockCheckpointHeight()) {
+            // Act
+            assertThrows(BlockchainProcessor.TransactionNotAcceptedException.class,
+                    () -> subject.preVerify(block, mockPreviousBlock()));
+        }
+
+        // Assert: a block marked as verified would skip pre-verification in the block importer
+        verify(block, never()).setPocTime(any());
+    }
+
+    @Test
+    void preVerify_GivenInvalidTransactionSignatureBelowCheckpoint_LeavesBlockUnverified() {
+        // Arrange
+        BlockServiceImpl subject = buildPreVerifySubject(mock(Generator.class));
+        Block block = mockUnverifiedBlock(CHECKPOINT_HEIGHT - 1, mockTransaction(false));
+
+        try (MockedStatic<Signum> ignored = mockCheckpointHeight()) {
+            // Act
+            assertThrows(BlockchainProcessor.TransactionNotAcceptedException.class,
+                    () -> subject.preVerify(block, mockPreviousBlock()));
+        }
+
+        // Assert
+        verify(block, never()).setPocTime(any());
+    }
+
+    @Test
+    void preVerify_GivenInterruptDuringSignatureCheck_LeavesBlockUnverified() {
+        // Arrange
+        BlockServiceImpl subject = buildPreVerifySubject(mock(Generator.class));
+        Block block = mockUnverifiedBlock(CHECKPOINT_HEIGHT - 1, mockTransaction(true), mockTransaction(true));
+
+        try (MockedStatic<Signum> ignored = mockCheckpointHeight()) {
+            Thread.currentThread().interrupt();
+            // Act
+            assertThrows(InterruptedException.class, () -> subject.preVerify(block, mockPreviousBlock()));
+        } finally {
+            Thread.interrupted(); // clear the flag for the other tests
+        }
+
+        // Assert
+        verify(block, never()).setPocTime(any());
+    }
+
+    @Test
+    void preVerify_GivenValidSignaturesAboveCheckpoint_MarksBlockVerifiedWithHit() throws Exception {
+        // Arrange
+        Generator generator = mock(Generator.class);
+        when(generator.calculateHit(anyLong(), anyLong(), any(byte[].class), anyInt(), anyInt()))
+                .thenReturn(BigInteger.TEN);
+        BlockServiceImpl subject = buildPreVerifySubject(generator);
+        Block block = mockUnverifiedBlock(CHECKPOINT_HEIGHT + 1, mockTransaction(true), mockTransaction(true));
+
+        try (MockedStatic<Signum> ignored = mockCheckpointHeight()) {
+            // Act
+            subject.preVerify(block, mockPreviousBlock());
+        }
+
+        // Assert
+        verify(block).setPocTime(BigInteger.TEN);
+    }
+
+    @Test
+    void preVerify_GivenValidSignaturesBelowCheckpoint_MarksBlockVerifiedWithZero() throws Exception {
+        // Arrange
+        Generator generator = mock(Generator.class);
+        BlockServiceImpl subject = buildPreVerifySubject(generator);
+        Block block = mockUnverifiedBlock(CHECKPOINT_HEIGHT - 1, mockTransaction(true));
+
+        try (MockedStatic<Signum> ignored = mockCheckpointHeight()) {
+            // Act
+            subject.preVerify(block, mockPreviousBlock());
+        }
+
+        // Assert
+        verify(block).setPocTime(BigInteger.ZERO);
+        verify(generator, never()).calculateHit(anyLong(), anyLong(), any(byte[].class), anyInt(), anyInt());
+    }
+
+    @Test
+    void preVerify_GivenHitCalculationFails_LeavesBlockUnverified() throws Exception {
+        // Arrange
+        Generator generator = mock(Generator.class);
+        when(generator.calculateHit(anyLong(), anyLong(), any(byte[].class), anyInt(), anyInt()))
+                .thenThrow(new IllegalStateException("broken plot data"));
+        BlockServiceImpl subject = buildPreVerifySubject(generator);
+        Block block = mockUnverifiedBlock(CHECKPOINT_HEIGHT + 1, mockTransaction(true));
+
+        try (MockedStatic<Signum> ignored = mockCheckpointHeight()) {
+            // Act
+            subject.preVerify(block, mockPreviousBlock());
+        }
+
+        // Assert
+        verify(block, never()).setPocTime(any());
+    }
+
+    @Test
+    void preVerify_GivenAlreadyVerifiedBlock_SkipsVerification() throws Exception {
+        // Arrange
+        Transaction transaction = mockTransaction(false);
+        BlockServiceImpl subject = buildPreVerifySubject(mock(Generator.class));
+        Block block = mockUnverifiedBlock(CHECKPOINT_HEIGHT + 1, transaction);
+        when(block.isVerified()).thenReturn(true);
+
+        // Act
+        subject.preVerify(block, mockPreviousBlock());
+
+        // Assert
+        verify(transaction, never()).verifySignature();
+        verify(block, never()).setPocTime(any());
     }
 
     @Test

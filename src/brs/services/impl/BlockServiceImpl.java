@@ -177,47 +177,61 @@ public class BlockServiceImpl implements BlockService {
             return;
         }
 
+        BigInteger pocTime = calculatePocTime(block, scoopData);
+        if (pocTime == null) {
+            return;
+        }
+
+        verifyTransactionSignatures(block);
+
+        // Setting the PoC time marks the block as verified (see Block.isVerified()), so it must
+        // only happen after every check passed. Other threads skip pre-verification of verified blocks.
+        block.setPocTime(pocTime);
+    }
+
+    /**
+     * Calculates the PoC time (hit) of the block.
+     *
+     * @return the PoC time, or null if the block could not be verified
+     */
+    private BigInteger calculatePocTime(Block block, byte[] scoopData) {
         int checkPointHeight = Signum.getPropertyService().getInt(Props.BRS_CHECKPOINT_HEIGHT);
         try {
             if (block.getHeight() < checkPointHeight) {
                 // do not verify the nonce up to the checkpoint block
-                block.setPocTime(BigInteger.valueOf(0L));
-            } else {
-                if (block.getHeight() == checkPointHeight) {
-                    String checkPointHash = Signum.getPropertyService()
-                            .getString(Props.BRS_CHECKPOINT_HASH);
-
-                    String receivedHash = Hex.toHexString(block.getPreviousBlockHash());
-                    if (!receivedHash.equals(checkPointHash)) {
-                        logger.error("Error pre-verifying checkpoint block {}", block.getHeight());
-                        return;
-                    }
-                    logger.info(
-                            "Checkpoint block {} with previous block hash {} verified",
-                            block.getHeight(),
-                            Hex.toHexString(block.getPreviousBlockHash()));
-                }
-                // Pre-verify poc:
-                if (scoopData == null) {
-                    block.setPocTime(
-                            generator.calculateHit(
-                                    block.getGeneratorId(),
-                                    block.getNonce(),
-                                    block.getGenerationSignature(),
-                                    getScoopNum(block),
-                                    block.getHeight()));
-                } else {
-                    block.setPocTime(
-                            generator.calculateHit(
-                                    block.getGenerationSignature(),
-                                    scoopData));
-                }
+                return BigInteger.ZERO;
             }
+            if (block.getHeight() == checkPointHeight && !isCheckPointHashValid(block)) {
+                return null;
+            }
+            if (scoopData == null) {
+                return generator.calculateHit(
+                        block.getGeneratorId(),
+                        block.getNonce(),
+                        block.getGenerationSignature(),
+                        getScoopNum(block),
+                        block.getHeight());
+            }
+            return generator.calculateHit(block.getGenerationSignature(), scoopData);
         } catch (RuntimeException e) {
             logger.info("Error pre-verifying block generation signature", e);
-            return;
+            return null;
         }
+    }
 
+    private boolean isCheckPointHashValid(Block block) {
+        String checkPointHash = Signum.getPropertyService().getString(Props.BRS_CHECKPOINT_HASH);
+        String receivedHash = Hex.toHexString(block.getPreviousBlockHash());
+        if (!receivedHash.equals(checkPointHash)) {
+            logger.error("Error pre-verifying checkpoint block {}", block.getHeight());
+            return false;
+        }
+        logger.info("Checkpoint block {} with previous block hash {} verified", block.getHeight(), receivedHash);
+        return true;
+    }
+
+    private void verifyTransactionSignatures(Block block)
+            throws BlockchainProcessor.TransactionNotAcceptedException, InterruptedException {
         for (Transaction transaction : block.getTransactions()) {
             if (!transaction.verifySignature()) {
                 if (logger.isInfoEnabled()) {
@@ -235,7 +249,6 @@ public class BlockServiceImpl implements BlockService {
                 throw new InterruptedException();
             }
         }
-
     }
 
     @Override

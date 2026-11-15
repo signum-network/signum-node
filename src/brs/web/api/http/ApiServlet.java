@@ -6,6 +6,7 @@ import brs.deeplink.DeeplinkQRCodeGenerator;
 import brs.feesuggestions.FeeSuggestionCalculator;
 import brs.props.PropertyService;
 import brs.props.Props;
+import brs.web.api.http.common.BlockPage;
 import brs.services.*;
 import brs.util.JSON;
 import brs.util.Subnet;
@@ -61,6 +62,7 @@ public final class ApiServlet extends HttpServlet {
     AccountService accountService = context.getAccountService();
     ParameterService parameterService = context.getParameterService();
     PropertyService propertyService = context.getPropertyService();
+    int blocksMaxTransactions = BlockPage.budget(propertyService.getInt(Props.API_BLOCKS_MAX_TRANSACTIONS));
     AssetExchange assetExchange = context.getAssetExchange();
     APITransactionManager apiTransactionManager = context.getApiTransactionManager();
     TimeService timeService = context.getTimeService();
@@ -94,7 +96,7 @@ public final class ApiServlet extends HttpServlet {
     map.put("getAccount", new GetAccount(parameterService, accountService, blockchain, generator));
     map.put("getAccountsWithName", new GetAccountsWithName(accountService));
     map.put("getAccountBlockIds", new GetAccountBlockIds(parameterService, blockchain));
-    map.put("getAccountBlocks", new GetAccountBlocks(blockchain, parameterService, blockService));
+    map.put("getAccountBlocks", new GetAccountBlocks(blockchain, parameterService, blockService, blocksMaxTransactions));
     map.put("getAccountId", new GetAccountId());
     map.put("getAccountPublicKey", new GetAccountPublicKey(parameterService));
     map.put("getAccountTransactionIds", new GetAccountTransactionIds(parameterService, blockchain));
@@ -117,7 +119,7 @@ public final class ApiServlet extends HttpServlet {
     map.put("getBalance", new GetBalance(parameterService));
     map.put("getBlock", new GetBlock(blockchain, blockService));
     map.put("getBlockId", new GetBlockId(blockchain));
-    map.put("getBlocks", new GetBlocks(blockchain, blockService));
+    map.put("getBlocks", new GetBlocks(blockchain, blockService, blocksMaxTransactions));
     map.put("getBlockchainStatus", new GetBlockchainStatus(blockchainProcessor, blockchain, timeService));
     map.put("getConstants", GetConstants.instance);
     map.put("getDGSGoods", new GetDGSGoods(digitalGoodsStoreService));

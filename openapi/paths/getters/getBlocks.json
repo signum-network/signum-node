@@ -1,7 +1,7 @@
 {
   "get": {
     "summary": "Get Block Range",
-    "description": "Gets a range of blocks. Return the most recent 100 blocks if no argument is given",
+    "description": "Gets a range of blocks, newest first. Returns the most recent 100 blocks if no argument is given. A response stops early once the returned blocks hold `API.BlocksMaxTransactions` transactions (default 10000); continue with `nextIndex` until it is absent. At least one block is always returned.",
     "tags": [
       "network"
     ],

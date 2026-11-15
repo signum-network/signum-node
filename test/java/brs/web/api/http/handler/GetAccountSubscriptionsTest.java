@@ -14,11 +14,10 @@ import brs.services.SubscriptionService;
 import brs.util.JSON;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collection;
@@ -30,12 +29,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Signum.class)
 public class GetAccountSubscriptionsTest extends AbstractUnitTest {
+
+  private MockedStatic<Signum> signumMock;
 
   private ParameterService parameterServiceMock;
   private SubscriptionService subscriptionServiceMock;
@@ -45,8 +44,7 @@ public class GetAccountSubscriptionsTest extends AbstractUnitTest {
 
   @Before
   public void setUp() {
-    mockStatic(Signum.class);
-
+    signumMock = mockStatic(Signum.class);
     parameterServiceMock = mock(ParameterService.class);
     subscriptionServiceMock = mock(SubscriptionService.class);
     aliasServiceMock = mock(AliasService.class);
@@ -94,4 +92,8 @@ public class GetAccountSubscriptionsTest extends AbstractUnitTest {
     assertEquals(subscription.getTimeNext(), JSON.getAsInt(resultSubscription.get(TIME_NEXT_RESPONSE)));
   }
 
+  @After
+  public void tearDownSignumMock() {
+    signumMock.close();
+  }
 }

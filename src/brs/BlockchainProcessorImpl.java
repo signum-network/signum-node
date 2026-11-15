@@ -121,6 +121,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     private final SyncPreVerifier syncPreVerifier;
     private final DownloadedBlockAppender downloadedBlockAppender;
     private final ParallelBlockFetcher parallelBlockFetcher;
+    private final ChainedRoundDownloader chainedRoundDownloader;
     // blocks per CPU pre-verification batch, 1 = one block at a time
     private final int verifyBatchSize;
     private final DBCacheManagerImpl dbCacheManager;
@@ -487,6 +488,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         downloadedBlockAppender = new DownloadedBlockAppender(downloadCache, blockchain, blockService,
                 Signum::getFluxCapacitor, Block::parseBlock, blockImporterLock, decoupledSync);
         parallelBlockFetcher = createParallelBlockFetcher(propertyService);
+        chainedRoundDownloader = parallelBlockFetcher == null ? null
+                : new ChainedRoundDownloader(parallelBlockFetcher, downloadedBlockAppender, downloadCache,
+                        cacheHeight -> ParallelBlockFetcher.maxBlocksAhead(
+                                Signum.getFluxCapacitor().getValue(FluxValues.POC_PLUS, cacheHeight),
+                                blockchain.getHeight(), cacheHeight),
+                        isShutdown::get);
 
         oclVerify = propertyService.getBoolean(Props.GPU_ACCELERATION); // use GPU acceleration ?
         oclUnverifiedQueue = propertyService.getInt(Props.GPU_UNVERIFIED_QUEUE);
@@ -809,9 +816,17 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                             if (appended.stopped()) {
                                 return;
                             }
-                            lastBlock = appended.lastBlock();
                             // the fork processor below pushes blocks, keep the importer free for that
                             releaseImporterBatchLock();
+                            if (chainedRoundDownloader != null && saveInCache && !parallelSegments.isEmpty()) {
+                                // follow-up rounds from the new tip without the handshake
+                                appended = chainedRoundDownloader.continueAfter(peer, feederHeight, segments,
+                                        appended, () -> lockImporterForBatch(), () -> releaseImporterBatchLock());
+                                if (appended.stopped()) {
+                                    return;
+                                }
+                            }
+                            lastBlock = appended.lastBlock();
 
                             if (logger.isTraceEnabled()) {
                                 logger.trace("Unverified blocks: {}", downloadCache.getUnverifiedSize());

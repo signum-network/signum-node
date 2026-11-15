@@ -98,7 +98,10 @@ public final class Peers {
      * JDK keep-alive cache for {@link #KEEP_ALIVE_IDLE_SECONDS} instead of the JDK default of 5 s,
      * which is shorter than the time between two requests to a helper peer during sync. Peers keep
      * idle connections for {@code P2P.TimeoutIdle_ms} (default 30 s). A value set by the operator
-     * is kept. Must run before the first outgoing connection, because the JDK reads it once.
+     * is kept. The property applies to every {@code HttpURLConnection} in the JVM, not only to peer
+     * requests; peer requests are the only outgoing HTTP connections of the node. The JDK reads it
+     * once, when the first connection is opened, so this must run before that (it does: Peers.init
+     * runs before any peer is contacted).
      */
     static void applyKeepAlive(boolean enabled) {
         keepAlive = enabled;

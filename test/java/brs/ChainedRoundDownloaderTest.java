@@ -260,6 +260,21 @@ class ChainedRoundDownloaderTest {
         assertEquals(0, importerLocks.get());
     }
 
+    @Test
+    void appliesTo_GivenForkRound_ReturnsFalse() {
+        assertFalse(ChainedRoundDownloader.appliesTo(false, true));
+    }
+
+    @Test
+    void appliesTo_GivenSinglePeerRound_ReturnsFalse() {
+        assertFalse(ChainedRoundDownloader.appliesTo(true, false));
+    }
+
+    @Test
+    void appliesTo_GivenLinearParallelRound_ReturnsTrue() {
+        assertTrue(ChainedRoundDownloader.appliesTo(true, true));
+    }
+
     private DownloadedBlockAppender.Result continueAfter(List<ParallelBlockFetcher.Segment> round, Block tip)
             throws InterruptedException {
         return downloader.continueAfter(feeder, FEEDER_HEIGHT, round, new DownloadedBlockAppender.Result(tip, false),

@@ -818,7 +818,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                             }
                             // the fork processor below pushes blocks, keep the importer free for that
                             releaseImporterBatchLock();
-                            if (chainedRoundDownloader != null && saveInCache && !parallelSegments.isEmpty()) {
+                            if (chainedRoundDownloader != null
+                                    && ChainedRoundDownloader.appliesTo(saveInCache, !parallelSegments.isEmpty())) {
                                 // follow-up rounds from the new tip without the handshake
                                 appended = chainedRoundDownloader.continueAfter(peer, feederHeight, segments,
                                         appended, () -> lockImporterForBatch(), () -> releaseImporterBatchLock());

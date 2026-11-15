@@ -50,6 +50,16 @@ final class ChainedRoundDownloader {
     }
 
     /**
+     * @param saveInCache   false for a fork round, whose blocks go to the fork processor
+     * @param parallelRound true if the round was downloaded in parallel segments
+     * @return true if rounds may be chained after this one: only linear parallel rounds, never
+     *     forks or single-peer rounds
+     */
+    static boolean appliesTo(boolean saveInCache, boolean parallelRound) {
+        return saveInCache && parallelRound;
+    }
+
+    /**
      * Downloads further rounds after {@code round}, as long as each round is complete.
      *
      * @param round           the segments of the round that was just appended

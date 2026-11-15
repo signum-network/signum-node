@@ -64,9 +64,6 @@ final class PeerImpl implements Peer {
     private byte[] lastDownloadedTransactionsDigest;
     private final Object lastDownloadedTransactionsLock = new Object();
 
-    /** Characters a response may have after its JSON value and still have its connection reused. */
-    private static final int MAX_TRAILING_CHARS = 1024;
-
     PeerImpl(String peerAddress, String announcedAddress) {
         this.peerAddress = peerAddress;
         this.announcedAddress.set(announcedAddress);
@@ -418,10 +415,10 @@ final class PeerImpl implements Peer {
                 } else {
                     try (Reader reader = new BufferedReader(
                             new InputStreamReader(responseStream, StandardCharsets.UTF_8))) {
+                        // gson reads the reader to its end (it rejects trailing content), so the
+                        // response is fully consumed and the connection can be reused
                         response = JSON.getAsJsonObject(JSON.parse(reader));
-                        // read what the parser left (a trailing newline, the gzip trailer), so the
-                        // connection can go back to the keep-alive cache
-                        reusable = drain(reader);
+                        reusable = true;
                     }
                 }
                 updateDownloadedVolume(cis.getCount());
@@ -465,20 +462,6 @@ final class PeerImpl implements Peer {
 
         return response;
 
-    }
-
-    /** Reads the rest of a response. @return false if more is left than a well-formed response has */
-    private static boolean drain(Reader reader) throws IOException {
-        char[] buffer = new char[256];
-        int left = MAX_TRAILING_CHARS;
-        int read;
-        while ((read = reader.read(buffer)) != -1) {
-            left -= read;
-            if (left < 0) {
-                return false;
-            }
-        }
-        return true;
     }
 
     private boolean isConnectionException(Throwable e) {

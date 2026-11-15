@@ -34,10 +34,15 @@ import org.mockito.MockedStatic;
 
 import java.io.ByteArrayOutputStream;
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -282,6 +287,60 @@ class BlockchainProcessorImplTest {
         verify(stores, never()).rollbackTransaction();
         verify(downloadCache, never()).resetCache();
         verify(blockchain, never()).setLastBlock(tip);
+    }
+
+    @Test
+    void constructor_GivenParallelDownloadEnabled_ShutdownStopsFetcherThreads() throws Exception {
+        // Arrange
+        when(propertyService.getBoolean(Props.SYNC_PARALLEL_DOWNLOAD)).thenReturn(true);
+        when(propertyService.getInt(Props.SYNC_PARALLEL_DOWNLOAD_PEERS)).thenReturn(4);
+        when(propertyService.getInt(Props.SYNC_PARALLEL_DOWNLOAD_BLOCKS_PER_PEER)).thenReturn(100);
+        Set<Thread> before = fetcherThreads();
+        BlockchainProcessorImpl processor = createProcessor();
+        Set<Thread> started = fetcherThreads();
+        started.removeAll(before);
+        assertEquals(3, started.size()); // the feeder segment runs on the download thread
+
+        // Act
+        processor.shutdown();
+
+        // Assert
+        for (Thread thread : started) {
+            thread.join(5_000);
+            assertFalse(thread.isAlive(), thread.getName() + " still running");
+        }
+    }
+
+    @Test
+    void constructor_GivenParallelDownloadDisabled_CreatesNoFetcherThreads() {
+        when(propertyService.getBoolean(Props.SYNC_PARALLEL_DOWNLOAD)).thenReturn(false);
+        when(propertyService.getInt(Props.SYNC_PARALLEL_DOWNLOAD_PEERS)).thenReturn(4);
+        Set<Thread> before = fetcherThreads();
+
+        createProcessor();
+
+        Set<Thread> after = fetcherThreads();
+        after.removeAll(before);
+        assertTrue(after.isEmpty());
+    }
+
+    private static Set<Thread> fetcherThreads() {
+        Set<Thread> threads = new HashSet<>();
+        for (Thread thread : Thread.getAllStackTraces().keySet()) {
+            if (thread.getName().startsWith("ParallelBlockFetcher-") && thread.isAlive()) {
+                threads.add(thread);
+            }
+        }
+        return threads;
+    }
+
+    private BlockchainProcessorImpl createProcessor() {
+        return new BlockchainProcessorImpl(threadPool, blockService, transactionProcessor, blockchain, propertyService,
+                mock(SubscriptionService.class), timeService(), mock(DerivedTableManager.class), blockDb,
+                transactionDb, mock(EconomicClustering.class), blockchainStore, stores, mock(EscrowService.class),
+                transactionService, downloadCache, mock(Generator.class), mock(StatisticsManagerImpl.class),
+                mock(DBCacheManagerImpl.class), accountService, mock(IndirectIncomingService.class),
+                mock(AliasService.class));
     }
 
     private Runnable createImporter() {

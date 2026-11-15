@@ -234,6 +234,45 @@ class ParallelBlockFetcherTest {
     }
 
     @Test
+    void fetch_GivenAllPoolThreadsHeldByHungHelpers_StillReturnsFeederSegment() throws Exception {
+        // Arrange: every helper hangs; after a few rounds every pool thread is held by a hung request
+        for (int i = 0; i < 3; i++) {
+            candidates.add(peer(BETTER_DIFFICULTY, 5000, requested -> {
+                awaitForever();
+                return blocks(requested);
+            }));
+        }
+        fetcher.fetch(feeder, OUR_DIFFICULTY, 1000, 5000, Integer.MAX_VALUE);
+        fetcher.fetch(feeder, OUR_DIFFICULTY, 1000, 5000, Integer.MAX_VALUE);
+
+        // Act
+        List<ParallelBlockFetcher.Segment> segments = fetcher.fetch(feeder, OUR_DIFFICULTY, 1000, 5000, Integer.MAX_VALUE);
+
+        // Assert
+        assertEquals(List.of(1000), fromHeights(segments));
+        assertSame(feeder, segments.get(0).peer());
+    }
+
+    @Test
+    void fetch_GivenUnqualifiedHelpers_QualifiedHelpersStillFillConsecutiveSegments() throws Exception {
+        // Arrange: two of three helpers do not qualify; whatever their order, the one that does takes segment 1
+        candidates.add(peer(BigInteger.ONE, 5000, requested -> blocks(requested)));
+        candidates.add(peer(BETTER_DIFFICULTY, 900, requested -> blocks(requested)));
+        Peer good = peer(BETTER_DIFFICULTY, 5000, requested -> blocks(requested));
+        candidates.add(good);
+
+        for (int round = 0; round < 5; round++) {
+            // Act
+            List<ParallelBlockFetcher.Segment> segments = fetcher.fetch(feeder, OUR_DIFFICULTY, 1000, 5000,
+                    Integer.MAX_VALUE);
+
+            // Assert
+            assertEquals(List.of(1000, 1100), fromHeights(segments));
+            assertSame(good, segments.get(1).peer());
+        }
+    }
+
+    @Test
     void fetch_GivenInterrupt_ThrowsInterruptedException() {
         addHelpers(3);
         Thread.currentThread().interrupt();

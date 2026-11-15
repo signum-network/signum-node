@@ -4,9 +4,8 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
@@ -27,13 +26,15 @@ import brs.util.JSON;
 
 /**
  * Downloads consecutive height ranges ("segments") from several peers at the same time during bulk
- * sync. Segment 0 comes from the feeder peer, segment i from helper candidate i, which must first
- * report a higher cumulative difficulty than ours and a height that covers its segment.
+ * sync. Segment 0 comes from the feeder peer and is downloaded on the calling thread, so it never
+ * waits behind helper requests. Each helper candidate runs on the pool: it first checks that it
+ * reports a higher cumulative difficulty than ours and a height that covers the whole round, and
+ * only then takes the next free segment. Helpers that do not qualify therefore leave no gap.
  * <p>
- * The segments are returned in height order and cut at the first gap: a missing, empty, late or
- * unqualified segment cuts the result before it, a short segment cuts it after it. Only a peer
- * that sends more blocks than requested is blacklisted; slow or silent peers are not. The caller
- * still checks that the blocks link up and verifies them as usual.
+ * The segments are returned in height order and cut at the first gap: a missing, empty or late
+ * segment cuts the result before it, a short segment cuts it after it. Only a peer that sends more
+ * blocks than requested is blacklisted; slow or silent peers are not. The caller still checks that
+ * the blocks link up and verifies them as usual.
  */
 final class ParallelBlockFetcher {
 
@@ -46,18 +47,23 @@ final class ParallelBlockFetcher {
     record Segment(Peer peer, int fromHeight, JsonArray blocks) {
     }
 
+    /** What a helper downloaded for the segment it took; {@code blocks} is null if the request failed. */
+    private record Claim(Peer peer, JsonArray blocks) {
+    }
+
     private final DownloadPeers downloadPeers;
     private final int peers;
     private final int blocksPerPeer;
     private final long timeoutMs;
-    private final ExecutorService executor;
+    private final ThreadPoolExecutor executor;
 
     ParallelBlockFetcher(DownloadPeers downloadPeers, int peers, int blocksPerPeer, long timeoutMs) {
         this.downloadPeers = downloadPeers;
         this.peers = Math.max(1, peers);
         this.blocksPerPeer = Math.max(1, Math.min(MAX_BLOCKS_PER_PEER, blocksPerPeer));
         this.timeoutMs = timeoutMs;
-        this.executor = this.peers > 1 ? startThreads(this.peers) : null;
+        // the feeder's segment runs on the calling thread, the helpers on the pool
+        this.executor = this.peers > 1 ? startThreads(this.peers - 1) : null;
     }
 
     /**
@@ -84,6 +90,9 @@ final class ParallelBlockFetcher {
      */
     List<Segment> fetch(Peer feeder, BigInteger ourCumulativeDifficulty, int cacheHeight, int feederHeight,
             int maxBlocks) throws InterruptedException {
+        if (Thread.interrupted()) {
+            throw new InterruptedException();
+        }
         if (executor == null) {
             return List.of();
         }
@@ -91,30 +100,33 @@ final class ParallelBlockFetcher {
         if (total <= 0) {
             return List.of();
         }
-        int wantedSegments = (total + blocksPerPeer - 1) / blocksPerPeer;
-        List<Peer> helpers = pickHelpers(feeder, wantedSegments - 1);
+        List<Peer> helpers = pickHelpers(feeder, (total + blocksPerPeer - 1) / blocksPerPeer - 1);
         if (helpers.isEmpty()) {
             return List.of();
         }
+        int roundTotal = Math.min(total, (1 + helpers.size()) * blocksPerPeer);
 
         long start = System.nanoTime();
-        List<Peer> segmentPeers = new ArrayList<>();
-        segmentPeers.add(feeder);
-        segmentPeers.addAll(helpers);
-        List<Future<JsonArray>> futures = new ArrayList<>();
+        List<CompletableFuture<Claim>> slots = new ArrayList<>();
+        helpers.forEach(helper -> slots.add(new CompletableFuture<>()));
+        AtomicInteger claimed = new AtomicInteger();
+        AtomicInteger probed = new AtomicInteger();
+        List<Future<?>> tasks = new ArrayList<>();
         try {
-            for (int i = 0; i < segmentPeers.size(); i++) {
-                futures.add(executor.submit(segmentTask(i, segmentPeers.get(i), ourCumulativeDifficulty,
-                        cacheHeight, total)));
+            for (Peer helper : helpers) {
+                tasks.add(executor.submit(() -> runHelper(helper, ourCumulativeDifficulty, cacheHeight, roundTotal,
+                        slots, claimed, probed)));
             }
-            List<Segment> segments = collect(futures, segmentPeers, cacheHeight, total, start);
+            JsonArray feederBlocks = requestBlocks(feeder, cacheHeight, count(0, roundTotal));
+            List<Segment> segments = collect(feeder, feederBlocks, slots, cacheHeight, roundTotal, start);
             logRound(segments, start);
             return segments;
         } catch (RejectedExecutionException e) {
             // shutting down
             return List.of();
         } finally {
-            futures.forEach(future -> future.cancel(true));
+            tasks.forEach(task -> task.cancel(true));
+            executor.purge();
         }
     }
 
@@ -134,57 +146,84 @@ final class ParallelBlockFetcher {
         return helpers.subList(0, Math.min(max, helpers.size()));
     }
 
-    private Callable<JsonArray> segmentTask(int index, Peer peer, BigInteger ourCumulativeDifficulty,
-            int cacheHeight, int total) {
-        int fromHeight = fromHeight(index, cacheHeight);
-        int count = count(index, total);
-        if (index == 0) {
-            return () -> requestBlocks(peer, fromHeight, count);
+    /**
+     * Probes one helper and, if it qualifies, downloads the next free segment. The last helper to
+     * finish its probe marks the segments nobody took as missing.
+     */
+    private void runHelper(Peer helper, BigInteger ourCumulativeDifficulty, int cacheHeight, int roundTotal,
+            List<CompletableFuture<Claim>> slots, AtomicInteger claimed, AtomicInteger probed) {
+        boolean qualified;
+        try {
+            qualified = qualifies(helper, ourCumulativeDifficulty, cacheHeight + roundTotal);
+        } catch (RuntimeException e) {
+            qualified = false;
         }
-        return () -> qualifies(peer, ourCumulativeDifficulty, fromHeight + count)
-                ? requestBlocks(peer, fromHeight, count)
-                : null;
+        int slot = qualified ? claimed.getAndIncrement() : -1;
+        if (probed.incrementAndGet() == slots.size()) {
+            for (int i = claimed.get(); i < slots.size(); i++) {
+                slots.get(i).complete(null);
+            }
+        }
+        if (slot < 0) {
+            return;
+        }
+        JsonArray blocks = null;
+        try {
+            blocks = requestBlocks(helper, fromHeight(slot + 1, cacheHeight), count(slot + 1, roundTotal));
+        } catch (RuntimeException e) {
+            logger.debug("Parallel download: request to {} failed", helper.getPeerAddress(), e);
+        }
+        slots.get(slot).complete(new Claim(helper, blocks));
     }
 
-    private List<Segment> collect(List<Future<JsonArray>> futures, List<Peer> segmentPeers, int cacheHeight,
-            int total, long start) throws InterruptedException {
-        long deadline = start + TimeUnit.MILLISECONDS.toNanos(timeoutMs);
+    private List<Segment> collect(Peer feeder, JsonArray feederBlocks, List<CompletableFuture<Claim>> slots,
+            int cacheHeight, int roundTotal, long start) throws InterruptedException {
         List<Segment> segments = new ArrayList<>();
-        for (int i = 0; i < futures.size(); i++) {
-            Peer peer = segmentPeers.get(i);
-            int fromHeight = fromHeight(i, cacheHeight);
-            int count = count(i, total);
-            JsonArray blocks = await(futures.get(i), deadline, peer, fromHeight);
-            if (blocks == null || blocks.isEmpty()) {
-                logger.debug("Parallel download: no blocks from {} after height {}, cutting the round",
-                        peer.getPeerAddress(), fromHeight);
+        if (!accept(feeder, cacheHeight, feederBlocks, count(0, roundTotal), segments)) {
+            return segments;
+        }
+        long deadline = start + TimeUnit.MILLISECONDS.toNanos(timeoutMs);
+        for (int i = 0; i < slots.size(); i++) {
+            int fromHeight = fromHeight(i + 1, cacheHeight);
+            Claim claim = await(slots.get(i), deadline);
+            if (claim == null) {
+                logger.debug("Parallel download: no helper delivered the segment after height {}, cutting the round",
+                        fromHeight);
                 break;
             }
-            if (blocks.size() > count) {
-                peer.blacklist("sends too many blocks");
-                break;
-            }
-            segments.add(new Segment(peer, fromHeight, blocks));
-            if (blocks.size() < count) {
-                logger.debug("Parallel download: {} sent {} of {} blocks after height {}, cutting the round",
-                        peer.getPeerAddress(), blocks.size(), count, fromHeight);
+            if (!accept(claim.peer(), fromHeight, claim.blocks(), count(i + 1, roundTotal), segments)) {
                 break;
             }
         }
         return segments;
     }
 
-    private static JsonArray await(Future<JsonArray> future, long deadline, Peer peer, int fromHeight)
-            throws InterruptedException {
-        try {
-            return future.get(Math.max(0, deadline - System.nanoTime()), TimeUnit.NANOSECONDS);
-        } catch (TimeoutException e) {
-            logger.debug("Parallel download: {} timed out after height {}", peer.getPeerAddress(), fromHeight);
-        } catch (ExecutionException e) {
-            logger.debug("Parallel download: request to {} after height {} failed", peer.getPeerAddress(),
-                    fromHeight, e.getCause());
+    /** Adds the segment if it is usable. @return true if the next segment may follow it */
+    private static boolean accept(Peer peer, int fromHeight, JsonArray blocks, int count, List<Segment> segments) {
+        if (blocks == null || blocks.isEmpty()) {
+            logger.debug("Parallel download: no blocks from {} after height {}, cutting the round",
+                    peer.getPeerAddress(), fromHeight);
+            return false;
         }
-        return null;
+        if (blocks.size() > count) {
+            peer.blacklist("sends too many blocks");
+            return false;
+        }
+        segments.add(new Segment(peer, fromHeight, blocks));
+        if (blocks.size() < count) {
+            logger.debug("Parallel download: {} sent {} of {} blocks after height {}, cutting the round",
+                    peer.getPeerAddress(), blocks.size(), count, fromHeight);
+            return false;
+        }
+        return true;
+    }
+
+    private static Claim await(CompletableFuture<Claim> slot, long deadline) throws InterruptedException {
+        try {
+            return slot.get(Math.max(0, deadline - System.nanoTime()), TimeUnit.NANOSECONDS);
+        } catch (TimeoutException | ExecutionException e) {
+            return null;
+        }
     }
 
     private static boolean qualifies(Peer peer, BigInteger ourCumulativeDifficulty, int segmentEndHeight) {
@@ -237,7 +276,7 @@ final class ParallelBlockFetcher {
     }
 
     /** A fixed pool of daemon threads, started right away so a sync round does not wait for them. */
-    private static ExecutorService startThreads(int count) {
+    private static ThreadPoolExecutor startThreads(int count) {
         AtomicInteger counter = new AtomicInteger();
         ThreadPoolExecutor pool = new ThreadPoolExecutor(count, count, 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(), runnable -> {

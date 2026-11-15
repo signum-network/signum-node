@@ -299,7 +299,7 @@ class BlockchainProcessorImplTest {
         BlockchainProcessorImpl processor = createProcessor();
         Set<Thread> started = fetcherThreads();
         started.removeAll(before);
-        assertEquals(4, started.size());
+        assertEquals(3, started.size()); // the feeder segment runs on the download thread
 
         // Act
         processor.shutdown();

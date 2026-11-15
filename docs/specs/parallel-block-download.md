@@ -64,8 +64,9 @@ injection:
 - `DownloadPeers`: a small interface that returns candidate peers. The production implementation
   wraps `Peers.getActivePeers()` and keeps peers that are `CONNECTED`, not blacklisted, at least
   `MIN_PEER_VERSION` and on our network name. That is the same filter the feeder loop uses today.
-- an `ExecutorService` with K daemon threads, named `ParallelBlockFetcher-n`, shut down with the
-  node
+- a pool of K−1 daemon threads for the helpers, named `ParallelBlockFetcher-n`, shut down with
+  the node. The feeder's segment is downloaded on the calling download thread, so it never waits
+  behind helper requests that are still hanging on a socket.
 - `peers` (K), `blocksPerPeer` (n) and the request timeout
 
 Main method:
@@ -83,18 +84,18 @@ helper candidate.
 
 - Pick up to K−1 candidates other than the feeder, in random order. If there is no candidate,
   `fetch` returns an empty list and the round falls back to `getNextBlocks`.
-- Segment 0 goes to the feeder. Segment i ≥ 1 is assigned to candidate i before any probe is sent.
-- All K tasks start at once. The feeder task fetches segment 0 right away. Each helper task first
-  probes its candidate with `getCumulativeDifficulty` and then fetches its segment.
-- A candidate qualifies if its cumulative difficulty is higher than `ourCumulativeDifficulty` and
-  its `blockchainHeight` reaches the last height of its segment.
-- A candidate that does not qualify, does not answer before the timeout, or answers with garbage
-  leaves its segment missing, and the round is cut there (4.4). It is not blacklisted: a slow peer
-  is not a malicious peer.
+- Segment 0 goes to the feeder and is requested right away on the calling thread.
+- At the same time each helper task probes its candidate with `getCumulativeDifficulty`. A
+  candidate qualifies if its cumulative difficulty is higher than `ourCumulativeDifficulty` and
+  its `blockchainHeight` reaches the last height of the round.
+- A qualified helper then takes the next free segment (1, 2, …) and downloads it. Helpers that do
+  not qualify, do not answer or answer with garbage take no segment, so they leave no gap. They
+  are not blacklisted: a slow peer is not a malicious peer.
+- When every helper has finished its probe, the segments nobody took are marked missing, and the
+  round is cut there (4.4).
 
-Assigning segments up front keeps the fetcher at exactly K threads with no coordination between
-tasks. The price is that a failing helper cuts off the segments after it in this round. The next
-round starts again from the new cache tip.
+Taking segments only after the probe means one unsuitable helper does not shrink the round to
+the feeder's segment.
 
 ### 4.3 Segments
 
@@ -105,7 +106,8 @@ round starts again from the new cache tip.
 - Segment i asks for `getBlocksFromHeight(height = cacheHeight + i × n, numBlocks = n)`. The server
   returns the blocks after the block at `height`, so heights `cacheHeight + i × n + 1` up to
   `cacheHeight + (i + 1) × n`.
-- With fewer candidates than K−1 there are fewer segments. There are no retries within a round.
+- With fewer candidates than K−1, or fewer qualified helpers, there are fewer segments. There are
+  no retries within a round.
 - All segment requests run concurrently. The fetcher waits for each in order up to the request
   timeout (default `2 × (P2P.TimeoutConnect_ms + P2P.TimeoutRead_ms)`). A late response is thrown
   away.
@@ -177,8 +179,9 @@ Unit tests (JUnit 5, Mockito, AAA, naming `method_GivenCondition_ExpectedBehavio
 - segments come back in height order even when the responses arrive out of order
 - segment 0 goes to the feeder, the others to distinct helpers, with the right heights and
   `numBlocks`
-- a helper with lower or equal cumulative difficulty, or too low a height, does not get its segment
-  fetched, and the result is cut there
+- a helper with lower or equal cumulative difficulty, or too low a height, takes no segment; the
+  qualified helpers still fill consecutive segments
+- when every pool thread is held by hung helper requests, the feeder's segment is still returned
 - no helper candidate gives an empty result
 - a failed, empty or timed-out segment cuts the result before it
 - a short segment cuts the result after it

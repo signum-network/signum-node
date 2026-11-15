@@ -118,6 +118,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     private final DerivedTableManager derivedTableManager;
     private final StatisticsManagerImpl statisticsManager;
     private final Generator generator;
+    private final SyncPreVerifier syncPreVerifier;
+    // blocks per CPU pre-verification batch, 1 = one block at a time
+    private final int verifyBatchSize;
     private final DBCacheManagerImpl dbCacheManager;
     private final IndirectIncomingService indirectIncomingService;
     private final long genesisBlockId;
@@ -174,7 +177,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     private final PersistenceFailureBackoff persistenceFailureBackoff;
 
     private final ReentrantReadWriteLock getMoreBlocksLock = new ReentrantReadWriteLock();
-    private final ReentrantReadWriteLock blockImporterLock = new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock blockImporterLock;
+    // experimental decoupled sync pipeline, see Props.SYNC_DECOUPLED_PIPELINE
+    private final boolean decoupledSync;
 
     private final AtomicBoolean isTrimming = new AtomicBoolean(false);
     private final AtomicBoolean isScanning = new AtomicBoolean(false);
@@ -390,6 +395,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         this.downloadCache = downloadCache;
         this.blockPushRecovery = new BlockPushRecovery(stores, blockchain, blockDb, downloadCache, atProcessorCache,
                 transactionProcessor);
+        this.syncPreVerifier = new SyncPreVerifier(downloadCache, blockchain, blockService,
+                new BatchPocVerifier(blockService, generator, propertyService.getInt(Props.BRS_CHECKPOINT_HEIGHT)));
+        this.verifyBatchSize = checkedVerifyBatchSize(propertyService, generator);
         this.forkProcessor = new ForkProcessor(blockchain, blockService, downloadCache, transactionProcessor,
                 new ForkChainOperations());
         this.generator = generator;
@@ -462,6 +470,14 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 Math.max(1, propertyService.getInt(Props.PERSISTENCE_FAILURE_MAX_RETRY_DELAY)),
                 Math.max(1, propertyService.getInt(Props.PERSISTENCE_FAILURE_POP_OFF_THRESHOLD)),
                 () -> TimeUnit.NANOSECONDS.toMillis(System.nanoTime()));
+
+        decoupledSync = propertyService.getBoolean(Props.SYNC_DECOUPLED_PIPELINE);
+        // A fair lock lets the download thread in between two block pushes. A non-fair one lets the
+        // importer take it again right away, so the download thread can wait for many pushes.
+        blockImporterLock = new ReentrantReadWriteLock(decoupledSync);
+        if (decoupledSync) {
+            logger.info("Experimental decoupled sync pipeline enabled");
+        }
 
         oclVerify = propertyService.getBoolean(Props.GPU_ACCELERATION); // use GPU acceleration ?
         oclUnverifiedQueue = propertyService.getInt(Props.GPU_UNVERIFIED_QUEUE);
@@ -595,6 +611,23 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             private JsonElement getCumulativeDifficultyRequest;
 
             private boolean peerHasMore;
+
+            // decoupled sync: the importer read lock is held for a whole batch of downloaded blocks
+            private boolean holdsImporterBatchLock;
+
+            private void lockImporterForBatch() {
+                if (decoupledSync) {
+                    blockImporterLock.readLock().lock();
+                    holdsImporterBatchLock = true;
+                }
+            }
+
+            private void releaseImporterBatchLock() {
+                if (holdsImporterBatchLock) {
+                    holdsImporterBatchLock = false;
+                    blockImporterLock.readLock().unlock();
+                }
+            }
 
             @Override
             public void run() {
@@ -747,6 +780,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                             Block block;
                             JsonObject blockData;
 
+                            // Without the decoupled pipeline, the read lock is taken per block, and with
+                            // a non-fair lock each block can wait for several block pushes.
+                            lockImporterForBatch();
                             for (JsonElement o : nextBlocks) {
                                 int height = lastBlock.getHeight() + 1;
                                 blockData = JSON.getAsJsonObject(o);
@@ -768,11 +804,15 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                     block.setHeight(height);
                                     block.setPeer(peer);
                                     block.setByteLength(JSON.toJsonString(blockData).length());
-                                    blockImporterLock.readLock().lock();
-                                    try {
+                                    if (decoupledSync) {
                                         blockService.calculateBaseTarget(block, lastBlock);
-                                    } finally {
-                                        blockImporterLock.readLock().unlock();
+                                    } else {
+                                        blockImporterLock.readLock().lock();
+                                        try {
+                                            blockService.calculateBaseTarget(block, lastBlock);
+                                        } finally {
+                                            blockImporterLock.readLock().unlock();
+                                        }
                                     }
                                     if (saveInCache) {
                                         if (downloadCache.getLastBlockId() == block.getPreviousBlockId()) {
@@ -811,6 +851,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                     return;
                                 }
                             } // end block loop
+                            // the fork processor below pushes blocks, keep the importer free for that
+                            releaseImporterBatchLock();
 
                             if (logger.isTraceEnabled()) {
                                 logger.trace("Unverified blocks: {}", downloadCache.getUnverifiedSize());
@@ -840,6 +882,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         } catch (Exception e) {
                             logger.info("Error in blockchain download thread", e);
                         } finally {
+                            releaseImporterBatchLock();
                             getMoreBlocksLock.writeLock().unlock();
                         } // end second try
                     } catch (Exception t) {
@@ -973,6 +1016,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         || !persistenceFailureBackoff.isRetryDue()) {
                     return;
                 }
+                if (decoupledSync) {
+                    syncPreVerifier.preVerifyNextBlock();
+                }
                 blockImporterLock.writeLock().lock();
                 try {
 
@@ -1086,6 +1132,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                             logger.info("Unspecified Open CL error: ", e);
                         } finally {
                             gpuUsage.release();
+                        }
+                    } else if (verifyBatchSize > 1) { // verify using java, scoops in one batch
+                        try {
+                            syncPreVerifier.preVerifyBatch(verifyBatchSize);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
                         }
                     } else { // verify using java
                         try {
@@ -2699,6 +2751,26 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         public void pushBlock(Block block) throws BlockNotAcceptedException {
             BlockchainProcessorImpl.this.pushBlock(block);
         }
+    }
+
+    /**
+     * CPU.VerifyBatchSize, or 1 if the batched scoop calculation does not match the Java plot
+     * generation on this machine (see {@link BatchScoopSelfCheck}).
+     */
+    private int checkedVerifyBatchSize(PropertyService propertyService, Generator generator) {
+        int batchSize = Math.max(1, propertyService.getInt(Props.CPU_VERIFY_BATCH_SIZE));
+        if (batchSize == 1 || generator instanceof GeneratorImpl.MockGenerator) {
+            return batchSize; // the mock generator returns no real scoops, its hits are mocked
+        }
+        long start = System.currentTimeMillis();
+        if (!BatchScoopSelfCheck.matchesJavaPlots(generator, Signum.getFluxCapacitor())) {
+            logger.error("Batched scoop calculation does not match the Java reference on this machine, "
+                    + "verifying blocks one at a time (CPU.VerifyBatchSize = 1)");
+            return 1;
+        }
+        logger.info("Batched scoop calculation self check passed in {} ms, CPU.VerifyBatchSize = {}",
+                System.currentTimeMillis() - start, batchSize);
+        return batchSize;
     }
 
     private List<Block> popOffTo(Block commonBlock, List<Block> forkBlocks) {

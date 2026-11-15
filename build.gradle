@@ -40,7 +40,7 @@ def nodeVersion = isReleaseBuild ? baseVersion : "${baseVersion}-dev"
 project.ext.nodeVersion = nodeVersion
 
 dependencies {
-    implementation 'com.github.signum-network:signumj:v1.3.2'
+    implementation 'com.github.signum-network:signumj:v1.4.1'
     implementation 'io.reactivex.rxjava2:rxjava:2.2.21'
     implementation 'org.bouncycastle:bcprov-jdk18on:1.86'
     implementation 'org.bouncycastle:bcpkix-jdk18on:1.86'

@@ -335,7 +335,7 @@ class ParallelBlockFetcherTest {
     }
 
     @Test
-    void fetch_GivenHelperSegmentFailed_ProbesAgainNextRound() throws Exception {
+    void fetch_GivenHelperSegmentFailed_SkipsItInLaterRounds() throws Exception {
         Peer helper = mock(Peer.class);
         when(helper.send(any())).thenAnswer(invocation -> isProbe(invocation.getArgument(0))
                 ? difficultyResponse(BETTER_DIFFICULTY, 5000)
@@ -346,7 +346,87 @@ class ParallelBlockFetcherTest {
 
         fetcher.fetch(feeder, OUR_DIFFICULTY, 1100, 5000, Integer.MAX_VALUE);
 
-        verify(helper, times(2)).send(argThat(ParallelBlockFetcherTest::isProbe));
+        verify(helper, times(1)).send(argThat(ParallelBlockFetcherTest::isProbe));
+        verify(helper, times(2)).send(any());
+    }
+
+    @Test
+    void fetch_GivenHelperThatMissedTheDeadline_SkipsItInLaterRounds() throws Exception {
+        // Arrange: the hung helper answers its probe but never delivers its segment
+        List<Integer> hungRequests = Collections.synchronizedList(new ArrayList<>());
+        Peer hung = peer(BETTER_DIFFICULTY, 5000, requested -> {
+            awaitForever();
+            return blocks(requested);
+        }, hungRequests);
+        candidates.add(hung);
+        fetcher = fetcherWithClock();
+        fetcher.fetch(feeder, OUR_DIFFICULTY, 1000, 5000, Integer.MAX_VALUE);
+
+        // Act
+        fetcher.fetch(feeder, OUR_DIFFICULTY, 1100, 5000, Integer.MAX_VALUE);
+
+        // Assert
+        assertEquals(1, hungRequests.size());
+    }
+
+    @Test
+    void fetch_GivenHelperWhoseProbeFails_SkipsItInLaterRounds() throws Exception {
+        Peer silent = mock(Peer.class);
+        candidates.add(silent);
+        fetcher = fetcherWithClock();
+        fetcher.fetch(feeder, OUR_DIFFICULTY, 1000, 5000, Integer.MAX_VALUE);
+
+        fetcher.fetch(feeder, OUR_DIFFICULTY, 1100, 5000, Integer.MAX_VALUE);
+
+        verify(silent, times(1)).send(any());
+    }
+
+    @Test
+    void fetch_GivenSkippedHelperAfterTtl_UsesItAgain() throws Exception {
+        Peer silent = mock(Peer.class);
+        candidates.add(silent);
+        fetcher = fetcherWithClock();
+        fetcher.fetch(feeder, OUR_DIFFICULTY, 1000, 5000, Integer.MAX_VALUE);
+        clock.addAndGet(TimeUnit.SECONDS.toNanos(61));
+
+        fetcher.fetch(feeder, OUR_DIFFICULTY, 1100, 5000, Integer.MAX_VALUE);
+
+        verify(silent, times(2)).send(any());
+    }
+
+    @Test
+    void fetch_GivenFeederSegmentArrived_WaitsForHelpersOnlyAGraceAfterIt() throws Exception {
+        // Arrange: a long overall timeout, but helpers only get a short grace after the feeder's segment
+        candidates.add(peer(BETTER_DIFFICULTY, 5000, requested -> {
+            awaitForever();
+            return blocks(requested);
+        }));
+        fetcher.shutdown();
+        fetcher = new ParallelBlockFetcher(() -> candidates, PEERS, BLOCKS_PER_PEER, 10_000, PROBE_TTL_MS, 300,
+                clock::get);
+
+        // Act
+        long start = System.nanoTime();
+        List<ParallelBlockFetcher.Segment> segments = fetcher.fetch(feeder, OUR_DIFFICULTY, 1000, 5000,
+                Integer.MAX_VALUE);
+        long elapsedMs = (System.nanoTime() - start) / 1_000_000;
+
+        // Assert
+        assertEquals(List.of(1000), fromHeights(segments));
+        assertTrue(elapsedMs < 2000, "took " + elapsedMs + " ms");
+    }
+
+    @Test
+    void fetch_GivenPeersAboveMaximum_UsesAtMostSixteenPeers() throws Exception {
+        addHelpers(30);
+        fetcher.shutdown();
+        fetcher = new ParallelBlockFetcher(() -> candidates, 100, BLOCKS_PER_PEER, TIMEOUT_MS);
+
+        List<ParallelBlockFetcher.Segment> segments = fetcher.fetch(feeder, OUR_DIFFICULTY, 1000, 100_000,
+                Integer.MAX_VALUE);
+
+        assertEquals(ParallelBlockFetcher.MAX_PEERS, segments.size());
+        assertEquals(16, ParallelBlockFetcher.MAX_PEERS);
     }
 
     @Test
@@ -380,7 +460,8 @@ class ParallelBlockFetcherTest {
 
     private ParallelBlockFetcher fetcherWithClock() {
         fetcher.shutdown();
-        return new ParallelBlockFetcher(() -> candidates, PEERS, BLOCKS_PER_PEER, TIMEOUT_MS, PROBE_TTL_MS, clock::get);
+        return new ParallelBlockFetcher(() -> candidates, PEERS, BLOCKS_PER_PEER, TIMEOUT_MS, PROBE_TTL_MS,
+                TIMEOUT_MS, clock::get);
     }
 
     private static boolean isProbe(JsonElement request) {

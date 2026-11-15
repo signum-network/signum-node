@@ -99,8 +99,13 @@ the feeder's segment.
 
 A probe result (cumulative difficulty and height) is reused for 60 s, as long as its height still
 covers the round. Each probe is a separate request with its own TCP connection; measured on
-mainnet, that is about 0.5 s on the critical path of every helper. A helper whose segment fails
-is probed again in the next round.
+mainnet, that is about 0.5 s on the critical path of every helper.
+
+A helper that gives no usable probe answer, whose segment fails, or that misses the round's
+helper deadline is skipped for 60 s. Without that, a dead peer that is still listed as connected
+would hold up every round until its connect timeout. The helper deadline is twice the time the
+feeder needed for its segment, at least 3 s after it arrived, and never more than the round
+timeout. `node.parallelDownload.peers` is capped at 16.
 
 ### 4.3 Segments
 

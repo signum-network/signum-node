@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -15,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.function.LongSupplier;
 
 import org.slf4j.Logger;
@@ -46,11 +48,36 @@ final class ParallelBlockFetcher {
     /** The default of the serving node; keeps a single response small. */
     static final int MAX_BLOCKS_PER_PEER = 100;
 
+    /** Upper bound for the peers per round, so a configuration typo cannot start hundreds of threads. */
+    static final int MAX_PEERS = 16;
+
+    /**
+     * Minimum time helpers get after the feeder's segment has arrived. On mainnet a helper needs about
+     * 0.5 s for a probe and 1.4 s for a segment of 100 blocks.
+     */
+    static final long MIN_HELPER_GRACE_MS = 3_000;
+
     /** How long a helper's probe result (cumulative difficulty and height) is reused. */
     static final long PROBE_TTL_MS = 60_000;
 
     /** Blocks downloaded from one peer, starting after the block at {@code fromHeight}. */
     record Segment(Peer peer, int fromHeight, JsonArray blocks) {
+    }
+
+    /** The shared state of one round's helper tasks. */
+    private static final class HelperRound {
+        final List<CompletableFuture<Claim>> slots = new ArrayList<>();
+        final AtomicReferenceArray<Peer> claimants;
+        final Set<Peer> probing = ConcurrentHashMap.newKeySet();
+        final AtomicInteger claimed = new AtomicInteger();
+        final AtomicInteger probed = new AtomicInteger();
+
+        HelperRound(int helpers) {
+            for (int i = 0; i < helpers; i++) {
+                slots.add(new CompletableFuture<>());
+            }
+            claimants = new AtomicReferenceArray<>(helpers);
+        }
     }
 
     /** A helper's answer to {@code getCumulativeDifficulty}, reused for {@link #PROBE_TTL_MS}. */
@@ -68,18 +95,22 @@ final class ParallelBlockFetcher {
     private final ThreadPoolExecutor executor;
     private final long probeTtlNanos;
     private final LongSupplier nanoClock;
+    private final long minHelperGraceNanos;
     private final Map<Peer, ProbeResult> probes = new ConcurrentHashMap<>();
+    /** Helpers that failed or were too slow, with the clock time until which they are not picked. */
+    private final Map<Peer, Long> skippedUntil = new ConcurrentHashMap<>();
 
     ParallelBlockFetcher(DownloadPeers downloadPeers, int peers, int blocksPerPeer, long timeoutMs) {
-        this(downloadPeers, peers, blocksPerPeer, timeoutMs, PROBE_TTL_MS, System::nanoTime);
+        this(downloadPeers, peers, blocksPerPeer, timeoutMs, PROBE_TTL_MS, MIN_HELPER_GRACE_MS, System::nanoTime);
     }
 
     ParallelBlockFetcher(DownloadPeers downloadPeers, int peers, int blocksPerPeer, long timeoutMs, long probeTtlMs,
-            LongSupplier nanoClock) {
+            long minHelperGraceMs, LongSupplier nanoClock) {
+        this.minHelperGraceNanos = TimeUnit.MILLISECONDS.toNanos(minHelperGraceMs);
         this.probeTtlNanos = TimeUnit.MILLISECONDS.toNanos(probeTtlMs);
         this.nanoClock = nanoClock;
         this.downloadPeers = downloadPeers;
-        this.peers = Math.max(1, peers);
+        this.peers = Math.max(1, Math.min(MAX_PEERS, peers));
         this.blocksPerPeer = Math.max(1, Math.min(MAX_BLOCKS_PER_PEER, blocksPerPeer));
         this.timeoutMs = timeoutMs;
         // the feeder's segment runs on the calling thread, the helpers on the pool
@@ -117,6 +148,8 @@ final class ParallelBlockFetcher {
             return List.of();
         }
         probes.values().removeIf(this::isStale);
+        long now = nanoClock.getAsLong();
+        skippedUntil.values().removeIf(until -> until - now < 0);
         int total = Math.min(Math.min(peers * blocksPerPeer, feederHeight - cacheHeight), maxBlocks);
         if (total <= 0) {
             return List.of();
@@ -128,18 +161,15 @@ final class ParallelBlockFetcher {
         int roundTotal = Math.min(total, (1 + helpers.size()) * blocksPerPeer);
 
         long start = System.nanoTime();
-        List<CompletableFuture<Claim>> slots = new ArrayList<>();
-        helpers.forEach(helper -> slots.add(new CompletableFuture<>()));
-        AtomicInteger claimed = new AtomicInteger();
-        AtomicInteger probed = new AtomicInteger();
+        HelperRound round = new HelperRound(helpers.size());
         List<Future<?>> tasks = new ArrayList<>();
         try {
             for (Peer helper : helpers) {
                 tasks.add(executor.submit(() -> runHelper(helper, ourCumulativeDifficulty, cacheHeight, roundTotal,
-                        slots, claimed, probed)));
+                        round)));
             }
             JsonArray feederBlocks = requestBlocks(feeder, cacheHeight, count(0, roundTotal));
-            List<Segment> segments = collect(feeder, feederBlocks, slots, cacheHeight, roundTotal, start);
+            List<Segment> segments = collect(feeder, feederBlocks, round, cacheHeight, roundTotal, start);
             logRound(segments, start);
             return segments;
         } catch (RejectedExecutionException e) {
@@ -163,6 +193,7 @@ final class ParallelBlockFetcher {
         }
         List<Peer> helpers = new ArrayList<>(downloadPeers.candidates());
         helpers.remove(feeder);
+        helpers.removeIf(skippedUntil::containsKey);
         Collections.shuffle(helpers);
         return helpers.subList(0, Math.min(max, helpers.size()));
     }
@@ -172,17 +203,23 @@ final class ParallelBlockFetcher {
      * finish its probe marks the segments nobody took as missing.
      */
     private void runHelper(Peer helper, BigInteger ourCumulativeDifficulty, int cacheHeight, int roundTotal,
-            List<CompletableFuture<Claim>> slots, AtomicInteger claimed, AtomicInteger probed) {
+            HelperRound round) {
         boolean qualified;
+        round.probing.add(helper);
         try {
             qualified = qualifies(helper, ourCumulativeDifficulty, cacheHeight + roundTotal);
         } catch (RuntimeException e) {
+            skip(helper);
             qualified = false;
         }
-        int slot = qualified ? claimed.getAndIncrement() : -1;
-        if (probed.incrementAndGet() == slots.size()) {
-            for (int i = claimed.get(); i < slots.size(); i++) {
-                slots.get(i).complete(null);
+        int slot = qualified ? round.claimed.getAndIncrement() : -1;
+        if (slot >= 0) {
+            round.claimants.set(slot, helper);
+        }
+        round.probing.remove(helper);
+        if (round.probed.incrementAndGet() == round.slots.size()) {
+            for (int i = round.claimed.get(); i < round.slots.size(); i++) {
+                round.slots.get(i).complete(null);
             }
         }
         if (slot < 0) {
@@ -195,22 +232,25 @@ final class ParallelBlockFetcher {
             logger.debug("Parallel download: request to {} failed", helper.getPeerAddress(), e);
         }
         if (blocks == null || blocks.isEmpty()) {
-            // probe it again next time, it may have dropped behind or gone away
-            probes.remove(helper);
+            // it may have dropped behind or gone away
+            skip(helper);
         }
-        slots.get(slot).complete(new Claim(helper, blocks));
+        round.slots.get(slot).complete(new Claim(helper, blocks));
     }
 
-    private List<Segment> collect(Peer feeder, JsonArray feederBlocks, List<CompletableFuture<Claim>> slots,
-            int cacheHeight, int roundTotal, long start) throws InterruptedException {
+    private List<Segment> collect(Peer feeder, JsonArray feederBlocks, HelperRound round, int cacheHeight,
+            int roundTotal, long start) throws InterruptedException {
         List<Segment> segments = new ArrayList<>();
         if (!accept(feeder, cacheHeight, feederBlocks, count(0, roundTotal), segments)) {
             return segments;
         }
-        long deadline = start + TimeUnit.MILLISECONDS.toNanos(timeoutMs);
-        for (int i = 0; i < slots.size(); i++) {
+        long deadline = helperDeadline(start, System.nanoTime());
+        for (int i = 0; i < round.slots.size(); i++) {
             int fromHeight = fromHeight(i + 1, cacheHeight);
-            Claim claim = await(slots.get(i), deadline);
+            Claim claim = await(round.slots.get(i), deadline);
+            if (!round.slots.get(i).isDone()) {
+                skipLateHelpers(round, i);
+            }
             if (claim == null) {
                 logger.debug("Parallel download: no helper delivered the segment after height {}, cutting the round",
                         fromHeight);
@@ -221,6 +261,31 @@ final class ParallelBlockFetcher {
             }
         }
         return segments;
+    }
+
+    /**
+     * Helpers may take twice as long as the feeder, but at least {@link #MIN_HELPER_GRACE_MS} after
+     * its segment arrived, and never longer than the round timeout.
+     */
+    private long helperDeadline(long start, long feederDone) {
+        long grace = Math.max(2 * (feederDone - start), minHelperGraceNanos);
+        return Math.min(start + TimeUnit.MILLISECONDS.toNanos(timeoutMs), feederDone + grace);
+    }
+
+    /** Skips the helper that holds the late segment and every helper still probing. */
+    private void skipLateHelpers(HelperRound round, int slot) {
+        Peer claimant = round.claimants.get(slot);
+        if (claimant != null) {
+            skip(claimant);
+        }
+        round.probing.forEach(this::skip);
+    }
+
+    private void skip(Peer peer) {
+        probes.remove(peer);
+        skippedUntil.put(peer, nanoClock.getAsLong() + probeTtlNanos);
+        logger.debug("Parallel download: skipping helper {} for {} s", peer.getPeerAddress(),
+                TimeUnit.NANOSECONDS.toSeconds(probeTtlNanos));
     }
 
     /** Adds the segment if it is usable. @return true if the next segment may follow it */
@@ -260,7 +325,7 @@ final class ParallelBlockFetcher {
         if (result == null || isStale(result) || result.height() < roundEndHeight) {
             result = probe(peer);
             if (result == null) {
-                probes.remove(peer);
+                skip(peer);
                 return false;
             }
             probes.put(peer, result);

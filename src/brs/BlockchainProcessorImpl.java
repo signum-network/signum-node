@@ -774,7 +774,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                             }
 
                             List<ParallelBlockFetcher.Segment> parallelSegments = fetchInParallel(peer, saveInCache,
-                                    curCumulativeDifficulty, feederHeight);
+                                    commonBlockId, curCumulativeDifficulty, feederHeight);
                             JsonArray nextBlocks = null;
                             if (parallelSegments.isEmpty()) {
                                 nextBlocks = getNextBlocks(peer, commonBlockId);
@@ -1165,12 +1165,17 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
      *
      * @return the segments in height order, or an empty list to use the single-peer download
      */
-    private List<ParallelBlockFetcher.Segment> fetchInParallel(Peer feeder, boolean saveInCache,
+    private List<ParallelBlockFetcher.Segment> fetchInParallel(Peer feeder, boolean saveInCache, long commonBlockId,
             BigInteger ourCumulativeDifficulty, int feederHeight) throws InterruptedException {
         if (parallelBlockFetcher == null) {
             return List.of();
         }
-        int cacheHeight = downloadCache.getLastBlock().getHeight();
+        // the height of the block the segments must link to; the cache tip may have moved since
+        Block commonBlock = downloadCache.getBlock(commonBlockId);
+        if (commonBlock == null) {
+            return List.of();
+        }
+        int cacheHeight = commonBlock.getHeight();
         if (!parallelBlockFetcher.isApplicable(saveInCache, cacheHeight, feederHeight)) {
             return List.of();
         }

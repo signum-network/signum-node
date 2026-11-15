@@ -311,8 +311,9 @@ class ParallelBlockFetcherTest {
     }
 
     @Test
-    void fetch_GivenCachedHeightBelowNewRound_ProbesAgain() throws Exception {
-        // the cached height (1300) covers the first round but not the second (1300..1500)
+    void fetch_GivenCachedHeightBelowNewRound_LeavesHelperOutUntilTtl() throws Exception {
+        // the cached height (1300) covers the first round but not the second (1300..1500): the helper
+        // is itself behind, so it is left out instead of cutting the round to the feeder's segment
         List<Integer> heights = new ArrayList<>(List.of(1300, 5000));
         Peer helper = mock(Peer.class);
         when(helper.send(any())).thenAnswer(invocation -> {
@@ -330,8 +331,8 @@ class ParallelBlockFetcherTest {
 
         List<ParallelBlockFetcher.Segment> segments = fetcher.fetch(feeder, OUR_DIFFICULTY, 1300, 5000, 200);
 
-        assertEquals(List.of(1300, 1400), fromHeights(segments));
-        verify(helper, times(2)).send(argThat(ParallelBlockFetcherTest::isProbe));
+        assertTrue(segments.isEmpty());
+        verify(helper, times(1)).send(argThat(ParallelBlockFetcherTest::isProbe));
     }
 
     @Test
@@ -446,6 +447,24 @@ class ParallelBlockFetcherTest {
         // Assert
         assertTrue(segments.isEmpty());
         assertEquals(1, requests.size());
+    }
+
+    @Test
+    void fetch_GivenOnlyHelpersKnownToBeUnqualified_ReturnsEmptyForTheSinglePeerFallback() throws Exception {
+        // Arrange: both helpers answered their probe but cannot serve the round (behind, or lower difficulty)
+        Peer behind = peer(BETTER_DIFFICULTY, 1050, requested -> blocks(requested));
+        Peer weaker = peer(BigInteger.ONE, 5000, requested -> blocks(requested));
+        candidates.add(behind);
+        candidates.add(weaker);
+        fetcher = fetcherWithClock();
+        fetcher.fetch(feeder, OUR_DIFFICULTY, 1000, 5000, Integer.MAX_VALUE);
+
+        // Act
+        List<ParallelBlockFetcher.Segment> segments = fetcher.fetch(feeder, OUR_DIFFICULTY, 1100, 5000,
+                Integer.MAX_VALUE);
+
+        // Assert: no 100-block round from the feeder; the caller falls back to getNextBlocks
+        assertTrue(segments.isEmpty());
     }
 
     @Test

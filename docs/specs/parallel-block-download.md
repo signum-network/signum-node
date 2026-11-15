@@ -95,7 +95,10 @@ helper candidate.
   round is cut there (4.4).
 
 Taking segments only after the probe means one unsuitable helper does not shrink the round to
-the feeder's segment.
+the feeder's segment. A candidate whose fresh probe result already shows that it cannot serve the
+round (lower cumulative difficulty, or a height below the round's end, so it is itself behind) is
+not picked at all. If no candidate is left, the round falls back to `getNextBlocks`, which
+returns more blocks than the feeder's segment alone.
 
 A probe result (cumulative difficulty and height) is reused for 60 s, as long as its height still
 covers the round. Each probe is a separate request with its own TCP connection; measured on

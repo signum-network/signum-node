@@ -154,7 +154,8 @@ final class ParallelBlockFetcher {
         if (total <= 0) {
             return List.of();
         }
-        List<Peer> helpers = pickHelpers(feeder, (total + blocksPerPeer - 1) / blocksPerPeer - 1);
+        List<Peer> helpers = pickHelpers(feeder, (total + blocksPerPeer - 1) / blocksPerPeer - 1,
+                ourCumulativeDifficulty, cacheHeight + total);
         if (helpers.isEmpty()) {
             return List.of();
         }
@@ -195,13 +196,19 @@ final class ParallelBlockFetcher {
         }
     }
 
-    private List<Peer> pickHelpers(Peer feeder, int max) {
+    /**
+     * Picks up to {@code max} random candidates, leaving out skipped peers and peers whose fresh probe
+     * result already shows they cannot serve the round. If none is left, the caller falls back to the
+     * single-peer download, which fetches more blocks per round than the feeder's segment alone.
+     */
+    private List<Peer> pickHelpers(Peer feeder, int max, BigInteger ourCumulativeDifficulty, int roundEndHeight) {
         if (max <= 0) {
             return List.of();
         }
         List<Peer> helpers = new ArrayList<>(downloadPeers.candidates());
         helpers.remove(feeder);
         helpers.removeIf(skippedUntil::containsKey);
+        helpers.removeIf(helper -> isKnownUnqualified(helper, ourCumulativeDifficulty, roundEndHeight));
         Collections.shuffle(helpers);
         return helpers.subList(0, Math.min(max, helpers.size()));
     }
@@ -326,11 +333,11 @@ final class ParallelBlockFetcher {
 
     /**
      * @return true if the helper reports a higher cumulative difficulty than ours and a height that
-     *     covers the round. Reuses a fresh probe result if its height still covers the round.
+     *     covers the round. Reuses a fresh probe result.
      */
     private boolean qualifies(Peer peer, BigInteger ourCumulativeDifficulty, int roundEndHeight) {
         ProbeResult result = probes.get(peer);
-        if (result == null || isStale(result) || result.height() < roundEndHeight) {
+        if (result == null || isStale(result)) {
             result = probe(peer);
             if (result == null) {
                 skip(peer);
@@ -340,6 +347,13 @@ final class ParallelBlockFetcher {
         }
         return result.cumulativeDifficulty().compareTo(ourCumulativeDifficulty) > 0
                 && result.height() >= roundEndHeight;
+    }
+
+    private boolean isKnownUnqualified(Peer helper, BigInteger ourCumulativeDifficulty, int roundEndHeight) {
+        ProbeResult result = probes.get(helper);
+        return result != null && !isStale(result)
+                && (result.cumulativeDifficulty().compareTo(ourCumulativeDifficulty) <= 0
+                        || result.height() < roundEndHeight);
     }
 
     private boolean isStale(ProbeResult result) {

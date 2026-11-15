@@ -49,6 +49,17 @@ final class ForkProcessor {
          * @throws BlockNotPersistedException if the block could not be persisted
          */
         void pushBlock(Block block) throws BlockNotAcceptedException;
+
+        /**
+         * Pushes one of our own popped off blocks back on top of the chain. Unlike
+         * {@link #pushBlock(Block)}, it does not re-check the generation signature and deadline:
+         * the block passed them when it was first accepted, and while the chain is rolled back the
+         * commitment estimate behind the deadline can differ (see #1009).
+         *
+         * @throws BlockNotAcceptedException if the block is invalid
+         * @throws BlockNotPersistedException if the block could not be persisted
+         */
+        void restoreBlock(Block block) throws BlockNotAcceptedException;
     }
 
     private final Blockchain blockchain;
@@ -223,7 +234,7 @@ final class ForkProcessor {
             if (!block.isVerified()) {
                 blockService.preVerify(block, blockchain.getLastBlock());
             }
-            chain.pushBlock(block);
+            chain.restoreBlock(block);
             return true;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

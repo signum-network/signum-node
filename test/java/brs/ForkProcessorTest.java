@@ -108,6 +108,19 @@ class ForkProcessorTest {
     }
 
     @Test
+    void testProcess_GivenWeakerFork_RestoresOwnBlocksWithoutPushingThem() {
+        Block fork1 = block(12, COMMON_ID, 25);
+        Block fork2 = block(13, 12, 28);
+
+        forkProcessor.process(peer, List.of(fork1, fork2), COMMON_ID);
+
+        // fork blocks go through the full push (incl. generation signature and deadline),
+        // our own popped off blocks through the restore path
+        assertEquals(List.of(fork1, fork2), chain.pushed);
+        assertEquals(List.of(own1, own2), chain.restored);
+    }
+
+    @Test
     void testProcess_GivenInvalidForkBlock_BlacklistsPeerAndRestoresOwnChain() throws Exception {
         Block fork1 = block(12, COMMON_ID, 40);
         BlockNotAcceptedException invalid = new BlockNotAcceptedException("invalid");
@@ -373,6 +386,7 @@ class ForkProcessorTest {
     private static final class FakeChain implements ForkProcessor.ChainOperations {
         final List<Block> blocks = new ArrayList<>();
         final List<Block> pushed = new ArrayList<>();
+        final List<Block> restored = new ArrayList<>();
         private final Map<Long, Exception> pushFailures = new HashMap<>();
 
         void failOnPush(Block block, Exception failure) {
@@ -403,6 +417,17 @@ class ForkProcessorTest {
 
         @Override
         public void pushBlock(Block block) throws BlockNotAcceptedException {
+            append(block);
+            pushed.add(block);
+        }
+
+        @Override
+        public void restoreBlock(Block block) throws BlockNotAcceptedException {
+            append(block);
+            restored.add(block);
+        }
+
+        private void append(Block block) throws BlockNotAcceptedException {
             Exception failure = pushFailures.get(block.getId());
             if (failure instanceof BlockNotAcceptedException notAccepted) {
                 throw notAccepted;
@@ -411,7 +436,6 @@ class ForkProcessorTest {
                 throw runtimeFailure;
             }
             blocks.add(block);
-            pushed.add(block);
         }
     }
 }

@@ -2115,6 +2115,17 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
 
     private void pushBlock(final Block block) throws BlockNotAcceptedException {
+        pushBlock(block, true);
+    }
+
+    /**
+     * @param verifyGenerationSignature false only for our own popped off blocks being restored
+     *                                  (see {@link ForkProcessor.ChainOperations#restoreBlock(Block)}).
+     *                                  Pre-verification computes the PoC time but does not check the
+     *                                  generation signature or the deadline, so every other block
+     *                                  must be checked here.
+     */
+    private void pushBlock(final Block block, boolean verifyGenerationSignature) throws BlockNotAcceptedException {
         long totalStartTime = System.nanoTime();
         long validationTime = 0;
         long txLoopTime = 0;
@@ -2163,7 +2174,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 if (block.getId() == 0L || blockDb.hasBlock(block.getId())) {
                     throw new BlockNotAcceptedException("Duplicate block or invalid id for block " + block.getHeight());
                 }
-                if (!block.isVerified() && !blockService.verifyGenerationSignature(block)) {
+                if (verifyGenerationSignature && !blockService.verifyGenerationSignature(block)) {
                     throw new BlockNotAcceptedException(
                             "Generation signature verification failed for block " + block.getHeight());
                 }
@@ -2698,6 +2709,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         @Override
         public void pushBlock(Block block) throws BlockNotAcceptedException {
             BlockchainProcessorImpl.this.pushBlock(block);
+        }
+
+        @Override
+        public void restoreBlock(Block block) throws BlockNotAcceptedException {
+            BlockchainProcessorImpl.this.pushBlock(block, false);
         }
     }
 

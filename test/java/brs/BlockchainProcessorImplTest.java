@@ -118,6 +118,7 @@ class BlockchainProcessorImplTest {
         when(transactionService.verifyPublicKey(any())).thenReturn(true);
         when(transactionService.applyUnconfirmed(any())).thenReturn(true);
         when(blockService.verifyBlockSignature(any())).thenReturn(true);
+        when(blockService.verifyGenerationSignature(any())).thenReturn(true);
 
         tip = block(10L, TIP_HEIGHT, 100);
         persistedTip = block(9L, TIP_HEIGHT - 1, 50);
@@ -156,6 +157,33 @@ class BlockchainProcessorImplTest {
         order.verify(blockchain).setLastBlock(persistedTip);
         order.verify(downloadCache).resetCache();
         verify(stores, never()).commitTransaction();
+    }
+
+    @Test
+    void testImportBlock_GivenPreVerifiedBlock_ChecksGenerationSignature() throws Exception {
+        Runnable importer = createImporter();
+        when(downloadCache.size()).thenReturn(1, 0);
+
+        assertDoesNotThrow(importer::run);
+
+        // pre-verification only computes the PoC time; the generation signature and the
+        // deadline are checked when the block is pushed
+        verify(blockService).verifyGenerationSignature(block);
+        verify(stores).commitTransaction();
+    }
+
+    @Test
+    void testImportBlock_GivenPreVerifiedBlockWithInvalidGenerationSignature_RejectsBlock() throws Exception {
+        Runnable importer = createImporter();
+        when(downloadCache.size()).thenReturn(1, 0);
+        when(blockService.verifyGenerationSignature(block)).thenReturn(false);
+
+        assertDoesNotThrow(importer::run);
+
+        verify(blockService).verifyGenerationSignature(block);
+        verify(blockService, never()).verifyBlockSignature(block);
+        verify(stores, never()).commitTransaction();
+        verify(blockchain, never()).setLastBlock(block);
     }
 
     @Test

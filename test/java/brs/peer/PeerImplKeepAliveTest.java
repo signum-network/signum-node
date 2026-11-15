@@ -147,6 +147,53 @@ class PeerImplKeepAliveTest {
         }
     }
 
+    @Test
+    void applyKeepAlive_GivenKeepAliveOn_KeepsIdleConnectionsLongerThanTheJdkDefault() {
+        String previous = System.clearProperty(Peers.KEEP_ALIVE_TIME_PROPERTY);
+        try {
+            Peers.applyKeepAlive(true);
+
+            assertTrue(Peers.keepAlive);
+            assertEquals(String.valueOf(Peers.KEEP_ALIVE_IDLE_SECONDS), System.getProperty(Peers.KEEP_ALIVE_TIME_PROPERTY));
+            assertEquals(20, Peers.KEEP_ALIVE_IDLE_SECONDS);
+        } finally {
+            restore(previous);
+        }
+    }
+
+    @Test
+    void applyKeepAlive_GivenPropertySetByOperator_KeepsIt() {
+        String previous = System.setProperty(Peers.KEEP_ALIVE_TIME_PROPERTY, "7");
+        try {
+            Peers.applyKeepAlive(true);
+
+            assertEquals("7", System.getProperty(Peers.KEEP_ALIVE_TIME_PROPERTY));
+        } finally {
+            restore(previous);
+        }
+    }
+
+    @Test
+    void applyKeepAlive_GivenKeepAliveOff_LeavesTheJdkDefault() {
+        String previous = System.clearProperty(Peers.KEEP_ALIVE_TIME_PROPERTY);
+        try {
+            Peers.applyKeepAlive(false);
+
+            assertEquals(false, Peers.keepAlive);
+            assertEquals(null, System.getProperty(Peers.KEEP_ALIVE_TIME_PROPERTY));
+        } finally {
+            restore(previous);
+        }
+    }
+
+    private static void restore(String previous) {
+        if (previous == null) {
+            System.clearProperty(Peers.KEEP_ALIVE_TIME_PROPERTY);
+        } else {
+            System.setProperty(Peers.KEEP_ALIVE_TIME_PROPERTY, previous);
+        }
+    }
+
     private void handle(HttpExchange exchange) throws IOException {
         exchange.getRequestBody().readAllBytes();
         clientPorts.add(exchange.getRemoteAddress().getPort());

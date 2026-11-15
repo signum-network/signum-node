@@ -14,6 +14,7 @@ import com.google.gson.JsonObject;
 import brs.BlockchainProcessor.BlockOutOfOrderException;
 import brs.fluxcapacitor.FluxCapacitor;
 import brs.fluxcapacitor.FluxValues;
+import brs.peer.Peer;
 import brs.services.BlockService;
 import brs.util.DownloadCacheImpl;
 import brs.util.JSON;
@@ -35,10 +36,16 @@ final class DownloadedBlockAppender {
     }
 
     /**
-     * @param lastBlock the last block appended, or the common block if none was
-     * @param stopped   true if the caller must end the round without further processing
+     * @param lastBlock      the last block appended, or the common block if none was
+     * @param stopped        true if the caller must end the round without further processing
+     * @param unlinkedHelper the helper (peer of a segment after the first) whose blocks did not link,
+     *                       or null
      */
-    record Result(Block lastBlock, boolean stopped) {
+    record Result(Block lastBlock, boolean stopped, Peer unlinkedHelper) {
+
+        Result(Block lastBlock, boolean stopped) {
+            this(lastBlock, stopped, null);
+        }
     }
 
     private final DownloadCacheImpl downloadCache;
@@ -85,7 +92,7 @@ final class DownloadedBlockAppender {
                     // Make sure it maps back to chain
                     if (lastBlock.getId() != block.getPreviousBlockId()) {
                         logLinkBreak(segment, segmentIndex > 0 && firstOfSegment, lastBlock, block);
-                        return new Result(lastBlock, true);
+                        return new Result(lastBlock, true, segmentIndex > 0 ? segment.peer() : null);
                     }
                     // set height and cumulative difficulty to block
                     block.setHeight(height);

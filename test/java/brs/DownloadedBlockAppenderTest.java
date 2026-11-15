@@ -2,6 +2,7 @@ package brs;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -108,6 +109,50 @@ class DownloadedBlockAppenderTest {
         verify(downloadCache, times(2)).addBlock(any());
         verify(peerB, never()).blacklist(anyString());
         verify(peerB, never()).blacklist(any(Exception.class), anyString());
+    }
+
+    @Test
+    void append_GivenHelperSegmentThatDoesNotLink_ReportsTheHelper() {
+        List<ParallelBlockFetcher.Segment> segments = List.of(
+                segment(peerA, 1000, 10, 11, 12),
+                segment(peerB, 1002, 99, 13, 14));
+
+        DownloadedBlockAppender.Result result = appender(true).append(segments, commonBlock, true);
+
+        assertSame(peerB, result.unlinkedHelper());
+    }
+
+    @Test
+    void append_GivenHelperSegmentBrokenInside_ReportsTheHelper() {
+        // segment 1 starts correctly but its second block does not follow its first
+        JsonArray blocks = segment(peerB, 1002, 12, 13).blocks();
+        blocks.addAll(segment(peerB, 1003, 77, 14).blocks());
+        List<ParallelBlockFetcher.Segment> segments = List.of(
+                segment(peerA, 1000, 10, 11, 12),
+                new ParallelBlockFetcher.Segment(peerB, 1002, blocks));
+
+        DownloadedBlockAppender.Result result = appender(true).append(segments, commonBlock, true);
+
+        assertTrue(result.stopped());
+        assertSame(peerB, result.unlinkedHelper());
+        verify(downloadCache, times(3)).addBlock(any());
+    }
+
+    @Test
+    void append_GivenFeederSegmentThatDoesNotLink_ReportsNoHelper() {
+        DownloadedBlockAppender.Result result = appender(true).append(
+                List.of(segment(peerA, 1000, 99, 11, 12)), commonBlock, true);
+
+        assertTrue(result.stopped());
+        assertNull(result.unlinkedHelper());
+    }
+
+    @Test
+    void append_GivenLinkedSegments_ReportsNoHelper() {
+        DownloadedBlockAppender.Result result = appender(true).append(
+                List.of(segment(peerA, 1000, 10, 11, 12), segment(peerB, 1002, 12, 13, 14)), commonBlock, true);
+
+        assertNull(result.unlinkedHelper());
     }
 
     @Test

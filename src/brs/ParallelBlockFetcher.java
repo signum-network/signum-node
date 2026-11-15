@@ -181,6 +181,14 @@ final class ParallelBlockFetcher {
         }
     }
 
+    /**
+     * Skips a helper whose segment did not link to the previous one, for the probe TTL. It may be
+     * on another fork, so it is not blacklisted.
+     */
+    void skipHelper(Peer helper) {
+        skip(helper);
+    }
+
     void shutdown() {
         if (executor != null) {
             executor.shutdownNow();

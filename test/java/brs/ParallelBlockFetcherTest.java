@@ -430,6 +430,25 @@ class ParallelBlockFetcherTest {
     }
 
     @Test
+    void skipHelper_GivenHelperWithUnlinkedSegment_DoesNotPickItWithinTtl() throws Exception {
+        // Arrange
+        List<Integer> requests = Collections.synchronizedList(new ArrayList<>());
+        Peer forked = peer(BETTER_DIFFICULTY, 5000, requested -> blocks(requested), requests);
+        candidates.add(forked);
+        fetcher = fetcherWithClock();
+        fetcher.fetch(feeder, OUR_DIFFICULTY, 1000, 5000, Integer.MAX_VALUE);
+
+        // Act
+        fetcher.skipHelper(forked);
+        List<ParallelBlockFetcher.Segment> segments = fetcher.fetch(feeder, OUR_DIFFICULTY, 1100, 5000,
+                Integer.MAX_VALUE);
+
+        // Assert
+        assertTrue(segments.isEmpty());
+        assertEquals(1, requests.size());
+    }
+
+    @Test
     void fetch_GivenInterrupt_ThrowsInterruptedException() {
         addHelpers(3);
         Thread.currentThread().interrupt();

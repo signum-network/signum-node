@@ -800,6 +800,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                             lockImporterForBatch();
                             DownloadedBlockAppender.Result appended = downloadedBlockAppender.append(segments,
                                     lastBlock, saveInCache);
+                            if (appended.unlinkedHelper() != null && parallelBlockFetcher != null) {
+                                parallelBlockFetcher.skipHelper(appended.unlinkedHelper());
+                            }
                             if (appended.stopped()) {
                                 return;
                             }

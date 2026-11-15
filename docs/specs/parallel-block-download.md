@@ -146,8 +146,10 @@ blocks") and the result is cut before that segment.
   later import or PoC failures (`blacklistClean`), blame the peer that sent the block.
 - Change 2, link break at a segment boundary: if the first block of segment i ≥ 1 does not link to
   the last block of segment i−1, the round ends. Blocks already added stay in the cache and the
-  rest of the round is dropped. There is no blacklisting, because the helper may honestly be on a
-  fork; the debug log names the peer and the height. A link break inside a segment is handled as
+  rest of the round is dropped. The helper is skipped for 60 s (4.2) but not blacklisted, because
+  it may honestly be on a fork; the debug log names the peer and the height. Without the skip, a
+  peer on another fork that keeps being picked would cut every round right after the feeder's
+  segment. A link break inside a segment is handled as
   today: the round ends.
 
 ### 4.6 Security

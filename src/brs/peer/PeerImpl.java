@@ -64,6 +64,9 @@ final class PeerImpl implements Peer {
     private byte[] lastDownloadedTransactionsDigest;
     private final Object lastDownloadedTransactionsLock = new Object();
 
+    /** Characters a response may have after its JSON value and still have its connection reused. */
+    private static final int MAX_TRAILING_CHARS = 1024;
+
     PeerImpl(String peerAddress, String announcedAddress) {
         this.peerAddress = peerAddress;
         this.announcedAddress.set(announcedAddress);
@@ -347,6 +350,8 @@ final class PeerImpl implements Peer {
         String log = null;
         boolean showLog = false;
         HttpURLConnection connection = null;
+        // true once a 200 response was read to its end, so its connection may be reused
+        boolean reusable = false;
 
         try {
 
@@ -373,7 +378,9 @@ final class PeerImpl implements Peer {
             connection.setReadTimeout(Peers.readTimeout);
             connection.addRequestProperty("User-Agent", "BRS/" + Signum.VERSION.toString());
             connection.setRequestProperty("Accept-Encoding", "gzip");
-            connection.setRequestProperty("Connection", "close");
+            if (!Peers.keepAlive) {
+                connection.setRequestProperty("Connection", "close");
+            }
 
             CountingOutputStream cos = new CountingOutputStream(connection.getOutputStream());
             try (Writer writer = new BufferedWriter(
@@ -407,10 +414,14 @@ final class PeerImpl implements Peer {
                     log += " >>> " + responseValue;
                     showLog = true;
                     response = JSON.getAsJsonObject(JSON.parse(responseValue));
+                    reusable = true;
                 } else {
                     try (Reader reader = new BufferedReader(
                             new InputStreamReader(responseStream, StandardCharsets.UTF_8))) {
                         response = JSON.getAsJsonObject(JSON.parse(reader));
+                        // read what the parser left (a trailing newline, the gzip trailer), so the
+                        // connection can go back to the keep-alive cache
+                        reusable = drain(reader);
                     }
                 }
                 updateDownloadedVolume(cis.getCount());
@@ -448,12 +459,26 @@ final class PeerImpl implements Peer {
             logger.info(log);
         }
 
-        if (connection != null) {
+        if (connection != null && !(Peers.keepAlive && reusable)) {
             connection.disconnect();
         }
 
         return response;
 
+    }
+
+    /** Reads the rest of a response. @return false if more is left than a well-formed response has */
+    private static boolean drain(Reader reader) throws IOException {
+        char[] buffer = new char[256];
+        int left = MAX_TRAILING_CHARS;
+        int read;
+        while ((read = reader.read(buffer)) != -1) {
+            left -= read;
+            if (left < 0) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private boolean isConnectionException(Throwable e) {

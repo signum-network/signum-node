@@ -88,6 +88,8 @@ public final class Peers {
 
     static int connectTimeout;
     static int readTimeout;
+    /** Reuse HTTP connections to peers (P2P.keepAlive). */
+    static boolean keepAlive = true;
     static int blacklistingPeriod;
     static boolean getMorePeers;
 
@@ -209,6 +211,7 @@ public final class Peers {
         logger.info("P2P max connections: {}", maxNumberOfConnectedPublicPeers);
         connectTimeout = propertyService.getInt(Props.P2P_TIMEOUT_CONNECT_MS);
         readTimeout = propertyService.getInt(Props.P2P_TIMEOUT_READ_MS);
+        keepAlive = propertyService.getBoolean(Props.P2P_KEEP_ALIVE);
 
         blacklistingPeriod = propertyService.getInt(Props.P2P_BLACKLISTING_TIME_MS);
         communicationLoggingMask = propertyService.getInt(Props.BRS_COMMUNICATION_LOGGING_MASK);

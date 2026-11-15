@@ -130,9 +130,9 @@ public class Props {
     public static final Prop<Integer> BLOCK_PROCESS_THREAD_DELAY = new Prop<>("CPU.BlockThreadDelay", 500);
     // Number of downloaded blocks a CPU verifier thread pre-verifies in one batch, 1 = one block at a time
     public static final Prop<Integer> CPU_VERIFY_BATCH_SIZE = new Prop<>("CPU.VerifyBatchSize", 16);
-    // Experimental: download blocks in batches without waiting for every block push, and pre-verify
-    // the next block outside of the block importer lock
-    public static final Prop<Boolean> SYNC_DECOUPLED_PIPELINE = new Prop<>("node.experimental.decoupledSync", false);
+    // Download blocks in batches without waiting for every block push, and pre-verify the next block
+    // outside of the block importer lock; false restores the previous pipeline
+    public static final Prop<Boolean> SYNC_DECOUPLED_PIPELINE = new Prop<>("node.experimental.decoupledSync", true);
 
     // DB options
     public static final Prop<Boolean> DB_SKIP_CHECK = new Prop<>("DB.SkipCheck", false);

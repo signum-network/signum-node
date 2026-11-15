@@ -88,6 +88,27 @@ public final class Peers {
 
     static int connectTimeout;
     static int readTimeout;
+    /** Reuse HTTP connections to peers (P2P.keepAlive). */
+    static boolean keepAlive = true;
+    static final String KEEP_ALIVE_TIME_PROPERTY = "http.keepAlive.time.server";
+    static final int KEEP_ALIVE_IDLE_SECONDS = 20;
+
+    /**
+     * Turns keep-alive for outgoing peer requests on or off. When on, idle connections stay in the
+     * JDK keep-alive cache for {@link #KEEP_ALIVE_IDLE_SECONDS} instead of the JDK default of 5 s,
+     * which is shorter than the time between two requests to a helper peer during sync. Peers keep
+     * idle connections for {@code P2P.TimeoutIdle_ms} (default 30 s). A value set by the operator
+     * is kept. The property applies to every {@code HttpURLConnection} in the JVM, not only to peer
+     * requests; peer requests are the only outgoing HTTP connections of the node. The JDK reads it
+     * once, when the first connection is opened, so this must run before that (it does: Peers.init
+     * runs before any peer is contacted).
+     */
+    static void applyKeepAlive(boolean enabled) {
+        keepAlive = enabled;
+        if (enabled && System.getProperty(KEEP_ALIVE_TIME_PROPERTY) == null) {
+            System.setProperty(KEEP_ALIVE_TIME_PROPERTY, String.valueOf(KEEP_ALIVE_IDLE_SECONDS));
+        }
+    }
     static int blacklistingPeriod;
     static boolean getMorePeers;
 
@@ -209,6 +230,7 @@ public final class Peers {
         logger.info("P2P max connections: {}", maxNumberOfConnectedPublicPeers);
         connectTimeout = propertyService.getInt(Props.P2P_TIMEOUT_CONNECT_MS);
         readTimeout = propertyService.getInt(Props.P2P_TIMEOUT_READ_MS);
+        applyKeepAlive(propertyService.getBoolean(Props.P2P_KEEP_ALIVE));
 
         blacklistingPeriod = propertyService.getInt(Props.P2P_BLACKLISTING_TIME_MS);
         communicationLoggingMask = propertyService.getInt(Props.BRS_COMMUNICATION_LOGGING_MASK);

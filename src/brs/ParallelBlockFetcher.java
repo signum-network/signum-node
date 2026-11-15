@@ -119,6 +119,10 @@ final class ParallelBlockFetcher {
         this.executor = this.peers > 1 ? startThreads(this.peers - 1) : null;
     }
 
+    int blocksPerPeer() {
+        return blocksPerPeer;
+    }
+
     /**
      * @return true if a round should use the parallel download: we extend our chain linearly and
      *     the feeder is far enough ahead for at least two segments

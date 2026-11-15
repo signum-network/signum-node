@@ -347,6 +347,8 @@ final class PeerImpl implements Peer {
         String log = null;
         boolean showLog = false;
         HttpURLConnection connection = null;
+        // true once a 200 response was read to its end, so its connection may be reused
+        boolean reusable = false;
 
         try {
 
@@ -373,7 +375,9 @@ final class PeerImpl implements Peer {
             connection.setReadTimeout(Peers.readTimeout);
             connection.addRequestProperty("User-Agent", "BRS/" + Signum.VERSION.toString());
             connection.setRequestProperty("Accept-Encoding", "gzip");
-            connection.setRequestProperty("Connection", "close");
+            if (!Peers.keepAlive) {
+                connection.setRequestProperty("Connection", "close");
+            }
 
             CountingOutputStream cos = new CountingOutputStream(connection.getOutputStream());
             try (Writer writer = new BufferedWriter(
@@ -407,10 +411,14 @@ final class PeerImpl implements Peer {
                     log += " >>> " + responseValue;
                     showLog = true;
                     response = JSON.getAsJsonObject(JSON.parse(responseValue));
+                    reusable = true;
                 } else {
                     try (Reader reader = new BufferedReader(
                             new InputStreamReader(responseStream, StandardCharsets.UTF_8))) {
+                        // gson reads the reader to its end (it rejects trailing content), so the
+                        // response is fully consumed and the connection can be reused
                         response = JSON.getAsJsonObject(JSON.parse(reader));
+                        reusable = true;
                     }
                 }
                 updateDownloadedVolume(cis.getCount());
@@ -448,7 +456,7 @@ final class PeerImpl implements Peer {
             logger.info(log);
         }
 
-        if (connection != null) {
+        if (connection != null && !(Peers.keepAlive && reusable)) {
             connection.disconnect();
         }
 

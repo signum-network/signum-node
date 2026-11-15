@@ -121,6 +121,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     private final SyncPreVerifier syncPreVerifier;
     private final DownloadedBlockAppender downloadedBlockAppender;
     private final ParallelBlockFetcher parallelBlockFetcher;
+    private final ChainedRoundDownloader chainedRoundDownloader;
     // blocks per CPU pre-verification batch, 1 = one block at a time
     private final int verifyBatchSize;
     private final DBCacheManagerImpl dbCacheManager;
@@ -487,6 +488,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         downloadedBlockAppender = new DownloadedBlockAppender(downloadCache, blockchain, blockService,
                 Signum::getFluxCapacitor, Block::parseBlock, blockImporterLock, decoupledSync);
         parallelBlockFetcher = createParallelBlockFetcher(propertyService);
+        chainedRoundDownloader = parallelBlockFetcher == null ? null
+                : new ChainedRoundDownloader(parallelBlockFetcher, downloadedBlockAppender, downloadCache,
+                        cacheHeight -> ParallelBlockFetcher.maxBlocksAhead(
+                                Signum.getFluxCapacitor().getValue(FluxValues.POC_PLUS, cacheHeight),
+                                blockchain.getHeight(), cacheHeight),
+                        this::isDownloadStopRequested);
 
         oclVerify = propertyService.getBoolean(Props.GPU_ACCELERATION); // use GPU acceleration ?
         oclUnverifiedQueue = propertyService.getInt(Props.GPU_UNVERIFIED_QUEUE);
@@ -809,9 +816,18 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                             if (appended.stopped()) {
                                 return;
                             }
-                            lastBlock = appended.lastBlock();
                             // the fork processor below pushes blocks, keep the importer free for that
                             releaseImporterBatchLock();
+                            if (chainedRoundDownloader != null
+                                    && ChainedRoundDownloader.appliesTo(saveInCache, !parallelSegments.isEmpty())) {
+                                // follow-up rounds from the new tip without the handshake
+                                appended = chainedRoundDownloader.continueAfter(peer, feederHeight, segments,
+                                        appended, () -> lockImporterForBatch(), () -> releaseImporterBatchLock());
+                                if (appended.stopped()) {
+                                    return;
+                                }
+                            }
+                            lastBlock = appended.lastBlock();
 
                             if (logger.isTraceEnabled()) {
                                 logger.trace("Unverified blocks: {}", downloadCache.getUnverifiedSize());
@@ -1148,6 +1164,15 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         this.uploadedVolume.set(sumUploadedVolume);
         this.downloadedVolume.set(sumDownloadedVolume);
         blockListeners.notify(null, Event.NET_VOLUME_CHANGED);
+    }
+
+    /**
+     * @return true if block downloads must stop: shutdown, a manual pause, an automatic pause (trim,
+     *     pop-off, database checks) or downloads switched off. The download loop checks the same
+     *     conditions between rounds; chained rounds check them before each round.
+     */
+    boolean isDownloadStopRequested() {
+        return isShutdown.get() || getMoreBlocksPause.get() || getMoreBlocksAutoPause.get() || !getMoreBlocks.get();
     }
 
     private ParallelBlockFetcher createParallelBlockFetcher(PropertyService propertyService) {

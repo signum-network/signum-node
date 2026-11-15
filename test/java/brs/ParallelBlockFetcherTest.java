@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -465,6 +466,36 @@ class ParallelBlockFetcherTest {
 
         // Assert: no 100-block round from the feeder; the caller falls back to getNextBlocks
         assertTrue(segments.isEmpty());
+    }
+
+    @Test
+    void shutdown_GivenFetchWaitingForAHungHelper_LetsTheFetchReturnRightAway() throws Exception {
+        // Arrange: long timeout and grace, so only the shutdown can end the wait early
+        candidates.add(peer(BETTER_DIFFICULTY, 5000, requested -> {
+            awaitForever();
+            return blocks(requested);
+        }));
+        fetcher.shutdown();
+        fetcher = new ParallelBlockFetcher(() -> candidates, PEERS, BLOCKS_PER_PEER, 10_000, PROBE_TTL_MS, 10_000,
+                clock::get);
+        CompletableFuture<List<ParallelBlockFetcher.Segment>> fetch = CompletableFuture.supplyAsync(() -> {
+            try {
+                return fetcher.fetch(feeder, OUR_DIFFICULTY, 1000, 5000, Integer.MAX_VALUE);
+            } catch (InterruptedException e) {
+                throw new IllegalStateException(e);
+            }
+        });
+        Thread.sleep(300);
+
+        // Act
+        long start = System.nanoTime();
+        fetcher.shutdown();
+        List<ParallelBlockFetcher.Segment> segments = fetch.get(5, TimeUnit.SECONDS);
+        long elapsedMs = (System.nanoTime() - start) / 1_000_000;
+
+        // Assert
+        assertTrue(elapsedMs < 1000, "took " + elapsedMs + " ms");
+        assertEquals(List.of(1000), fromHeights(segments));
     }
 
     @Test

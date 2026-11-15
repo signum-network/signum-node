@@ -36,10 +36,13 @@ class ConnectedDownloadPeersTest {
         Peer blacklisted = peer(Peer.State.CONNECTED, true, true, "Signum");
         Peer oldVersion = peer(Peer.State.CONNECTED, false, false, "Signum");
         Peer otherNetwork = peer(Peer.State.CONNECTED, false, true, "Signum-TESTNET");
+        Peer notSharing = peer(Peer.State.CONNECTED, false, true, "Signum");
+        when(notSharing.shareAddress()).thenReturn(false);
 
         try (MockedStatic<Peers> peers = mockStatic(Peers.class)) {
             peers.when(Peers::getActivePeers)
-                    .thenReturn(List.of(ok, unnamedNetwork, disconnected, blacklisted, oldVersion, otherNetwork));
+                    .thenReturn(List.of(ok, unnamedNetwork, disconnected, blacklisted, oldVersion, otherNetwork,
+                            notSharing));
 
             // Act
             List<Peer> candidates = new ConnectedDownloadPeers(propertyService, () -> fluxCapacitor).candidates();
@@ -55,6 +58,7 @@ class ConnectedDownloadPeersTest {
         when(peer.isBlacklisted()).thenReturn(blacklisted);
         when(peer.isHigherOrEqualVersionThan(any())).thenReturn(currentVersion);
         when(peer.getNetworkName()).thenReturn(networkName);
+        when(peer.shareAddress()).thenReturn(true);
         return peer;
     }
 }

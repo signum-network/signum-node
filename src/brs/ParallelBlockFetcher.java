@@ -99,6 +99,8 @@ final class ParallelBlockFetcher {
     private final Map<Peer, ProbeResult> probes = new ConcurrentHashMap<>();
     /** Helpers that failed or were too slow, with the clock time until which they are not picked. */
     private final Map<Peer, Long> skippedUntil = new ConcurrentHashMap<>();
+    /** The round in progress, so a shutdown can end its wait for helpers right away. */
+    private volatile HelperRound currentRound;
 
     ParallelBlockFetcher(DownloadPeers downloadPeers, int peers, int blocksPerPeer, long timeoutMs) {
         this(downloadPeers, peers, blocksPerPeer, timeoutMs, PROBE_TTL_MS, MIN_HELPER_GRACE_MS, System::nanoTime);
@@ -163,6 +165,7 @@ final class ParallelBlockFetcher {
 
         long start = System.nanoTime();
         HelperRound round = new HelperRound(helpers.size());
+        currentRound = round;
         List<Future<?>> tasks = new ArrayList<>();
         try {
             for (Peer helper : helpers) {
@@ -177,6 +180,7 @@ final class ParallelBlockFetcher {
             // shutting down
             return List.of();
         } finally {
+            currentRound = null;
             tasks.forEach(task -> task.cancel(true));
             executor.purge();
         }
@@ -190,9 +194,14 @@ final class ParallelBlockFetcher {
         skip(helper);
     }
 
+    /** Stops the helper threads and ends the wait of a round in progress. */
     void shutdown() {
         if (executor != null) {
             executor.shutdownNow();
+        }
+        HelperRound round = currentRound;
+        if (round != null) {
+            round.slots.forEach(slot -> slot.complete(null));
         }
     }
 

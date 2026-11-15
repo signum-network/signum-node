@@ -62,11 +62,13 @@ A separate class, so the anonymous `getMoreBlocks` runnable does not grow furthe
 injection:
 
 - `DownloadPeers`: a small interface that returns candidate peers. The production implementation
-  wraps `Peers.getActivePeers()` and keeps peers that are `CONNECTED`, not blacklisted, at least
-  `MIN_PEER_VERSION` and on our network name. That is the same filter the feeder loop uses today.
+  wraps `Peers.getActivePeers()` and keeps peers that are `CONNECTED`, not blacklisted, sharing
+  their address, at least `MIN_PEER_VERSION` and on our network name. That is the same filter the
+  feeder loop uses today (`Peers.getAnyPeer` plus its version and network checks).
 - a pool of K−1 daemon threads for the helpers, named `ParallelBlockFetcher-n`, shut down with
   the node. The feeder's segment is downloaded on the calling download thread, so it never waits
-  behind helper requests that are still hanging on a socket.
+  behind helper requests that are still hanging on a socket. A shutdown also ends the wait of a
+  round in progress, and the download round then makes no fallback request.
 - `peers` (K), `blocksPerPeer` (n) and the request timeout
 
 Main method:

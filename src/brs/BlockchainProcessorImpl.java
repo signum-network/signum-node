@@ -775,6 +775,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
                             List<ParallelBlockFetcher.Segment> parallelSegments = fetchInParallel(peer, saveInCache,
                                     commonBlockId, curCumulativeDifficulty, feederHeight);
+                            if (isShutdown.get()) {
+                                return; // no fallback request while shutting down
+                            }
                             JsonArray nextBlocks = null;
                             if (parallelSegments.isEmpty()) {
                                 nextBlocks = getNextBlocks(peer, commonBlockId);

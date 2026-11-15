@@ -21,6 +21,8 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedStatic;
 
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
@@ -67,6 +69,8 @@ class SqlChainScanStoreTest {
             ctx.executeInsert(transaction(ctx, 21L, 2, 201L));
             ctx.executeInsert(transaction(ctx, 20L, 2, 200L));
             ctx.executeInsert(transaction(ctx, 30L, 3, 300L));
+            ctx.executeInsert(commitment(ctx, 10L, 1, 100L, TransactionType.SUBTYPE_SIGNA_MINING_COMMITMENT_ADD, 5000L));
+            ctx.executeInsert(commitment(ctx, 40L, 4, 400L, TransactionType.SUBTYPE_SIGNA_MINING_COMMITMENT_REMOVE, 1500L));
         }
     }
 
@@ -133,6 +137,19 @@ class SqlChainScanStoreTest {
         return record;
     }
 
+    /** A commitment transaction of account 99, with the attachment bytes the node stores. */
+    private static TransactionRecord commitment(DSLContext ctx, long dbId, int height, long id, byte subtype,
+            long amount) {
+        TransactionRecord record = transaction(ctx, dbId, height, id);
+        record.setType(TransactionType.TYPE_SIGNA_MINING.getType());
+        record.setSubtype(subtype);
+        record.setRecipientId(null);
+        record.setAmount(0L);
+        record.setAttachmentBytes(ByteBuffer.allocate(9).order(ByteOrder.LITTLE_ENDIAN).put((byte) 1)
+                .putLong(amount).array());
+        return record;
+    }
+
     private static byte[] sha256() {
         try {
             return MessageDigest.getInstance("SHA-256").digest();
@@ -191,6 +208,30 @@ class SqlChainScanStoreTest {
                     .loadBlocks(0, 0);
             assertEquals(1, contexts.size());
             assertNull(contexts.get(0).previous());
+        }
+    }
+
+    @Test
+    void getBlocksCount_CountsTheGeneratorsBlocksInTheRange() {
+        try (ChainScanDatabase database = openDatabase()) {
+            SqlChainScanStore store = new SqlChainScanStore(database.getDataSource(), database.getDialect());
+            assertEquals(3, store.getBlocksCount(5L, 1, 3));
+            assertEquals(0, store.getBlocksCount(6L, 1, 3));
+            assertEquals(0, store.getBlocksCount(5L, 3, 1));
+        }
+    }
+
+    @Test
+    void getCommittedAmount_AddsCommitmentsAfterTheWaitAndSubtractsRemovals() {
+        try (ChainScanDatabase database = openDatabase()) {
+            // Arrange: the commitment wait is 1440 blocks
+            SqlChainScanStore store = new SqlChainScanStore(database.getDataSource(), database.getDialect());
+
+            // Act + Assert
+            assertEquals(5000L, store.getCommittedAmount(99L, 1441, 3));
+            assertEquals(3500L, store.getCommittedAmount(99L, 1441, 4));
+            assertEquals(0L, store.getCommittedAmount(99L, 1440, 3), "added within the wait");
+            assertEquals(0L, store.getCommittedAmount(98L, 1441, 4), "other account");
         }
     }
 

@@ -84,6 +84,16 @@ public class SqlChainScanStore implements ChainScanStore {
         return contexts;
     }
 
+    @Override
+    public int getBlocksCount(long accountId, int fromHeight, int toHeight) {
+        return SqlBlockchainStore.getBlocksCount(ctx(), accountId, fromHeight, toHeight);
+    }
+
+    @Override
+    public long getCommittedAmount(long accountId, int height, int endHeight) {
+        return SqlBlockchainStore.getCommittedAmount(ctx(), accountId, height, endHeight, null);
+    }
+
     static ScannedTransaction scanTransaction(TransactionRecord record) {
         Transaction transaction = null;
         String loadError = null;

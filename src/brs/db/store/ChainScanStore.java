@@ -18,4 +18,10 @@ public interface ChainScanStore {
      *         height below, if stored
      */
     List<BlockContext> loadBlocks(int fromHeight, int toHeight);
+
+    /** The number of blocks the account forged from {@code fromHeight} to {@code toHeight}, as {@code Blockchain.getBlocksCount}. */
+    int getBlocksCount(long accountId, int fromHeight, int toHeight);
+
+    /** The amount the account has committed, as {@code Blockchain.getCommittedAmount} without a skipped transaction. */
+    long getCommittedAmount(long accountId, int height, int endHeight);
 }

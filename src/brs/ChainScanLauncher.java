@@ -2,6 +2,7 @@ package brs;
 
 import brs.db.sql.ChainScanDatabase;
 import brs.db.sql.SqlChainScanStore;
+import brs.db.store.ChainScanStore;
 import brs.fluxcapacitor.FluxCapacitor;
 import brs.fluxcapacitor.FluxCapacitorImpl;
 import brs.props.PropertyService;
@@ -16,6 +17,7 @@ import brs.services.impl.chainscan.ChainScanSummary;
 import brs.services.impl.chainscan.ConsoleProgressBar;
 import brs.services.impl.chainscan.Finding;
 import brs.services.impl.chainscan.GenerationSignatureCheck;
+import brs.services.impl.chainscan.PocDeadlineCheck;
 import brs.services.impl.chainscan.Severity;
 import brs.services.impl.chainscan.TransactionBlockConsistencyCheck;
 import brs.services.impl.chainscan.TransactionRebuildCheck;
@@ -62,7 +64,8 @@ public final class ChainScanLauncher {
     private static final List<String> KNOWN_LIMITATIONS = List.of(
             "No replay of account state: balances, ATs, assets and other derived tables are not checked.",
             "Ids of unsigned system transactions are not recomputed: their bytes depend on the node's height.",
-            "Block signatures and PoC deadlines are not checked yet.");
+            "Block signatures are not checked yet.",
+            "POC_DEADLINE estimates the commitment from the stored chain, as a node with all previous blocks does.");
 
     private final PropertyService propertyService;
 
@@ -114,7 +117,7 @@ public final class ChainScanLauncher {
 
     private int scan(ChainScanDatabase database, SqlChainScanStore store, FluxCapacitor fluxCapacitor,
             Set<String> groups, int threads, int fromHeight, int toHeight, Path reportFile) throws Exception {
-        List<ChainCheck> checks = checks(fluxCapacitor, groups);
+        List<ChainCheck> checks = checks(store, fluxCapacitor, groups);
         Path acceptFile = ChainScanReportWriter.acceptCandidatesFile(reportFile);
         logger.info("Chain scan of {} heights {} to {} with checks {} on {} threads, report {}",
                 network(), fromHeight, toHeight, groups, threads, reportFile.toAbsolutePath());
@@ -141,7 +144,7 @@ public final class ChainScanLauncher {
         return new ChainScanServiceImpl(store, checks, threads, CHUNK_SIZE);
     }
 
-    private List<ChainCheck> checks(FluxCapacitor fluxCapacitor, Set<String> groups) {
+    private List<ChainCheck> checks(ChainScanStore store, FluxCapacitor fluxCapacitor, Set<String> groups) {
         List<ChainCheck> all = List.of(
                 new TransactionRebuildCheck(),
                 new TransactionSignatureCheck(),
@@ -149,7 +152,9 @@ public final class ChainScanLauncher {
                 new BlockIdCheck(),
                 new BlockPayloadCheck(fluxCapacitor, propertyService.getInt(Props.CASH_BACK_FACTOR)),
                 new ChainLinkCheck(),
-                new GenerationSignatureCheck(SignumCrypto.getInstance()));
+                new GenerationSignatureCheck(SignumCrypto.getInstance()),
+                new PocDeadlineCheck(fluxCapacitor, height -> generatorAt(store, height),
+                        propertyService.getInt(Props.BRS_CHECKPOINT_HEIGHT)));
         return all.stream().filter(check -> groups.contains(check.group())).toList();
     }
 
@@ -185,15 +190,16 @@ public final class ChainScanLauncher {
         Set<String> groups = new LinkedHashSet<>();
         for (String group : value.toLowerCase().split(",")) {
             switch (group.trim()) {
-                case "tx", "block" -> groups.add(group.trim());
+                case "tx", "block", "poc" -> groups.add(group.trim());
                 case "all" -> {
                     groups.add("tx");
                     groups.add("block");
+                    groups.add("poc");
                 }
-                case "poc", "basetarget" -> throw new IllegalArgumentException(
+                case "basetarget" -> throw new IllegalArgumentException(
                         "check group '" + group.trim() + "' is not implemented yet");
                 default -> throw new IllegalArgumentException("unknown check group '" + group.trim()
-                        + "', use tx, block or all");
+                        + "', use tx, block, poc or all");
             }
         }
         return groups;
@@ -246,6 +252,36 @@ public final class ChainScanLauncher {
         }
         logger.info("Report: {}", reportFile.toAbsolutePath());
         logger.info("Accept candidates (TX_SIGNATURE): {}", acceptFile.toAbsolutePath());
+    }
+
+    /**
+     * A generator that sees the stored chain as a node does whose last block is at {@code height}: flux
+     * values without a height are taken at that height, and there is no download cache.
+     */
+    private Generator generatorAt(ChainScanStore store, int height) {
+        Blockchain blockchain = storedChainUpTo(store, height);
+        return new GeneratorImpl(blockchain, null, null, null, new FluxCapacitorImpl(blockchain, propertyService));
+    }
+
+    /** The stored chain with its last block at {@code height}, for what {@code GeneratorImpl.estimateCommitment} reads. */
+    static Blockchain storedChainUpTo(ChainScanStore store, int height) {
+        return (Blockchain) Proxy.newProxyInstance(Blockchain.class.getClassLoader(), new Class<?>[] {Blockchain.class},
+                (proxy, method, args) -> switch (method.getName()) {
+                    case "getHeight" -> height;
+                    case "getBlocksCount" -> store.getBlocksCount((long) args[0], (int) args[1], (int) args[2]);
+                    case "getCommittedAmount" -> {
+                        if (args[3] != null) {
+                            throw new UnsupportedOperationException(
+                                    "Blockchain.getCommittedAmount with a skipped transaction is not available in chain scan mode");
+                        }
+                        yield store.getCommittedAmount((long) args[0], (int) args[1], (int) args[2]);
+                    }
+                    case "toString" -> "stored chain up to height " + height;
+                    case "hashCode" -> System.identityHashCode(proxy);
+                    case "equals" -> proxy == args[0];
+                    default -> throw new UnsupportedOperationException(
+                            "Blockchain." + method.getName() + " is not available in chain scan mode");
+                });
     }
 
     /**

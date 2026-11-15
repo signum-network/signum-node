@@ -97,6 +97,11 @@ helper candidate.
 Taking segments only after the probe means one unsuitable helper does not shrink the round to
 the feeder's segment.
 
+A probe result (cumulative difficulty and height) is reused for 60 s, as long as its height still
+covers the round. Each probe is a separate request with its own TCP connection; measured on
+mainnet, that is about 0.5 s on the critical path of every helper. A helper whose segment fails
+is probed again in the next round.
+
 ### 4.3 Segments
 
 - Round size: `total = min(K × n, feederHeight − cacheHeight, maxBlocks)`

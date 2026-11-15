@@ -7,8 +7,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -19,6 +21,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -27,6 +31,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import brs.peer.Peer;
@@ -38,9 +43,11 @@ class ParallelBlockFetcherTest {
     private static final int BLOCKS_PER_PEER = 100;
     private static final int PEERS = 4;
     private static final long TIMEOUT_MS = 500;
+    private static final long PROBE_TTL_MS = 60_000;
 
     private final List<Peer> candidates = new ArrayList<>();
     private final CountDownLatch neverReleased = new CountDownLatch(1);
+    private final AtomicLong clock = new AtomicLong();
     private ParallelBlockFetcher fetcher;
     private Peer feeder;
 
@@ -273,6 +280,76 @@ class ParallelBlockFetcherTest {
     }
 
     @Test
+    void fetch_GivenHelperProbedInPreviousRound_DoesNotProbeAgainWithinTtl() throws Exception {
+        // Arrange
+        Peer helper = peer(BETTER_DIFFICULTY, 5000, requested -> blocks(requested));
+        candidates.add(helper);
+        fetcher = fetcherWithClock();
+        fetcher.fetch(feeder, OUR_DIFFICULTY, 1000, 5000, Integer.MAX_VALUE);
+        clock.addAndGet(TimeUnit.SECONDS.toNanos(59));
+
+        // Act
+        List<ParallelBlockFetcher.Segment> segments = fetcher.fetch(feeder, OUR_DIFFICULTY, 1200, 5000,
+                Integer.MAX_VALUE);
+
+        // Assert
+        assertEquals(List.of(1200, 1300), fromHeights(segments));
+        verify(helper, times(1)).send(argThat(ParallelBlockFetcherTest::isProbe));
+    }
+
+    @Test
+    void fetch_GivenProbeOlderThanTtl_ProbesAgain() throws Exception {
+        Peer helper = peer(BETTER_DIFFICULTY, 5000, requested -> blocks(requested));
+        candidates.add(helper);
+        fetcher = fetcherWithClock();
+        fetcher.fetch(feeder, OUR_DIFFICULTY, 1000, 5000, Integer.MAX_VALUE);
+        clock.addAndGet(TimeUnit.SECONDS.toNanos(61));
+
+        fetcher.fetch(feeder, OUR_DIFFICULTY, 1200, 5000, Integer.MAX_VALUE);
+
+        verify(helper, times(2)).send(argThat(ParallelBlockFetcherTest::isProbe));
+    }
+
+    @Test
+    void fetch_GivenCachedHeightBelowNewRound_ProbesAgain() throws Exception {
+        // the cached height (1300) covers the first round but not the second (1300..1500)
+        List<Integer> heights = new ArrayList<>(List.of(1300, 5000));
+        Peer helper = mock(Peer.class);
+        when(helper.send(any())).thenAnswer(invocation -> {
+            JsonObject request = invocation.getArgument(0);
+            if (isProbe(request)) {
+                return difficultyResponse(BETTER_DIFFICULTY, heights.remove(0));
+            }
+            JsonObject response = new JsonObject();
+            response.add("nextBlocks", blocks(request.get("numBlocks").getAsInt()));
+            return response;
+        });
+        candidates.add(helper);
+        fetcher = fetcherWithClock();
+        fetcher.fetch(feeder, OUR_DIFFICULTY, 1100, 5000, 200);
+
+        List<ParallelBlockFetcher.Segment> segments = fetcher.fetch(feeder, OUR_DIFFICULTY, 1300, 5000, 200);
+
+        assertEquals(List.of(1300, 1400), fromHeights(segments));
+        verify(helper, times(2)).send(argThat(ParallelBlockFetcherTest::isProbe));
+    }
+
+    @Test
+    void fetch_GivenHelperSegmentFailed_ProbesAgainNextRound() throws Exception {
+        Peer helper = mock(Peer.class);
+        when(helper.send(any())).thenAnswer(invocation -> isProbe(invocation.getArgument(0))
+                ? difficultyResponse(BETTER_DIFFICULTY, 5000)
+                : null);
+        candidates.add(helper);
+        fetcher = fetcherWithClock();
+        fetcher.fetch(feeder, OUR_DIFFICULTY, 1000, 5000, Integer.MAX_VALUE);
+
+        fetcher.fetch(feeder, OUR_DIFFICULTY, 1100, 5000, Integer.MAX_VALUE);
+
+        verify(helper, times(2)).send(argThat(ParallelBlockFetcherTest::isProbe));
+    }
+
+    @Test
     void fetch_GivenInterrupt_ThrowsInterruptedException() {
         addHelpers(3);
         Thread.currentThread().interrupt();
@@ -299,6 +376,16 @@ class ParallelBlockFetcherTest {
     void maxBlocksAhead_GivenPocPlus_ReturnsHalfRollbackWindow() {
         assertEquals(220, ParallelBlockFetcher.maxBlocksAhead(true, 1000, 1500));
         assertEquals(Integer.MAX_VALUE, ParallelBlockFetcher.maxBlocksAhead(false, 1000, 1500));
+    }
+
+    private ParallelBlockFetcher fetcherWithClock() {
+        fetcher.shutdown();
+        return new ParallelBlockFetcher(() -> candidates, PEERS, BLOCKS_PER_PEER, TIMEOUT_MS, PROBE_TTL_MS, clock::get);
+    }
+
+    private static boolean isProbe(JsonElement request) {
+        return request != null && "getCumulativeDifficulty".equals(
+                request.getAsJsonObject().get("requestType").getAsString());
     }
 
     private void assertCutAfterFeederSegmentFor(JsonObject helperResponse) throws Exception {

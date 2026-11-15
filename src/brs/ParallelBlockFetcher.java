@@ -4,7 +4,9 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -13,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.LongSupplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,8 +46,15 @@ final class ParallelBlockFetcher {
     /** The default of the serving node; keeps a single response small. */
     static final int MAX_BLOCKS_PER_PEER = 100;
 
+    /** How long a helper's probe result (cumulative difficulty and height) is reused. */
+    static final long PROBE_TTL_MS = 60_000;
+
     /** Blocks downloaded from one peer, starting after the block at {@code fromHeight}. */
     record Segment(Peer peer, int fromHeight, JsonArray blocks) {
+    }
+
+    /** A helper's answer to {@code getCumulativeDifficulty}, reused for {@link #PROBE_TTL_MS}. */
+    private record ProbeResult(BigInteger cumulativeDifficulty, int height, long probedAtNanos) {
     }
 
     /** What a helper downloaded for the segment it took; {@code blocks} is null if the request failed. */
@@ -56,8 +66,18 @@ final class ParallelBlockFetcher {
     private final int blocksPerPeer;
     private final long timeoutMs;
     private final ThreadPoolExecutor executor;
+    private final long probeTtlNanos;
+    private final LongSupplier nanoClock;
+    private final Map<Peer, ProbeResult> probes = new ConcurrentHashMap<>();
 
     ParallelBlockFetcher(DownloadPeers downloadPeers, int peers, int blocksPerPeer, long timeoutMs) {
+        this(downloadPeers, peers, blocksPerPeer, timeoutMs, PROBE_TTL_MS, System::nanoTime);
+    }
+
+    ParallelBlockFetcher(DownloadPeers downloadPeers, int peers, int blocksPerPeer, long timeoutMs, long probeTtlMs,
+            LongSupplier nanoClock) {
+        this.probeTtlNanos = TimeUnit.MILLISECONDS.toNanos(probeTtlMs);
+        this.nanoClock = nanoClock;
         this.downloadPeers = downloadPeers;
         this.peers = Math.max(1, peers);
         this.blocksPerPeer = Math.max(1, Math.min(MAX_BLOCKS_PER_PEER, blocksPerPeer));
@@ -96,6 +116,7 @@ final class ParallelBlockFetcher {
         if (executor == null) {
             return List.of();
         }
+        probes.values().removeIf(this::isStale);
         int total = Math.min(Math.min(peers * blocksPerPeer, feederHeight - cacheHeight), maxBlocks);
         if (total <= 0) {
             return List.of();
@@ -173,6 +194,10 @@ final class ParallelBlockFetcher {
         } catch (RuntimeException e) {
             logger.debug("Parallel download: request to {} failed", helper.getPeerAddress(), e);
         }
+        if (blocks == null || blocks.isEmpty()) {
+            // probe it again next time, it may have dropped behind or gone away
+            probes.remove(helper);
+        }
         slots.get(slot).complete(new Claim(helper, blocks));
     }
 
@@ -226,23 +251,45 @@ final class ParallelBlockFetcher {
         }
     }
 
-    private static boolean qualifies(Peer peer, BigInteger ourCumulativeDifficulty, int segmentEndHeight) {
+    /**
+     * @return true if the helper reports a higher cumulative difficulty than ours and a height that
+     *     covers the round. Reuses a fresh probe result if its height still covers the round.
+     */
+    private boolean qualifies(Peer peer, BigInteger ourCumulativeDifficulty, int roundEndHeight) {
+        ProbeResult result = probes.get(peer);
+        if (result == null || isStale(result) || result.height() < roundEndHeight) {
+            result = probe(peer);
+            if (result == null) {
+                probes.remove(peer);
+                return false;
+            }
+            probes.put(peer, result);
+        }
+        return result.cumulativeDifficulty().compareTo(ourCumulativeDifficulty) > 0
+                && result.height() >= roundEndHeight;
+    }
+
+    private boolean isStale(ProbeResult result) {
+        return nanoClock.getAsLong() - result.probedAtNanos() > probeTtlNanos;
+    }
+
+    /** @return the helper's cumulative difficulty and height, or null if it gave no usable answer */
+    private ProbeResult probe(Peer peer) {
         JsonObject request = new JsonObject();
         request.addProperty("requestType", "getCumulativeDifficulty");
         JsonObject response = peer.send(JSON.prepareRequest(request));
         if (response == null) {
-            return false;
+            return null;
         }
         String difficulty = JSON.getAsString(response.get("cumulativeDifficulty"));
         JsonElement height = response.get("blockchainHeight");
         if (difficulty == null || height == null) {
-            return false;
+            return null;
         }
         try {
-            return new BigInteger(difficulty).compareTo(ourCumulativeDifficulty) > 0
-                    && JSON.getAsInt(height) >= segmentEndHeight;
+            return new ProbeResult(new BigInteger(difficulty), JSON.getAsInt(height), nanoClock.getAsLong());
         } catch (NumberFormatException e) {
-            return false;
+            return null;
         }
     }
 

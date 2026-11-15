@@ -493,7 +493,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         cacheHeight -> ParallelBlockFetcher.maxBlocksAhead(
                                 Signum.getFluxCapacitor().getValue(FluxValues.POC_PLUS, cacheHeight),
                                 blockchain.getHeight(), cacheHeight),
-                        isShutdown::get);
+                        this::isDownloadStopRequested);
 
         oclVerify = propertyService.getBoolean(Props.GPU_ACCELERATION); // use GPU acceleration ?
         oclUnverifiedQueue = propertyService.getInt(Props.GPU_UNVERIFIED_QUEUE);
@@ -1163,6 +1163,15 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         this.uploadedVolume.set(sumUploadedVolume);
         this.downloadedVolume.set(sumDownloadedVolume);
         blockListeners.notify(null, Event.NET_VOLUME_CHANGED);
+    }
+
+    /**
+     * @return true if block downloads must stop: shutdown, a manual pause, an automatic pause (trim,
+     *     pop-off, database checks) or downloads switched off. The download loop checks the same
+     *     conditions between rounds; chained rounds check them before each round.
+     */
+    boolean isDownloadStopRequested() {
+        return isShutdown.get() || getMoreBlocksPause.get() || getMoreBlocksAutoPause.get() || !getMoreBlocks.get();
     }
 
     private ParallelBlockFetcher createParallelBlockFetcher(PropertyService propertyService) {

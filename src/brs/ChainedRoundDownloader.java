@@ -17,7 +17,7 @@ import brs.util.DownloadCacheImpl;
  * has just served, so the handshake would confirm nothing new.
  * <p>
  * The chain ends at the first incomplete or stopped round, when the feeder is no longer far enough
- * ahead, the cache is full, the download window is closed, the node shuts down, or after
+ * ahead, the cache is full, the download window is closed, downloading is paused or stopped, or after
  * {@link #MAX_CHAINED_ROUNDS}. The next download round then starts with a fresh handshake and a new
  * random feeder.
  */
@@ -32,20 +32,21 @@ final class ChainedRoundDownloader {
     private final DownloadedBlockAppender appender;
     private final DownloadCacheImpl downloadCache;
     private final IntUnaryOperator maxBlocksAhead;
-    private final BooleanSupplier shuttingDown;
+    private final BooleanSupplier stopRequested;
 
     /**
      * @param maxBlocksAhead maps the cache tip height to the number of blocks the download window
      *                       still allows
-     * @param shuttingDown   true once the node is shutting down
+     * @param stopRequested  true when downloading must stop: shutdown, a manual or automatic
+     *                       download pause (trim, pop-off), or downloads switched off
      */
     ChainedRoundDownloader(ParallelBlockFetcher fetcher, DownloadedBlockAppender appender,
-            DownloadCacheImpl downloadCache, IntUnaryOperator maxBlocksAhead, BooleanSupplier shuttingDown) {
+            DownloadCacheImpl downloadCache, IntUnaryOperator maxBlocksAhead, BooleanSupplier stopRequested) {
         this.fetcher = fetcher;
         this.appender = appender;
         this.downloadCache = downloadCache;
         this.maxBlocksAhead = maxBlocksAhead;
-        this.shuttingDown = shuttingDown;
+        this.stopRequested = stopRequested;
     }
 
     /**
@@ -101,7 +102,7 @@ final class ChainedRoundDownloader {
     }
 
     private boolean mayContinue(int tipHeight, int feederHeight) {
-        return !shuttingDown.getAsBoolean()
+        return !stopRequested.getAsBoolean()
                 && fetcher.isApplicable(true, tipHeight, feederHeight)
                 && !downloadCache.isFull()
                 && maxBlocksAhead.applyAsInt(tipHeight) > 0;

@@ -163,15 +163,42 @@ class ChainedRoundDownloaderTest {
     }
 
     @Test
+    void continueAfter_GivenStopRequestedDuringTheChain_StopsBeforeTheNextRound() throws Exception {
+        // Arrange: endless complete rounds; a pause or shutdown is requested during the first chained round
+        endlessCompleteRounds();
+        when(appender.append(any(), any(), eq(true))).thenAnswer(invocation -> {
+            shuttingDown.set(true);
+            return completeAppend(invocation.getArgument(0));
+        });
+
+        // Act
+        continueAfter(round(1000, 100, 100), tipAt(1200));
+
+        // Assert
+        verify(fetcher, times(1)).fetch(eq(feeder), any(), anyInt(), eq(FEEDER_HEIGHT), anyInt());
+    }
+
+    @Test
+    void continueAfter_GivenWindowClosingDuringTheChain_StopsBeforeTheNextRound() throws Exception {
+        // Arrange: the window allows the first chained round, then closes
+        endlessCompleteRounds();
+        when(appender.append(any(), any(), eq(true))).thenAnswer(invocation -> {
+            maxBlocksAhead = 0;
+            return completeAppend(invocation.getArgument(0));
+        });
+
+        // Act
+        continueAfter(round(1000, 100, 100), tipAt(1200));
+
+        // Assert
+        verify(fetcher, times(1)).fetch(eq(feeder), any(), anyInt(), eq(FEEDER_HEIGHT), anyInt());
+    }
+
+    @Test
     void continueAfter_GivenEndlessCompleteRounds_StopsAfterEightChainedRounds() throws Exception {
         // Arrange: every fetch returns a full round and every append completes it
-        when(fetcher.fetch(eq(feeder), any(), anyInt(), eq(FEEDER_HEIGHT), anyInt()))
-                .thenAnswer(invocation -> round(invocation.getArgument(2), 100, 100));
-        when(appender.append(any(), any(), eq(true))).thenAnswer(invocation -> {
-            List<ParallelBlockFetcher.Segment> segments = invocation.getArgument(0);
-            ParallelBlockFetcher.Segment last = segments.get(segments.size() - 1);
-            return new DownloadedBlockAppender.Result(tipAt(last.fromHeight() + last.blocks().size()), false);
-        });
+        endlessCompleteRounds();
+        when(appender.append(any(), any(), eq(true))).thenAnswer(invocation -> completeAppend(invocation.getArgument(0)));
 
         // Act
         DownloadedBlockAppender.Result result = continueAfter(round(1000, 100, 100), tipAt(1200));
@@ -237,6 +264,17 @@ class ChainedRoundDownloaderTest {
             throws InterruptedException {
         return downloader.continueAfter(feeder, FEEDER_HEIGHT, round, new DownloadedBlockAppender.Result(tip, false),
                 importerLocks::incrementAndGet, importerReleases::incrementAndGet);
+    }
+
+    private void endlessCompleteRounds() throws InterruptedException {
+        when(fetcher.fetch(eq(feeder), any(), anyInt(), eq(FEEDER_HEIGHT), anyInt()))
+                .thenAnswer(invocation -> round(invocation.getArgument(2), 100, 100));
+    }
+
+    /** The result of appending all blocks of the segments, with the cache tip at the last one. */
+    private DownloadedBlockAppender.Result completeAppend(List<ParallelBlockFetcher.Segment> segments) {
+        ParallelBlockFetcher.Segment last = segments.get(segments.size() - 1);
+        return new DownloadedBlockAppender.Result(tipAt(last.fromHeight() + last.blocks().size()), false);
     }
 
     private void assertNoChaining(DownloadedBlockAppender.Result result, Block tip) throws InterruptedException {

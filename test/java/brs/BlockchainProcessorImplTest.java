@@ -324,6 +324,25 @@ class BlockchainProcessorImplTest {
         assertTrue(after.isEmpty());
     }
 
+    @Test
+    void isDownloadStopRequested_GivenManualPause_ReturnsTrue() {
+        BlockchainProcessorImpl processor = createProcessor();
+        assertFalse(processor.isDownloadStopRequested());
+
+        processor.setGetMoreBlocksPause(true);
+
+        assertTrue(processor.isDownloadStopRequested());
+    }
+
+    @Test
+    void isDownloadStopRequested_GivenDownloadsSwitchedOff_ReturnsTrue() {
+        BlockchainProcessorImpl processor = createProcessor();
+
+        processor.setGetMoreBlocks(false);
+
+        assertTrue(processor.isDownloadStopRequested());
+    }
+
     private static Set<Thread> fetcherThreads() {
         Set<Thread> threads = new HashSet<>();
         for (Thread thread : Thread.getAllStackTraces().keySet()) {

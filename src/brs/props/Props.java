@@ -133,6 +133,11 @@ public class Props {
     // Download blocks in batches without waiting for every block push, and pre-verify the next block
     // outside of the block importer lock; false restores the previous pipeline
     public static final Prop<Boolean> SYNC_DECOUPLED_PIPELINE = new Prop<>("node.experimental.decoupledSync", true);
+    // download consecutive block ranges from several peers at the same time during bulk sync
+    public static final Prop<Boolean> SYNC_PARALLEL_DOWNLOAD = new Prop<>("node.experimental.parallelDownload", true);
+    public static final Prop<Integer> SYNC_PARALLEL_DOWNLOAD_PEERS = new Prop<>("node.parallelDownload.peers", 4);
+    public static final Prop<Integer> SYNC_PARALLEL_DOWNLOAD_BLOCKS_PER_PEER =
+            new Prop<>("node.parallelDownload.blocksPerPeer", 100);
 
     // DB options
     public static final Prop<Boolean> DB_SKIP_CHECK = new Prop<>("DB.SkipCheck", false);

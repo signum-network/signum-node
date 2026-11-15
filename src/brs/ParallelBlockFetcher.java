@@ -7,10 +7,11 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -56,7 +57,7 @@ final class ParallelBlockFetcher {
         this.peers = Math.max(1, peers);
         this.blocksPerPeer = Math.max(1, Math.min(MAX_BLOCKS_PER_PEER, blocksPerPeer));
         this.timeoutMs = timeoutMs;
-        this.executor = this.peers > 1 ? Executors.newFixedThreadPool(this.peers, daemonThreads()) : null;
+        this.executor = this.peers > 1 ? startThreads(this.peers) : null;
     }
 
     /**
@@ -235,12 +236,16 @@ final class ParallelBlockFetcher {
         }
     }
 
-    private static java.util.concurrent.ThreadFactory daemonThreads() {
+    /** A fixed pool of daemon threads, started right away so a sync round does not wait for them. */
+    private static ExecutorService startThreads(int count) {
         AtomicInteger counter = new AtomicInteger();
-        return runnable -> {
-            Thread thread = new Thread(runnable, "ParallelBlockFetcher-" + counter.incrementAndGet());
-            thread.setDaemon(true);
-            return thread;
-        };
+        ThreadPoolExecutor pool = new ThreadPoolExecutor(count, count, 0L, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<>(), runnable -> {
+                    Thread thread = new Thread(runnable, "ParallelBlockFetcher-" + counter.incrementAndGet());
+                    thread.setDaemon(true);
+                    return thread;
+                });
+        pool.prestartAllCoreThreads();
+        return pool;
     }
 }

@@ -397,7 +397,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 transactionProcessor);
         this.batchPocVerifier = new BatchPocVerifier(blockService, generator,
                 propertyService.getInt(Props.BRS_CHECKPOINT_HEIGHT));
-        this.verifyBatchSize = Math.max(1, propertyService.getInt(Props.CPU_VERIFY_BATCH_SIZE));
+        this.verifyBatchSize = checkedVerifyBatchSize(propertyService, generator);
         this.forkProcessor = new ForkProcessor(blockchain, blockService, downloadCache, transactionProcessor,
                 new ForkChainOperations());
         this.generator = generator;
@@ -2796,6 +2796,26 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         public void pushBlock(Block block) throws BlockNotAcceptedException {
             BlockchainProcessorImpl.this.pushBlock(block);
         }
+    }
+
+    /**
+     * CPU.VerifyBatchSize, or 1 if the batched scoop calculation does not match the Java plot
+     * generation on this machine (see {@link BatchScoopSelfCheck}).
+     */
+    private int checkedVerifyBatchSize(PropertyService propertyService, Generator generator) {
+        int batchSize = Math.max(1, propertyService.getInt(Props.CPU_VERIFY_BATCH_SIZE));
+        if (batchSize == 1 || generator instanceof GeneratorImpl.MockGenerator) {
+            return batchSize; // the mock generator returns no real scoops, its hits are mocked
+        }
+        long start = System.currentTimeMillis();
+        if (!BatchScoopSelfCheck.matchesJavaPlots(generator, Signum.getFluxCapacitor())) {
+            logger.error("Batched scoop calculation does not match the Java reference on this machine, "
+                    + "verifying blocks one at a time (CPU.VerifyBatchSize = 1)");
+            return 1;
+        }
+        logger.info("Batched scoop calculation self check passed in {} ms, CPU.VerifyBatchSize = {}",
+                System.currentTimeMillis() - start, batchSize);
+        return batchSize;
     }
 
     private List<Block> popOffTo(Block commonBlock, List<Block> forkBlocks) {

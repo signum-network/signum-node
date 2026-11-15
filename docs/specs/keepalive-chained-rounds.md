@@ -40,6 +40,11 @@ two handshake requests confirm nothing new there.
 - With keep-alive off, the behaviour is exactly as today.
 - The serving side (Jetty, idle timeout `P2P.TimeoutIdle_ms`, default 30 s) already supports
   persistent HTTP/1.1 connections. Peers on older versions need no change.
+- The JDK drops an idle connection after 5 s if the server sends no `Keep-Alive` header, which
+  is shorter than the time between two requests to a helper peer during sync. With keep-alive on,
+  the node sets `http.keepAlive.time.server` to 20 s (below the peers' default idle timeout of
+  30 s), unless the operator has set it. Measured on mainnet: 46 instead of 95 connections to 19
+  peers in 90 s.
 - A pooled connection the server has already closed is retried once by the JDK for POST
   (`sun.net.http.retryPost`, default true). No extra handling is needed.
 

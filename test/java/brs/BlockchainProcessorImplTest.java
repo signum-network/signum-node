@@ -37,6 +37,7 @@ import com.google.gson.JsonObject;
 
 import java.io.ByteArrayOutputStream;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -382,6 +383,36 @@ class BlockchainProcessorImplTest {
         verify(clockDriftMonitor, never()).onBlockReceived(anyInt(), anyInt());
     }
 
+    @Test
+    void testIsScanning_GivenNoRollback_ReturnsFalse() {
+        BlockchainProcessorImpl processor = createProcessor();
+
+        assertFalse(processor.isScanning());
+    }
+
+    @Test
+    void testPopOffTo_GivenRollback_IsScanningWhileRollingBackAndFalseAfterwards() {
+        BlockchainProcessorImpl processor = createProcessorForRollback();
+        List<Boolean> scanningDuringRollback = new ArrayList<>();
+        processor.addListener(b -> scanningDuringRollback.add(processor.isScanning()),
+                BlockchainProcessor.Event.BLOCK_AUTO_POPPED);
+
+        processor.popOffTo(TIP_HEIGHT);
+
+        assertTrue(scanningDuringRollback.get(0));
+        assertFalse(processor.isScanning());
+    }
+
+    @Test
+    void testPopOffTo_GivenRollbackFails_ResetsIsScanning() {
+        BlockchainProcessorImpl processor = createProcessorForRollback();
+        doThrow(new IllegalStateException("db down")).when(stores).beginTransaction();
+
+        assertThrows(IllegalStateException.class, () -> processor.popOffTo(TIP_HEIGHT));
+
+        assertFalse(processor.isScanning());
+    }
+
     private static Set<Thread> fetcherThreads() {
         Set<Thread> threads = new HashSet<>();
         for (Thread thread : Thread.getAllStackTraces().keySet()) {
@@ -399,6 +430,15 @@ class BlockchainProcessorImplTest {
                 transactionService, downloadCache, mock(Generator.class), mock(StatisticsManagerImpl.class),
                 mock(DBCacheManagerImpl.class), accountService, mock(IndirectIncomingService.class),
                 mock(AliasService.class), clockDriftMonitor);
+    }
+
+    private BlockchainProcessorImpl createProcessorForRollback() {
+        when(propertyService.getBoolean(Props.DB_SKIP_CHECK)).thenReturn(true);
+        when(blockchain.getHeight()).thenReturn(TIP_HEIGHT);
+        when(blockchain.getBlockAtHeight(TIP_HEIGHT)).thenReturn(tip);
+        when(blockchain.hasBlock(tip.getId())).thenReturn(true);
+        when(blockDb.findLastBlock()).thenReturn(tip);
+        return createProcessor();
     }
 
     private Runnable createImporter() {

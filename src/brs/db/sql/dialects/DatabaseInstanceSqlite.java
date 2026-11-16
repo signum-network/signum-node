@@ -77,7 +77,7 @@ public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
     config.addDataSourceProperty("wal_autocheckpoint", String.valueOf(getWalAutocheckpoint()));
     config.addDataSourceProperty("journal_mode", getJournalMode());
     config.addDataSourceProperty("synchronous", getSynchronousMode());
-    config.addDataSourceProperty("cache_size", getCacheSize());
+    config.addDataSourceProperty("cache_size", String.valueOf(getCacheSize()));
     return config;
   }
 

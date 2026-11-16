@@ -260,6 +260,8 @@ public final class JSONData {
     json.addProperty("networkName", peer.getNetworkName());
     json.addProperty("blacklisted", peer.isBlacklisted());
     json.addProperty("lastUpdated", peer.getLastUpdated());
+    // Long: null (unknown) becomes JSON null
+    json.addProperty("clockOffsetMillis", peer.getClockOffsetMillis());
     return json;
   }
 

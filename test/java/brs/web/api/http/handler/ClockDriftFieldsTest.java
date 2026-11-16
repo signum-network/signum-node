@@ -49,4 +49,28 @@ class ClockDriftFieldsTest {
         assertTrue(response.get(ClockDriftFields.OFFSET).isJsonNull());
         assertFalse(response.get(ClockDriftFields.DRIFTING).getAsBoolean());
     }
+
+    @Test
+    void addTo_GivenPeerEstimate_AddsPeerOffsetAndSampleCount() {
+        when(monitor.getPeerOffsetSeconds()).thenReturn(OptionalInt.of(7));
+        when(monitor.getPeerSampleCount()).thenReturn(4);
+        JsonObject response = new JsonObject();
+
+        ClockDriftFields.addTo(response, monitor);
+
+        assertEquals(7, response.get(ClockDriftFields.PEER_OFFSET).getAsInt());
+        assertEquals(4, response.get(ClockDriftFields.PEER_SAMPLES).getAsInt());
+    }
+
+    @Test
+    void addTo_GivenNoPeerEstimate_AddsNullPeerOffset() {
+        when(monitor.getPeerOffsetSeconds()).thenReturn(OptionalInt.empty());
+        when(monitor.getPeerSampleCount()).thenReturn(2);
+        JsonObject response = new JsonObject();
+
+        ClockDriftFields.addTo(response, monitor);
+
+        assertTrue(response.get(ClockDriftFields.PEER_OFFSET).isJsonNull());
+        assertEquals(2, response.get(ClockDriftFields.PEER_SAMPLES).getAsInt());
+    }
 }

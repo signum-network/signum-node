@@ -74,6 +74,12 @@
                   "type": "integer",
                   "format": "int64"
                 },
+                "clockOffsetMillis": {
+                  "description": "Offset of this node's local clock against the peer's clock in milliseconds, measured in the last handshake and corrected for the round trip. Positive means the local clock is ahead. `null` if unknown, e.g. for peers that do not report their clock.",
+                  "type": "integer",
+                  "format": "int64",
+                  "nullable": true
+                },
                 "blacklisted": {
                   "description": "Indicator if the node is blacklisted.",
                   "type": "boolean"
@@ -90,6 +96,7 @@
                 "platform": "PC",
                 "blacklisted": false,
                 "lastUpdated": 251548859,
+                "clockOffsetMillis": -35,
                 "requestProcessingTime": 1
               }
             }

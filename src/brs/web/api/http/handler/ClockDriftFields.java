@@ -14,18 +14,26 @@ final class ClockDriftFields {
     static final String OFFSET = "clockOffsetSeconds";
     static final String DRIFTING = "clockDrifting";
     static final String THRESHOLD = "clockDriftWarnSeconds";
+    /** Median local clock offset against peers in seconds (negative: behind), or null while unknown. */
+    static final String PEER_OFFSET = "peerClockOffsetSeconds";
+    static final String PEER_SAMPLES = "peerClockSamples";
 
     private ClockDriftFields() {
     }
 
     static void addTo(JsonObject response, ClockDriftMonitor monitor) {
-        OptionalInt offset = monitor.getEstimatedOffsetSeconds();
-        if (offset.isPresent()) {
-            response.addProperty(OFFSET, offset.getAsInt());
-        } else {
-            response.add(OFFSET, JsonNull.INSTANCE);
-        }
+        addOffset(response, OFFSET, monitor.getEstimatedOffsetSeconds());
         response.addProperty(DRIFTING, monitor.isDrifting());
         response.addProperty(THRESHOLD, monitor.getThresholdSeconds());
+        addOffset(response, PEER_OFFSET, monitor.getPeerOffsetSeconds());
+        response.addProperty(PEER_SAMPLES, monitor.getPeerSampleCount());
+    }
+
+    private static void addOffset(JsonObject response, String field, OptionalInt offset) {
+        if (offset.isPresent()) {
+            response.addProperty(field, offset.getAsInt());
+        } else {
+            response.add(field, JsonNull.INSTANCE);
+        }
     }
 }

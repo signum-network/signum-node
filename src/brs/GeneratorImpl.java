@@ -407,7 +407,8 @@ public class GeneratorImpl implements Generator {
     long genesisTarget = Constants.INITIAL_BASE_TARGET;
     genesisTarget = (long)(genesisTarget / 1.83d); // account for Sodium deadlines
     long estimatedCapacityGb = genesisTarget*nBlocksMined*1000L/(capacityBaseTarget * capacityEstimationBlocks);
-    long minCapacity = fluxCapacitor.getValue(FluxValues.MIN_CAPACITY);
+    // at the previous block, not the last one: blocks can be checked before they reach the chain
+    long minCapacity = fluxCapacitor.getValue(FluxValues.MIN_CAPACITY, height);
     if(estimatedCapacityGb < minCapacity) {
       estimatedCapacityGb = minCapacity;
     }

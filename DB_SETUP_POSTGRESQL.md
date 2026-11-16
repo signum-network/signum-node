@@ -12,6 +12,23 @@ sudo apt-get update
 sudo apt-get -y install postgresql 
 ```
 
+# Setup Script
+
+After installing PostgreSQL, [`scripts/db/signum-postgres.sql`](scripts/db/signum-postgres.sql) does the initial set-up and the [performance tuning](#performance-tuning) below in one go, on any OS. It is safe to run again, for example to change the password.
+
+```bash
+# Linux
+sudo -u postgres psql -v password='choose-a-password' < scripts/db/signum-postgres.sql
+# macOS (Homebrew)
+psql -d postgres -v password='choose-a-password' -f scripts/db/signum-postgres.sql
+# Windows
+psql -U postgres -v password="choose-a-password" -f scripts\db\signum-postgres.sql
+```
+
+Restart PostgreSQL afterwards. For the testnet, add `-v db=signum_testnet`. The header of the script lists all options.
+
+The script is in this repository, not in the release ZIP. The sections below do the same by hand.
+
 # Initial Set up
 Once installed you need to run a least minimum initialization of your database server:
 

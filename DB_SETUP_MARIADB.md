@@ -14,6 +14,26 @@ __LINUX__: https://ubuntushell.com/install-mariadb-on-ubuntu/
 The MariaDb installation will ask to set up a password for the root user.
 This password can be anything you like.
 
+# Setup Script
+
+After installing MariaDB, a script can do the initial set-up and the [performance tuning](#performance-tuning) below in one go. It is safe to run again, for example to change the password.
+
+Linux and macOS (MariaDB from Homebrew):
+
+```bash
+scripts/db/signum-mariadb.sh
+```
+
+Windows, in a PowerShell started as administrator:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\db\signum-mariadb.ps1
+```
+
+Both ask for a password for the node's database user and print the lines for `node.properties`. For the testnet, add `--database signum_testnet` (Windows: `-Database signum_testnet`). `scripts/db/signum-mariadb.sh --help` and `Get-Help .\scripts\db\signum-mariadb.ps1 -Detailed` list all options.
+
+The scripts are in the [`scripts/db`](scripts/db) folder of this repository, not in the release ZIP. The sections below do the same by hand.
+
 # Initial Set Up
 
 Once installed you need to run a least minimum initialization of your database server:

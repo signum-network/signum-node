@@ -51,6 +51,13 @@ public interface ClockDriftMonitor {
      */
     OptionalInt getPeerOffsetSeconds();
 
+    /**
+     * Forgets a peer's clock sample, e.g. when the peer was dropped or no longer reports its clock.
+     *
+     * @param peerAddress the address the sample was recorded under
+     */
+    void removePeerClockSample(String peerAddress);
+
     /** @return the number of peers with a recent clock sample */
     int getPeerSampleCount();
 

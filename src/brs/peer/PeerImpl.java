@@ -302,6 +302,7 @@ final class PeerImpl implements Peer {
     @Override
     public void blacklist() {
         blacklistingTime.set(System.currentTimeMillis());
+        Peers.forgetClockSample(peerAddress);
         setState(State.NON_CONNECTED);
         Peers.notifyListeners(this, Peers.Event.BLACKLIST);
     }
@@ -494,14 +495,10 @@ final class PeerImpl implements Peer {
         return clockOffsetMillis.get();
     }
 
+    /** Stores the offset only; {@link Peers} reports it once the peer passed the handshake checks. */
     private void measureClock(long sentAt, long receivedAt, JsonObject response) {
         OptionalLong offset = PeerClock.offsetMillis(sentAt, receivedAt, response.get(PeerClock.FIELD));
-        if (offset.isEmpty()) {
-            clockOffsetMillis.set(null);
-            return;
-        }
-        clockOffsetMillis.set(offset.getAsLong());
-        Peers.reportClockSample(peerAddress, offset.getAsLong());
+        clockOffsetMillis.set(offset.isPresent() ? offset.getAsLong() : null);
     }
 
     @Override
@@ -511,7 +508,7 @@ final class PeerImpl implements Peer {
         JsonObject response = send(Peers.myPeerInfoRequest);
         long receivedAt = Peers.epochTimeMillis();
         if (response != null && response.get("error") == null) {
-            measureClock(sentAt, receivedAt, response);
+            clockOffsetMillis.set(null);
             application.set(JSON.getAsString(response.get("application")));
             setVersion(JSON.getAsString(response.get("version")));
             platform.set(JSON.getAsString(response.get("platform")));
@@ -534,6 +531,7 @@ final class PeerImpl implements Peer {
                 setAnnouncedAddress(peerAddress);
             }
 
+            measureClock(sentAt, receivedAt, response);
             setState(State.CONNECTED);
             Peers.updateAddress(this);
             lastUpdated.set(currentTime);

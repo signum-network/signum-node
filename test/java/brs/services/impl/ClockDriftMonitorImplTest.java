@@ -528,6 +528,45 @@ class ClockDriftMonitorImplTest {
         assertTrue(log.warnings.isEmpty());
     }
 
+    @Test
+    void removePeerClockSample_GivenRemovedPeer_DropsItsSample() {
+        monitor.onPeerClockSample("a", 60000);
+        monitor.onPeerClockSample("b", 60000);
+        monitor.onPeerClockSample("c", 60000);
+
+        monitor.removePeerClockSample("c");
+
+        assertEquals(2, monitor.getPeerSampleCount());
+        assertEquals(OptionalInt.empty(), monitor.getPeerOffsetSeconds());
+    }
+
+    @Test
+    void removePeerClockSample_GivenUnknownPeer_KeepsOthers() {
+        monitor.onPeerClockSample("a", 0);
+
+        monitor.removePeerClockSample("x");
+
+        assertEquals(1, monitor.getPeerSampleCount());
+    }
+
+    @Test
+    void onPeerClockSample_GivenMedianFlappingAroundThreshold_RateLimitsWarnings() {
+        // Arrange: warned, then back in range
+        monitor.onPeerClockSample("a", -60000);
+        monitor.onPeerClockSample("b", -60000);
+        monitor.onPeerClockSample("c", -60000);
+        monitor.onPeerClockSample("a", 0);
+        monitor.onPeerClockSample("b", 0);
+
+        // Act: beyond the threshold again, well within the warn interval
+        monitor.onPeerClockSample("a", -60000);
+        monitor.onPeerClockSample("b", -60000);
+
+        // Assert
+        assertEquals(List.of("peers:-60"), log.warnings);
+        assertTrue(monitor.isDrifting());
+    }
+
     /** Lets {@code count} block intervals pass, each ending with a tip block seen with the given offset. */
     private void receiveTipBlocks(int count, int offset) {
         if (!referenceSent) {

@@ -37,12 +37,12 @@ class GetInfoTest {
     }
 
     @Test
-    void processRequest_GivenRequest_RepliesWithEpochTimeMillis() {
+    void processRequest_GivenRequest_RepliesWithEpochTimeRoundedToSeconds() {
         // Act
         JsonObject response = getInfo.processRequest(new JsonObject(), mock(PeerImpl.class)).getAsJsonObject();
 
         // Assert
-        assertEquals(123456789L, response.get(PeerClock.FIELD).getAsLong());
+        assertEquals(123457000L, response.get(PeerClock.FIELD).getAsLong());
         assertEquals("BRS", response.get("application").getAsString());
     }
 
@@ -53,7 +53,7 @@ class GetInfoTest {
 
         JsonObject second = getInfo.processRequest(new JsonObject(), mock(PeerImpl.class)).getAsJsonObject();
 
-        assertEquals(987654321L, second.get(PeerClock.FIELD).getAsLong());
+        assertEquals(987654000L, second.get(PeerClock.FIELD).getAsLong());
         assertFalse(Peers.myPeerInfoResponse.getAsJsonObject().has(PeerClock.FIELD));
     }
 }

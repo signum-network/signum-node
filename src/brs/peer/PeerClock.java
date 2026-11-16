@@ -40,6 +40,31 @@ final class PeerClock {
         return OptionalLong.of(saturatedSubtract(midpoint, peerMillis));
     }
 
+    /**
+     * The host part of a peer address ({@code host}, {@code host:port}, {@code [ipv6]:port}), so one
+     * host on many ports counts as one peer.
+     */
+    static String hostOf(String peerAddress) {
+        if (peerAddress.startsWith("[")) {
+            int end = peerAddress.indexOf(']');
+            return end < 0 ? peerAddress : peerAddress.substring(0, end + 1);
+        }
+        int colon = peerAddress.indexOf(':');
+        // more than one colon: a bare IPv6 address without a port
+        if (colon < 0 || peerAddress.indexOf(':', colon + 1) >= 0) {
+            return peerAddress;
+        }
+        return peerAddress.substring(0, colon);
+    }
+
+    /**
+     * Rounds to whole seconds what this node tells others about its clock: enough for a drift
+     * warning, and less detail for fingerprinting a node by its clock skew.
+     */
+    static long roundToSecond(long millis) {
+        return Math.floorDiv(millis + 500, 1000) * 1000;
+    }
+
     private static long saturatedSubtract(long a, long b) {
         long difference = a - b;
         // overflow if a and b have different signs and the result's sign differs from a's

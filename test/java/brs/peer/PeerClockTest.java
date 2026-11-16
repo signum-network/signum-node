@@ -57,4 +57,21 @@ class PeerClockTest {
 
         assertEquals(OptionalLong.of(Long.MAX_VALUE - 1), offset);
     }
+
+    @Test
+    void hostOf_GivenAddresses_DropsThePort() {
+        assertEquals("1.2.3.4", PeerClock.hostOf("1.2.3.4:8123"));
+        assertEquals("1.2.3.4", PeerClock.hostOf("1.2.3.4"));
+        assertEquals("[2001:db8::1]", PeerClock.hostOf("[2001:db8::1]:8123"));
+        assertEquals("[2001:db8::1]", PeerClock.hostOf("[2001:db8::1]"));
+        assertEquals("node.example.com", PeerClock.hostOf("node.example.com:8123"));
+    }
+
+    @Test
+    void roundToSecond_GivenMillis_RoundsToTheNearestSecond() {
+        assertEquals(123457000L, PeerClock.roundToSecond(123456789L));
+        assertEquals(1000L, PeerClock.roundToSecond(1499L));
+        assertEquals(2000L, PeerClock.roundToSecond(1500L));
+        assertEquals(0L, PeerClock.roundToSecond(0L));
+    }
 }

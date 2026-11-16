@@ -88,6 +88,7 @@ public class ClockDriftMonitorImpl implements ClockDriftMonitor {
     private int lastArrival;
 
     private boolean warned;
+    private boolean everWarned;
     private int lastWarnTime;
 
     public ClockDriftMonitorImpl(TimeService timeService, int thresholdSeconds) {
@@ -171,7 +172,9 @@ public class ClockDriftMonitorImpl implements ClockDriftMonitor {
         boolean blocksBeyond = isBeyondThreshold(blockOffset);
         boolean peersBeyond = isBeyondThreshold(peerOffset);
         if (blocksBeyond || peersBeyond) {
-            if (!warned || now - lastWarnTime >= WARN_INTERVAL_SECONDS) {
+            // rate-limited across recoveries too, so an estimate flapping around the threshold
+            // cannot flood the log
+            if (!everWarned || (long) now - lastWarnTime >= WARN_INTERVAL_SECONDS) {
                 if (blocksBeyond) {
                     driftLog.warn(SOURCE_BLOCKS, blockOffset.getAsInt());
                 }
@@ -179,6 +182,7 @@ public class ClockDriftMonitorImpl implements ClockDriftMonitor {
                     driftLog.warn(SOURCE_PEERS, peerOffset.getAsInt());
                 }
                 warned = true;
+                everWarned = true;
                 lastWarnTime = now;
             }
         } else if (warned && (blockOffset.isPresent() || peerOffset.isPresent())) {
@@ -195,6 +199,11 @@ public class ClockDriftMonitorImpl implements ClockDriftMonitor {
         peerSamples.remove(peerAddress);
         peerSamples.put(peerAddress, new PeerSample(offsetMillis, now));
         reportSafely(now);
+    }
+
+    @Override
+    public synchronized void removePeerClockSample(String peerAddress) {
+        peerSamples.remove(peerAddress);
     }
 
     @Override

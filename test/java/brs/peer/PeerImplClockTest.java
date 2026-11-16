@@ -85,7 +85,7 @@ class PeerImplClockTest {
     }
 
     @Test
-    void connect_GivenPeerWithTime_StoresOffsetAndReportsIt() {
+    void connect_GivenPeerWithTime_StoresOffsetWithoutReportingIt() {
         // Arrange: the peer's clock is 5 s behind ours
         responseBody = "{\"application\":\"X\",\"" + PeerClock.FIELD + "\":" + (LOCAL_MILLIS - 5000) + "}";
 
@@ -96,7 +96,8 @@ class PeerImplClockTest {
         assertEquals(Peer.State.CONNECTED, peer.getState());
         assertEquals(5000L, peer.getClockOffsetMillis());
         assertEquals(4242, peer.getLastHandshake());
-        verify(monitor).onPeerClockSample(eq("127.0.0.1"), eq(5000L));
+        // reported by Peers once the peer passed the handshake checks
+        verify(monitor, never()).onPeerClockSample(anyString(), anyLong());
     }
 
     @Test
@@ -118,6 +119,23 @@ class PeerImplClockTest {
 
         assertNull(peer.getClockOffsetMillis());
         verify(monitor, never()).onPeerClockSample(anyString(), anyLong());
+    }
+
+    @Test
+    void connect_GivenChangedAnnouncedAddress_StoresNoOffset() {
+        responseBody = "{\"announcedAddress\":\"10.9.8.7:1234\",\"" + PeerClock.FIELD + "\":" + LOCAL_MILLIS + "}";
+
+        peer.connect(0);
+
+        assertEquals(Peer.State.NON_CONNECTED, peer.getState());
+        assertNull(peer.getClockOffsetMillis());
+    }
+
+    @Test
+    void blacklist_GivenPeer_ForgetsItsClockSample() {
+        peer.blacklist();
+
+        verify(monitor).removePeerClockSample("127.0.0.1");
     }
 
     private void handle(HttpExchange exchange) throws IOException {

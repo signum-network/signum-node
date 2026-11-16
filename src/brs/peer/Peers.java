@@ -502,14 +502,7 @@ public final class Peers {
                          * if we loose Internet connection
                          */
 
-                        if (!peer.isHigherOrEqualVersionThan(
-                                Signum.getFluxCapacitor().getValue(FluxValues.MIN_PEER_VERSION))
-                                || (peer.getNetworkName() != null
-                                        && !peer.getNetworkName().equals(propertyService.getString(Props.NETWORK_NAME)))
-                                || (peer.getState() != Peer.State.CONNECTED && !peer.isBlacklisted()
-                                        && peers.size() > maxNumberOfConnectedPublicPeers)) {
-                            removePeer(peer);
-                        } else {
+                        if (keepAfterHandshake(peer)) {
                             numConnectedPeers++;
                         }
                     }
@@ -526,15 +519,7 @@ public final class Peers {
                 for (Peer peer : peers.values()) {
                     if (isHandshakeDue(peer, now)) {
                         peer.connect(timeService.getEpochTime());
-                        if (!peer.isHigherOrEqualVersionThan(
-                                Signum.getFluxCapacitor().getValue(FluxValues.MIN_PEER_VERSION)) ||
-                                (peer.getNetworkName() != null && !peer.getNetworkName()
-                                        .equals(Signum.getPropertyService().getString(Props.NETWORK_NAME)))
-                                ||
-                                (peer.getState() != Peer.State.CONNECTED && !peer.isBlacklisted()
-                                        && peers.size() > maxNumberOfConnectedPublicPeers)) {
-                            removePeer(peer);
-                        }
+                        keepAfterHandshake(peer);
                     }
                 }
 
@@ -793,6 +778,7 @@ public final class Peers {
     }
 
     static Peer removePeer(Peer peer) {
+        forgetClockSample(peer.getPeerAddress());
         if (peer.getAnnouncedAddress() != null) {
             announcedAddresses.remove(peer.getAnnouncedAddress());
         }
@@ -808,15 +794,47 @@ public final class Peers {
         return peer.getState() == Peer.State.CONNECTED && (long) now - peer.getLastHandshake() > 3600;
     }
 
+    /**
+     * Applies the checks after a handshake: removes peers with a too old version or another
+     * network, and peers that did not connect while there are enough others. Only a peer that
+     * passed and is connected contributes its clock.
+     *
+     * @return false if the peer was removed
+     */
+    static boolean keepAfterHandshake(Peer peer) {
+        if (!peer.isHigherOrEqualVersionThan(Signum.getFluxCapacitor().getValue(FluxValues.MIN_PEER_VERSION))
+                || (peer.getNetworkName() != null
+                        && !peer.getNetworkName().equals(Signum.getPropertyService().getString(Props.NETWORK_NAME)))
+                || (peer.getState() != Peer.State.CONNECTED && !peer.isBlacklisted()
+                        && peers.size() > maxNumberOfConnectedPublicPeers)) {
+            removePeer(peer);
+            return false;
+        }
+        Long offset = peer.getClockOffsetMillis();
+        if (peer.getState() == Peer.State.CONNECTED && offset != null) {
+            reportClockSample(peer.getPeerAddress(), offset);
+        } else {
+            forgetClockSample(peer.getPeerAddress());
+        }
+        return true;
+    }
+
     static long epochTimeMillis() {
         return timeService.getEpochTimeMillis();
     }
 
-    /** Passes a peer's measured clock offset on to the drift monitor; diagnostic only. */
+    /** Passes a peer's measured clock offset on to the drift monitor, one sample per host; diagnostic only. */
     static void reportClockSample(String peerAddress, long offsetMillis) {
         ClockDriftMonitor monitor = clockDriftMonitor;
         if (monitor != null) {
-            monitor.onPeerClockSample(peerAddress, offsetMillis);
+            monitor.onPeerClockSample(PeerClock.hostOf(peerAddress), offsetMillis);
+        }
+    }
+
+    static void forgetClockSample(String peerAddress) {
+        ClockDriftMonitor monitor = clockDriftMonitor;
+        if (monitor != null) {
+            monitor.removePeerClockSample(PeerClock.hostOf(peerAddress));
         }
     }
 

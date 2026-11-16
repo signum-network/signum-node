@@ -51,9 +51,7 @@ Due to that model concurrent access is possible, i.e. one can run an additional 
 |------------|-----------|------|-------|--------|----------|----------------------------------|
 | H2         | ⭐         | ⭐⭐   | ⭐⭐⭐    | ⭐⭐⭐       | ❌         | Local Node                       |  
 | MariaDB    | ⭐⭐        | ⭐    | ⭐     | ⭐       |   ✅       | Public Node, Additional Services |  
-| PostgreSQL | ⭐⭐ (*)    | ⭐    | ⭐     | ⭐       |   ✅       | Public Node, Additional Services |  
-
-> (*) PostgreSQL support is still experimental. So, stability needs to be proven over time, but in general Postgres itself is as least stable/reliable as MariaDB.
+| PostgreSQL | ⭐⭐        | ⭐    | ⭐     | ⭐       |   ✅       | Public Node, Additional Services |  
 
 ## Mariadb Image via docker-compose
 Running the Mariadb image is similar to the H2 image, except it does not create a database docker volume. You must also provide the configuration in `node.properties` to point it to a mariadb instance.

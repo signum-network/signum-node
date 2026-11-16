@@ -240,7 +240,7 @@ class ClockDriftMonitorImplTest {
     void onBlockPushed_GivenFailingDriftLog_DoesNotThrow() {
         monitor = new ClockDriftMonitorImpl(time, THRESHOLD, new ClockDriftMonitorImpl.DriftLog() {
             @Override
-            public void warn(int offsetSeconds) {
+            public void warn(String source, int offsetSeconds) {
                 throw new IllegalStateException("logging broken");
             }
 
@@ -340,7 +340,7 @@ class ClockDriftMonitorImplTest {
     void onBlockPushed_GivenDriftAboveThreshold_WarnsOnce() {
         receiveTipBlocks(ClockDriftMonitorImpl.MIN_SAMPLES, -60);
 
-        assertEquals(List.of(-60), log.warnings);
+        assertEquals(List.of("blocks:-60"), log.warnings);
     }
 
     @Test
@@ -382,6 +382,148 @@ class ClockDriftMonitorImplTest {
         receiveTipBlocks(ClockDriftMonitorImpl.MIN_SAMPLES, -600);
 
         assertEquals(OptionalInt.of(-600), monitor.getEstimatedOffsetSeconds());
+        assertFalse(monitor.isDrifting());
+        assertTrue(log.warnings.isEmpty());
+    }
+
+    @Test
+    void getPeerOffset_GivenThreePeers_IsMedianInSeconds() {
+        monitor.onPeerClockSample("a", 1000);
+        monitor.onPeerClockSample("b", 2000);
+        monitor.onPeerClockSample("c", 60000);
+
+        assertEquals(OptionalInt.of(2), monitor.getPeerOffsetSeconds());
+        assertEquals(3, monitor.getPeerSampleCount());
+    }
+
+    @Test
+    void getPeerOffset_GivenNoSamples_IsEmpty() {
+        assertEquals(OptionalInt.empty(), monitor.getPeerOffsetSeconds());
+        assertEquals(0, monitor.getPeerSampleCount());
+    }
+
+    @Test
+    void getPeerOffset_GivenTwoPeers_IsEmpty() {
+        monitor.onPeerClockSample("a", 60000);
+        monitor.onPeerClockSample("b", 60000);
+
+        assertEquals(OptionalInt.empty(), monitor.getPeerOffsetSeconds());
+        assertEquals(2, monitor.getPeerSampleCount());
+        assertFalse(monitor.isDrifting());
+    }
+
+    @Test
+    void getPeerOffset_GivenFourPeers_AveragesMiddleSamplesAndRoundsTowardZero() {
+        monitor.onPeerClockSample("a", -9000);
+        monitor.onPeerClockSample("b", -2500);
+        monitor.onPeerClockSample("c", -1500);
+        monitor.onPeerClockSample("d", 9000);
+
+        assertEquals(OptionalInt.of(-2), monitor.getPeerOffsetSeconds());
+    }
+
+    @Test
+    void onPeerClockSample_GivenSamePeerTwice_KeepsLatestOnly() {
+        monitor.onPeerClockSample("a", 0);
+        monitor.onPeerClockSample("b", 0);
+        monitor.onPeerClockSample("c", 0);
+        monitor.onPeerClockSample("a", 90000);
+
+        assertEquals(3, monitor.getPeerSampleCount());
+        assertEquals(OptionalInt.of(0), monitor.getPeerOffsetSeconds());
+    }
+
+    @Test
+    void getPeerOffset_GivenExpiredSamples_IsEmpty() {
+        monitor.onPeerClockSample("a", 60000);
+        monitor.onPeerClockSample("b", 60000);
+        monitor.onPeerClockSample("c", 60000);
+
+        time.advance(ClockDriftMonitorImpl.PEER_SAMPLE_MAX_AGE_SECONDS + 1);
+
+        assertEquals(OptionalInt.empty(), monitor.getPeerOffsetSeconds());
+        assertEquals(0, monitor.getPeerSampleCount());
+        assertFalse(monitor.isDrifting());
+    }
+
+    @Test
+    void getPeerOffset_GivenSamplesAtMaxAge_KeepsThem() {
+        monitor.onPeerClockSample("a", 0);
+        monitor.onPeerClockSample("b", 0);
+        monitor.onPeerClockSample("c", 0);
+
+        time.advance(ClockDriftMonitorImpl.PEER_SAMPLE_MAX_AGE_SECONDS);
+
+        assertEquals(3, monitor.getPeerSampleCount());
+    }
+
+    @Test
+    void onPeerClockSample_GivenManyPeers_StaysBounded() {
+        for (int i = 0; i < 300; i++) {
+            monitor.onPeerClockSample("old" + i, -50000);
+        }
+        for (int i = 0; i < ClockDriftMonitorImpl.MAX_PEER_SAMPLES; i++) {
+            monitor.onPeerClockSample("new" + i, 0);
+        }
+
+        assertEquals(OptionalInt.of(0), monitor.getPeerOffsetSeconds());
+        assertEquals(ClockDriftMonitorImpl.MAX_PEER_SAMPLES, monitor.getPeerSampleCount());
+    }
+
+    @Test
+    void onPeerClockSample_GivenExtremeOffsets_DoesNotOverflow() {
+        monitor.onPeerClockSample("a", Long.MAX_VALUE);
+        monitor.onPeerClockSample("b", Long.MAX_VALUE);
+        monitor.onPeerClockSample("c", Long.MAX_VALUE);
+        monitor.onPeerClockSample("d", Long.MAX_VALUE);
+
+        assertEquals(OptionalInt.of(Integer.MAX_VALUE), monitor.getPeerOffsetSeconds());
+    }
+
+    @Test
+    void isDrifting_GivenPeersBeyondThreshold_IsTrueAndWarnsWithSource() {
+        monitor.onPeerClockSample("a", -60000);
+        monitor.onPeerClockSample("b", -60000);
+        monitor.onPeerClockSample("c", -60000);
+
+        assertTrue(monitor.isDrifting());
+        assertEquals(List.of("peers:-60"), log.warnings);
+    }
+
+    @Test
+    void isDrifting_GivenPeersBackInRange_LogsRecovery() {
+        monitor.onPeerClockSample("a", -60000);
+        monitor.onPeerClockSample("b", -60000);
+        monitor.onPeerClockSample("c", -60000);
+
+        monitor.onPeerClockSample("a", 0);
+        monitor.onPeerClockSample("b", 0);
+        monitor.onPeerClockSample("c", 0);
+
+        assertFalse(monitor.isDrifting());
+        assertEquals(List.of(0), log.recoveries);
+    }
+
+    @Test
+    void isDrifting_GivenBlocksInRangeButPeersBeyond_StaysDriftingWithoutRecovery() {
+        monitor.onPeerClockSample("a", -60000);
+        monitor.onPeerClockSample("b", -60000);
+        monitor.onPeerClockSample("c", -60000);
+
+        receiveTipBlocks(ClockDriftMonitorImpl.MIN_SAMPLES, 1);
+
+        assertTrue(monitor.isDrifting());
+        assertTrue(log.recoveries.isEmpty());
+    }
+
+    @Test
+    void isDrifting_GivenZeroThresholdAndPeersFarOff_IsDisabled() {
+        monitor = newMonitor(0);
+
+        monitor.onPeerClockSample("a", -600000);
+        monitor.onPeerClockSample("b", -600000);
+        monitor.onPeerClockSample("c", -600000);
+
         assertFalse(monitor.isDrifting());
         assertTrue(log.warnings.isEmpty());
     }
@@ -445,12 +587,12 @@ class ClockDriftMonitorImplTest {
     }
 
     private static final class RecordingLog implements ClockDriftMonitorImpl.DriftLog {
-        final List<Integer> warnings = new ArrayList<>();
+        final List<String> warnings = new ArrayList<>();
         final List<Integer> recoveries = new ArrayList<>();
 
         @Override
-        public void warn(int offsetSeconds) {
-            warnings.add(offsetSeconds);
+        public void warn(String source, int offsetSeconds) {
+            warnings.add(source + ":" + offsetSeconds);
         }
 
         @Override

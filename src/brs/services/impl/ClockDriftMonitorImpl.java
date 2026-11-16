@@ -28,6 +28,10 @@ import brs.services.TimeService;
  * block and arrived about as long after it as their timestamps are apart. During a bulk sync, old
  * blocks arrive far faster than their timestamps advance, so they are skipped. The check compares
  * differences only, so it works however far the local clock is off.
+ * <p>
+ * Next to that, it keeps the latest clock offset measured against each peer and reports their
+ * median once {@link #MIN_PEER_SAMPLES} peers have a recent one. A single peer with a bad clock, or
+ * a few lying ones, cannot move the median.
  */
 public class ClockDriftMonitorImpl implements ClockDriftMonitor {
 
@@ -43,12 +47,20 @@ public class ClockDriftMonitorImpl implements ClockDriftMonitor {
      * real-time check.
      */
     static final int MAX_TRACKED_ARRIVALS = 2 * Constants.MAX_ROLLBACK;
+    /** Peers re-measure hourly; a sample older than two rounds is stale. */
+    static final int PEER_SAMPLE_MAX_AGE_SECONDS = 7200;
+    static final int MIN_PEER_SAMPLES = 3;
+    /** Peers kept, least recently measured dropped first, so rotating addresses cannot grow it. */
+    static final int MAX_PEER_SAMPLES = 256;
+
+    static final String SOURCE_BLOCKS = "blocks";
+    static final String SOURCE_PEERS = "peers";
 
     private static final Logger logger = LoggerFactory.getLogger(ClockDriftMonitorImpl.class);
 
     /** Receives the operator notifications; production writes them to the log. */
     interface DriftLog {
-        void warn(int offsetSeconds);
+        void warn(String source, int offsetSeconds);
 
         void recovered(int offsetSeconds);
     }
@@ -62,6 +74,12 @@ public class ClockDriftMonitorImpl implements ClockDriftMonitor {
         @Override
         protected boolean removeEldestEntry(Map.Entry<Long, Arrival> eldest) {
             return size() > MAX_TRACKED_ARRIVALS;
+        }
+    };
+    private final Map<String, PeerSample> peerSamples = new LinkedHashMap<>() {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, PeerSample> eldest) {
+            return size() > MAX_PEER_SAMPLES;
         }
     };
     private boolean hasReference;
@@ -148,20 +166,66 @@ public class ClockDriftMonitorImpl implements ClockDriftMonitor {
     }
 
     private void report(int now) {
-        OptionalInt offset = getEstimatedOffsetSeconds();
-        if (offset.isEmpty()) {
-            return;
-        }
-        if (isBeyondThreshold(offset.getAsInt())) {
+        OptionalInt blockOffset = getEstimatedOffsetSeconds();
+        OptionalInt peerOffset = currentPeerOffsetSeconds(now);
+        boolean blocksBeyond = isBeyondThreshold(blockOffset);
+        boolean peersBeyond = isBeyondThreshold(peerOffset);
+        if (blocksBeyond || peersBeyond) {
             if (!warned || now - lastWarnTime >= WARN_INTERVAL_SECONDS) {
-                driftLog.warn(offset.getAsInt());
+                if (blocksBeyond) {
+                    driftLog.warn(SOURCE_BLOCKS, blockOffset.getAsInt());
+                }
+                if (peersBeyond) {
+                    driftLog.warn(SOURCE_PEERS, peerOffset.getAsInt());
+                }
                 warned = true;
                 lastWarnTime = now;
             }
-        } else if (warned) {
-            driftLog.recovered(offset.getAsInt());
+        } else if (warned && (blockOffset.isPresent() || peerOffset.isPresent())) {
+            // an estimate that went away (expired peer samples) is not a recovery
+            driftLog.recovered(blockOffset.isPresent() ? blockOffset.getAsInt() : peerOffset.getAsInt());
             warned = false;
         }
+    }
+
+    @Override
+    public synchronized void onPeerClockSample(String peerAddress, long offsetMillis) {
+        int now = timeService.getEpochTime();
+        // remove first, so an updated peer moves to the end and the least recently measured goes first
+        peerSamples.remove(peerAddress);
+        peerSamples.put(peerAddress, new PeerSample(offsetMillis, now));
+        reportSafely(now);
+    }
+
+    @Override
+    public synchronized OptionalInt getPeerOffsetSeconds() {
+        return currentPeerOffsetSeconds(timeService.getEpochTime());
+    }
+
+    @Override
+    public synchronized int getPeerSampleCount() {
+        dropExpiredPeerSamples(timeService.getEpochTime());
+        return peerSamples.size();
+    }
+
+    private OptionalInt currentPeerOffsetSeconds(int now) {
+        dropExpiredPeerSamples(now);
+        if (peerSamples.size() < MIN_PEER_SAMPLES) {
+            return OptionalInt.empty();
+        }
+        long[] sorted = peerSamples.values().stream().mapToLong(sample -> sample.offsetMillis).sorted().toArray();
+        int middle = sorted.length / 2;
+        long medianMillis = sorted.length % 2 == 1 ? sorted[middle] : floorMean(sorted[middle - 1], sorted[middle]);
+        return OptionalInt.of(saturatedInt(medianMillis / 1000));
+    }
+
+    /** The mean of two longs, rounded down, without overflow. */
+    private static long floorMean(long a, long b) {
+        return (a >> 1) + (b >> 1) + (a & b & 1);
+    }
+
+    private void dropExpiredPeerSamples(int now) {
+        peerSamples.values().removeIf(sample -> (long) now - sample.receivedAt > PEER_SAMPLE_MAX_AGE_SECONDS);
     }
 
     @Override
@@ -179,12 +243,11 @@ public class ClockDriftMonitorImpl implements ClockDriftMonitor {
 
     @Override
     public synchronized boolean isDrifting() {
-        OptionalInt offset = getEstimatedOffsetSeconds();
-        return offset.isPresent() && isBeyondThreshold(offset.getAsInt());
+        return isBeyondThreshold(getEstimatedOffsetSeconds()) || isBeyondThreshold(getPeerOffsetSeconds());
     }
 
-    private boolean isBeyondThreshold(int offset) {
-        return thresholdSeconds > 0 && Math.abs(offset) > thresholdSeconds;
+    private boolean isBeyondThreshold(OptionalInt offset) {
+        return thresholdSeconds > 0 && offset.isPresent() && Math.abs(offset.getAsInt()) > thresholdSeconds;
     }
 
     @Override
@@ -201,14 +264,24 @@ public class ClockDriftMonitorImpl implements ClockDriftMonitor {
         }
     }
 
+    private static final class PeerSample {
+        private final long offsetMillis;
+        private final int receivedAt;
+
+        private PeerSample(long offsetMillis, int receivedAt) {
+            this.offsetMillis = offsetMillis;
+            this.receivedAt = receivedAt;
+        }
+    }
+
     private static final class LoggingDriftLog implements DriftLog {
         private static final Logger logger = LoggerFactory.getLogger(ClockDriftMonitorImpl.class);
 
         @Override
-        public void warn(int offsetSeconds) {
-            logger.warn("Local clock seems to be {} by about {} s compared to the network. "
+        public void warn(String source, int offsetSeconds) {
+            logger.warn("Local clock seems to be {} by about {} s compared to the network (measured from {}). "
                     + "Blocks may get rejected and forging may suffer. Please enable time synchronization (NTP).",
-                    offsetSeconds < 0 ? "behind" : "ahead", Math.abs(offsetSeconds));
+                    offsetSeconds < 0 ? "behind" : "ahead", Math.abs(offsetSeconds), source);
         }
 
         @Override

@@ -157,7 +157,7 @@ public class Props {
     public static final Prop<Integer> DB_SQLITE_WAL_AUTOCHECKPOINT = new Prop<>("DB.SqliteWalAutocheckpoint", 10_000);
 
     // Cache Management
-    public static final Prop<Integer> DB_SQLITE_CACHE_SIZE = new Prop<>("DB.SqliteCacheSize", -131072);
+    public static final Prop<Integer> DB_SQLITE_CACHE_SIZE = new Prop<>("DB.SqliteCacheSize", -32768);
     public static final Prop<Integer> BRS_BLOCK_CACHE_MB = new Prop<>("node.blockCacheMB", 40);
     public static final Prop<Integer> BRS_AT_PROCESSOR_CACHE_BLOCK_COUNT = new Prop<>("node.atProcessorCacheBlockCount",
             1000);

@@ -3,9 +3,10 @@ package brs.services;
 import java.util.OptionalInt;
 
 /**
- * Estimates how far the local clock is off from the network, from the timestamps of new blocks.
- * Only blocks that passed validation count, so peers cannot feed it made-up timestamps.
- * Purely diagnostic: the estimate never affects block or transaction validation.
+ * Estimates how far the local clock is off from the network, from two independent sources: the
+ * timestamps of new blocks (only blocks that passed validation count) and the clocks peers report
+ * in the handshake. Purely diagnostic: the estimates never affect block or transaction validation
+ * and never adjust the local time.
  */
 public interface ClockDriftMonitor {
 
@@ -34,7 +35,33 @@ public interface ClockDriftMonitor {
      */
     OptionalInt getEstimatedOffsetSeconds();
 
-    /** @return true if the estimated offset is beyond the configured threshold */
+    /**
+     * Records the clock offset measured against a peer, now. Replaces that peer's earlier sample.
+     *
+     * @param peerAddress  the peer's address, one sample per address
+     * @param offsetMillis the local clock minus the peer's clock in milliseconds, corrected for the
+     *                     round trip; positive when the local clock is ahead
+     */
+    void onPeerClockSample(String peerAddress, long offsetMillis);
+
+    /**
+     * @return the median offset of the local clock against peers in seconds (rounded toward zero),
+     *         same sign as {@link #getEstimatedOffsetSeconds()}; empty until enough peers reported
+     *         a recent clock
+     */
+    OptionalInt getPeerOffsetSeconds();
+
+    /**
+     * Forgets a peer's clock sample, e.g. when the peer was dropped or no longer reports its clock.
+     *
+     * @param peerAddress the address the sample was recorded under
+     */
+    void removePeerClockSample(String peerAddress);
+
+    /** @return the number of peers with a recent clock sample */
+    int getPeerSampleCount();
+
+    /** @return true if the block-based or the peer-based offset is beyond the configured threshold */
     boolean isDrifting();
 
     /** @return the threshold in seconds above which the clock counts as drifting; 0 if disabled */

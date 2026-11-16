@@ -33,6 +33,7 @@ import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.OptionalLong;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -58,6 +59,8 @@ final class PeerImpl implements Peer {
     private final AtomicBoolean isOldVersion = new AtomicBoolean(false);
     private final AtomicLong blacklistingTime = new AtomicLong();
     private final AtomicReference<State> state = new AtomicReference<>();
+    private final AtomicReference<Long> clockOffsetMillis = new AtomicReference<>();
+    private final AtomicInteger lastHandshake = new AtomicInteger();
     private final AtomicLong downloadedVolume = new AtomicLong();
     private final AtomicLong uploadedVolume = new AtomicLong();
     private final AtomicInteger lastUpdated = new AtomicInteger();
@@ -299,6 +302,7 @@ final class PeerImpl implements Peer {
     @Override
     public void blacklist() {
         blacklistingTime.set(System.currentTimeMillis());
+        Peers.forgetClockSample(peerAddress);
         setState(State.NON_CONNECTED);
         Peers.notifyListeners(this, Peers.Event.BLACKLIST);
     }
@@ -482,10 +486,29 @@ final class PeerImpl implements Peer {
     }
 
     @Override
+    public int getLastHandshake() {
+        return lastHandshake.get();
+    }
+
+    @Override
+    public Long getClockOffsetMillis() {
+        return clockOffsetMillis.get();
+    }
+
+    /** Stores the offset only; {@link Peers} reports it once the peer passed the handshake checks. */
+    private void measureClock(long sentAt, long receivedAt, JsonObject response) {
+        OptionalLong offset = PeerClock.offsetMillis(sentAt, receivedAt, response.get(PeerClock.FIELD));
+        clockOffsetMillis.set(offset.isPresent() ? offset.getAsLong() : null);
+    }
+
+    @Override
     public void connect(int currentTime) {
         logger.debug("Trying to connect to {}", peerAddress);
+        long sentAt = Peers.epochTimeMillis();
         JsonObject response = send(Peers.myPeerInfoRequest);
+        long receivedAt = Peers.epochTimeMillis();
         if (response != null && response.get("error") == null) {
+            clockOffsetMillis.set(null);
             application.set(JSON.getAsString(response.get("application")));
             setVersion(JSON.getAsString(response.get("version")));
             platform.set(JSON.getAsString(response.get("platform")));
@@ -508,9 +531,11 @@ final class PeerImpl implements Peer {
                 setAnnouncedAddress(peerAddress);
             }
 
+            measureClock(sentAt, receivedAt, response);
             setState(State.CONNECTED);
             Peers.updateAddress(this);
             lastUpdated.set(currentTime);
+            lastHandshake.set(currentTime);
             logger.debug("Connected to {}", peerAddress);
         } else {
             setState(State.NON_CONNECTED);

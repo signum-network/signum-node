@@ -5,6 +5,7 @@ import brs.fluxcapacitor.FluxValues;
 import brs.props.PropertyService;
 import brs.props.Props;
 import brs.services.AccountService;
+import brs.services.ClockDriftMonitor;
 import brs.services.TimeService;
 import brs.util.JSON;
 import brs.util.Listener;
@@ -138,13 +139,16 @@ public final class Peers {
     private static final ExecutorService sendBlocksToPeersService = Executors.newCachedThreadPool();
     private static final ExecutorService blocksSendingService = Executors.newFixedThreadPool(10);
 
-    private static TimeService timeService;
+    static TimeService timeService;
+    static ClockDriftMonitor clockDriftMonitor;
     private static PropertyService propertyService;
 
     public static void init(TimeService timeService, AccountService accountService, Blockchain blockchain,
             TransactionProcessor transactionProcessor,
-            BlockchainProcessor blockchainProcessor, PropertyService propertyService, ThreadPool threadPool) {
+            BlockchainProcessor blockchainProcessor, PropertyService propertyService, ThreadPool threadPool,
+            ClockDriftMonitor clockDriftMonitor) {
         Peers.timeService = timeService;
+        Peers.clockDriftMonitor = clockDriftMonitor;
         Peers.propertyService = propertyService;
 
         myPlatform = propertyService.getString(Props.P2P_MY_PLATFORM);
@@ -498,14 +502,7 @@ public final class Peers {
                          * if we loose Internet connection
                          */
 
-                        if (!peer.isHigherOrEqualVersionThan(
-                                Signum.getFluxCapacitor().getValue(FluxValues.MIN_PEER_VERSION))
-                                || (peer.getNetworkName() != null
-                                        && !peer.getNetworkName().equals(propertyService.getString(Props.NETWORK_NAME)))
-                                || (peer.getState() != Peer.State.CONNECTED && !peer.isBlacklisted()
-                                        && peers.size() > maxNumberOfConnectedPublicPeers)) {
-                            removePeer(peer);
-                        } else {
+                        if (keepAfterHandshake(peer)) {
                             numConnectedPeers++;
                         }
                     }
@@ -520,17 +517,9 @@ public final class Peers {
 
                 int now = timeService.getEpochTime();
                 for (Peer peer : peers.values()) {
-                    if (peer.getState() == Peer.State.CONNECTED && now - peer.getLastUpdated() > 3600) {
+                    if (isHandshakeDue(peer, now)) {
                         peer.connect(timeService.getEpochTime());
-                        if (!peer.isHigherOrEqualVersionThan(
-                                Signum.getFluxCapacitor().getValue(FluxValues.MIN_PEER_VERSION)) ||
-                                (peer.getNetworkName() != null && !peer.getNetworkName()
-                                        .equals(Signum.getPropertyService().getString(Props.NETWORK_NAME)))
-                                ||
-                                (peer.getState() != Peer.State.CONNECTED && !peer.isBlacklisted()
-                                        && peers.size() > maxNumberOfConnectedPublicPeers)) {
-                            removePeer(peer);
-                        }
+                        keepAfterHandshake(peer);
                     }
                 }
 
@@ -789,10 +778,64 @@ public final class Peers {
     }
 
     static Peer removePeer(Peer peer) {
+        forgetClockSample(peer.getPeerAddress());
         if (peer.getAnnouncedAddress() != null) {
             announcedAddresses.remove(peer.getAnnouncedAddress());
         }
         return peers.remove(peer.getPeerAddress());
+    }
+
+    /**
+     * Re-handshakes connected peers hourly. Uses this node's own last handshake, not
+     * {@link Peer#getLastUpdated()}: a peer's inbound getInfo refreshes that too, but only an
+     * outbound handshake measures the peer's clock.
+     */
+    static boolean isHandshakeDue(Peer peer, int now) {
+        return peer.getState() == Peer.State.CONNECTED && (long) now - peer.getLastHandshake() > 3600;
+    }
+
+    /**
+     * Applies the checks after a handshake: removes peers with a too old version or another
+     * network, and peers that did not connect while there are enough others. Only a peer that
+     * passed and is connected contributes its clock.
+     *
+     * @return false if the peer was removed
+     */
+    static boolean keepAfterHandshake(Peer peer) {
+        if (!peer.isHigherOrEqualVersionThan(Signum.getFluxCapacitor().getValue(FluxValues.MIN_PEER_VERSION))
+                || (peer.getNetworkName() != null
+                        && !peer.getNetworkName().equals(Signum.getPropertyService().getString(Props.NETWORK_NAME)))
+                || (peer.getState() != Peer.State.CONNECTED && !peer.isBlacklisted()
+                        && peers.size() > maxNumberOfConnectedPublicPeers)) {
+            removePeer(peer);
+            return false;
+        }
+        Long offset = peer.getClockOffsetMillis();
+        if (peer.getState() == Peer.State.CONNECTED && offset != null) {
+            reportClockSample(peer.getPeerAddress(), offset);
+        } else {
+            forgetClockSample(peer.getPeerAddress());
+        }
+        return true;
+    }
+
+    static long epochTimeMillis() {
+        return timeService.getEpochTimeMillis();
+    }
+
+    /** Passes a peer's measured clock offset on to the drift monitor, one sample per host; diagnostic only. */
+    static void reportClockSample(String peerAddress, long offsetMillis) {
+        ClockDriftMonitor monitor = clockDriftMonitor;
+        if (monitor != null) {
+            monitor.onPeerClockSample(PeerClock.hostOf(peerAddress), offsetMillis);
+        }
+    }
+
+    static void forgetClockSample(String peerAddress) {
+        ClockDriftMonitor monitor = clockDriftMonitor;
+        if (monitor != null) {
+            monitor.removePeerClockSample(PeerClock.hostOf(peerAddress));
+        }
     }
 
     static void updateAddress(Peer peer) {

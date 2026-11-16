@@ -16,7 +16,8 @@ public interface Time {
     }
 
     public long getTimeInMillis() {
-      return System.currentTimeMillis() - Constants.EPOCH_BEGINNING + 500;
+      // no +500 here: that rounds getTime() to the nearest second
+      return System.currentTimeMillis() - Constants.EPOCH_BEGINNING;
     }
   }
 
@@ -40,7 +41,7 @@ public interface Time {
     }
 
     public long getTimeInMillis() {
-      return time + ((System.currentTimeMillis() - systemStartTime) / multiplier);
+      return time * 1000L + (System.currentTimeMillis() - systemStartTime) * multiplier;
     }
   }
 }

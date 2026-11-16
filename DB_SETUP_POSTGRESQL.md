@@ -78,21 +78,48 @@ DB.Username=signumnode
 DB.Password=s1gn00m_n0d3
 ```
 
-# Performance Optimisation 
-If you have a server or PC with > 8GB RAM, you should set the following values in the postgresql.conf file of the Postgres Server:
+# Performance Tuning
+
+With PostgreSQL's default settings, the database is the bottleneck while the node syncs. By default PostgreSQL waits for a disk flush on every commit, keeps only 128 MB of data in memory and starts a checkpoint after every 1 GB of WAL.
+
+Set the following in `postgresql.conf`:
 
 ```properties
-shared_buffers = 4GB                
-work_mem = 64MB                    
-maintenance_work_mem = 512MB      
-wal_writer_delay = 200ms           
-wal_buffers = 16MB                 
-checkpoint_timeout = 15min        
-checkpoint_completion_target = 0.9 
-synchronous_commit = off          
-effective_cache_size = 8GB  
+# Don't wait for the disk on every commit
+synchronous_commit = off
+# Fewer, larger checkpoints
+max_wal_size = 4GB
+checkpoint_timeout = 15min
+checkpoint_completion_target = 0.9
+# Memory for data and indexes; about 25% of the RAM
+shared_buffers = 1GB
 ```
 
-`effective_cache_size` should be max 75% of the  RAM
+Instead of editing the file, you can also run these as `ALTER SYSTEM SET ...` in `psql`, for example `ALTER SYSTEM SET synchronous_commit = off;`. This is handy in Docker.
 
-You need to restart the service after setting the values.
+Restart the service afterwards and check the values with `SHOW synchronous_commit;` and so on.
+
+On hosts with more than 8 GB RAM, you can give PostgreSQL more memory:
+
+```properties
+shared_buffers = 4GB
+effective_cache_size = 8GB
+work_mem = 64MB
+maintenance_work_mem = 512MB
+wal_buffers = 16MB
+```
+
+`effective_cache_size` should be at most 75% of the RAM.
+
+## What it brings
+
+Mainnet sync from an empty database with Signum Node 3.10 and PostgreSQL 17, blocks synced in 8 minutes (two runs each):
+
+| Settings | Blocks |
+|---|---|
+| PostgreSQL defaults | 23,835 / 24,704 |
+| First block of settings above | 36,719 / 37,814 |
+
+## What it costs
+
+With `synchronous_commit = off`, a power loss or a crash can lose the last fraction of a second of commits (up to three times `wal_writer_delay`, 200 ms by default). The database stays consistent. The node then starts at a slightly lower height and syncs the missing blocks again.

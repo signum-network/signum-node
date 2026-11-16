@@ -111,6 +111,8 @@ volumes:
 7. Run `docker-compose up -d` from the directory containing your dockercompose.yml file to start both servers.
 8. You may turn the servers off with `docker-compose down`
 
+The MariaDB defaults slow down syncing. See [Performance Tuning](../DB_SETUP_MARIADB.md#performance-tuning) for better settings. With the `linuxserver/mariadb` image, put them in `custom.cnf` in the config volume.
+
 ### More detail
 The `signumnetwork/node:latest-mariadb` image in the `node` service will create 1 docker volume by default: a `conf` volume, though it will show up in `docker volume ls` as a UUID. The above compose file overrides this volume and maps it to a filesystem location instead.
 

@@ -120,7 +120,7 @@ public final class ApiServlet extends HttpServlet {
     map.put("getBlock", new GetBlock(blockchain, blockService));
     map.put("getBlockId", new GetBlockId(blockchain));
     map.put("getBlocks", new GetBlocks(blockchain, blockService, blocksMaxTransactions));
-    map.put("getBlockchainStatus", new GetBlockchainStatus(blockchainProcessor, blockchain, timeService));
+    map.put("getBlockchainStatus", new GetBlockchainStatus(blockchainProcessor, blockchain, timeService, context.getClockDriftMonitor()));
     map.put("getConstants", GetConstants.instance);
     map.put("getDGSGoods", new GetDGSGoods(digitalGoodsStoreService));
     map.put("getDGSGood", new GetDGSGood(parameterService));
@@ -132,7 +132,7 @@ public final class ApiServlet extends HttpServlet {
     map.put("getPeer", GetPeer.instance);
     map.put("getMyPeerInfo", new GetMyPeerInfo(transactionProcessor));
     map.put("getPeers", GetPeers.instance);
-    map.put("getState", new GetState(blockchain, assetExchange, accountService, escrowService, aliasService, timeService, atService, generator, propertyService));
+    map.put("getState", new GetState(blockchain, assetExchange, accountService, escrowService, aliasService, timeService, atService, generator, propertyService, context.getClockDriftMonitor()));
     map.put("getTime", new GetTime(timeService));
     map.put("getTrades", new GetTrades(parameterService, assetExchange));
     map.put("getTradeJournal", new GetTradeJournal(parameterService, assetExchange));

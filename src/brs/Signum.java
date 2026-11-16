@@ -24,6 +24,7 @@ import brs.services.ATService;
 import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.BlockService;
+import brs.services.ClockDriftMonitor;
 import brs.services.DGSGoodsStoreService;
 import brs.services.EscrowService;
 import brs.services.IndirectIncomingService;
@@ -35,6 +36,7 @@ import brs.services.impl.ATServiceImpl;
 import brs.services.impl.AccountServiceImpl;
 import brs.services.impl.AliasServiceImpl;
 import brs.services.impl.BlockServiceImpl;
+import brs.services.impl.ClockDriftMonitorImpl;
 import brs.services.impl.DGSGoodsStoreServiceImpl;
 import brs.services.impl.EscrowServiceImpl;
 import brs.services.impl.IndirectIncomingServiceImpl;
@@ -359,6 +361,8 @@ public final class Signum {
             SignumUtils.setValueSuffix(propertyService.getString(Props.VALUE_SUFIX));
 
             final TimeService timeService = new TimeServiceImpl();
+            final ClockDriftMonitor clockDriftMonitor = new ClockDriftMonitorImpl(timeService,
+                    propertyService.getInt(Props.CLOCK_DRIFT_WARN_SECONDS));
 
             final DerivedTableManager derivedTableManager = new DerivedTableManager();
 
@@ -490,7 +494,8 @@ public final class Signum {
                     dbCacheManager,
                     accountService,
                     indirectIncomingService,
-                    aliasService);
+                    aliasService,
+                    clockDriftMonitor);
 
             downloadCache.setBlockchainProcessor(blockchainProcessor);
 
@@ -561,7 +566,8 @@ public final class Signum {
                     feeSuggestionCalculator,
                     deepLinkQrCodeGenerator,
                     indirectIncomingService,
-                    params));
+                    params,
+                    clockDriftMonitor));
             webServer.start();
 
             if (propertyService.getBoolean(Props.BRS_DEBUG_TRACE_ENABLED)) {

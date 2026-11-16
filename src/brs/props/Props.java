@@ -283,6 +283,7 @@ public class Props {
             "node.indirectIncomingService.enable", true);
 
     public static final Prop<Boolean> AUTO_POP_OFF_ENABLED = new Prop<>("node.autoPopOff.enable", true);
+    public static final Prop<Integer> CLOCK_DRIFT_WARN_SECONDS = new Prop<>("node.clockDriftWarnSeconds", 10);
     public static final Prop<Integer> PERSISTENCE_FAILURE_POP_OFF_THRESHOLD = new Prop<>(
             "node.persistenceFailure.popOffThreshold", 5);
     public static final Prop<Integer> PERSISTENCE_FAILURE_MAX_RETRY_DELAY = new Prop<>(

@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -37,6 +38,7 @@ import brs.fluxcapacitor.FluxCapacitor;
 import brs.fluxcapacitor.FluxValues;
 import brs.peer.Peer;
 import brs.services.BlockService;
+import brs.services.ClockDriftMonitor;
 import brs.util.DownloadCacheImpl;
 
 class DownloadedBlockAppenderTest {
@@ -46,6 +48,7 @@ class DownloadedBlockAppenderTest {
     private BlockService blockService;
     private FluxCapacitor fluxCapacitor;
     private ReentrantReadWriteLock blockImporterLock;
+    private ClockDriftMonitor clockDriftMonitor;
     private final List<Block> parsed = new ArrayList<>();
     private final AtomicLong cacheLastBlockId = new AtomicLong(10);
     private Long failingBlockId;
@@ -62,6 +65,7 @@ class DownloadedBlockAppenderTest {
         fluxCapacitor = mock(FluxCapacitor.class);
         when(fluxCapacitor.getValue(eq(FluxValues.POC_PLUS), anyInt())).thenReturn(false);
         blockImporterLock = new ReentrantReadWriteLock();
+        clockDriftMonitor = mock(ClockDriftMonitor.class);
         when(downloadCache.getLastBlockId()).thenAnswer(invocation -> cacheLastBlockId.get());
         when(downloadCache.addBlock(any())).thenAnswer(invocation -> {
             cacheLastBlockId.set(((Block) invocation.getArgument(0)).getId());
@@ -95,6 +99,25 @@ class DownloadedBlockAppenderTest {
         verify(parsed.get(3)).setPeer(peerB);
         InOrder order = inOrder(downloadCache);
         parsed.forEach(block -> order.verify(downloadCache).addBlock(block));
+    }
+
+    @Test
+    void append_GivenBlocksAddedToCache_RecordsArrivalBeforeAddingThem() {
+        appender(true).append(List.of(segment(peerA, 1000, 10, 11, 12)), commonBlock, true);
+
+        InOrder order = inOrder(clockDriftMonitor, downloadCache);
+        order.verify(clockDriftMonitor).onBlockReceived(11L);
+        order.verify(downloadCache).addBlock(parsed.get(0));
+        order.verify(clockDriftMonitor).onBlockReceived(12L);
+        order.verify(downloadCache).addBlock(parsed.get(1));
+    }
+
+    @Test
+    void append_GivenForkBlocks_RecordsTheirArrival() {
+        appender(true).append(List.of(segment(peerA, 1000, 10, 11, 12)), commonBlock, false);
+
+        verify(clockDriftMonitor).onBlockReceived(11L);
+        verify(clockDriftMonitor).onBlockReceived(12L);
     }
 
     @Test
@@ -249,7 +272,7 @@ class DownloadedBlockAppenderTest {
 
     private DownloadedBlockAppender appender(boolean decoupledSync) {
         return new DownloadedBlockAppender(downloadCache, blockchain, blockService, () -> fluxCapacitor,
-                this::parse, blockImporterLock, decoupledSync);
+                this::parse, blockImporterLock, decoupledSync, clockDriftMonitor);
     }
 
     private Block parse(JsonObject blockData, int height) throws SignumException.ValidationException {

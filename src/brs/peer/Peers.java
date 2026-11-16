@@ -5,6 +5,7 @@ import brs.fluxcapacitor.FluxValues;
 import brs.props.PropertyService;
 import brs.props.Props;
 import brs.services.AccountService;
+import brs.services.ClockDriftMonitor;
 import brs.services.TimeService;
 import brs.util.JSON;
 import brs.util.Listener;
@@ -138,13 +139,16 @@ public final class Peers {
     private static final ExecutorService sendBlocksToPeersService = Executors.newCachedThreadPool();
     private static final ExecutorService blocksSendingService = Executors.newFixedThreadPool(10);
 
-    private static TimeService timeService;
+    static TimeService timeService;
+    static ClockDriftMonitor clockDriftMonitor;
     private static PropertyService propertyService;
 
     public static void init(TimeService timeService, AccountService accountService, Blockchain blockchain,
             TransactionProcessor transactionProcessor,
-            BlockchainProcessor blockchainProcessor, PropertyService propertyService, ThreadPool threadPool) {
+            BlockchainProcessor blockchainProcessor, PropertyService propertyService, ThreadPool threadPool,
+            ClockDriftMonitor clockDriftMonitor) {
         Peers.timeService = timeService;
+        Peers.clockDriftMonitor = clockDriftMonitor;
         Peers.propertyService = propertyService;
 
         myPlatform = propertyService.getString(Props.P2P_MY_PLATFORM);
@@ -793,6 +797,18 @@ public final class Peers {
             announcedAddresses.remove(peer.getAnnouncedAddress());
         }
         return peers.remove(peer.getPeerAddress());
+    }
+
+    static long epochTimeMillis() {
+        return timeService.getEpochTimeMillis();
+    }
+
+    /** Passes a peer's measured clock offset on to the drift monitor; diagnostic only. */
+    static void reportClockSample(String peerAddress, long offsetMillis) {
+        ClockDriftMonitor monitor = clockDriftMonitor;
+        if (monitor != null) {
+            monitor.onPeerClockSample(peerAddress, offsetMillis);
+        }
     }
 
     static void updateAddress(Peer peer) {

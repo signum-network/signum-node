@@ -55,6 +55,9 @@ final class GetInfo implements PeerServlet.PeerRequestHandler {
 
         Peers.notifyListeners(peerImpl, Peers.Event.ADDED_ACTIVE_PEER);
 
-        return Peers.myPeerInfoResponse;
+        // a copy per request: the shared reply must not carry one peer's clock to the next
+        JsonObject response = JSON.cloneJson(Peers.myPeerInfoResponse).getAsJsonObject();
+        response.addProperty(PeerClock.FIELD, timeService.getEpochTimeMillis());
+        return response;
     }
 }

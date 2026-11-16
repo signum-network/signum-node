@@ -534,7 +534,8 @@ public final class Signum {
                     transactionProcessor,
                     blockchainProcessor,
                     propertyService,
-                    threadPool);
+                    threadPool,
+                    clockDriftMonitor);
             if (params != null) {
                 params.initialize(parameterService, accountService, apiTransactionManager);
                 TransactionType.setNetworkParameters(params);

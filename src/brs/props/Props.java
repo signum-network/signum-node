@@ -154,6 +154,7 @@ public class Props {
     public static final Prop<Boolean> DB_OPTIMIZE = new Prop<>("DB.Optimize", true);
     public static final Prop<String> DB_SQLITE_JOURNAL_MODE = new Prop<>("DB.SqliteJournalMode", "WAL");
     public static final Prop<String> DB_SQLITE_SYNCHRONOUS = new Prop<>("DB.SqliteSynchronous", "NORMAL");
+    public static final Prop<Integer> DB_SQLITE_WAL_AUTOCHECKPOINT = new Prop<>("DB.SqliteWalAutocheckpoint", 10_000);
 
     // Cache Management
     public static final Prop<Integer> DB_SQLITE_CACHE_SIZE = new Prop<>("DB.SqliteCacheSize", -131072);

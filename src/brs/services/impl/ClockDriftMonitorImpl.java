@@ -61,12 +61,14 @@ public class ClockDriftMonitorImpl implements ClockDriftMonitor {
 
     @Override
     public synchronized void onBlockReceived(int height, int blockTimestamp) {
-        if (hasReference && height <= lastHeight) {
-            return; // seen before (e.g. re-downloaded after a rejection) or a fork block
+        if (hasReference && height == lastHeight) {
+            return; // seen before, e.g. re-downloaded after a rejection: only the first sight counts
         }
+        // A lower height (pop-off, reorg, rejected fork) only resets the reference, so the monitor
+        // does not ignore honest blocks until the chain is back past the old height.
         int arrival = timeService.getEpochTime();
         if (hasReference && height == lastHeight + 1 && arrivedInRealTime(blockTimestamp, arrival)) {
-            addSample(arrival - blockTimestamp);
+            addSample(saturatedInt((long) arrival - blockTimestamp));
             report(arrival);
         }
         hasReference = true;
@@ -75,10 +77,20 @@ public class ClockDriftMonitorImpl implements ClockDriftMonitor {
         lastArrival = arrival;
     }
 
+    /**
+     * Blocks are sampled before validation, so the timestamps may be anything a peer sends. Valid
+     * chains have strictly increasing timestamps; without that, blocks sent in bulk would pass.
+     */
     private boolean arrivedInRealTime(int blockTimestamp, int arrival) {
-        int timestampGap = blockTimestamp - lastTimestamp;
-        int arrivalGap = arrival - lastArrival;
-        return arrivalGap >= timestampGap - ARRIVAL_TOLERANCE_SECONDS && 2 * arrivalGap >= timestampGap;
+        long timestampGap = (long) blockTimestamp - lastTimestamp;
+        long arrivalGap = (long) arrival - lastArrival;
+        return timestampGap > 0
+                && arrivalGap >= timestampGap - ARRIVAL_TOLERANCE_SECONDS
+                && 2 * arrivalGap >= timestampGap;
+    }
+
+    private static int saturatedInt(long value) {
+        return (int) Math.max(Integer.MIN_VALUE + 1L, Math.min(Integer.MAX_VALUE, value));
     }
 
     private void addSample(int offset) {
@@ -115,7 +127,7 @@ public class ClockDriftMonitorImpl implements ClockDriftMonitor {
         if (sorted.length % 2 == 1) {
             return OptionalInt.of(sorted[middle]);
         }
-        return OptionalInt.of(Math.floorDiv(sorted[middle - 1] + sorted[middle], 2));
+        return OptionalInt.of((int) Math.floorDiv((long) sorted[middle - 1] + sorted[middle], 2));
     }
 
     @Override

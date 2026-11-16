@@ -121,6 +121,45 @@ class ClockDriftMonitorImplTest {
     }
 
     @Test
+    void onBlockReceived_GivenBulkBlocksWithEqualTimestamps_TakesNoSamples() {
+        // invalid blocks a peer could serve before validation: all with the same timestamp
+        for (int i = 0; i < 50; i++) {
+            height++;
+            monitor.onBlockReceived(height, blockTimestamp + 3600);
+        }
+
+        assertEquals(OptionalInt.empty(), monitor.getEstimatedOffsetSeconds());
+    }
+
+    @Test
+    void onBlockReceived_GivenPopOffBelowLastHeight_SamplesHonestBlocksAgain() {
+        // a forged run moved the reference far ahead, then got rejected and popped off
+        receiveTipBlocks(1, 0);
+        int forkHeight = height;
+        monitor.onBlockReceived(forkHeight + 1000, blockTimestamp + 1000 * BLOCK_INTERVAL);
+
+        // honest blocks continue right after the fork point
+        height = forkHeight;
+        receiveTipBlocks(ClockDriftMonitorImpl.MIN_SAMPLES + 1, 3);
+
+        assertEquals(OptionalInt.of(3), monitor.getEstimatedOffsetSeconds());
+    }
+
+    @Test
+    void onBlockReceived_GivenExtremeTimestamps_DoesNotOverflow() {
+        time.set(Integer.MAX_VALUE - 10);
+        monitor = newMonitor(THRESHOLD);
+        monitor.onBlockReceived(height, Integer.MIN_VALUE);
+        for (int i = 1; i <= ClockDriftMonitorImpl.MIN_SAMPLES; i++) {
+            time.set(Integer.MAX_VALUE - 10 + i);
+            monitor.onBlockReceived(height + i, Integer.MIN_VALUE + i);
+        }
+
+        assertTrue(monitor.getEstimatedOffsetSeconds().getAsInt() > 0);
+        assertTrue(monitor.isDrifting());
+    }
+
+    @Test
     void onBlockReceived_GivenSameHeightAgain_TakesNoSample() {
         receiveTipBlocks(ClockDriftMonitorImpl.MIN_SAMPLES - 1, 0);
         time.advance(BLOCK_INTERVAL);

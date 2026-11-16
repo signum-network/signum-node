@@ -2818,6 +2818,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         synchronized (downloadCache) {
             synchronized (transactionProcessor.getUnconfirmedTransactionsSyncObj()) {
                 Block block = blockchain.getLastBlock();
+                isScanning.set(true);
                 try {
                     stores.beginTransaction();
                     int blockHeight = block.getHeight();
@@ -2869,6 +2870,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                     blockListeners.notify(block, Event.BLOCK_AUTO_POPPED);
                     throw e;
                 } finally {
+                    isScanning.set(false);
                     dbCacheManager.flushCache();
                     downloadCache.resetCache();
                     atProcessorCache.reset();

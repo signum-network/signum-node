@@ -1,13 +1,15 @@
 package brs.services.impl;
 
 import java.util.ArrayDeque;
-import java.util.Arrays;
 import java.util.Deque;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.OptionalInt;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import brs.Constants;
 import brs.services.ClockDriftMonitor;
 import brs.services.TimeService;
 
@@ -16,18 +18,33 @@ import brs.services.TimeService;
  * last {@link #WINDOW_SIZE} fresh blocks. The median keeps single forgers with a bad clock from
  * moving the estimate.
  * <p>
- * Only blocks that arrive in real time count. A block counts if it follows the previous block seen
- * and arrived about as long after it as their timestamps are apart. During a bulk sync, old blocks
- * arrive far faster than their timestamps advance, so they are skipped. The check compares
+ * A sample is taken when a block is pushed, so only validated blocks count, but it uses the time
+ * the block first arrived. A clock that is behind makes the node reject fresh blocks as "from the
+ * future", pop off their parents and push both again later; the first arrivals still give the right
+ * offset. Arrivals are recorded per block id for every block parsed from a peer, whether or not it
+ * enters the download cache, so a fake block announced first cannot delay the honest one's arrival.
+ * <p>
+ * Only blocks that arrived in real time count. A block counts if it follows the previous pushed
+ * block and arrived about as long after it as their timestamps are apart. During a bulk sync, old
+ * blocks arrive far faster than their timestamps advance, so they are skipped. The check compares
  * differences only, so it works however far the local clock is off.
  */
 public class ClockDriftMonitorImpl implements ClockDriftMonitor {
 
     static final int WINDOW_SIZE = 15;
     static final int MIN_SAMPLES = 5;
-    /** How much earlier than its timestamp suggests a block may arrive and still count as fresh. */
+    /** How much earlier or later than its timestamp suggests a block may arrive and still count. */
     static final int ARRIVAL_TOLERANCE_SECONDS = 30;
     static final int WARN_INTERVAL_SECONDS = 600;
+    /**
+     * First arrivals kept, oldest dropped first, so blocks that never get pushed cannot grow it. Enough
+     * for the tip blocks and the blocks a pop-off pushes again. Losing an entry (bulk sync far ahead,
+     * a flood of junk blocks) only costs a sample: a late arrival recorded again fails the
+     * real-time check.
+     */
+    static final int MAX_TRACKED_ARRIVALS = 2 * Constants.MAX_ROLLBACK;
+
+    private static final Logger logger = LoggerFactory.getLogger(ClockDriftMonitorImpl.class);
 
     /** Receives the operator notifications; production writes them to the log. */
     interface DriftLog {
@@ -41,6 +58,12 @@ public class ClockDriftMonitorImpl implements ClockDriftMonitor {
     private final DriftLog driftLog;
 
     private final Deque<Integer> samples = new ArrayDeque<>(WINDOW_SIZE);
+    private final Map<Long, Arrival> firstArrivals = new LinkedHashMap<>() {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<Long, Arrival> eldest) {
+            return size() > MAX_TRACKED_ARRIVALS;
+        }
+    };
     private boolean hasReference;
     private int lastHeight;
     private int lastTimestamp;
@@ -60,16 +83,30 @@ public class ClockDriftMonitorImpl implements ClockDriftMonitor {
     }
 
     @Override
-    public synchronized void onBlockReceived(int height, int blockTimestamp) {
-        if (hasReference && height == lastHeight) {
-            return; // seen before, e.g. re-downloaded after a rejection: only the first sight counts
+    public synchronized void onBlockReceived(long blockId) {
+        firstArrivals.putIfAbsent(blockId, new Arrival(timeService.getEpochTime()));
+    }
+
+    @Override
+    public synchronized void onBlockPushed(long blockId, int height, int blockTimestamp) {
+        // kept after the push: a popped-off block pushed again must keep its first arrival
+        Arrival firstArrival = firstArrivals.get(blockId);
+        if (firstArrival == null) {
+            // a block this node forged itself was never received: it sets the reference, but its
+            // timestamp comes from the local clock, so it never becomes a sample, even when a
+            // peer echoes it back and it is pushed again after a pop-off
+            firstArrival = new Arrival(timeService.getEpochTime());
+            firstArrival.sampled = true;
+            firstArrivals.put(blockId, firstArrival);
         }
-        // A lower height (pop-off, reorg, rejected fork) only resets the reference, so the monitor
-        // does not ignore honest blocks until the chain is back past the old height.
-        int arrival = timeService.getEpochTime();
-        if (hasReference && height == lastHeight + 1 && arrivedInRealTime(blockTimestamp, arrival)) {
+        int arrival = firstArrival.time;
+        // a height other than the next one (pop-off, reorg) only resets the reference; a block
+        // pushed again after a pop-off was sampled already
+        if (!firstArrival.sampled && hasReference && height == lastHeight + 1
+                && arrivedInRealTime(blockTimestamp, arrival)) {
+            firstArrival.sampled = true;
             addSample(saturatedInt((long) arrival - blockTimestamp));
-            report(arrival);
+            reportSafely(timeService.getEpochTime());
         }
         hasReference = true;
         lastHeight = height;
@@ -78,14 +115,15 @@ public class ClockDriftMonitorImpl implements ClockDriftMonitor {
     }
 
     /**
-     * Blocks are sampled before validation, so the timestamps may be anything a peer sends. Valid
-     * chains have strictly increasing timestamps; without that, blocks sent in bulk would pass.
+     * The block arrived about as long after the reference as their timestamps are apart: not early
+     * (bulk sync) and not late (missed announcement, arrival recorded again). Valid chains have
+     * strictly increasing timestamps; the check relies on a positive gap.
      */
     private boolean arrivedInRealTime(int blockTimestamp, int arrival) {
         long timestampGap = (long) blockTimestamp - lastTimestamp;
         long arrivalGap = (long) arrival - lastArrival;
         return timestampGap > 0
-                && arrivalGap >= timestampGap - ARRIVAL_TOLERANCE_SECONDS
+                && Math.abs(arrivalGap - timestampGap) <= ARRIVAL_TOLERANCE_SECONDS
                 && 2 * arrivalGap >= timestampGap;
     }
 
@@ -100,12 +138,21 @@ public class ClockDriftMonitorImpl implements ClockDriftMonitor {
         samples.addLast(offset);
     }
 
+    /** Runs on block push: a failure of this diagnostic must never get in the way of block processing. */
+    private void reportSafely(int now) {
+        try {
+            report(now);
+        } catch (RuntimeException e) {
+            logger.debug("Clock drift report failed", e);
+        }
+    }
+
     private void report(int now) {
         OptionalInt offset = getEstimatedOffsetSeconds();
         if (offset.isEmpty()) {
             return;
         }
-        if (isDrifting()) {
+        if (isBeyondThreshold(offset.getAsInt())) {
             if (!warned || now - lastWarnTime >= WARN_INTERVAL_SECONDS) {
                 driftLog.warn(offset.getAsInt());
                 warned = true;
@@ -132,16 +179,26 @@ public class ClockDriftMonitorImpl implements ClockDriftMonitor {
 
     @Override
     public synchronized boolean isDrifting() {
-        if (thresholdSeconds == 0) {
-            return false;
-        }
         OptionalInt offset = getEstimatedOffsetSeconds();
-        return offset.isPresent() && Math.abs(offset.getAsInt()) > thresholdSeconds;
+        return offset.isPresent() && isBeyondThreshold(offset.getAsInt());
+    }
+
+    private boolean isBeyondThreshold(int offset) {
+        return thresholdSeconds > 0 && Math.abs(offset) > thresholdSeconds;
     }
 
     @Override
     public int getThresholdSeconds() {
         return thresholdSeconds;
+    }
+
+    private static final class Arrival {
+        private final int time;
+        private boolean sampled;
+
+        private Arrival(int time) {
+            this.time = time;
+        }
     }
 
     private static final class LoggingDriftLog implements DriftLog {

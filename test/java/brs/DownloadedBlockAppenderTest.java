@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -101,19 +102,22 @@ class DownloadedBlockAppenderTest {
     }
 
     @Test
-    void append_GivenBlocksAddedToCache_ReportsThemToClockDriftMonitor() {
+    void append_GivenBlocksAddedToCache_RecordsArrivalBeforeAddingThem() {
         appender(true).append(List.of(segment(peerA, 1000, 10, 11, 12)), commonBlock, true);
 
-        InOrder order = inOrder(clockDriftMonitor);
-        order.verify(clockDriftMonitor).onBlockReceived(1001, 110);
-        order.verify(clockDriftMonitor).onBlockReceived(1002, 120);
+        InOrder order = inOrder(clockDriftMonitor, downloadCache);
+        order.verify(clockDriftMonitor).onBlockReceived(11L);
+        order.verify(downloadCache).addBlock(parsed.get(0));
+        order.verify(clockDriftMonitor).onBlockReceived(12L);
+        order.verify(downloadCache).addBlock(parsed.get(1));
     }
 
     @Test
-    void append_GivenForkBlocks_DoesNotReportThemToClockDriftMonitor() {
+    void append_GivenForkBlocks_RecordsTheirArrival() {
         appender(true).append(List.of(segment(peerA, 1000, 10, 11, 12)), commonBlock, false);
 
-        verify(clockDriftMonitor, never()).onBlockReceived(anyInt(), anyInt());
+        verify(clockDriftMonitor).onBlockReceived(11L);
+        verify(clockDriftMonitor).onBlockReceived(12L);
     }
 
     @Test
@@ -280,7 +284,6 @@ class DownloadedBlockAppenderTest {
         when(block.getId()).thenReturn(id);
         when(block.getPreviousBlockId()).thenReturn(blockData.get("prev").getAsLong());
         when(block.getHeight()).thenReturn(height);
-        when(block.getTimestamp()).thenReturn((int) id * 10);
         parsed.add(block);
         return block;
     }

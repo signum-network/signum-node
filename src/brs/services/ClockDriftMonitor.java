@@ -4,17 +4,28 @@ import java.util.OptionalInt;
 
 /**
  * Estimates how far the local clock is off from the network, from the timestamps of new blocks.
+ * Only blocks that passed validation count, so peers cannot feed it made-up timestamps.
  * Purely diagnostic: the estimate never affects block or transaction validation.
  */
 public interface ClockDriftMonitor {
 
     /**
-     * Records that a block extending the known chain was seen for the first time, now.
+     * Records that a block was received from a peer, now. Only the first arrival of a block counts.
+     * The block is not validated yet, so this only notes the arrival time.
      *
+     * @param blockId the block's id
+     */
+    void onBlockReceived(long blockId);
+
+    /**
+     * Takes a sample once a block passed validation and became the new tip, using the time it
+     * first arrived.
+     *
+     * @param blockId        the block's id
      * @param height         the block's height
      * @param blockTimestamp the block's timestamp (epoch seconds)
      */
-    void onBlockReceived(int height, int blockTimestamp);
+    void onBlockPushed(long blockId, int height, int blockTimestamp);
 
     /**
      * @return the estimated offset of the local clock in seconds, positive when the local clock is

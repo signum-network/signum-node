@@ -601,6 +601,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 block -> transactionProcessor.revalidateUnconfirmedTransactions(),
                 Event.BLOCK_PUSHED);
 
+        blockListeners.addListener(
+                block -> clockDriftMonitor.onBlockPushed(block.getId(), block.getHeight(), block.getTimestamp()),
+                Event.BLOCK_PUSHED);
+
         addGenesisBlock();
 
         if (logSyncProgressToCsv) {
@@ -1903,17 +1907,15 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     @Override
     public void processPeerBlock(JsonObject request, Peer peer) throws SignumException {
         Block newBlock = Block.parseBlock(request, blockchain.getHeight());
+        clockDriftMonitor.onBlockReceived(newBlock.getId());
         // * This process takes care of the blocks that is announced by peers We do not
         // want to be fed forks.
         Block chainblock = downloadCache.getLastBlock();
         if (chainblock != null && chainblock.getId() == newBlock.getPreviousBlockId()) {
-            int height = chainblock.getHeight() + 1;
-            newBlock.setHeight(height);
+            newBlock.setHeight(chainblock.getHeight() + 1);
             newBlock.setByteLength(newBlock.toString().length());
             blockService.calculateBaseTarget(newBlock, chainblock);
-            if (downloadCache.addBlock(newBlock)) {
-                clockDriftMonitor.onBlockReceived(height, newBlock.getTimestamp());
-            }
+            downloadCache.addBlock(newBlock);
             logger.debug(
                     "Peer {} added block from Announce: Id: {} Height: {}",
                     peer.getPeerAddress(),

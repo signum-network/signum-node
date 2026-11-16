@@ -92,6 +92,7 @@ final class DownloadedBlockAppender {
                 JsonObject blockData = JSON.getAsJsonObject(blockJson);
                 try {
                     Block block = blockParser.parse(blockData, height);
+                    clockDriftMonitor.onBlockReceived(block.getId());
                     // Make sure it maps back to chain
                     if (lastBlock.getId() != block.getPreviousBlockId()) {
                         logLinkBreak(segment, segmentIndex > 0 && firstOfSegment, lastBlock, block);
@@ -109,7 +110,6 @@ final class DownloadedBlockAppender {
                                 // we stop the loop since the cache has been locked
                                 return new Result(lastBlock, true);
                             }
-                            clockDriftMonitor.onBlockReceived(height, block.getTimestamp());
                             if (logger.isDebugEnabled()) {
                                 logger.debug("Added from download: Id: {} Height: {}", block.getId(),
                                         block.getHeight());

@@ -350,11 +350,34 @@ class BlockchainProcessorImplTest {
     }
 
     @Test
-    void processPeerBlock_GivenFollowUpBlock_ReportsItToClockDriftMonitor() throws Exception {
+    void testImportBlock_GivenBlockPushed_ReportsItToClockDriftMonitor() {
+        Runnable importer = createImporter();
+        // the mocked chain does not advance, so offer the block only once to end the import loop
+        when(downloadCache.getNextBlock(tip.getId())).thenReturn(block, (Block) null);
+        long id = block.getId();
+        int height = block.getHeight();
+        int timestamp = block.getTimestamp();
+
+        importer.run();
+
+        verify(clockDriftMonitor).onBlockPushed(id, height, timestamp);
+    }
+
+    @Test
+    void testImportBlock_GivenPersistenceFailure_DoesNotReportBlockAsPushed() {
+        Runnable importer = createImporter();
+        doThrow(new DataAccessException("connection lost")).when(accountService).flushAccountTable();
+
+        importer.run();
+
+        verify(clockDriftMonitor, never()).onBlockPushed(anyLong(), anyInt(), anyInt());
+    }
+
+    @Test
+    void processPeerBlock_GivenFollowUpBlock_RecordsArrivalBeforeAddingIt() throws Exception {
         BlockchainProcessorImpl processor = createProcessor();
         when(downloadCache.getLastBlock()).thenReturn(tip);
         Block announced = childOf(tip, 12L, List.of());
-        when(announced.getTimestamp()).thenReturn(4321);
         when(downloadCache.addBlock(announced)).thenReturn(true);
 
         try (MockedStatic<Block> blockMock = mockStatic(Block.class)) {
@@ -363,11 +386,13 @@ class BlockchainProcessorImplTest {
             processor.processPeerBlock(new JsonObject(), mock(Peer.class));
         }
 
-        verify(clockDriftMonitor).onBlockReceived(TIP_HEIGHT + 1, 4321);
+        InOrder order = inOrder(clockDriftMonitor, downloadCache);
+        order.verify(clockDriftMonitor).onBlockReceived(12L);
+        order.verify(downloadCache).addBlock(announced);
     }
 
     @Test
-    void processPeerBlock_GivenBlockNotFollowingCache_DoesNotReportIt() throws Exception {
+    void processPeerBlock_GivenBlockNotFollowingCache_StillRecordsArrival() throws Exception {
         BlockchainProcessorImpl processor = createProcessor();
         when(downloadCache.getLastBlock()).thenReturn(tip);
         long forkParentId = persistedTip.getId();
@@ -380,7 +405,9 @@ class BlockchainProcessorImplTest {
             processor.processPeerBlock(new JsonObject(), mock(Peer.class));
         }
 
-        verify(clockDriftMonitor, never()).onBlockReceived(anyInt(), anyInt());
+        // e.g. the honest block while a fake child of the tip sits in the cache
+        verify(clockDriftMonitor).onBlockReceived(12L);
+        verify(downloadCache, never()).addBlock(announced);
     }
 
     @Test

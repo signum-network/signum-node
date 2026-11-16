@@ -1,5 +1,6 @@
 package brs.services.impl;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -11,6 +12,7 @@ import java.util.OptionalInt;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import brs.Constants;
 import brs.services.TimeService;
 import brs.util.Time.FasterTime;
 
@@ -79,6 +81,40 @@ class ClockDriftMonitorImplTest {
     }
 
     @Test
+    void getEstimatedOffset_GivenBlocksPushedLateBecauseClockIsBehind_UsesFirstArrival() {
+        // a clock 600 s behind rejects each block as "from the future" and pushes it ~585 s later
+        for (int i = 0; i <= ClockDriftMonitorImpl.MIN_SAMPLES; i++) {
+            height++;
+            blockTimestamp += BLOCK_INTERVAL;
+            time.set(blockTimestamp - 600);
+            monitor.onBlockReceived(height);
+            time.advance(585);
+            monitor.onBlockPushed(height, height, blockTimestamp);
+        }
+
+        assertEquals(OptionalInt.of(-600), monitor.getEstimatedOffsetSeconds());
+    }
+
+    @Test
+    void getEstimatedOffset_GivenParentPoppedAndRePushedAfterRejection_StillSamples() {
+        // the importer's auto pop-off after a "from the future" rejection: the parent is popped,
+        // downloaded again and pushed again before the rejected block finally gets through
+        for (int i = 0; i <= ClockDriftMonitorImpl.MIN_SAMPLES; i++) {
+            height++;
+            blockTimestamp += BLOCK_INTERVAL;
+            time.set(blockTimestamp - 60);
+            monitor.onBlockReceived(height);
+            time.advance(20);
+            monitor.onBlockReceived(height - 1); // parent downloaded again
+            monitor.onBlockPushed(height - 1, height - 1, blockTimestamp - BLOCK_INTERVAL);
+            time.advance(30);
+            monitor.onBlockPushed(height, height, blockTimestamp);
+        }
+
+        assertEquals(OptionalInt.of(-60), monitor.getEstimatedOffsetSeconds());
+    }
+
+    @Test
     void getEstimatedOffset_GivenOneForgerWithBadClock_UsesMedian() {
         receiveTipBlocks(4, 1);
         receiveTipBlock(200); // a forger whose clock is behind: its block looks late
@@ -97,62 +133,203 @@ class ClockDriftMonitorImplTest {
     }
 
     @Test
-    void onBlockReceived_GivenBulkSyncBlocks_TakesNoSamples() {
+    void onBlockPushed_GivenBulkSyncBlocks_TakesNoSamples() {
         // during sync, old blocks arrive back to back, far faster than their timestamps advance
         for (int i = 0; i < 50; i++) {
             height++;
             blockTimestamp += BLOCK_INTERVAL;
-            monitor.onBlockReceived(height, blockTimestamp);
+            monitor.onBlockReceived(height);
+            monitor.onBlockPushed(height, height, blockTimestamp);
         }
 
         assertEquals(OptionalInt.empty(), monitor.getEstimatedOffsetSeconds());
     }
 
     @Test
-    void onBlockReceived_GivenBulkSyncBlocksWithShortDeadlines_TakesNoSamples() {
+    void onBlockPushed_GivenBulkSyncBlocksWithShortDeadlines_TakesNoSamples() {
         for (int i = 0; i < 50; i++) {
             height++;
             blockTimestamp += 5;
             time.advance(1);
-            monitor.onBlockReceived(height, blockTimestamp);
+            monitor.onBlockReceived(height);
+            monitor.onBlockPushed(height, height, blockTimestamp);
         }
 
         assertEquals(OptionalInt.empty(), monitor.getEstimatedOffsetSeconds());
     }
 
     @Test
-    void onBlockReceived_GivenBulkBlocksWithEqualTimestamps_TakesNoSamples() {
-        // invalid blocks a peer could serve before validation: all with the same timestamp
+    void onBlockPushed_GivenFakeBlockAnnouncedFirstAtEachHeight_SamplesOnlyHonestBlocks() {
+        receiveTipBlocks(1, 2);
+        for (int i = 0; i < ClockDriftMonitorImpl.WINDOW_SIZE; i++) {
+            height++;
+            blockTimestamp += BLOCK_INTERVAL;
+            time.set(blockTimestamp + 2);
+            monitor.onBlockReceived(-height); // a peer's fake block at this height, never pushed
+            monitor.onBlockReceived(height);
+            monitor.onBlockPushed(height, height, blockTimestamp);
+        }
+
+        assertEquals(OptionalInt.of(2), monitor.getEstimatedOffsetSeconds());
+    }
+
+    @Test
+    void onBlockPushed_GivenBlockNeverReceived_TakesNoSampleButKeepsReference() {
+        receiveTipBlocks(ClockDriftMonitorImpl.MIN_SAMPLES - 1, 0);
+        // a block this node forged itself: pushed without being received from a peer
+        height++;
+        blockTimestamp += BLOCK_INTERVAL;
+        time.set(blockTimestamp);
+        monitor.onBlockPushed(height, height, blockTimestamp);
+
+        assertEquals(OptionalInt.empty(), monitor.getEstimatedOffsetSeconds());
+
+        receiveTipBlock(0);
+
+        assertEquals(OptionalInt.of(0), monitor.getEstimatedOffsetSeconds());
+    }
+
+    @Test
+    void onBlockReceived_GivenSameBlockAgain_KeepsFirstArrival() {
+        for (int i = 0; i <= ClockDriftMonitorImpl.MIN_SAMPLES; i++) {
+            height++;
+            blockTimestamp += BLOCK_INTERVAL;
+            time.set(blockTimestamp - 20);
+            monitor.onBlockReceived(height);
+            time.advance(120);
+            monitor.onBlockReceived(height); // re-downloaded after a rejection
+            monitor.onBlockPushed(height, height, blockTimestamp);
+        }
+
+        assertEquals(OptionalInt.of(-20), monitor.getEstimatedOffsetSeconds());
+    }
+
+    @Test
+    void onBlockReceived_GivenFloodOfUnpushedBlocks_EvictsOldestArrivals() {
+        receiveTipBlocks(ClockDriftMonitorImpl.MIN_SAMPLES - 1, 0);
+        height++;
+        blockTimestamp += BLOCK_INTERVAL;
+        time.set(blockTimestamp);
+        monitor.onBlockReceived(height);
+        for (long id = 1; id <= ClockDriftMonitorImpl.MAX_TRACKED_ARRIVALS; id++) {
+            monitor.onBlockReceived(-id); // fake blocks that never get pushed
+        }
+
+        monitor.onBlockPushed(height, height, blockTimestamp);
+
+        assertEquals(OptionalInt.empty(), monitor.getEstimatedOffsetSeconds());
+    }
+
+    @Test
+    void onBlockReceived_GivenFullDownloadWindowAhead_KeepsArrivalOfNextBlock() {
+        receiveTipBlocks(ClockDriftMonitorImpl.MIN_SAMPLES - 1, 0);
+        height++;
+        blockTimestamp += BLOCK_INTERVAL;
+        time.set(blockTimestamp);
+        monitor.onBlockReceived(height);
+        for (long id = 1; id < Constants.MAX_ROLLBACK; id++) {
+            monitor.onBlockReceived(height + id); // the rest of the download window
+        }
+
+        monitor.onBlockPushed(height, height, blockTimestamp);
+
+        assertEquals(OptionalInt.of(0), monitor.getEstimatedOffsetSeconds());
+    }
+
+    @Test
+    void onBlockPushed_GivenFailingDriftLog_DoesNotThrow() {
+        monitor = new ClockDriftMonitorImpl(time, THRESHOLD, new ClockDriftMonitorImpl.DriftLog() {
+            @Override
+            public void warn(int offsetSeconds) {
+                throw new IllegalStateException("logging broken");
+            }
+
+            @Override
+            public void recovered(int offsetSeconds) {
+                throw new IllegalStateException("logging broken");
+            }
+        });
+        referenceSent = false;
+
+        assertDoesNotThrow(() -> receiveTipBlocks(ClockDriftMonitorImpl.MIN_SAMPLES, -60));
+        assertEquals(OptionalInt.of(-60), monitor.getEstimatedOffsetSeconds());
+    }
+
+    @Test
+    void onBlockPushed_GivenBlockFirstSeenLate_TakesNoSample() {
+        // e.g. the announcement was missed and the block is first seen via download much later
+        receiveTipBlocks(ClockDriftMonitorImpl.MIN_SAMPLES - 1, 0);
+        height++;
+        blockTimestamp += BLOCK_INTERVAL;
+        time.set(blockTimestamp + 360);
+        monitor.onBlockReceived(height);
+        monitor.onBlockPushed(height, height, blockTimestamp);
+
+        assertEquals(OptionalInt.empty(), monitor.getEstimatedOffsetSeconds());
+    }
+
+    @Test
+    void onBlockPushed_GivenOwnForgedBlockEchoedAndPushedAgain_TakesNoSample() {
+        receiveTipBlocks(ClockDriftMonitorImpl.MIN_SAMPLES - 1, 0);
+        // the node forges a block: pushed without being received
+        height++;
+        blockTimestamp += BLOCK_INTERVAL;
+        time.set(blockTimestamp);
+        monitor.onBlockPushed(height, height, blockTimestamp);
+        // a peer echoes it back, a short reorg pops it and it is pushed again
+        time.advance(1);
+        monitor.onBlockReceived(height);
+        monitor.onBlockPushed(height - 1, height - 1, blockTimestamp - BLOCK_INTERVAL);
+        monitor.onBlockPushed(height, height, blockTimestamp);
+
+        assertEquals(OptionalInt.empty(), monitor.getEstimatedOffsetSeconds());
+    }
+
+    @Test
+    void onBlockPushed_GivenEqualTimestamps_TakesNoSamples() {
+        receiveTipBlocks(1, 0);
         for (int i = 0; i < 50; i++) {
             height++;
-            monitor.onBlockReceived(height, blockTimestamp + 3600);
+            time.advance(BLOCK_INTERVAL);
+            monitor.onBlockReceived(height);
+            monitor.onBlockPushed(height, height, blockTimestamp);
         }
 
         assertEquals(OptionalInt.empty(), monitor.getEstimatedOffsetSeconds());
     }
 
     @Test
-    void onBlockReceived_GivenPopOffBelowLastHeight_SamplesHonestBlocksAgain() {
-        // a forged run moved the reference far ahead, then got rejected and popped off
-        receiveTipBlocks(1, 0);
-        int forkHeight = height;
-        monitor.onBlockReceived(forkHeight + 1000, blockTimestamp + 1000 * BLOCK_INTERVAL);
-
-        // honest blocks continue right after the fork point
-        height = forkHeight;
+    void onBlockPushed_GivenPopOff_DoesNotCountRePushedBlocksTwiceAndSamplesNewOnes() {
+        receiveTipBlocks(3, 0);
+        // pop off two blocks; they get pushed again (no new samples), then new blocks follow
+        height -= 2;
+        blockTimestamp -= 2 * BLOCK_INTERVAL;
         receiveTipBlocks(ClockDriftMonitorImpl.MIN_SAMPLES + 1, 3);
 
         assertEquals(OptionalInt.of(3), monitor.getEstimatedOffsetSeconds());
     }
 
     @Test
-    void onBlockReceived_GivenExtremeTimestamps_DoesNotOverflow() {
+    void onBlockPushed_GivenHeightGap_TakesNoSampleForThatBlock() {
+        receiveTipBlocks(ClockDriftMonitorImpl.MIN_SAMPLES - 1, 0);
+        height += 5;
+        blockTimestamp += 5 * BLOCK_INTERVAL;
+        time.set(blockTimestamp);
+        monitor.onBlockReceived(height);
+        monitor.onBlockPushed(height, height, blockTimestamp);
+
+        assertEquals(OptionalInt.empty(), monitor.getEstimatedOffsetSeconds());
+    }
+
+    @Test
+    void onBlockPushed_GivenExtremeTimestamps_DoesNotOverflow() {
         time.set(Integer.MAX_VALUE - 10);
-        monitor = newMonitor(THRESHOLD);
-        monitor.onBlockReceived(height, Integer.MIN_VALUE);
+        monitor.onBlockReceived(1);
+        monitor.onBlockPushed(1, height, Integer.MIN_VALUE);
         for (int i = 1; i <= ClockDriftMonitorImpl.MIN_SAMPLES; i++) {
             time.set(Integer.MAX_VALUE - 10 + i);
-            monitor.onBlockReceived(height + i, Integer.MIN_VALUE + i);
+            monitor.onBlockReceived(1 + i);
+            monitor.onBlockPushed(1 + i, height + i, Integer.MIN_VALUE + i);
         }
 
         assertTrue(monitor.getEstimatedOffsetSeconds().getAsInt() > 0);
@@ -160,36 +337,14 @@ class ClockDriftMonitorImplTest {
     }
 
     @Test
-    void onBlockReceived_GivenSameHeightAgain_TakesNoSample() {
-        receiveTipBlocks(ClockDriftMonitorImpl.MIN_SAMPLES - 1, 0);
-        time.advance(BLOCK_INTERVAL);
-
-        monitor.onBlockReceived(height, blockTimestamp); // re-downloaded after a rejection
-
-        assertEquals(OptionalInt.empty(), monitor.getEstimatedOffsetSeconds());
-    }
-
-    @Test
-    void onBlockReceived_GivenHeightGap_TakesNoSampleForThatBlock() {
-        receiveTipBlocks(ClockDriftMonitorImpl.MIN_SAMPLES - 1, 0);
-        height += 5;
-        blockTimestamp += 5 * BLOCK_INTERVAL;
-        time.advance(BLOCK_INTERVAL);
-
-        monitor.onBlockReceived(height, blockTimestamp);
-
-        assertEquals(OptionalInt.empty(), monitor.getEstimatedOffsetSeconds());
-    }
-
-    @Test
-    void onBlockReceived_GivenDriftAboveThreshold_WarnsOnce() {
+    void onBlockPushed_GivenDriftAboveThreshold_WarnsOnce() {
         receiveTipBlocks(ClockDriftMonitorImpl.MIN_SAMPLES, -60);
 
         assertEquals(List.of(-60), log.warnings);
     }
 
     @Test
-    void onBlockReceived_GivenOngoingDrift_RateLimitsWarnings() {
+    void onBlockPushed_GivenOngoingDrift_RateLimitsWarnings() {
         receiveTipBlocks(ClockDriftMonitorImpl.MIN_SAMPLES, -60);
         receiveTipBlocks(2, -60); // 2 * 240 s < warn interval
 
@@ -201,7 +356,7 @@ class ClockDriftMonitorImplTest {
     }
 
     @Test
-    void onBlockReceived_GivenClockBackInRange_LogsRecoveryOnceAndStopsWarning() {
+    void onBlockPushed_GivenClockBackInRange_LogsRecoveryOnceAndStopsWarning() {
         receiveTipBlocks(ClockDriftMonitorImpl.MIN_SAMPLES, -60);
         receiveTipBlocks(ClockDriftMonitorImpl.WINDOW_SIZE, 1);
         int warningsUntilRecovered = log.warnings.size();
@@ -213,7 +368,7 @@ class ClockDriftMonitorImplTest {
     }
 
     @Test
-    void onBlockReceived_GivenDriftWithinThreshold_NeverWarns() {
+    void onBlockPushed_GivenDriftWithinThreshold_NeverWarns() {
         receiveTipBlocks(ClockDriftMonitorImpl.WINDOW_SIZE, THRESHOLD);
 
         assertTrue(log.warnings.isEmpty());
@@ -235,20 +390,27 @@ class ClockDriftMonitorImplTest {
     private void receiveTipBlocks(int count, int offset) {
         if (!referenceSent) {
             // the first block only sets the reference for the next one; it arrives with the same offset
-            time.set(blockTimestamp + offset);
-            monitor.onBlockReceived(height, blockTimestamp);
+            receiveAndPush(offset);
             referenceSent = true;
         }
         for (int i = 0; i < count; i++) {
-            receiveTipBlock(offset);
+            height++;
+            blockTimestamp += BLOCK_INTERVAL;
+            receiveAndPush(offset);
         }
     }
 
     private void receiveTipBlock(int offset) {
         height++;
         blockTimestamp += BLOCK_INTERVAL;
+        receiveAndPush(offset);
+    }
+
+    /** The block id is its height: one honest block per height. */
+    private void receiveAndPush(int offset) {
         time.set(blockTimestamp + offset);
-        monitor.onBlockReceived(height, blockTimestamp);
+        monitor.onBlockReceived(height);
+        monitor.onBlockPushed(height, height, blockTimestamp);
     }
 
     private static final class FakeTime implements TimeService {

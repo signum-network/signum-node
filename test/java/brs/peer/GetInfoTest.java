@@ -28,7 +28,7 @@ class GetInfoTest {
         Peers.myPeerInfoResponse = peerInfo;
         timeService = mock(TimeService.class);
         when(timeService.getEpochTimeMillis()).thenReturn(123456789L);
-        getInfo = new GetInfo(timeService);
+        getInfo = new GetInfo(timeService, true);
     }
 
     @AfterEach
@@ -43,6 +43,19 @@ class GetInfoTest {
 
         // Assert
         assertEquals(123457000L, response.get(PeerClock.FIELD).getAsLong());
+        assertEquals("BRS", response.get("application").getAsString());
+    }
+
+    @Test
+    void processRequest_GivenClockSharingDisabled_RepliesWithoutEpochTimeMillis() {
+        // Arrange
+        GetInfo notSharing = new GetInfo(timeService, false);
+
+        // Act
+        JsonObject response = notSharing.processRequest(new JsonObject(), mock(PeerImpl.class)).getAsJsonObject();
+
+        // Assert
+        assertFalse(response.has(PeerClock.FIELD));
         assertEquals("BRS", response.get("application").getAsString());
     }
 

@@ -180,6 +180,7 @@ public class Props {
     public static final Prop<Integer> P2P_TIMEOUT_CONNECT_MS = new Prop<>("P2P.TimeoutConnect_ms", 4000);
     public static final Prop<Integer> P2P_TIMEOUT_READ_MS = new Prop<>("P2P.TimeoutRead_ms", 8000);
     public static final Prop<Boolean> P2P_KEEP_ALIVE = new Prop<>("P2P.keepAlive", true);
+    public static final Prop<Boolean> P2P_SHARE_CLOCK = new Prop<>("P2P.shareClock", true);
     public static final Prop<Integer> P2P_BLACKLISTING_TIME_MS = new Prop<>("P2P.BlacklistingTime_ms", 6000000);
     public static final Prop<Integer> P2P_MAX_BLOCKS = new Prop<>("P2P.MaxBlocks", 720);
 

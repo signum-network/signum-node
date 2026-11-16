@@ -10,11 +10,13 @@ import brs.db.store.DerivedTableManager;
 import brs.db.store.Stores;
 import brs.fluxcapacitor.FluxCapacitor;
 import brs.fluxcapacitor.FluxValues;
+import brs.peer.Peer;
 import brs.props.PropertyService;
 import brs.props.Props;
 import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.BlockService;
+import brs.services.ClockDriftMonitor;
 import brs.services.EscrowService;
 import brs.services.IndirectIncomingService;
 import brs.services.SubscriptionService;
@@ -31,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.MockedStatic;
+import com.google.gson.JsonObject;
 
 import java.io.ByteArrayOutputStream;
 import java.sql.SQLException;
@@ -84,6 +87,7 @@ class BlockchainProcessorImplTest {
     private TransactionService transactionService;
     private DownloadCacheImpl downloadCache;
     private AccountService accountService;
+    private ClockDriftMonitor clockDriftMonitor;
 
     private Block tip;
     private Block persistedTip;
@@ -118,6 +122,7 @@ class BlockchainProcessorImplTest {
         transactionService = mock(TransactionService.class);
         downloadCache = mock(DownloadCacheImpl.class);
         accountService = mock(AccountService.class);
+        clockDriftMonitor = mock(ClockDriftMonitor.class);
 
         when(transactionProcessor.getUnconfirmedTransactionsSyncObj()).thenReturn(new Object());
         when(transactionService.verifyPublicKey(any())).thenReturn(true);
@@ -343,6 +348,40 @@ class BlockchainProcessorImplTest {
         assertTrue(processor.isDownloadStopRequested());
     }
 
+    @Test
+    void processPeerBlock_GivenFollowUpBlock_ReportsItToClockDriftMonitor() throws Exception {
+        BlockchainProcessorImpl processor = createProcessor();
+        when(downloadCache.getLastBlock()).thenReturn(tip);
+        Block announced = childOf(tip, 12L, List.of());
+        when(announced.getTimestamp()).thenReturn(4321);
+        when(downloadCache.addBlock(announced)).thenReturn(true);
+
+        try (MockedStatic<Block> blockMock = mockStatic(Block.class)) {
+            blockMock.when(() -> Block.parseBlock(any(JsonObject.class), anyInt())).thenReturn(announced);
+
+            processor.processPeerBlock(new JsonObject(), mock(Peer.class));
+        }
+
+        verify(clockDriftMonitor).onBlockReceived(TIP_HEIGHT + 1, 4321);
+    }
+
+    @Test
+    void processPeerBlock_GivenBlockNotFollowingCache_DoesNotReportIt() throws Exception {
+        BlockchainProcessorImpl processor = createProcessor();
+        when(downloadCache.getLastBlock()).thenReturn(tip);
+        long forkParentId = persistedTip.getId();
+        Block announced = block(12L, TIP_HEIGHT, 4321);
+        when(announced.getPreviousBlockId()).thenReturn(forkParentId);
+
+        try (MockedStatic<Block> blockMock = mockStatic(Block.class)) {
+            blockMock.when(() -> Block.parseBlock(any(JsonObject.class), anyInt())).thenReturn(announced);
+
+            processor.processPeerBlock(new JsonObject(), mock(Peer.class));
+        }
+
+        verify(clockDriftMonitor, never()).onBlockReceived(anyInt(), anyInt());
+    }
+
     private static Set<Thread> fetcherThreads() {
         Set<Thread> threads = new HashSet<>();
         for (Thread thread : Thread.getAllStackTraces().keySet()) {
@@ -359,7 +398,7 @@ class BlockchainProcessorImplTest {
                 transactionDb, mock(EconomicClustering.class), blockchainStore, stores, mock(EscrowService.class),
                 transactionService, downloadCache, mock(Generator.class), mock(StatisticsManagerImpl.class),
                 mock(DBCacheManagerImpl.class), accountService, mock(IndirectIncomingService.class),
-                mock(AliasService.class));
+                mock(AliasService.class), clockDriftMonitor);
     }
 
     private Runnable createImporter() {
@@ -368,7 +407,7 @@ class BlockchainProcessorImplTest {
                 transactionDb, mock(EconomicClustering.class), blockchainStore, stores, mock(EscrowService.class),
                 transactionService, downloadCache, mock(Generator.class), mock(StatisticsManagerImpl.class),
                 mock(DBCacheManagerImpl.class), accountService, mock(IndirectIncomingService.class),
-                mock(AliasService.class));
+                mock(AliasService.class), clockDriftMonitor);
         ArgumentCaptor<Runnable> importer = ArgumentCaptor.forClass(Runnable.class);
         verify(threadPool).scheduleThread(eq("ImportBlocks"), importer.capture(), anyInt(), any());
         // ignore what happened while loading the chain on construction

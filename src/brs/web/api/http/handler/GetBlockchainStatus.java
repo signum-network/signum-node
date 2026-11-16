@@ -6,6 +6,7 @@ import brs.BlockchainProcessor;
 import brs.Signum;
 import brs.peer.Peer;
 import brs.props.Props;
+import brs.services.ClockDriftMonitor;
 import brs.services.TimeService;
 import brs.web.api.http.ApiServlet;
 import brs.web.api.http.common.LegacyDocTag;
@@ -21,12 +22,15 @@ public final class GetBlockchainStatus extends ApiServlet.JsonRequestHandler {
   private final BlockchainProcessor blockchainProcessor;
   private final Blockchain blockchain;
   private final TimeService timeService;
+  private final ClockDriftMonitor clockDriftMonitor;
 
-  public GetBlockchainStatus(BlockchainProcessor blockchainProcessor, Blockchain blockchain, TimeService timeService) {
+  public GetBlockchainStatus(BlockchainProcessor blockchainProcessor, Blockchain blockchain, TimeService timeService,
+                             ClockDriftMonitor clockDriftMonitor) {
     super(new LegacyDocTag[]{LegacyDocTag.BLOCKS, LegacyDocTag.INFO});
     this.blockchainProcessor = blockchainProcessor;
     this.blockchain = blockchain;
     this.timeService = timeService;
+    this.clockDriftMonitor = clockDriftMonitor;
   }
 
   @Override
@@ -36,6 +40,7 @@ public final class GetBlockchainStatus extends ApiServlet.JsonRequestHandler {
     response.addProperty("application", Signum.getPropertyService().getString(Props.APPLICATION));
     response.addProperty("version", Signum.getPropertyService().getString(Props.VERSION));
     response.addProperty(TIME_RESPONSE, timeService.getEpochTime());
+    ClockDriftFields.addTo(response, clockDriftMonitor);
     Block lastBlock = blockchain.getLastBlock();
     response.addProperty("lastBlock", lastBlock.getStringId());
     response.addProperty("lastBlockTimestamp", lastBlock.getTimestamp());

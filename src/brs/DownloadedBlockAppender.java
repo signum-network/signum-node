@@ -16,6 +16,7 @@ import brs.fluxcapacitor.FluxCapacitor;
 import brs.fluxcapacitor.FluxValues;
 import brs.peer.Peer;
 import brs.services.BlockService;
+import brs.services.ClockDriftMonitor;
 import brs.util.DownloadCacheImpl;
 import brs.util.JSON;
 import brs.util.ThreadPool;
@@ -55,10 +56,11 @@ final class DownloadedBlockAppender {
     private final BlockParser blockParser;
     private final ReentrantReadWriteLock blockImporterLock;
     private final boolean decoupledSync;
+    private final ClockDriftMonitor clockDriftMonitor;
 
     DownloadedBlockAppender(DownloadCacheImpl downloadCache, Blockchain blockchain, BlockService blockService,
             Supplier<FluxCapacitor> fluxCapacitor, BlockParser blockParser, ReentrantReadWriteLock blockImporterLock,
-            boolean decoupledSync) {
+            boolean decoupledSync, ClockDriftMonitor clockDriftMonitor) {
         this.downloadCache = downloadCache;
         this.blockchain = blockchain;
         this.blockService = blockService;
@@ -66,6 +68,7 @@ final class DownloadedBlockAppender {
         this.blockParser = blockParser;
         this.blockImporterLock = blockImporterLock;
         this.decoupledSync = decoupledSync;
+        this.clockDriftMonitor = clockDriftMonitor;
     }
 
     /**
@@ -106,6 +109,7 @@ final class DownloadedBlockAppender {
                                 // we stop the loop since the cache has been locked
                                 return new Result(lastBlock, true);
                             }
+                            clockDriftMonitor.onBlockReceived(height, block.getTimestamp());
                             if (logger.isDebugEnabled()) {
                                 logger.debug("Added from download: Id: {} Height: {}", block.getId(),
                                         block.getHeight());

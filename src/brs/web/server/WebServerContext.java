@@ -34,8 +34,9 @@ public class WebServerContext {
     private final DeeplinkQRCodeGenerator deepLinkQRCodeGenerator;
     private final IndirectIncomingService indirectIncomingService;
     private final NetworkParameters params;
+    private final ClockDriftMonitor clockDriftMonitor;
 
-    public WebServerContext(TransactionProcessor transactionProcessor, Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService, AccountService accountService, AliasService aliasService, AssetExchange assetExchange, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService, SubscriptionService subscriptionService, ATService atService, TimeService timeService, EconomicClustering economicClustering, PropertyService propertyService, ThreadPool threadPool, TransactionService transactionService, BlockService blockService, Generator generator, APITransactionManager apiTransactionManager, FeeSuggestionCalculator feeSuggestionCalculator, DeeplinkQRCodeGenerator deepLinkQRCodeGenerator, IndirectIncomingService indirectIncomingService, NetworkParameters params) {
+    public WebServerContext(TransactionProcessor transactionProcessor, Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService, AccountService accountService, AliasService aliasService, AssetExchange assetExchange, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService, SubscriptionService subscriptionService, ATService atService, TimeService timeService, EconomicClustering economicClustering, PropertyService propertyService, ThreadPool threadPool, TransactionService transactionService, BlockService blockService, Generator generator, APITransactionManager apiTransactionManager, FeeSuggestionCalculator feeSuggestionCalculator, DeeplinkQRCodeGenerator deepLinkQRCodeGenerator, IndirectIncomingService indirectIncomingService, NetworkParameters params, ClockDriftMonitor clockDriftMonitor) {
         this.transactionProcessor = transactionProcessor;
         this.blockchain = blockchain;
         this.blockchainProcessor = blockchainProcessor;
@@ -59,6 +60,11 @@ public class WebServerContext {
         this.deepLinkQRCodeGenerator = deepLinkQRCodeGenerator;
         this.indirectIncomingService = indirectIncomingService;
         this.params = params;
+        this.clockDriftMonitor = clockDriftMonitor;
+    }
+
+    public ClockDriftMonitor getClockDriftMonitor() {
+        return clockDriftMonitor;
     }
 
     public TransactionProcessor getTransactionProcessor() {

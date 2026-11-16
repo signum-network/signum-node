@@ -20,6 +20,7 @@ import brs.props.Props;
 import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.BlockService;
+import brs.services.ClockDriftMonitor;
 import brs.services.EscrowService;
 import brs.services.IndirectIncomingService;
 import brs.services.SubscriptionService;
@@ -105,6 +106,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     private final SubscriptionService subscriptionService;
     private final EscrowService escrowService;
     private final TimeService timeService;
+    private final ClockDriftMonitor clockDriftMonitor;
     private final TransactionService transactionService;
     private final PropertyService propertyService;
     private final TransactionProcessorImpl transactionProcessor;
@@ -388,10 +390,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             DBCacheManagerImpl dbCacheManager,
             AccountService accountService,
             IndirectIncomingService indirectIncomingService,
-            AliasService aliasService) {
+            AliasService aliasService,
+            ClockDriftMonitor clockDriftMonitor) {
         this.blockService = blockService;
         this.transactionProcessor = transactionProcessor;
         this.timeService = timeService;
+        this.clockDriftMonitor = clockDriftMonitor;
         this.derivedTableManager = derivedTableManager;
         this.blockDb = blockDb;
         this.transactionDb = transactionDb;
@@ -486,7 +490,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             logger.info("Experimental decoupled sync pipeline enabled");
         }
         downloadedBlockAppender = new DownloadedBlockAppender(downloadCache, blockchain, blockService,
-                Signum::getFluxCapacitor, Block::parseBlock, blockImporterLock, decoupledSync);
+                Signum::getFluxCapacitor, Block::parseBlock, blockImporterLock, decoupledSync, clockDriftMonitor);
         parallelBlockFetcher = createParallelBlockFetcher(propertyService);
         chainedRoundDownloader = parallelBlockFetcher == null ? null
                 : new ChainedRoundDownloader(parallelBlockFetcher, downloadedBlockAppender, downloadCache,
@@ -1903,10 +1907,13 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         // want to be fed forks.
         Block chainblock = downloadCache.getLastBlock();
         if (chainblock != null && chainblock.getId() == newBlock.getPreviousBlockId()) {
-            newBlock.setHeight(chainblock.getHeight() + 1);
+            int height = chainblock.getHeight() + 1;
+            newBlock.setHeight(height);
             newBlock.setByteLength(newBlock.toString().length());
             blockService.calculateBaseTarget(newBlock, chainblock);
-            downloadCache.addBlock(newBlock);
+            if (downloadCache.addBlock(newBlock)) {
+                clockDriftMonitor.onBlockReceived(height, newBlock.getTimestamp());
+            }
             logger.debug(
                     "Peer {} added block from Announce: Id: {} Height: {}",
                     peer.getPeerAddress(),

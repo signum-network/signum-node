@@ -30,8 +30,8 @@ import brs.services.TimeService;
  * differences only, so it works however far the local clock is off.
  * <p>
  * Next to that, it keeps the latest clock offset measured against each peer and reports their
- * median once {@link #MIN_PEER_SAMPLES} peers have a recent one. A single peer with a bad clock, or
- * a few lying ones, cannot move the median.
+ * median once {@link #MIN_PEER_SAMPLES} peers have a recent one. A single peer with a bad clock, or a
+ * lying minority, cannot move the median.
  */
 public class ClockDriftMonitorImpl implements ClockDriftMonitor {
 

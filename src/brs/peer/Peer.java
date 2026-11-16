@@ -76,6 +76,9 @@ public interface Peer extends Comparable<Peer> {
      */
     Long getClockOffsetMillis();
 
+    /** @return when this node last completed a handshake with the peer (epoch seconds); 0 if never */
+    int getLastHandshake();
+
     JsonObject send(JsonElement request);
 
     static boolean isHigherOrEqualVersion(Version ourVersion, Version possiblyLowerVersion) {

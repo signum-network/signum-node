@@ -60,6 +60,7 @@ final class PeerImpl implements Peer {
     private final AtomicLong blacklistingTime = new AtomicLong();
     private final AtomicReference<State> state = new AtomicReference<>();
     private final AtomicReference<Long> clockOffsetMillis = new AtomicReference<>();
+    private final AtomicInteger lastHandshake = new AtomicInteger();
     private final AtomicLong downloadedVolume = new AtomicLong();
     private final AtomicLong uploadedVolume = new AtomicLong();
     private final AtomicInteger lastUpdated = new AtomicInteger();
@@ -484,6 +485,11 @@ final class PeerImpl implements Peer {
     }
 
     @Override
+    public int getLastHandshake() {
+        return lastHandshake.get();
+    }
+
+    @Override
     public Long getClockOffsetMillis() {
         return clockOffsetMillis.get();
     }
@@ -531,6 +537,7 @@ final class PeerImpl implements Peer {
             setState(State.CONNECTED);
             Peers.updateAddress(this);
             lastUpdated.set(currentTime);
+            lastHandshake.set(currentTime);
             logger.debug("Connected to {}", peerAddress);
         } else {
             setState(State.NON_CONNECTED);

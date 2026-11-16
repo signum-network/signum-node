@@ -524,7 +524,7 @@ public final class Peers {
 
                 int now = timeService.getEpochTime();
                 for (Peer peer : peers.values()) {
-                    if (peer.getState() == Peer.State.CONNECTED && now - peer.getLastUpdated() > 3600) {
+                    if (isHandshakeDue(peer, now)) {
                         peer.connect(timeService.getEpochTime());
                         if (!peer.isHigherOrEqualVersionThan(
                                 Signum.getFluxCapacitor().getValue(FluxValues.MIN_PEER_VERSION)) ||
@@ -797,6 +797,15 @@ public final class Peers {
             announcedAddresses.remove(peer.getAnnouncedAddress());
         }
         return peers.remove(peer.getPeerAddress());
+    }
+
+    /**
+     * Re-handshakes connected peers hourly. Uses this node's own last handshake, not
+     * {@link Peer#getLastUpdated()}: a peer's inbound getInfo refreshes that too, but only an
+     * outbound handshake measures the peer's clock.
+     */
+    static boolean isHandshakeDue(Peer peer, int now) {
+        return peer.getState() == Peer.State.CONNECTED && (long) now - peer.getLastHandshake() > 3600;
     }
 
     static long epochTimeMillis() {

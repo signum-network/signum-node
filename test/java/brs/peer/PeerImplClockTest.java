@@ -90,11 +90,12 @@ class PeerImplClockTest {
         responseBody = "{\"application\":\"X\",\"" + PeerClock.FIELD + "\":" + (LOCAL_MILLIS - 5000) + "}";
 
         // Act
-        peer.connect(0);
+        peer.connect(4242);
 
         // Assert
         assertEquals(Peer.State.CONNECTED, peer.getState());
         assertEquals(5000L, peer.getClockOffsetMillis());
+        assertEquals(4242, peer.getLastHandshake());
         verify(monitor).onPeerClockSample(eq("127.0.0.1"), eq(5000L));
     }
 

@@ -18,12 +18,14 @@ After installing PostgreSQL, [`scripts/db/signum-postgres.sql`](scripts/db/signu
 
 ```bash
 # Linux
-sudo -u postgres psql -v password='choose-a-password' < scripts/db/signum-postgres.sql
+sudo -u postgres psql < scripts/db/signum-postgres.sql
 # macOS (Homebrew)
-psql -d postgres -v password='choose-a-password' -f scripts/db/signum-postgres.sql
+psql -d postgres -f scripts/db/signum-postgres.sql
 # Windows
-psql -U postgres -v password="choose-a-password" -f scripts\db\signum-postgres.sql
+psql -U postgres -f scripts\db\signum-postgres.sql
 ```
+
+The script asks for a password for the node's database user. If your server logs DDL statements (`log_statement = ddl` or `all`), the password appears in the server log in plain text, as with any `ALTER ROLE ... PASSWORD`.
 
 Restart PostgreSQL afterwards. For the testnet, add `-v db=signum_testnet`. The header of the script lists all options.
 

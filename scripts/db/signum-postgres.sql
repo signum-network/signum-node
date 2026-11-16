@@ -2,12 +2,13 @@
 -- See DB_SETUP_POSTGRESQL.md. Safe to run again.
 --
 -- Run it with psql as a superuser:
---   Linux:   sudo -u postgres psql -v password='...' < scripts/db/signum-postgres.sql
---   macOS:   psql -d postgres -v password='...' -f scripts/db/signum-postgres.sql
---   Windows: psql -U postgres -v password="..." -f scripts\db\signum-postgres.sql
+--   Linux:   sudo -u postgres psql < scripts/db/signum-postgres.sql
+--   macOS:   psql -d postgres -f scripts/db/signum-postgres.sql
+--   Windows: psql -U postgres -f scripts\db\signum-postgres.sql
 --
 -- Options (each as -v name=value):
---   password        password for the node's database user (required)
+--   password        password for the node's database user (default: asked for; a password
+--                   on the command line ends up in the shell history)
 --   db              database name (default: signum; e.g. signum_testnet)
 --   user            database user (default: signumnode)
 --   tune            off = only create role and database (default: on)
@@ -17,7 +18,15 @@
 
 \if :{?password}
 \else
-DO $$ BEGIN RAISE EXCEPTION 'Set a password for the node''s database user: psql -v password=... '; END $$;
+\prompt 'Password for the node''s database user (shown while typing): ' password
+-- Without a terminal, the prompt above reads this line from the script instead. Checked below.
+\endif
+SELECT :'password' = '' AS no_password,
+       :'password' LIKE '-- Without a terminal, the prompt above%' AS no_terminal \gset
+\if :no_terminal
+DO $$ BEGIN RAISE EXCEPTION 'No terminal to ask for the password. Pass it with -v password=...'; END $$;
+\elif :no_password
+DO $$ BEGIN RAISE EXCEPTION 'The password must not be empty'; END $$;
 \endif
 \if :{?db}
 \else

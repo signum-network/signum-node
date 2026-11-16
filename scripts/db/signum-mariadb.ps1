@@ -95,8 +95,10 @@ function Find-MariaDbService([string]$ServiceName) {
 }
 
 function Invoke-MariaDb([string]$Client, [string]$Sql, [string[]]$Options = @()) {
-    # -p without a value asks for the root password
-    & $Client -u root -p @Options -e $Sql
+    # The SQL goes through stdin, so the password is not on the process command line.
+    # -p without a value asks for the root password on the console.
+    $OutputEncoding = New-Object Text.UTF8Encoding $false
+    $Sql | & $Client -u root -p --default-character-set=utf8mb4 @Options
     if ($LASTEXITCODE -ne 0) { throw "mariadb failed with exit code $LASTEXITCODE" }
 }
 
@@ -118,8 +120,6 @@ function Main {
         $Password = [Runtime.InteropServices.Marshal]::PtrToStringBSTR([Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure))
         if (-not $Password) { throw 'The password must not be empty.' }
     }
-    # Windows PowerShell 5.1 breaks native arguments that contain double quotes
-    if ($Password.Contains('"')) { throw 'The password must not contain double quotes (").' }
     $admin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole('Administrators')
     if (-not $admin -and -not $DryRun) { throw 'Run this script in a PowerShell started as administrator.' }
 

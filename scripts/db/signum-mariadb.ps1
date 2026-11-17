@@ -16,7 +16,8 @@ Run it in a PowerShell started as administrator. Safe to run again.
 #>
 [CmdletBinding()]
 param(
-    # Password for the node's database user; asked for if not given
+    # Password for the node's database user; asked for if not given.
+    # On the command line it is visible in the process list and the shell history.
     [string]$Password,
     # Database name, e.g. signum_testnet
     [ValidatePattern('^[A-Za-z0-9_]+$')][string]$Database = 'signum',
@@ -70,20 +71,23 @@ function Get-ServicePath([string]$PathName) {
     [pscustomobject]@{ Bin = $exe.Substring(0, $exe.LastIndexOfAny([char[]]'\/')); Ini = $Matches.ini }
 }
 
+# Get-SetupSql turns off backslash escapes, so only ' needs doubling
 function ConvertTo-SqlString([string]$Value) {
-    "'" + $Value.Replace('\', '\\').Replace("'", "''") + "'"
+    "'" + $Value.Replace("'", "''") + "'"
 }
 
 function Get-SetupSql([string]$Database, [string]$User, [string]$UserHost, [string]$Password) {
     $account = "'$User'@'$UserHost'"
     $pw = ConvertTo-SqlString $Password
     @(
+        # Backslashes in the password stay literal, whatever sql_mode the server has
+        "SET SESSION sql_mode = CONCAT_WS(',', NULLIF(@@sql_mode, ''), 'NO_BACKSLASH_ESCAPES');"
         "CREATE DATABASE IF NOT EXISTS ``$Database``;"
         "CREATE USER IF NOT EXISTS $account IDENTIFIED BY $pw;"
         "ALTER USER $account IDENTIFIED BY $pw;"
         "GRANT ALL PRIVILEGES ON ``$Database``.* TO $account;"
         'FLUSH PRIVILEGES;'
-    ) -join ' '
+    ) -join "`n"
 }
 
 function Find-MariaDbService([string]$ServiceName) {
@@ -138,7 +142,7 @@ function Main {
     $sql = "SHOW VARIABLES WHERE Variable_name IN ('innodb_flush_log_at_trx_commit', 'innodb_log_file_size', 'innodb_buffer_pool_size');"
     if (-not $SkipSetup) {
         Write-Host "==> Creating database $Database and user '$User'@'$UserHost'"
-        $sql = (Get-SetupSql $Database $User $UserHost $Password) + ' ' + $sql
+        $sql = (Get-SetupSql $Database $User $UserHost $Password) + "`n" + $sql
     }
     Write-Host '==> Active settings'
     if (-not $DryRun) { Invoke-MariaDb $client $sql @('--table') }

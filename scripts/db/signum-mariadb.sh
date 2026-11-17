@@ -20,7 +20,8 @@ usage() {
   cat <<EOF
 Usage: $0 [options]
 
-  --password PW        password for the node's database user (default: asked for)
+  --password PW        password for the node's database user (default: asked for).
+                       On the command line it is visible in ps and the shell history.
   --database NAME      database name (default: $DATABASE; e.g. signum_testnet)
   --user NAME          database user (default: $DB_USER)
   --user-host HOST     host the node connects from (default: $DB_HOST; '%' for any, e.g. Docker)
@@ -65,8 +66,8 @@ parse_args() {
 
 ask_password() {
   [ "$SETUP" = 1 ] && [ -z "$PASSWORD" ] || return 0
-  [ -t 0 ] || die "--password is required when not run in a terminal"
-  read -r -s -p "Password for the database user $DB_USER: " PASSWORD; echo
+  [ -t 0 ] || die "no terminal to ask for the password; run it in a terminal or pass --password"
+  IFS= read -r -s -p "Password for the database user $DB_USER: " PASSWORD; echo
   [ -n "$PASSWORD" ] || die "the password must not be empty"
 }
 
@@ -140,16 +141,17 @@ client_cmd() {
   fi
 }
 
-sql_string() { # quote as a SQL string literal
-  local s=${1//\\/\\\\}
-  printf "'%s'" "${s//\'/\'\'}"
+sql_string() { # quote as a SQL string literal; setup_sql turns off backslash escapes
+  printf "'%s'" "${1//\'/\'\'}"
 }
 
 setup_sql() {
   local account pw
   account="'$DB_USER'@'$DB_HOST'"
   pw=$(sql_string "$PASSWORD")
+  # Backslashes in the password stay literal, whatever sql_mode the server has
   cat <<EOF
+SET SESSION sql_mode = CONCAT_WS(',', NULLIF(@@sql_mode, ''), 'NO_BACKSLASH_ESCAPES');
 CREATE DATABASE IF NOT EXISTS \`$DATABASE\`;
 CREATE USER IF NOT EXISTS $account IDENTIFIED BY $pw;
 ALTER USER $account IDENTIFIED BY $pw;

@@ -412,6 +412,23 @@ class BlockchainProcessorImplTest {
     }
 
     @Test
+    void processPeerBlock_GivenNoLastBlockInCache_IgnoresBlockWithoutThrowing() throws Exception {
+        // Arrange
+        BlockchainProcessorImpl processor = createProcessor();
+        when(downloadCache.getLastBlock()).thenReturn(null);
+        Block announced = block(12L, TIP_HEIGHT, 4321);
+
+        try (MockedStatic<Block> blockMock = mockStatic(Block.class)) {
+            blockMock.when(() -> Block.parseBlock(any(JsonObject.class), anyInt())).thenReturn(announced);
+
+            // Act + Assert: an exception here makes ProcessBlock blacklist the sending peer
+            assertDoesNotThrow(() -> processor.processPeerBlock(new JsonObject(), mock(Peer.class)));
+        }
+
+        verify(downloadCache, never()).addBlock(announced);
+    }
+
+    @Test
     void testIsScanning_GivenNoRollback_ReturnsFalse() {
         BlockchainProcessorImpl processor = createProcessor();
 

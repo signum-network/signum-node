@@ -10,11 +10,16 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
 class DownloadCacheImplTest {
 
@@ -83,5 +88,53 @@ class DownloadCacheImplTest {
         // Assert: only the verification queue shrinks, the importer still needs the block
         assertEquals(block, downloadCache.getBlock(1));
         assertEquals(1, downloadCache.size());
+    }
+
+    @Test
+    void getLastBlock_GivenLastBlockRemovedConcurrently_NeverReturnsNull() throws Exception {
+        // Arrange: the importer removes the cached tip while a block announce reads it.
+        // Stub-only mocks: millions of calls would otherwise be recorded for verify() and fill the heap.
+        PropertyService propertyService = stubOnly(PropertyService.class);
+        when(propertyService.getInt(Props.BRS_BLOCK_CACHE_MB)).thenReturn(40);
+        Blockchain blockchain = stubOnly(Blockchain.class);
+        Block chainTip = stubOnly(Block.class);
+        when(chainTip.getId()).thenReturn(1L);
+        when(blockchain.getLastBlock()).thenReturn(chainTip);
+        DownloadCacheImpl cache = new DownloadCacheImpl(propertyService, stubOnly(FluxCapacitor.class), blockchain);
+        Block cached = stubOnly(Block.class);
+        when(cached.getId()).thenReturn(2L);
+        when(cached.getPreviousBlockId()).thenReturn(1L);
+        when(cached.getHeight()).thenReturn(2);
+        when(cached.getCumulativeDifficulty()).thenReturn(BigInteger.ONE);
+        AtomicBoolean running = new AtomicBoolean(true);
+        Thread importer = new Thread(() -> {
+            while (running.get()) {
+                cache.addBlock(cached);
+                cache.removeBlock(cached);
+            }
+        });
+        AtomicInteger nulls = new AtomicInteger();
+        long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(500);
+
+        // Act
+        importer.start();
+        try {
+            while (System.nanoTime() < deadline) {
+                if (cache.getLastBlock() == null) {
+                    nulls.incrementAndGet();
+                }
+            }
+        } finally {
+            running.set(false);
+            importer.join();
+        }
+
+        // Assert
+        assertEquals(0, nulls.get());
+        assertNotNull(cache.getLastBlock());
+    }
+
+    private static <T> T stubOnly(Class<T> type) {
+        return mock(type, withSettings().stubOnly());
     }
 }

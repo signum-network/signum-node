@@ -26,8 +26,12 @@ import brs.services.TimeService;
  * <p>
  * Only blocks that arrived in real time count. A block counts if it follows the previous pushed
  * block and arrived about as long after it as their timestamps are apart. During a bulk sync, old
- * blocks arrive far faster than their timestamps advance, so they are skipped. The check compares
- * differences only, so it works however far the local clock is off.
+ * blocks arrive far faster than their timestamps advance, so they are skipped. The sync downloads in
+ * rounds, though: the next round arrives once the node has pushed the previous one, and when that
+ * takes about one block interval, the first block of a round passes the check. So a block only counts
+ * if the block before it arrived in real time too; the last block of a round arrived together with
+ * the rest of its round. The check compares differences only, so it works however far the local clock
+ * is off.
  * <p>
  * Next to that, it keeps the latest clock offset measured against each peer and reports their
  * median once {@link #MIN_PEER_SAMPLES} peers have a recent one. A single peer with a bad clock, or a
@@ -86,6 +90,7 @@ public class ClockDriftMonitorImpl implements ClockDriftMonitor {
     private int lastHeight;
     private int lastTimestamp;
     private int lastArrival;
+    private boolean lastInRealTime;
 
     private boolean warned;
     private boolean everWarned;
@@ -120,17 +125,20 @@ public class ClockDriftMonitorImpl implements ClockDriftMonitor {
         }
         int arrival = firstArrival.time;
         // a height other than the next one (pop-off, reorg) only resets the reference; a block
-        // pushed again after a pop-off was sampled already
-        if (!firstArrival.sampled && hasReference && height == lastHeight + 1
-                && arrivedInRealTime(blockTimestamp, arrival)) {
-            firstArrival.sampled = true;
-            addSample(saturatedInt((long) arrival - blockTimestamp));
-            reportSafely(timeService.getEpochTime());
+        // pushed again after a pop-off was sampled already, and keeps whether it arrived in real time
+        if (hasReference && height == lastHeight + 1 && arrivedInRealTime(blockTimestamp, arrival)) {
+            firstArrival.inRealTime = true;
+            if (!firstArrival.sampled && lastInRealTime) {
+                firstArrival.sampled = true;
+                addSample(saturatedInt((long) arrival - blockTimestamp));
+                reportSafely(timeService.getEpochTime());
+            }
         }
         hasReference = true;
         lastHeight = height;
         lastTimestamp = blockTimestamp;
         lastArrival = arrival;
+        lastInRealTime = firstArrival.inRealTime;
     }
 
     /**
@@ -267,6 +275,8 @@ public class ClockDriftMonitorImpl implements ClockDriftMonitor {
     private static final class Arrival {
         private final int time;
         private boolean sampled;
+        /** Arrived about as long after the block before it as their timestamps are apart. */
+        private boolean inRealTime;
 
         private Arrival(int time) {
             this.time = time;

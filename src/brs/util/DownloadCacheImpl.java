@@ -496,11 +496,9 @@ public final class DownloadCacheImpl {
     }
 
     public Block getLastBlock() {
-        Long lastCacheId = getLastCacheId();
-        if (lastCacheId != null && blockCache.containsKey(lastCacheId)) {
-            return dcslRead(() -> blockCache.get(lastCacheId));
-        }
-        return blockchain.getLastBlock();
+        // id and entry are read together: the importer may remove the cached tip at any time
+        Block cached = dcslRead(() -> lastBlockId == null ? null : blockCache.get(lastBlockId));
+        return cached != null ? cached : blockchain.getLastBlock();
     }
 
     public int size() {

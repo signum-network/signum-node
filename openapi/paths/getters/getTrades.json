@@ -33,7 +33,7 @@
       {
         "name": "includeAssetInfo",
         "in": "query",
-        "description": "If set `true` (default), the tokens `name` and `decimals` is included in the response",
+        "description": "If `true` (default), each trade also contains the token's `name`, `decimals` and the `price` per whole token. Set `false` to leave these fields out.",
         "schema": {
           "type": "boolean",
           "example": [

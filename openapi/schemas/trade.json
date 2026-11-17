@@ -29,7 +29,7 @@
     "price": {
       "type": "integer",
       "format": "int64",
-      "description": "The price __per integral token__, i.e. if a token has 2 (two) decimals, then this amount is per 100 QNT (Quantity). The amount is always returned in Planck, that is Signa multiplied by 10E8"
+      "description": "The price __per integral token__, i.e. if a token has 2 (two) decimals, then this amount is per 100 QNT (Quantity). The amount is always returned in Planck, that is Signa multiplied by 10E8. Only present when `includeAssetInfo` is `true` (default)"
     },
     "asset": {
       "$ref": "./assetId.json"
@@ -79,12 +79,17 @@
     },
     "decimals": {
       "type": "integer",
-      "description": "The number of decimals for this token.<br/>If you issue a token with 2 decimals, then it can be fractioned in per hundreds, i.e. 0.01. To have an integral token you need to consider the decimals. So, one token is a quantity of 100",
+      "description": "The number of decimals for this token.<br/>If you issue a token with 2 decimals, then it can be fractioned in per hundreds, i.e. 0.01. To have an integral token you need to consider the decimals. So, one token is a quantity of 100. Only present when `includeAssetInfo` is `true` (default)",
       "minimum": 0,
       "maximum": 8
     },
     "name": {
-      "$ref": "./assetName.json"
+      "description": "The token name. Only present when `includeAssetInfo` is `true` (default)",
+      "allOf": [
+        {
+          "$ref": "./assetName.json"
+        }
+      ]
     }
   },
   "example": {
@@ -103,6 +108,7 @@
     "height": 440941,
     "tradeType": "buy",
     "name": "TEST",
-    "decimals": 4
+    "decimals": 4,
+    "price": "99000000"
   }
 }

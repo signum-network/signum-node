@@ -1924,7 +1924,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             logger.debug(
                     "Peer {} sent us block: {} which is not the follow-up block for {}",
                     peer.getPeerAddress(),
-                    newBlock.getPreviousBlockId(), chainblock.getId());
+                    newBlock.getPreviousBlockId(), chainblock == null ? null : chainblock.getId());
         }
     }
 

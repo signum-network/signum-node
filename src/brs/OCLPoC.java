@@ -26,8 +26,8 @@ final class OCLPoC {
 
     private static final Logger logger = LoggerFactory.getLogger(OCLPoC.class);
     private static int HASHES_PER_ENQUEUE_DYNAMIC;
-    private static final int HASHES_PER_ENQUEUE;
-    private static final int MEM_PERCENT;
+    private static int HASHES_PER_ENQUEUE;
+    private static int MEM_PERCENT;
 
     private static cl_context ctx;
     private static cl_command_queue queue;
@@ -37,9 +37,13 @@ final class OCLPoC {
     private static cl_kernel getKernel2;
 
     private static long maxItems;
-    private static final long MAX_GROUP_ITEMS;
+    private static long MAX_GROUP_ITEMS;
 
     private static final Object oclLock = new Object();
+
+    // guarded by oclLock: OpenCL is set up on first use, once; a failure is kept and rethrown
+    private static boolean initAttempted;
+    private static OCLCheckerException initFailure;
 
     private static final long BUFFER_PER_ITEM = (long) MiningPlot.PLOT_SIZE + 16;
     private static final long MEM_PER_ITEM = 8 // id
@@ -48,7 +52,35 @@ final class OCLPoC {
             + 4 // scoop num
             + MiningPlot.SCOOP_SIZE; // output scoop
 
-    static {
+    /**
+     * Sets up OpenCL on first use. Never runs from {@link #destroy()}, so a node that never used the
+     * GPU does not initialize it at shutdown. A failed setup is not retried, and neither is setup after
+     * {@link #destroy()}.
+     */
+    private static void ensureInitialized() {
+        synchronized (oclLock) {
+            if (!initAttempted) {
+                initAttempted = true;
+                try {
+                    initialize();
+                } catch (OCLCheckerException e) {
+                    initFailure = e;
+                } catch (RuntimeException | LinkageError e) {
+                    // LinkageError: the native OpenCL library is missing
+                    initFailure = new OCLCheckerException("OpenCL initialization failed", e);
+                }
+                if (initFailure != null) {
+                    logger.warn("GPU acceleration is not available, PoC verification uses the CPU."
+                            + " Set GPU.Acceleration=false for full CPU verification throughput", initFailure);
+                }
+            }
+            if (initFailure != null) {
+                throw initFailure;
+            }
+        }
+    }
+
+    private static void initialize() {
         PropertyService propertyService = Signum.getPropertyService();
         HASHES_PER_ENQUEUE = propertyService.getInt(Props.GPU_HASHES_PER_BATCH);
         MEM_PERCENT = propertyService.getInt(Props.GPU_MEM_PERCENT);
@@ -251,11 +283,18 @@ final class OCLPoC {
         }
     }
 
+    /** @return the most blocks one {@link #validatePoC} call takes; 0 if OpenCL is not available */
     public static long getMaxItems() {
+        try {
+            ensureInitialized();
+        } catch (OCLCheckerException e) {
+            return 0;
+        }
         return maxItems;
     }
 
     public static void validatePoC(HashMap<Block, Block> blocks, int pocVersion, BlockService blockService) {
+        ensureInitialized();
         try {
             if (logger.isDebugEnabled()) {
                 logger.debug("starting ocl verify for: {}", blocks.size());
@@ -413,6 +452,11 @@ final class OCLPoC {
 
     static void destroy() {
         synchronized (oclLock) {
+            // no setup after shutdown: the PoC verifier can still run a turn after destroy()
+            initAttempted = true;
+            if (initFailure == null) {
+                initFailure = new OCLCheckerException("OpenCL was shut down");
+            }
             if (program != null) {
                 clReleaseProgram(program);
                 program = null;
@@ -437,6 +481,14 @@ final class OCLPoC {
                 clReleaseContext(ctx);
                 ctx = null;
             }
+        }
+    }
+
+    /** Test-only: forgets a previous setup attempt or shutdown. */
+    static void resetForTests() {
+        synchronized (oclLock) {
+            initAttempted = false;
+            initFailure = null;
         }
     }
 

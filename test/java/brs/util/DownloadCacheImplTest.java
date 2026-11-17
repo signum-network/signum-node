@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -18,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
 class DownloadCacheImplTest {
 
@@ -90,15 +92,16 @@ class DownloadCacheImplTest {
 
     @Test
     void getLastBlock_GivenLastBlockRemovedConcurrently_NeverReturnsNull() throws Exception {
-        // Arrange: the importer removes the cached tip while a block announce reads it
-        PropertyService propertyService = mock(PropertyService.class);
+        // Arrange: the importer removes the cached tip while a block announce reads it.
+        // Stub-only mocks: millions of calls would otherwise be recorded for verify() and fill the heap.
+        PropertyService propertyService = stubOnly(PropertyService.class);
         when(propertyService.getInt(Props.BRS_BLOCK_CACHE_MB)).thenReturn(40);
-        Blockchain blockchain = mock(Blockchain.class);
-        Block chainTip = mock(Block.class);
+        Blockchain blockchain = stubOnly(Blockchain.class);
+        Block chainTip = stubOnly(Block.class);
         when(chainTip.getId()).thenReturn(1L);
         when(blockchain.getLastBlock()).thenReturn(chainTip);
-        DownloadCacheImpl cache = new DownloadCacheImpl(propertyService, mock(FluxCapacitor.class), blockchain);
-        Block cached = mock(Block.class);
+        DownloadCacheImpl cache = new DownloadCacheImpl(propertyService, stubOnly(FluxCapacitor.class), blockchain);
+        Block cached = stubOnly(Block.class);
         when(cached.getId()).thenReturn(2L);
         when(cached.getPreviousBlockId()).thenReturn(1L);
         when(cached.getHeight()).thenReturn(2);
@@ -111,11 +114,12 @@ class DownloadCacheImplTest {
             }
         });
         AtomicInteger nulls = new AtomicInteger();
+        long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(500);
 
         // Act
         importer.start();
         try {
-            for (int i = 0; i < 2_000_000; i++) {
+            while (System.nanoTime() < deadline) {
                 if (cache.getLastBlock() == null) {
                     nulls.incrementAndGet();
                 }
@@ -128,5 +132,9 @@ class DownloadCacheImplTest {
         // Assert
         assertEquals(0, nulls.get());
         assertNotNull(cache.getLastBlock());
+    }
+
+    private static <T> T stubOnly(Class<T> type) {
+        return mock(type, withSettings().stubOnly());
     }
 }

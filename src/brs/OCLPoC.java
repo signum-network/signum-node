@@ -68,6 +68,9 @@ final class OCLPoC {
                     // LinkageError: the native OpenCL library is missing
                     initFailure = new OCLCheckerException("OpenCL initialization failed", e);
                 }
+                if (initFailure != null) {
+                    logger.warn("GPU acceleration is not available, PoC verification uses the CPU", initFailure);
+                }
             }
             if (initFailure != null) {
                 throw initFailure;

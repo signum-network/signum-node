@@ -77,6 +77,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.LongSupplier;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
@@ -295,6 +296,27 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             blockImporterLock.writeLock().unlock();
             getMoreBlocksLock.writeLock().unlock();
         }
+    }
+
+    /**
+     * Decides whether the PoC verifier sends the next batch to the GPU. Falls back to the CPU when
+     * OpenCL is not available ({@code oclMaxItems} returns 0), so a failed GPU setup does not keep the
+     * verifier retrying. Holds a {@code gpuUsage} permit only when it returns true; the caller releases
+     * it after the batch.
+     */
+    static boolean tryUseOcl(int unVerified, boolean oclVerify, int oclUnverifiedQueue, Semaphore gpuUsage,
+            LongSupplier oclMaxItems) {
+        if (!oclVerify || unVerified < oclUnverifiedQueue) {
+            return false;
+        }
+        if (!gpuUsage.tryAcquire()) { // GPU busy with other batches
+            return false;
+        }
+        if (oclMaxItems.getAsLong() <= 0) { // OpenCL setup failed: verify on the CPU
+            gpuUsage.release();
+            return false;
+        }
+        return true;
     }
 
     public final void setOclVerify(Boolean b) {
@@ -1072,15 +1094,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             while (!Thread.interrupted() && ThreadPool.running.get()) {
                 int unVerified = downloadCache.getUnverifiedSize();
                 if (unVerified > queueThreshold) { // Is there anything to verify
-                    if (unVerified >= oclUnverifiedQueue && oclVerify) { // should we use Ocl?
-                        verifyWithOcl = true;
-                        if (!gpuUsage.tryAcquire()) { // is Ocl ready ?
-                            logger.debug("already max locked");
-                            verifyWithOcl = false;
-                        }
-                    } else {
-                        verifyWithOcl = false;
-                    }
+                    verifyWithOcl = tryUseOcl(unVerified, oclVerify, oclUnverifiedQueue, gpuUsage,
+                            OCLPoC::getMaxItems);
                     if (verifyWithOcl) {
                         int pocVersion;
                         int pos = 0;

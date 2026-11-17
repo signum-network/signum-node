@@ -54,7 +54,8 @@ final class OCLPoC {
 
     /**
      * Sets up OpenCL on first use. Never runs from {@link #destroy()}, so a node that never used the
-     * GPU does not initialize it at shutdown. A failed setup is not retried.
+     * GPU does not initialize it at shutdown. A failed setup is not retried, and neither is setup after
+     * {@link #destroy()}.
      */
     private static void ensureInitialized() {
         synchronized (oclLock) {
@@ -69,7 +70,8 @@ final class OCLPoC {
                     initFailure = new OCLCheckerException("OpenCL initialization failed", e);
                 }
                 if (initFailure != null) {
-                    logger.warn("GPU acceleration is not available, PoC verification uses the CPU", initFailure);
+                    logger.warn("GPU acceleration is not available, PoC verification uses the CPU."
+                            + " Set GPU.Acceleration=false for full CPU verification throughput", initFailure);
                 }
             }
             if (initFailure != null) {
@@ -450,6 +452,11 @@ final class OCLPoC {
 
     static void destroy() {
         synchronized (oclLock) {
+            // no setup after shutdown: the PoC verifier can still run a turn after destroy()
+            initAttempted = true;
+            if (initFailure == null) {
+                initFailure = new OCLCheckerException("OpenCL was shut down");
+            }
             if (program != null) {
                 clReleaseProgram(program);
                 program = null;
@@ -474,6 +481,14 @@ final class OCLPoC {
                 clReleaseContext(ctx);
                 ctx = null;
             }
+        }
+    }
+
+    /** Test-only: forgets a previous setup attempt or shutdown. */
+    static void resetForTests() {
+        synchronized (oclLock) {
+            initAttempted = false;
+            initFailure = null;
         }
     }
 

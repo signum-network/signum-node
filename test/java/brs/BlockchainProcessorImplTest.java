@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -539,42 +540,42 @@ class BlockchainProcessorImplTest {
         return Crypto.sha256().digest(bytes.toByteArray());
     }
 
-  @Test
-  void tryUseOcl_GivenOclUnavailable_ReturnsFalseAndKeepsPermits() {
-    // Arrange
-    java.util.concurrent.Semaphore gpuUsage = new java.util.concurrent.Semaphore(2);
+    @Test
+    void tryUseOcl_GivenOclUnavailable_ReturnsFalseAndKeepsPermits() {
+        // Arrange
+        Semaphore gpuUsage = new Semaphore(2);
 
-    // Act
-    boolean useOcl = BlockchainProcessorImpl.tryUseOcl(5000, true, 1000, gpuUsage, () -> 0L);
+        // Act
+        boolean useOcl = BlockchainProcessorImpl.tryUseOcl(5000, true, 1000, gpuUsage, () -> 0L);
 
-    // Assert
-    assertFalse(useOcl);
-    assertEquals(2, gpuUsage.availablePermits());
-  }
+        // Assert
+        assertFalse(useOcl);
+        assertEquals(2, gpuUsage.availablePermits());
+    }
 
-  @Test
-  void tryUseOcl_GivenOclAvailableAndQueueFull_ReturnsTrueAndHoldsPermit() {
-    // Arrange
-    java.util.concurrent.Semaphore gpuUsage = new java.util.concurrent.Semaphore(2);
+    @Test
+    void tryUseOcl_GivenOclAvailableAndQueueFull_ReturnsTrueAndHoldsPermit() {
+        // Arrange
+        Semaphore gpuUsage = new Semaphore(2);
 
-    // Act
-    boolean useOcl = BlockchainProcessorImpl.tryUseOcl(5000, true, 1000, gpuUsage, () -> 4096L);
+        // Act
+        boolean useOcl = BlockchainProcessorImpl.tryUseOcl(5000, true, 1000, gpuUsage, () -> 4096L);
 
-    // Assert
-    assertTrue(useOcl);
-    assertEquals(1, gpuUsage.availablePermits());
-  }
+        // Assert
+        assertTrue(useOcl);
+        assertEquals(1, gpuUsage.availablePermits());
+    }
 
-  @Test
-  void tryUseOcl_GivenQueueBelowThreshold_ReturnsFalse() {
-    // Arrange
-    java.util.concurrent.Semaphore gpuUsage = new java.util.concurrent.Semaphore(2);
+    @Test
+    void tryUseOcl_GivenQueueBelowThreshold_ReturnsFalse() {
+        // Arrange
+        Semaphore gpuUsage = new Semaphore(2);
 
-    // Act
-    boolean useOcl = BlockchainProcessorImpl.tryUseOcl(999, true, 1000, gpuUsage, () -> 4096L);
+        // Act
+        boolean useOcl = BlockchainProcessorImpl.tryUseOcl(999, true, 1000, gpuUsage, () -> 4096L);
 
-    // Assert
-    assertFalse(useOcl);
-    assertEquals(2, gpuUsage.availablePermits());
-  }
+        // Assert
+        assertFalse(useOcl);
+        assertEquals(2, gpuUsage.availablePermits());
+    }
 }

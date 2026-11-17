@@ -83,7 +83,7 @@ class ClockDriftMonitorImplTest {
     @Test
     void getEstimatedOffset_GivenBlocksPushedLateBecauseClockIsBehind_UsesFirstArrival() {
         // a clock 600 s behind rejects each block as "from the future" and pushes it ~585 s later
-        for (int i = 0; i <= ClockDriftMonitorImpl.MIN_SAMPLES; i++) {
+        for (int i = 0; i <= ClockDriftMonitorImpl.MIN_SAMPLES + 1; i++) {
             height++;
             blockTimestamp += BLOCK_INTERVAL;
             time.set(blockTimestamp - 600);
@@ -99,7 +99,7 @@ class ClockDriftMonitorImplTest {
     void getEstimatedOffset_GivenParentPoppedAndRePushedAfterRejection_StillSamples() {
         // the importer's auto pop-off after a "from the future" rejection: the parent is popped,
         // downloaded again and pushed again before the rejected block finally gets through
-        for (int i = 0; i <= ClockDriftMonitorImpl.MIN_SAMPLES; i++) {
+        for (int i = 0; i <= ClockDriftMonitorImpl.MIN_SAMPLES + 1; i++) {
             height++;
             blockTimestamp += BLOCK_INTERVAL;
             time.set(blockTimestamp - 60);
@@ -118,7 +118,8 @@ class ClockDriftMonitorImplTest {
     void getEstimatedOffset_GivenOneForgerWithBadClock_UsesMedian() {
         receiveTipBlocks(4, 1);
         receiveTipBlock(200); // a forger whose clock is behind: its block looks late
-        receiveTipBlocks(3, 1); // the first of these is skipped: it arrived "early" after the late one
+        // the first of these arrived "early" after the late one, so it and the next are skipped
+        receiveTipBlocks(3, 1);
 
         assertEquals(OptionalInt.of(1), monitor.getEstimatedOffsetSeconds());
     }
@@ -143,6 +144,32 @@ class ClockDriftMonitorImplTest {
         }
 
         assertEquals(OptionalInt.empty(), monitor.getEstimatedOffsetSeconds());
+    }
+
+    @Test
+    void onBlockPushed_GivenSyncRoundsOneBlockIntervalApart_TakesNoSamples() {
+        // the sync downloads blocks in rounds: a round's blocks arrive together, and the next round
+        // arrives once the node has pushed them. When that takes about one block interval, the first
+        // block of each round looks as if it arrived in real time.
+        int roundSize = 20;
+        for (int round = 0; round < 3 * ClockDriftMonitorImpl.WINDOW_SIZE; round++) {
+            List<Integer> roundHeights = new ArrayList<>();
+            List<Integer> roundTimestamps = new ArrayList<>();
+            for (int i = 0; i < roundSize; i++) {
+                height++;
+                blockTimestamp += BLOCK_INTERVAL;
+                monitor.onBlockReceived(height);
+                roundHeights.add(height);
+                roundTimestamps.add(blockTimestamp);
+            }
+            for (int i = 0; i < roundSize; i++) {
+                monitor.onBlockPushed(roundHeights.get(i), roundHeights.get(i), roundTimestamps.get(i));
+            }
+            time.advance(BLOCK_INTERVAL);
+        }
+
+        assertEquals(OptionalInt.empty(), monitor.getEstimatedOffsetSeconds());
+        assertTrue(log.warnings.isEmpty());
     }
 
     @Test
@@ -191,7 +218,7 @@ class ClockDriftMonitorImplTest {
 
     @Test
     void onBlockReceived_GivenSameBlockAgain_KeepsFirstArrival() {
-        for (int i = 0; i <= ClockDriftMonitorImpl.MIN_SAMPLES; i++) {
+        for (int i = 0; i <= ClockDriftMonitorImpl.MIN_SAMPLES + 1; i++) {
             height++;
             blockTimestamp += BLOCK_INTERVAL;
             time.set(blockTimestamp - 20);
@@ -326,7 +353,7 @@ class ClockDriftMonitorImplTest {
         time.set(Integer.MAX_VALUE - 10);
         monitor.onBlockReceived(1);
         monitor.onBlockPushed(1, height, Integer.MIN_VALUE);
-        for (int i = 1; i <= ClockDriftMonitorImpl.MIN_SAMPLES; i++) {
+        for (int i = 1; i <= ClockDriftMonitorImpl.MIN_SAMPLES + 1; i++) {
             time.set(Integer.MAX_VALUE - 10 + i);
             monitor.onBlockReceived(1 + i);
             monitor.onBlockPushed(1 + i, height + i, Integer.MIN_VALUE + i);
@@ -570,8 +597,10 @@ class ClockDriftMonitorImplTest {
     /** Lets {@code count} block intervals pass, each ending with a tip block seen with the given offset. */
     private void receiveTipBlocks(int count, int offset) {
         if (!referenceSent) {
-            // the first block only sets the reference for the next one; it arrives with the same offset
+            // the first block only sets the reference, and the second only shows that it arrived in
+            // real time, which the block after it needs; both arrive with the same offset
             receiveAndPush(offset);
+            receiveTipBlock(offset);
             referenceSent = true;
         }
         for (int i = 0; i < count; i++) {

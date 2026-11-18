@@ -713,49 +713,16 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
                             peerHasMore = true;
                             BigInteger curCumulativeDifficulty = downloadCache.getCumulativeDifficulty();
-                            BigInteger betterCumulativeDifficulty = BigInteger.ZERO;
-
-                            Peer peer = null;
-                            int feederHeight = 0;
-                            do {
-                                peer = Peers.getAnyPeer(Peer.State.CONNECTED);
-                                if (peer == null) {
-                                    logger.debug("No peer connected.");
-                                    return;
-                                }
-                                if (!peer.isHigherOrEqualVersionThan(
-                                        Signum.getFluxCapacitor().getValue(FluxValues.MIN_PEER_VERSION))
-                                        || (peer.getNetworkName() != null && !peer.getNetworkName()
-                                                .equals(propertyService.getString(Props.NETWORK_NAME)))) {
-                                    // ignore this peer, it will be removed by the peers discovery thread
-                                    continue;
-                                }
-
-                                JsonObject response = peer.send(getCumulativeDifficultyRequest);
-                                if (response == null) {
-                                    continue;
-                                }
-                                if (response.get("blockchainHeight") != null) {
-                                    lastBlockchainFeeder.set(peer);
-                                    feederHeight = JSON.getAsInt(response.get("blockchainHeight"));
-                                    lastBlockchainFeederHeight.set(feederHeight);
-                                } else {
-                                    logger.debug("Peer {} has no chainheight", peer.getAnnouncedAddress());
-                                    continue;
-                                }
-
-                                /* Cache now contains Cumulative Difficulty */
-                                String peerCumulativeDifficulty = JSON
-                                        .getAsString(response.get("cumulativeDifficulty"));
-                                if (peerCumulativeDifficulty == null) {
-                                    logger.debug("Peer CumulativeDifficulty is null");
-                                    continue;
-                                }
-                                betterCumulativeDifficulty = new BigInteger(peerCumulativeDifficulty);
-                            } while (betterCumulativeDifficulty.compareTo(curCumulativeDifficulty) <= 0);
+                            BetterPeerSearch.Feeder feeder = betterPeerSearch(getCumulativeDifficultyRequest)
+                                    .find(curCumulativeDifficulty);
+                            if (feeder == null) {
+                                return; // frees the download lock, the thread tries again on its next run
+                            }
+                            Peer peer = feeder.peer();
+                            int feederHeight = feeder.height();
 
                             logger.trace("Got a better cumulative difficulty {} than current {}.",
-                                    betterCumulativeDifficulty, curCumulativeDifficulty);
+                                    feeder.cumulativeDifficulty(), curCumulativeDifficulty);
 
                             long commonBlockId = genesisBlockId;
                             long cacheLastBlockId = downloadCache.getLastBlockId();
@@ -1879,6 +1846,30 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     @Override
     public boolean removeListener(Listener<Block> listener, Event eventType) {
         return blockListeners.removeListener(listener, eventType);
+    }
+
+    /**
+     * One search asks at most as many peers as the node may connect to, and stops when the download
+     * thread is paused, for example for a pop-off or the shutdown, which wait for the download lock.
+     */
+    private BetterPeerSearch betterPeerSearch(JsonElement getCumulativeDifficultyRequest) {
+        return new BetterPeerSearch(
+                () -> Peers.getAnyPeer(Peer.State.CONNECTED),
+                this::isUsableFeeder,
+                getCumulativeDifficultyRequest,
+                (peer, height) -> {
+                    lastBlockchainFeeder.set(peer);
+                    lastBlockchainFeederHeight.set(height);
+                },
+                () -> !Thread.currentThread().isInterrupted() && ThreadPool.running.get()
+                        && !getMoreBlocksPause.get() && !getMoreBlocksAutoPause.get() && !isShutdown.get(),
+                propertyService.getInt(Props.P2P_MAX_CONNECTIONS));
+    }
+
+    private boolean isUsableFeeder(Peer peer) {
+        return peer.isHigherOrEqualVersionThan(Signum.getFluxCapacitor().getValue(FluxValues.MIN_PEER_VERSION))
+                && (peer.getNetworkName() == null
+                        || peer.getNetworkName().equals(propertyService.getString(Props.NETWORK_NAME)));
     }
 
     @Override

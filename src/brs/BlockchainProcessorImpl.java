@@ -2728,27 +2728,27 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                     manualPopOffBlocksCount.set(0);
                     manualLastPopOffHeight.set(-1);
                     stores.rollbackTransaction();
-                    // Get block height from datbase
+                    // Get block height from database
                     block = blockDb.findLastBlock();
                     blockchain.setLastBlock(block);
-                    logger.error("Error occured during pop-off.", e);
-                    logger.error("Cancelling pop-off process to prevent database consistency.");
+                    logger.error("Error occurred during pop-off.", e);
+                    logger.error("Cancelling pop-off process to prevent database inconsistency.");
                     logger.error("Setting blockchain height back to {}.", block.getHeight());
                 } catch (Error e) {
                     manualPopOffBlocksCount.set(0);
                     manualLastPopOffHeight.set(-1);
                     stores.rollbackTransaction();
-                    // Get block height from datbase
+                    // Get block height from database
                     block = blockDb.findLastBlock();
                     blockchain.setLastBlock(block);
                     logger.error("Critical error during pop-off, transaction rolled back.", e);
-                    logger.error("Cacelling pop-off process to prevent database consistency.");
+                    logger.error("Cancelling pop-off process to prevent database inconsistency.");
                     logger.error("Setting blockchain height back to {}.", block.getHeight());
                 } finally {
                     dbCacheManager.flushCache();
                     downloadCache.resetCache();
                     atProcessorCache.reset();
-                    // Get block height from datbase
+                    // Get block height from database
                     block = blockDb.findLastBlock();
                     blockchain.setLastBlock(block);
                     stores.endTransaction();
@@ -2758,11 +2758,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             manualPopOffBlocksCount.set(0);
             manualLastPopOffHeight.set(-1);
             stores.rollbackTransaction();
-            // Get block height from datbase
+            // Get block height from database
             block = blockDb.findLastBlock();
             blockchain.setLastBlock(block);
             logger.error("Unhandled exception during pop-off", e);
-            logger.error("Cacelling pop-off process to prevent database consistency.");
+            logger.error("Cancelling pop-off process to prevent database inconsistency.");
             logger.error("Setting blockchain height back to {}.", block.getHeight());
         } finally {
             logger.info("Blocks popped off: {} in {}", poppedBlocks, popping.elapsed());
@@ -2785,7 +2785,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             }
             manualPopOffBlocksCount.set(0);
             manualLastPopOffHeight.set(-1);
-            // Get block height from datbase
+            // Get block height from database
             block = blockDb.findLastBlock();
             blockchain.setLastBlock(block);
             blockListeners.notify(block, Event.BLOCK_MANUAL_POPPED);
@@ -2835,7 +2835,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         int currentHeight = blockchain.getHeight();
         if (commonBlock.getHeight() < getMinRollbackHeight()) {
             autoPopOffBlocksCount.set(0);
-            throw new IllegalArgumentException("Rollback to height " + commonBlock.getHeight() + " not suppported, "
+            throw new IllegalArgumentException("Rollback to height " + commonBlock.getHeight() + " not supported, "
                     + "current height " + currentHeight);
         }
         if (!blockchain.hasBlock(commonBlock.getId())) {
@@ -2897,15 +2897,16 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         autoPopOffBlocksCount.decrementAndGet();
                         blockListeners.notify(block, Event.BLOCK_AUTO_POPPED);
                         if (rollback.isProgressDue()) {
-                            logger.info("Rollback in progress: {} blocks rolled back in {}, at height {}",
-                                    poppedOffBlocks.size(), rollback.elapsed(), block.getHeight());
+                            logger.info("Rollback in progress: {} blocks rolled back in {}, at height {}, {} to go",
+                                    poppedOffBlocks.size(), rollback.elapsed(), block.getHeight(),
+                                    autoPopOffBlocksCount.get());
                         }
                     }
                     logger.info("Rollback to {} done: {} blocks in {}", block.getHeight(), poppedOffBlocks.size(),
                             rollback.elapsed());
                 } catch (RuntimeException e) {
                     stores.rollbackTransaction();
-                    // Get block height from datbase
+                    // Get block height from database
                     block = blockDb.findLastBlock();
                     blockchain.setLastBlock(block);
                     logger.error("Error popping off to {}", commonBlock.getHeight(), e);
@@ -2919,7 +2920,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                     atProcessorCache.reset();
                     autoPopOffBlocksCount.set(0);
                     autoLastPopOffHeight.set(-1);
-                    // Get block height from datbase
+                    // Get block height from database
                     block = blockDb.findLastBlock();
                     blockchain.setLastBlock(block);
                     blockListeners.notify(block, Event.BLOCK_AUTO_POPPED);

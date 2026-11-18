@@ -14,7 +14,6 @@ import java.util.function.Supplier;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -187,8 +186,17 @@ class BetterPeerSearchTest {
     }
 
     @Test
-    void constructor_GivenNonPositiveMaxPolls_Throws() {
-        assertThrows(IllegalArgumentException.class,
-                () -> new BetterPeerSearch(connectedPeers, usable, REQUEST, feederListener, mayContinue, 0));
+    void find_GivenNonPositiveMaxPolls_StillAsksOnePeer() {
+        // Arrange: e.g. P2P.MaxConnections set to 0
+        Peer better = peerReporting(42, 1_001);
+        when(connectedPeers.get()).thenReturn(better);
+        BetterPeerSearch search = new BetterPeerSearch(connectedPeers, usable, REQUEST, feederListener, mayContinue, 0);
+
+        // Act
+        BetterPeerSearch.Feeder feeder = search.find(OURS);
+
+        // Assert
+        assertSame(better, feeder.peer());
+        verify(better, times(1)).send(REQUEST);
     }
 }

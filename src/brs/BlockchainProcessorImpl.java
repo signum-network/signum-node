@@ -1849,8 +1849,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
 
     /**
-     * One search asks at most as many peers as the node may connect to, and stops when the download
-     * thread is paused, for example for a pop-off or the shutdown, which wait for the download lock.
+     * One search polls at most as many random connected peers as the node may connect to, and stops
+     * when the download thread is paused, for example for a pop-off or the shutdown, which wait for
+     * the download lock.
      */
     private BetterPeerSearch betterPeerSearch(JsonElement getCumulativeDifficultyRequest) {
         return new BetterPeerSearch(

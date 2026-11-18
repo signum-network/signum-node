@@ -47,19 +47,18 @@ final class BetterPeerSearch {
      * @param request        the prepared {@code getCumulativeDifficulty} request
      * @param feederListener told about every peer that reported its height
      * @param mayContinue    false once the search must stop, checked before every poll
-     * @param maxPolls       the most peers asked in one search
+     * @param maxPolls       the most polls in one search, at least 1. Every poll draws a random
+     *                       connected peer, so one search may ask a peer twice and skip another
      */
     BetterPeerSearch(Supplier<Peer> connectedPeers, Predicate<Peer> usable, JsonElement request,
             FeederListener feederListener, BooleanSupplier mayContinue, int maxPolls) {
-        if (maxPolls < 1) {
-            throw new IllegalArgumentException("maxPolls must be positive: " + maxPolls);
-        }
         this.connectedPeers = connectedPeers;
         this.usable = usable;
         this.request = request;
         this.feederListener = feederListener;
         this.mayContinue = mayContinue;
-        this.maxPolls = maxPolls;
+        // at least one poll, also for a misconfigured limit: none would keep the node from syncing
+        this.maxPolls = Math.max(1, maxPolls);
     }
 
     /**
@@ -81,7 +80,7 @@ final class BetterPeerSearch {
                 return feeder;
             }
         }
-        logger.debug("No peer with a higher cumulative difficulty than {} among {} polls", ours, maxPolls);
+        logger.debug("No peer with a higher cumulative difficulty than {} in {} polls", ours, maxPolls);
         return null;
     }
 

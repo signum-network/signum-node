@@ -1,6 +1,7 @@
 package brs;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -8,6 +9,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +27,7 @@ import brs.util.Convert;
 import brs.util.DownloadCacheImpl;
 import brs.util.Listener;
 import brs.util.Listeners;
+import brs.util.MiningPlot;
 import brs.util.ThreadPool;
 import signumj.crypto.SignumCrypto;
 import signumj.entity.SignumID;
@@ -140,6 +143,32 @@ public class GeneratorImpl implements Generator {
   @Override
   public BigInteger calculateHit(byte[] genSig, byte[] scoopData) {
     return signumCrypto.calculateHit(genSig, scoopData);
+  }
+
+  @Override
+  public byte[] calculateScoops(long[] accountIds, long[] nonces, int[] scoops, int[] blockHeights) {
+    int count = accountIds.length;
+    if (nonces.length != count || scoops.length != count || blockHeights.length != count) {
+      throw new IllegalArgumentException("accountIds, nonces, scoops and blockHeights must have the same length");
+    }
+    byte[] result = new byte[count * MiningPlot.SCOOP_SIZE];
+    // usually all blocks of a batch have the same PoC version, otherwise one call per version
+    for (int pocVersion = 1; pocVersion <= 2; pocVersion++) {
+      final int version = pocVersion;
+      int[] indexes = IntStream.range(0, count).filter(i -> getPocVersion(blockHeights[i]) == version).toArray();
+      if (indexes.length == 0) {
+        continue;
+      }
+      byte[] group = signumCrypto.calculateScoops(
+          Arrays.stream(indexes).mapToLong(i -> accountIds[i]).toArray(),
+          Arrays.stream(indexes).mapToLong(i -> nonces[i]).toArray(),
+          Arrays.stream(indexes).map(i -> scoops[i]).toArray(),
+          pocVersion);
+      for (int j = 0; j < indexes.length; j++) {
+        System.arraycopy(group, j * MiningPlot.SCOOP_SIZE, result, indexes[j] * MiningPlot.SCOOP_SIZE, MiningPlot.SCOOP_SIZE);
+      }
+    }
+    return result;
   }
 
   @Override
@@ -274,6 +303,12 @@ public class GeneratorImpl implements Generator {
       return BigInteger.valueOf(propertyService.getInt(Props.DEV_MOCK_MINING_DEADLINE));
     }
 
+    // the hit is mocked, so the scoops do not matter: skip the expensive calculation
+    @Override
+    public byte[] calculateScoops(long[] accountIds, long[] nonces, int[] scoops, int[] blockHeights) {
+      return new byte[accountIds.length * MiningPlot.SCOOP_SIZE];
+    }
+
     @Override
     public BigInteger calculateDeadline(BigInteger hit, long capacityBaseTarget, long commitment, long averageCommitment, int blockHeight) {
       return BigInteger.valueOf(propertyService.getInt(Props.DEV_MOCK_MINING_DEADLINE));
@@ -372,7 +407,8 @@ public class GeneratorImpl implements Generator {
     long genesisTarget = Constants.INITIAL_BASE_TARGET;
     genesisTarget = (long)(genesisTarget / 1.83d); // account for Sodium deadlines
     long estimatedCapacityGb = genesisTarget*nBlocksMined*1000L/(capacityBaseTarget * capacityEstimationBlocks);
-    long minCapacity = fluxCapacitor.getValue(FluxValues.MIN_CAPACITY);
+    // at the previous block, not the last one: blocks can be checked before they reach the chain
+    long minCapacity = fluxCapacitor.getValue(FluxValues.MIN_CAPACITY, height);
     if(estimatedCapacityGb < minCapacity) {
       estimatedCapacityGb = minCapacity;
     }

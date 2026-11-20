@@ -8,9 +8,15 @@ import com.google.gson.JsonObject;
 final class GetInfo implements PeerServlet.PeerRequestHandler {
 
     private final TimeService timeService;
+    private final boolean shareClock;
 
-    GetInfo(TimeService timeService) {
+    /**
+     * @param shareClock whether replies carry this node's clock ({@code P2P.shareClock}); without it
+     *                   peers simply take no clock sample from this node
+     */
+    GetInfo(TimeService timeService, boolean shareClock) {
         this.timeService = timeService;
+        this.shareClock = shareClock;
     }
 
     @Override
@@ -55,6 +61,11 @@ final class GetInfo implements PeerServlet.PeerRequestHandler {
 
         Peers.notifyListeners(peerImpl, Peers.Event.ADDED_ACTIVE_PEER);
 
-        return Peers.myPeerInfoResponse;
+        // a copy per request: the shared reply must not carry one peer's clock to the next
+        JsonObject response = Peers.myPeerInfoResponse.getAsJsonObject().deepCopy();
+        if (shareClock) {
+            response.addProperty(PeerClock.FIELD, PeerClock.roundToSecond(timeService.getEpochTimeMillis()));
+        }
+        return response;
     }
 }

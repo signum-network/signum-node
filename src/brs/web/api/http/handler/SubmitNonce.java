@@ -60,12 +60,12 @@ public final class SubmitNonce extends ApiServlet.JsonRequestHandler {
   @Override
   protected
   JsonElement processRequest(HttpServletRequest req) {
-    String secret = req.getParameter(SECRET_PHRASE_PARAMETER);
-    long nonce = Convert.parseUnsignedLong(req.getParameter(NONCE_PARAMETER));
+    String secret = bodyFirst(req, SECRET_PHRASE_PARAMETER);
+    long nonce = Convert.parseUnsignedLong(bodyFirst(req, NONCE_PARAMETER));
 
-    String accountId = req.getParameter(ACCOUNT_ID_PARAMETER);
+    String accountId = bodyFirst(req, ACCOUNT_ID_PARAMETER);
 
-    String submissionHeight = Convert.emptyToNull(req.getParameter(BLOCK_HEIGHT_PARAMETER));
+    String submissionHeight = Convert.emptyToNull(bodyFirst(req, BLOCK_HEIGHT_PARAMETER));
 
     JsonObject response = new JsonObject();
 
@@ -171,6 +171,16 @@ public final class SubmitNonce extends ApiServlet.JsonRequestHandler {
       throw new Exception("Passphrase is for a different account");
     }
   }
+  /**
+   * Reads a parameter, preferring the POST body over the query string: miners should send the
+   * passphrase in the body, where it stays out of URLs and access logs. The query string still
+   * works for older miners. The servlet API lists query string values before body values.
+   */
+  static String bodyFirst(HttpServletRequest req, String name) {
+    String[] values = req.getParameterValues(name);
+    return values == null || values.length == 0 ? null : values[values.length - 1];
+  }
+
   boolean requirePost() {
     return true;
   }

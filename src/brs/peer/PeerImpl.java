@@ -33,6 +33,7 @@ import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.OptionalLong;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -60,6 +61,8 @@ final class PeerImpl implements Peer {
     private final AtomicReference<String> blacklistReason = new AtomicReference<>("");
     private final AtomicInteger connectionFailures = new AtomicInteger(0);
     private final AtomicReference<State> state = new AtomicReference<>();
+    private final AtomicReference<Long> clockOffsetMillis = new AtomicReference<>();
+    private final AtomicInteger lastHandshake = new AtomicInteger();
     private final AtomicLong downloadedVolume = new AtomicLong();
     private final AtomicLong uploadedVolume = new AtomicLong();
     private final AtomicInteger lastUpdated = new AtomicInteger();
@@ -314,6 +317,7 @@ final class PeerImpl implements Peer {
     @Override
     public void blacklist() {
         blacklistingTime.set(System.currentTimeMillis());
+        Peers.forgetClockSample(peerAddress);
         setState(State.NON_CONNECTED);
         Peers.notifyListeners(this, Peers.Event.BLACKLIST);
     }
@@ -380,6 +384,8 @@ final class PeerImpl implements Peer {
         String log = null;
         boolean showLog = false;
         HttpURLConnection connection = null;
+        // true once a 200 response was read to its end, so its connection may be reused
+        boolean reusable = false;
 
         try {
 
@@ -406,7 +412,9 @@ final class PeerImpl implements Peer {
             connection.setReadTimeout(Peers.readTimeout);
             connection.addRequestProperty("User-Agent", "BRS/" + Signum.VERSION.toString());
             connection.setRequestProperty("Accept-Encoding", "gzip");
-            connection.setRequestProperty("Connection", "close");
+            if (!Peers.keepAlive) {
+                connection.setRequestProperty("Connection", "close");
+            }
 
             CountingOutputStream cos = new CountingOutputStream(connection.getOutputStream());
             try (Writer writer = new BufferedWriter(
@@ -441,10 +449,14 @@ final class PeerImpl implements Peer {
                     log += " >>> " + responseValue;
                     showLog = true;
                     response = JSON.getAsJsonObject(JSON.parse(responseValue));
+                    reusable = true;
                 } else {
                     try (Reader reader = new BufferedReader(
                             new InputStreamReader(responseStream, StandardCharsets.UTF_8))) {
+                        // gson reads the reader to its end (it rejects trailing content), so the
+                        // response is fully consumed and the connection can be reused
                         response = JSON.getAsJsonObject(JSON.parse(reader));
+                        reusable = true;
                     }
                 }
                 updateDownloadedVolume(cis.getCount());
@@ -483,7 +495,7 @@ final class PeerImpl implements Peer {
             logger.info(log);
         }
 
-        if (connection != null) {
+        if (connection != null && !(Peers.keepAlive && reusable)) {
             connection.disconnect();
         }
 
@@ -509,10 +521,29 @@ final class PeerImpl implements Peer {
     }
 
     @Override
+    public int getLastHandshake() {
+        return lastHandshake.get();
+    }
+
+    @Override
+    public Long getClockOffsetMillis() {
+        return clockOffsetMillis.get();
+    }
+
+    /** Stores the offset only; {@link Peers} reports it once the peer passed the handshake checks. */
+    private void measureClock(long sentAt, long receivedAt, JsonObject response) {
+        OptionalLong offset = PeerClock.offsetMillis(sentAt, receivedAt, response.get(PeerClock.FIELD));
+        clockOffsetMillis.set(offset.isPresent() ? offset.getAsLong() : null);
+    }
+
+    @Override
     public void connect(int currentTime) {
         logger.debug("Trying to connect to {}", peerAddress);
+        long sentAt = Peers.epochTimeMillis();
         JsonObject response = send(Peers.myPeerInfoRequest);
+        long receivedAt = Peers.epochTimeMillis();
         if (response != null && response.get("error") == null) {
+            clockOffsetMillis.set(null);
             application.set(JSON.getAsString(response.get("application")));
             setVersion(JSON.getAsString(response.get("version")));
             platform.set(JSON.getAsString(response.get("platform")));
@@ -535,9 +566,11 @@ final class PeerImpl implements Peer {
                 setAnnouncedAddress(peerAddress);
             }
 
+            measureClock(sentAt, receivedAt, response);
             setState(State.CONNECTED);
             Peers.updateAddress(this);
             lastUpdated.set(currentTime);
+            lastHandshake.set(currentTime);
             logger.debug("Connected to {}", peerAddress);
         } else {
             setState(State.NON_CONNECTED);

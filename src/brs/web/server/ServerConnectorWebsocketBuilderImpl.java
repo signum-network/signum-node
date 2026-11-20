@@ -2,6 +2,8 @@ package brs.web.server;
 
 import brs.props.PropertyService;
 import brs.props.Props;
+import brs.web.api.ws.BlockchainEventNotifier;
+import brs.web.api.ws.WebSocketConnectionAdapter;
 import brs.web.api.ws.WebSocketConnectionCreator;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -32,7 +34,10 @@ public class ServerConnectorWebsocketBuilderImpl extends AbstractServerConnector
     {
       wsContainer.setMaxTextMessageSize(2  * 1024);
       wsContainer.setIdleTimeout(Duration.ofSeconds(propertyService.getInt(Props.BLOCK_TIME)));
-      wsContainer.addMapping("/events", new WebSocketConnectionCreator(context));
+      wsContainer.addMapping("/events", new WebSocketConnectionCreator(
+          propertyService.getInt(Props.API_WEBSOCKET_MAX_CONNECTIONS),
+          () -> BlockchainEventNotifier.getInstance(context).getConnectionCount(),
+          () -> new WebSocketConnectionAdapter(context)));
     });
     logger.info("[Experimental] WebSockets server enabled for {}:{}", connector.getHost(), connector.getPort());
     return connector;

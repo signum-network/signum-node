@@ -262,6 +262,8 @@ public final class JSONData {
     json.addProperty("blacklistReason", peer.getBlacklistReason());
     json.addProperty("connectionFailures", peer.getConnectionFailures());
     json.addProperty("lastUpdated", peer.getLastUpdated());
+    // Long: null (unknown) becomes JSON null
+    json.addProperty("clockOffsetMillis", peer.getClockOffsetMillis());
     return json;
   }
 

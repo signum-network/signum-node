@@ -20,6 +20,7 @@ import brs.props.Props;
 import brs.services.ATService;
 import brs.services.AccountService;
 import brs.services.AliasService;
+import brs.services.ClockDriftMonitor;
 import brs.services.EscrowService;
 import brs.services.TimeService;
 
@@ -31,6 +32,7 @@ import org.mockito.MockedStatic;
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.OptionalInt;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -63,6 +65,9 @@ public class GetStateTest extends AbstractUnitTest {
     final ATService atService = mock(ATService.class);
     final Generator generator = mock(Generator.class);
     final PropertyService propertyService = mock(PropertyService.class);
+    final ClockDriftMonitor clockDriftMonitor = mock(ClockDriftMonitor.class);
+    when(clockDriftMonitor.getEstimatedOffsetSeconds()).thenReturn(OptionalInt.empty());
+    when(clockDriftMonitor.getPeerOffsetSeconds()).thenReturn(OptionalInt.empty());
 
     when(propertyService.getStringList(Props.API_ADMIN_KEY_LIST)).thenReturn(Collections.emptyList());
 
@@ -83,7 +88,7 @@ public class GetStateTest extends AbstractUnitTest {
     when(accountStore.getAccountKeyFactory()).thenReturn(keyFactory);
 
     t = new GetState(blockchain, assetExchange, accountService, escrowService, aliasService,
-        timeService, atService, generator, propertyService);
+        timeService, atService, generator, propertyService, clockDriftMonitor);
   }
 
   /**

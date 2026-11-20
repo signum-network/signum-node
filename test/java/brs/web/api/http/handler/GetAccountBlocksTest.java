@@ -3,10 +3,10 @@ package brs.web.api.http.handler;
 import brs.Account;
 import brs.Block;
 import brs.Blockchain;
+import brs.Constants;
 import brs.Signum;
 import brs.SignumException;
-import brs.Constants;
-import brs.common.AbstractUnitTest;
+import brs.Transaction;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.props.PropertyService;
@@ -17,87 +17,123 @@ import brs.util.CollectionWithIndex;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.core.classloader.annotations.SuppressStaticInitializationFor;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.math.BigInteger;
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 
-import static brs.web.api.http.common.Parameters.*;
+import static brs.web.api.http.common.Parameters.FIRST_INDEX_PARAMETER;
+import static brs.web.api.http.common.Parameters.LAST_INDEX_PARAMETER;
+import static brs.web.api.http.common.Parameters.TIMESTAMP_PARAMETER;
 import static brs.web.api.http.common.ResultFields.BLOCKS_RESPONSE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
+import static brs.web.api.http.common.ResultFields.NEXT_INDEX_RESPONSE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
-;
+class GetAccountBlocksTest {
 
-@SuppressStaticInitializationFor("brs.Block")
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Signum.class)
-public class GetAccountBlocksTest extends AbstractUnitTest {
-
-  private GetAccountBlocks t;
+  private static final int TIMESTAMP = 1;
 
   private Blockchain blockchainMock;
   private ParameterService parameterServiceMock;
   private BlockService blockServiceMock;
+  private Account accountMock;
+  private MockedStatic<Signum> signumMock;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     blockchainMock = mock(Blockchain.class);
     parameterServiceMock = mock(ParameterService.class);
     blockServiceMock = mock(BlockService.class);
+    accountMock = mock(Account.class);
 
-    mockStatic(Signum.class);
     PropertyService propertyService = mock(PropertyService.class);
-    when(Signum.getPropertyService()).thenReturn(propertyService);
-    doReturn((int)Constants.ONE_SIGNA).when(propertyService).getInt(eq(Props.ONE_COIN_NQT));
+    when(propertyService.getInt(Props.ONE_COIN_NQT)).thenReturn((int) Constants.ONE_SIGNA);
+    signumMock = mockStatic(Signum.class);
+    signumMock.when(Signum::getPropertyService).thenReturn(propertyService);
+  }
 
-    t = new GetAccountBlocks(blockchainMock, parameterServiceMock, blockServiceMock);
+  @AfterEach
+  void tearDown() {
+    signumMock.close();
   }
 
   @Test
-  public void processRequest() throws SignumException {
-    final int mockTimestamp = 1;
-    final int mockFirstIndex = 2;
-    final int mockLastIndex = 3;
+  void processRequest_GivenRangeBeyondLastBlock_ReturnsBlocksWithoutNextIndex() throws SignumException {
+    HttpServletRequest req = request(2, 3);
+    givenBlocks(req, 2, 3, mockBlock(0));
 
-    final HttpServletRequest req = QuickMocker.httpServletRequest(
-        new MockParam(FIRST_INDEX_PARAMETER, "" + mockFirstIndex),
-        new MockParam(LAST_INDEX_PARAMETER, "" + mockLastIndex),
-        new MockParam(TIMESTAMP_PARAMETER, "" + mockTimestamp)
-    );
+    JsonObject result = (JsonObject) handler().processRequest(req);
 
-    final Account mockAccount = mock(Account.class);
-    final Block mockBlock = mock(Block.class);
-    when(mockBlock.getCumulativeDifficulty()).thenReturn(BigInteger.valueOf(123456789L));
-
-
-    when(parameterServiceMock.getAccount(req)).thenReturn(mockAccount);
-
-    final Collection<Block> mockBlockIterator = mockCollection(mockBlock);
-    when(blockchainMock.getBlocks(eq(mockAccount), eq(mockTimestamp), eq(mockFirstIndex), eq(mockLastIndex))).thenReturn(new CollectionWithIndex<Block>(
-        mockBlockIterator, -1));
-
-    final JsonObject result = (JsonObject) t.processRequest(req);
-
-    final JsonArray blocks = (JsonArray) result.get(BLOCKS_RESPONSE);
-    assertNotNull(blocks);
+    JsonArray blocks = (JsonArray) result.get(BLOCKS_RESPONSE);
     assertEquals(1, blocks.size());
+    assertNotNull(blocks.get(0));
+    assertFalse(result.has(NEXT_INDEX_RESPONSE));
+  }
 
-    final JsonObject resultBlock = (JsonObject) blocks.get(0);
-    assertNotNull(resultBlock);
+  @Test
+  void processRequest_GivenFullRange_ReturnsNextIndexAfterRange() throws SignumException {
+    HttpServletRequest req = request(2, 3);
+    givenBlocks(req, 2, 3, mockBlock(0), mockBlock(0));
 
-    //TODO validate all fields
+    JsonObject result = (JsonObject) handler().processRequest(req);
+
+    assertEquals(2, ((JsonArray) result.get(BLOCKS_RESPONSE)).size());
+    assertEquals(4, result.get(NEXT_INDEX_RESPONSE).getAsInt());
+  }
+
+  @Test
+  void processRequest_GivenTransactionBudgetExceeded_ReturnsNextIndexAfterLastReturnedBlock()
+      throws SignumException {
+    HttpServletRequest req = request(2, 4);
+    givenBlocks(req, 2, 4, mockBlock(2), mockBlock(2), mockBlock(2));
+
+    JsonObject result = (JsonObject) handler(3).processRequest(req);
+
+    assertEquals(2, ((JsonArray) result.get(BLOCKS_RESPONSE)).size());
+    assertEquals(4, result.get(NEXT_INDEX_RESPONSE).getAsInt());
+  }
+
+  private GetAccountBlocks handler() {
+    return handler(Props.API_BLOCKS_MAX_TRANSACTIONS.getDefaultValue());
+  }
+
+  private GetAccountBlocks handler(int maxTransactions) {
+    return new GetAccountBlocks(blockchainMock, parameterServiceMock, blockServiceMock, maxTransactions);
+  }
+
+  private void givenBlocks(HttpServletRequest req, int firstIndex, int lastIndex, Block... blocks)
+      throws SignumException {
+    when(parameterServiceMock.getAccount(req)).thenReturn(accountMock);
+    when(blockchainMock.getBlocks(accountMock, TIMESTAMP, firstIndex, lastIndex))
+        .thenReturn(new CollectionWithIndex<>(List.of(blocks), -1));
+  }
+
+  private static HttpServletRequest request(int firstIndex, int lastIndex) {
+    return QuickMocker.httpServletRequest(
+        new MockParam(FIRST_INDEX_PARAMETER, "" + firstIndex),
+        new MockParam(LAST_INDEX_PARAMETER, "" + lastIndex),
+        new MockParam(TIMESTAMP_PARAMETER, "" + TIMESTAMP));
+  }
+
+  private static Block mockBlock(int transactionCount) {
+    Block block = mock(Block.class);
+    when(block.getCumulativeDifficulty()).thenReturn(BigInteger.ONE);
+    List<Transaction> transactions = new ArrayList<>();
+    for (int i = 0; i < transactionCount; i++) {
+      transactions.add(mock(Transaction.class));
+    }
+    when(block.getAllTransactions()).thenReturn(transactions);
+    return block;
   }
 }

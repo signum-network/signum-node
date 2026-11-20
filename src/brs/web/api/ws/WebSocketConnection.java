@@ -34,8 +34,16 @@ public class WebSocketConnection {
     SocketAddress remoteAddress = session.getRemoteSocketAddress();
     session.sendText(message, Callback.from(
       () -> logger.trace("Sent message to {}", remoteAddress),
-      throwable -> logger.warn("Error sending message to {}: {}", remoteAddress, throwable.getMessage(), throwable)
+      throwable -> logSendError(remoteAddress, throwable)
     ));
+  }
+
+  private static void logSendError(SocketAddress remoteAddress, Throwable throwable) {
+    if (WebSocketErrors.isClientDisconnect(throwable)) {
+      logger.debug("Could not send message to {}, connection aborted: {}", remoteAddress, throwable.getMessage());
+    } else {
+      logger.warn("Error sending message to {}: {}", remoteAddress, throwable.getMessage(), throwable);
+    }
   }
 
   public void close() {

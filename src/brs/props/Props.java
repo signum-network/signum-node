@@ -21,6 +21,7 @@ public class Props {
     public static final Prop<Integer> API_PORT = new Prop<>("API.Port", 8125);
     public static final Prop<Integer> API_WEBSOCKET_PORT = new Prop<>("API.WebSocketPort", 8126);
     public static final Prop<Boolean> API_WEBSOCKET_ENABLE = new Prop<>("API.WebSocketEnable", true);
+    public static final Prop<Integer> API_WEBSOCKET_MAX_CONNECTIONS = new Prop<>("API.WebSocketMaxConnections", 500);
     public static final Prop<Integer> API_WEBSOCKET_HEARTBEAT_INTERVAL = new Prop<>("API.WebSocketHeartbeatInterval",
             30);
 
@@ -127,6 +128,16 @@ public class Props {
     // CPU options
     public static final Prop<Integer> CPU_NUM_CORES = new Prop<>("CPU.NumCores", -1);
     public static final Prop<Integer> BLOCK_PROCESS_THREAD_DELAY = new Prop<>("CPU.BlockThreadDelay", 500);
+    // Number of downloaded blocks a CPU verifier thread pre-verifies in one batch, 1 = one block at a time
+    public static final Prop<Integer> CPU_VERIFY_BATCH_SIZE = new Prop<>("CPU.VerifyBatchSize", 16);
+    // Download blocks in batches without waiting for every block push, and pre-verify the next block
+    // outside of the block importer lock; false restores the previous pipeline
+    public static final Prop<Boolean> SYNC_DECOUPLED_PIPELINE = new Prop<>("node.experimental.decoupledSync", true);
+    // download consecutive block ranges from several peers at the same time during bulk sync
+    public static final Prop<Boolean> SYNC_PARALLEL_DOWNLOAD = new Prop<>("node.experimental.parallelDownload", true);
+    public static final Prop<Integer> SYNC_PARALLEL_DOWNLOAD_PEERS = new Prop<>("node.parallelDownload.peers", 4);
+    public static final Prop<Integer> SYNC_PARALLEL_DOWNLOAD_BLOCKS_PER_PEER =
+            new Prop<>("node.parallelDownload.blocksPerPeer", 100);
 
     // DB options
     public static final Prop<Boolean> DB_SKIP_CHECK = new Prop<>("DB.SkipCheck", false);
@@ -143,9 +154,10 @@ public class Props {
     public static final Prop<Boolean> DB_OPTIMIZE = new Prop<>("DB.Optimize", true);
     public static final Prop<String> DB_SQLITE_JOURNAL_MODE = new Prop<>("DB.SqliteJournalMode", "WAL");
     public static final Prop<String> DB_SQLITE_SYNCHRONOUS = new Prop<>("DB.SqliteSynchronous", "NORMAL");
+    public static final Prop<Integer> DB_SQLITE_WAL_AUTOCHECKPOINT = new Prop<>("DB.SqliteWalAutocheckpoint", 10_000);
 
     // Cache Management
-    public static final Prop<Integer> DB_SQLITE_CACHE_SIZE = new Prop<>("DB.SqliteCacheSize", -131072);
+    public static final Prop<Integer> DB_SQLITE_CACHE_SIZE = new Prop<>("DB.SqliteCacheSize", -32768);
     public static final Prop<Integer> BRS_BLOCK_CACHE_MB = new Prop<>("node.blockCacheMB", 40);
     public static final Prop<Integer> BRS_AT_PROCESSOR_CACHE_BLOCK_COUNT = new Prop<>("node.atProcessorCacheBlockCount",
             1000);
@@ -168,6 +180,8 @@ public class Props {
     public static final Prop<Integer> P2P_MAX_CONNECTIONS = new Prop<>("P2P.MaxConnections", 20);
     public static final Prop<Integer> P2P_TIMEOUT_CONNECT_MS = new Prop<>("P2P.TimeoutConnect_ms", 4000);
     public static final Prop<Integer> P2P_TIMEOUT_READ_MS = new Prop<>("P2P.TimeoutRead_ms", 8000);
+    public static final Prop<Boolean> P2P_KEEP_ALIVE = new Prop<>("P2P.keepAlive", true);
+    public static final Prop<Boolean> P2P_SHARE_CLOCK = new Prop<>("P2P.shareClock", true);
     public static final Prop<Integer> P2P_BLACKLISTING_TIME_MS = new Prop<>("P2P.BlacklistingTime_ms", 6000000);
     public static final Prop<Integer> P2P_MAX_BLOCKS = new Prop<>("P2P.MaxBlocks", 720);
 
@@ -205,6 +219,7 @@ public class Props {
     public static final Prop<String> API_SSL_KEY_STORE_PASSWORD = new Prop<>("API.SSL_keyStorePassword", "password");
     public static final Prop<String> API_SSL_LETSENCRYPT_PATH = new Prop<>("API.SSL_letsencryptPath", "");
     public static final Prop<Integer> API_SERVER_IDLE_TIMEOUT = new Prop<>("API.ServerIdleTimeout", 60_000);
+    public static final Prop<Integer> API_BLOCKS_MAX_TRANSACTIONS = new Prop<>("API.BlocksMaxTransactions", 10_000);
     public static final Prop<Boolean> API_SERVER_ENFORCE_POST = new Prop<>("API.ServerEnforcePOST", true);
     public static final Prop<String> API_ALLOWED_ORIGINS = new Prop<>("API.AllowedOrigins", "*");
 
@@ -270,6 +285,11 @@ public class Props {
             "node.indirectIncomingService.enable", true);
 
     public static final Prop<Boolean> AUTO_POP_OFF_ENABLED = new Prop<>("node.autoPopOff.enable", true);
+    public static final Prop<Integer> CLOCK_DRIFT_WARN_SECONDS = new Prop<>("node.clockDriftWarnSeconds", 10);
+    public static final Prop<Integer> PERSISTENCE_FAILURE_POP_OFF_THRESHOLD = new Prop<>(
+            "node.persistenceFailure.popOffThreshold", 5);
+    public static final Prop<Integer> PERSISTENCE_FAILURE_MAX_RETRY_DELAY = new Prop<>(
+            "node.persistenceFailure.maxRetryDelay", 60000);
 
     public static final Prop<Boolean> ENABLE_AT_DEBUG_LOG = new Prop<>("node.ATDebugLog.enable", false);
 

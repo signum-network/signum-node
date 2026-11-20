@@ -11,11 +11,10 @@ import brs.services.ParameterService;
 import brs.util.JSON;
 import brs.web.api.http.common.APITransactionManager;
 import com.google.gson.JsonObject;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -28,12 +27,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Signum.class)
 public class EscrowSignTest extends AbstractTransactionTest {
+
+  private MockedStatic<Signum> signumMock;
 
   private ParameterService parameterServiceMock;
   private Blockchain blockchainMock;
@@ -44,6 +43,7 @@ public class EscrowSignTest extends AbstractTransactionTest {
 
   @Before
   public void setUp() {
+    signumMock = mockStatic(Signum.class);
     parameterServiceMock = mock(ParameterService.class);
     blockchainMock = mock(Blockchain.class);
     escrowServiceMock = mock(EscrowService.class);
@@ -68,8 +68,6 @@ public class EscrowSignTest extends AbstractTransactionTest {
 
     final Account sender = mock(Account.class);
     when(sender.getId()).thenReturn(senderId);
-
-    mockStatic(Signum.class);
     final FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(FluxValues.DIGITAL_GOODS_STORE);
     when(Signum.getFluxCapacitor()).thenReturn(fluxCapacitor);
     doReturn(Constants.FEE_QUANT_SIP3).when(fluxCapacitor).getValue(eq(FluxValues.FEE_QUANT));
@@ -104,8 +102,6 @@ public class EscrowSignTest extends AbstractTransactionTest {
 
     when(escrowServiceMock.getEscrowTransaction(eq(escrowId))).thenReturn(escrow);
     when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(sender);
-
-    mockStatic(Signum.class);
     final FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(FluxValues.DIGITAL_GOODS_STORE);
     when(Signum.getFluxCapacitor()).thenReturn(fluxCapacitor);
     doReturn(Constants.FEE_QUANT_SIP3).when(fluxCapacitor).getValue(eq(FluxValues.FEE_QUANT));
@@ -134,8 +130,6 @@ public class EscrowSignTest extends AbstractTransactionTest {
 
     final Account sender = mock(Account.class);
     when(sender.getId()).thenReturn(senderId);
-
-    mockStatic(Signum.class);
     final FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(FluxValues.DIGITAL_GOODS_STORE);
     when(Signum.getFluxCapacitor()).thenReturn(fluxCapacitor);
     doReturn(Constants.FEE_QUANT_SIP3).when(fluxCapacitor).getValue(eq(FluxValues.FEE_QUANT));
@@ -270,5 +264,10 @@ public class EscrowSignTest extends AbstractTransactionTest {
     final JsonObject result = (JsonObject) t.processRequest(req);
 
     assertEquals(4, JSON.getAsInt(result.get(ERROR_CODE_RESPONSE)));
+  }
+
+  @After
+  public void tearDownSignumMock() {
+    signumMock.close();
   }
 }

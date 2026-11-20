@@ -1,0 +1,180 @@
+import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
+import org.gradle.api.file.ProjectLayout
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.TaskAction
+import org.gradle.api.internal.tasks.userinput.UserInputHandler
+import org.gradle.process.ExecOperations
+
+import javax.inject.Inject
+import java.io.ByteArrayOutputStream
+import java.text.SimpleDateFormat
+
+// ---- Pre-flight guards: must pass before the (slow) build+test runs ----
+tasks.register('releasePreflight') {
+    group = 'release'
+    description = 'Verifies the working copy is releasable (branch, clean, in sync).'
+    doLast {
+        def releaseBranch = (project.findProperty('release.branch') ?: 'develop').toString()
+        def git = { String... a ->
+            def out = new ByteArrayOutputStream()
+            def code = exec {
+                commandLine(['git'] + (a as List)); standardOutput = out; ignoreExitValue = true
+            }.exitValue
+            [code: code, out: out.toString().trim()]
+        }
+        def branch = git('rev-parse', '--abbrev-ref', 'HEAD').out
+        if (branch != releaseBranch) {
+            throw new GradleException("Must be on '${releaseBranch}' to release (currently '${branch}').")
+        }
+        if (!git('status', '--porcelain').out.isEmpty()) {
+            throw new GradleException("Working tree is not clean. Commit or stash changes first.")
+        }
+        git('fetch', 'origin', releaseBranch, '--tags')
+        if (git('rev-parse', 'HEAD').out != git('rev-parse', "origin/${releaseBranch}").out) {
+            throw new GradleException("Local '${releaseBranch}' is not in sync with origin. Pull/push first.")
+        }
+        logger.lifecycle("Pre-flight OK on '${releaseBranch}'.")
+    }
+}
+
+abstract class ReleaseTask extends DefaultTask {
+
+    @Inject abstract UserInputHandler getUserInput()
+    @Inject abstract ExecOperations getExecOps()
+    @Inject abstract ProjectLayout getLayout()
+
+    @Input abstract Property<String> getCurrentVersion()
+    @Input @Optional abstract Property<String> getBumpProp()
+    @Input @Optional abstract Property<String> getHardForkProp()
+    @Input @Optional abstract Property<String> getNotesProp()
+    @Input @Optional abstract Property<String> getNotesFileProp()
+    @Input abstract Property<String> getReleaseBranch()
+    @Input abstract Property<String> getRepoSlug()
+
+    private Map git(String... a) {
+        def out = new ByteArrayOutputStream()
+        def code = execOps.exec {
+            it.commandLine(['git'] + (a as List)); it.standardOutput = out; it.ignoreExitValue = true
+        }.exitValue
+        [code: code, out: out.toString().trim()]
+    }
+
+    @TaskAction
+    void run() {
+        def root = layout.projectDirectory
+
+        // ---- Resolve inputs: -P property wins, else prompt interactively ----
+        def bump = bumpProp.getOrNull()
+        if (bump == null) {
+            bump = userInput.selectOption("Select version bump", ["patch", "minor", "major"], "patch")
+        }
+        if (!(bump in ["patch", "minor", "major"])) {
+            throw new GradleException("Invalid bump '${bump}' (expected patch|minor|major).")
+        }
+
+        boolean hardFork
+        if (hardForkProp.isPresent()) {
+            hardFork = Boolean.parseBoolean(hardForkProp.get())
+        } else {
+            hardFork = userInput.askYesNoQuestion("Is this a hard fork (mandatory upgrade)?", false)
+        }
+
+        String notes
+        if (notesFileProp.isPresent()) {
+            notes = root.file(notesFileProp.get()).asFile.text.trim()
+        } else if (notesProp.isPresent()) {
+            notes = notesProp.get().trim()
+        } else {
+            notes = userInput.askQuestion("Release notes (one line; refine in the PR if needed)", "").trim()
+        }
+
+        // ---- HF enforces >= minor ----
+        if (hardFork && bump == "patch") {
+            throw new GradleException("Hard fork requires at least a 'minor' bump (got 'patch').")
+        }
+
+        // ---- Compute next version ----
+        def cur = currentVersion.get()
+        def m = (cur =~ /^(\d+)\.(\d+)\.(\d+)/)
+        if (!m) throw new GradleException("Cannot parse current version '${cur}'.")
+        int major = m[0][1] as int, minor = m[0][2] as int, patch = m[0][3] as int
+        if (bump == "major") { major++; minor = 0; patch = 0 }
+        else if (bump == "minor") { minor++; patch = 0 }
+        else { patch++ }
+        def next = "${major}.${minor}.${patch}"
+        def tag = "v${next}"
+        def branch = "release/${next}"
+        logger.lifecycle("Releasing ${cur} -> ${next} (bump=${bump}, hardFork=${hardFork})")
+
+        // ---- Guard: tag must not already exist ----
+        if (!git('tag', '-l', tag).out.isEmpty() || !git('ls-remote', '--tags', 'origin', tag).out.isEmpty()) {
+            throw new GradleException("Tag ${tag} already exists.")
+        }
+
+        // ---- Create release branch ----
+        if (git('checkout', '-b', branch).code != 0) {
+            throw new GradleException("Failed to create branch ${branch}.")
+        }
+
+        // ---- Bump gradle.properties ----
+        def gp = root.file("gradle.properties").asFile
+        gp.text = gp.text.replaceFirst(/(?m)^version=.*$/, "version=${next}")
+
+        // ---- Update CHANGELOG.md ----
+        def changelog = root.file("CHANGELOG.md").asFile
+        def today = new SimpleDateFormat("yyyy-MM-dd").format(new Date())
+        def hfBlock = hardFork ? "\n> ⚠️ **Hard Fork — mandatory upgrade.**\n" : ""
+        def bodyText = notes.isEmpty() ? "- _TODO: add release notes_" : notes
+        def entry = "## ${tag} — ${today}\n${hfBlock}\n${bodyText}\n\n"
+        def existing = changelog.exists() ? changelog.text : "# Changelog\n\n"
+        if (existing.startsWith("# Changelog")) {
+            def headerEnd = existing.indexOf('\n') + 1
+            changelog.text = existing.substring(0, headerEnd) + "\n" + entry +
+                    existing.substring(headerEnd).replaceFirst(/^\n+/, "")
+        } else {
+            changelog.text = "# Changelog\n\n" + entry + existing
+        }
+
+        // ---- Commit + push ----
+        git('add', 'gradle.properties', 'CHANGELOG.md')
+        if (git('commit', '-m', "release: ${tag}").code != 0) {
+            throw new GradleException("Commit failed.")
+        }
+        if (git('push', '-u', 'origin', branch).code != 0) {
+            throw new GradleException("Push failed.")
+        }
+
+        // ---- Open PR via gh (best effort) ----
+        def prTitle = (hardFork ? "⚠️ Hard Fork " : "") + "Release ${tag}"
+        def prBody = "Automated release PR for ${tag}.\n\n${bodyText}"
+        def ghCode = execOps.exec {
+            it.commandLine 'gh', 'pr', 'create', '--base', releaseBranch.get(),
+                    '--head', branch, '--title', prTitle, '--body', prBody
+            it.ignoreExitValue = true
+        }.exitValue
+        if (ghCode != 0) {
+            logger.warn("Could not open the PR automatically (gh missing or not authenticated).")
+            logger.lifecycle("Open it here: https://github.com/${repoSlug.get()}/compare/${releaseBranch.get()}...${branch}?expand=1")
+        }
+        logger.lifecycle("Done. Pushed ${branch}; PR targets ${releaseBranch.get()}.")
+    }
+}
+
+tasks.register('releaseTag', ReleaseTask) {
+    group = 'release'
+    description = 'Cut a release: verify, build+test, then branch/bump/changelog/push/PR.'
+    dependsOn 'releasePreflight', 'build'
+    currentVersion.set(project.version.toString())
+    bumpProp.set(project.findProperty('release.bump')?.toString())
+    hardForkProp.set(project.findProperty('release.hardFork')?.toString())
+    notesProp.set(project.findProperty('release.notes')?.toString())
+    notesFileProp.set(project.findProperty('release.notesFile')?.toString())
+    releaseBranch.set((project.findProperty('release.branch') ?: 'develop').toString())
+    repoSlug.set((project.findProperty('release.repo') ?: 'signum-network/signum-node').toString())
+}
+
+// Guards run first; the build (incl. tests) runs before the interactive action.
+tasks.named('build').configure { mustRunAfter('releasePreflight') }

@@ -36,7 +36,11 @@ public class WebSocketConnectionAdapter extends Session.Listener.Abstract {
 
   @Override
   public void onWebSocketError(Throwable cause) {
-    logger.error("Socket Error: {}", cause.getMessage(), cause);
+    if (WebSocketErrors.isClientDisconnect(cause)) {
+      logger.debug("Socket connection aborted by client: {}", cause.getMessage());
+    } else {
+      logger.error("Socket Error: {}", cause.getMessage(), cause);
+    }
     if (this.connection != null) {
       this.notifier.removeConnection(this.connection);
     }

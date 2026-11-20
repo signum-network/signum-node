@@ -14,6 +14,26 @@ __LINUX__: https://ubuntushell.com/install-mariadb-on-ubuntu/
 The MariaDb installation will ask to set up a password for the root user.
 This password can be anything you like.
 
+# Setup Script
+
+After installing MariaDB, a script can do the initial set-up and the [performance tuning](#performance-tuning) below in one go. It is safe to run again, for example to change the password.
+
+Linux and macOS (MariaDB from Homebrew):
+
+```bash
+scripts/db/signum-mariadb.sh
+```
+
+Windows, in a PowerShell started as administrator:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\db\signum-mariadb.ps1
+```
+
+Both ask for a password for the node's database user and print the lines for `node.properties`. For the testnet, add `--database signum_testnet` (Windows: `-Database signum_testnet`). `scripts/db/signum-mariadb.sh --help` and `Get-Help .\scripts\db\signum-mariadb.ps1 -Detailed` list all options.
+
+The scripts are in the [`scripts/db`](scripts/db) folder of this repository, not in the release ZIP. The sections below do the same by hand.
+
 # Initial Set Up
 
 Once installed you need to run a least minimum initialization of your database server:
@@ -93,30 +113,40 @@ DB.Username=signumnode
 DB.Password=s1gn00m_n0d3
 ```
 
-# Faster Sync time
+# Performance Tuning
 
-Do reduce I/O times and though causing significant speedup while syncing, one may run the following command:   
+With MariaDB's default settings, the database is the bottleneck while the node syncs. By default MariaDB flushes its log to disk on every commit and keeps only 128 MB of data in memory.
+
+Add the following to the server configuration, for example a new file `/etc/mysql/conf.d/signum.cnf` on Linux or `my.ini` on Windows:
+
+```ini
+[mariadb]
+# Write the log to disk about once per second instead of on every commit
+innodb_flush_log_at_trx_commit = 2
+# Larger redo log, so fewer checkpoints
+innodb_log_file_size = 1G
+# Memory for data and indexes; up to about half of the RAM on a dedicated host
+innodb_buffer_pool_size = 1G
+```
+
+Restart the service afterwards and check the values:
 
 ```sql
-SET GLOBAL innodb_flush_log_at_trx_commit = 0;
+SHOW VARIABLES WHERE Variable_name IN
+  ('innodb_flush_log_at_trx_commit', 'innodb_log_file_size', 'innodb_buffer_pool_size');
 ```
 
-See more details [here](https://mariadb.com/docs/server/ref/mdb/system-variables/innodb_flush_log_at_trx_commit/). 
+## What it brings
 
-# Performance Optimisation 
-If you have a server or PC with > 8GB RAM, you should set the following values in the my.cnf or my.ini file of the MySQL Server:
+Mainnet sync from an empty database with Signum Node 3.10 and MariaDB 11.4, blocks synced in 8 minutes (two runs each):
 
-```properties
-innodb_buffer_pool_size=3G
-innodb_flush_log_at_trx_commit=1
-innodb_log_buffer_size=256MB
-```
+| Settings | Blocks |
+|---|---|
+| MariaDB defaults | 21,539 / 19,960 |
+| Settings above | 28,301 / 27,583 |
 
-You need to restart the service after setting the values.
+## What it costs
 
-You can check the variables after a restart with:
+With `innodb_flush_log_at_trx_commit = 2`, a power loss or an operating system crash can lose about the last second of commits. A crash of MariaDB alone loses nothing. The database stays consistent either way. The node then starts at a slightly lower height and syncs the missing blocks again.
 
-```sql
-SHOW VARIABLES LIKE 'innodb%buffer%';
-SHOW VARIABLES LIKE 'innodb_flush_log_at_trx_commit';
-```
+Prefer `2` over `0`: with `0`, a crash of MariaDB alone can also lose the last second of commits.

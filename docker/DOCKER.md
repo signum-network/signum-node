@@ -51,9 +51,7 @@ Due to that model concurrent access is possible, i.e. one can run an additional 
 |------------|-----------|------|-------|--------|----------|----------------------------------|
 | H2         | ⭐         | ⭐⭐   | ⭐⭐⭐    | ⭐⭐⭐       | ❌         | Local Node                       |  
 | MariaDB    | ⭐⭐        | ⭐    | ⭐     | ⭐       |   ✅       | Public Node, Additional Services |  
-| PostgreSQL | ⭐⭐ (*)    | ⭐    | ⭐     | ⭐       |   ✅       | Public Node, Additional Services |  
-
-> (*) PostgreSQL support is still experimental. So, stability needs to be proven over time, but in general Postgres itself is as least stable/reliable as MariaDB.
+| PostgreSQL | ⭐⭐        | ⭐    | ⭐     | ⭐       |   ✅       | Public Node, Additional Services |  
 
 ## Mariadb Image via docker-compose
 Running the Mariadb image is similar to the H2 image, except it does not create a database docker volume. You must also provide the configuration in `node.properties` to point it to a mariadb instance.
@@ -112,6 +110,8 @@ volumes:
 ```
 7. Run `docker-compose up -d` from the directory containing your dockercompose.yml file to start both servers.
 8. You may turn the servers off with `docker-compose down`
+
+The MariaDB defaults slow down syncing. See [Performance Tuning](../DB_SETUP_MARIADB.md#performance-tuning) for better settings. With the `linuxserver/mariadb` image, put them in `custom.cnf` in the config volume.
 
 ### More detail
 The `signumnetwork/node:latest-mariadb` image in the `node` service will create 1 docker volume by default: a `conf` volume, though it will show up in `docker volume ls` as a UUID. The above compose file overrides this volume and maps it to a filesystem location instead.

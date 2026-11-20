@@ -24,6 +24,7 @@ import brs.services.ATService;
 import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.BlockService;
+import brs.services.ClockDriftMonitor;
 import brs.services.DGSGoodsStoreService;
 import brs.services.EscrowService;
 import brs.services.IndirectIncomingService;
@@ -35,6 +36,7 @@ import brs.services.impl.ATServiceImpl;
 import brs.services.impl.AccountServiceImpl;
 import brs.services.impl.AliasServiceImpl;
 import brs.services.impl.BlockServiceImpl;
+import brs.services.impl.ClockDriftMonitorImpl;
 import brs.services.impl.DGSGoodsStoreServiceImpl;
 import brs.services.impl.EscrowServiceImpl;
 import brs.services.impl.IndirectIncomingServiceImpl;
@@ -52,6 +54,7 @@ import brs.web.api.http.common.APITransactionManagerImpl;
 import brs.web.server.WebServer;
 import brs.web.server.WebServerContext;
 import brs.web.server.WebServerImpl;
+import java.io.PrintWriter;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -64,6 +67,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.slf4j.Logger;
@@ -76,7 +81,7 @@ import signumj.util.SignumUtils;
  */
 public final class Signum {
 
-    public static final Version VERSION = Version.parse("v3.9.11");
+    public static final Version VERSION = BuildInfo.loadVersion();
     public static final String APPLICATION = "BRS";
 
     public static final String CONF_FOLDER = "./conf";
@@ -98,6 +103,40 @@ public final class Signum {
                     .build())
             .addOption(Option.builder("h")
                     .longOpt("help")
+                    .build())
+            .addOption(Option.builder()
+                    .longOpt(ChainScanLauncher.OPT_VERIFY_CHAIN)
+                    .desc("Scan the stored chain read-only for consensus rule violations, then exit")
+                    .build())
+            .addOption(Option.builder()
+                    .longOpt(ChainScanLauncher.OPT_FROM_HEIGHT)
+                    .argName("height")
+                    .numberOfArgs(1)
+                    .desc("Chain scan: first height to scan (default 0)")
+                    .build())
+            .addOption(Option.builder()
+                    .longOpt(ChainScanLauncher.OPT_TO_HEIGHT)
+                    .argName("height")
+                    .numberOfArgs(1)
+                    .desc("Chain scan: last height to scan (default: last stored block)")
+                    .build())
+            .addOption(Option.builder()
+                    .longOpt(ChainScanLauncher.OPT_CHECKS)
+                    .argName("groups")
+                    .numberOfArgs(1)
+                    .desc("Chain scan: check groups tx, block or all (default tx,block)")
+                    .build())
+            .addOption(Option.builder()
+                    .longOpt(ChainScanLauncher.OPT_THREADS)
+                    .argName("n")
+                    .numberOfArgs(1)
+                    .desc("Chain scan: worker threads (default: available processors)")
+                    .build())
+            .addOption(Option.builder()
+                    .longOpt(ChainScanLauncher.OPT_REPORT)
+                    .argName("file")
+                    .numberOfArgs(1)
+                    .desc("Chain scan: report file (default chain-scan-<network>-<timestamp>.jsonl)")
                     .build());
 
     private static final Logger logger = LoggerFactory.getLogger(Signum.class);
@@ -206,6 +245,64 @@ public final class Signum {
         init(confFolder);
     }
 
+    /**
+     * Runs the read-only chain scan instead of the node, see {@link ChainScanLauncher}.
+     *
+     * @return the process exit code
+     */
+    public static int verifyChain(String[] args) {
+        CommandLine cmd;
+        try {
+            cmd = new DefaultParser().parse(CLI_OPTIONS, args);
+        } catch (ParseException e) {
+            System.err.println("Chain scan: " + e.getMessage());
+            new HelpFormatter().printHelp(new PrintWriter(System.err, true), HelpFormatter.DEFAULT_WIDTH,
+                    "java -jar signum-node.jar --verify-chain", null, CLI_OPTIONS, HelpFormatter.DEFAULT_LEFT_PAD,
+                    HelpFormatter.DEFAULT_DESC_PAD, null, true);
+            return ChainScanLauncher.EXIT_FAILED;
+        }
+        try {
+            LoggerConfigurator.init();
+            PropertyService properties = loadProperties(cmd.getOptionValue(CONF_FOLDER_OPTION.getOpt(), CONF_FOLDER));
+            if (!applyNetworkParameters(properties)) {
+                return ChainScanLauncher.EXIT_FAILED;
+            }
+            return new ChainScanLauncher(properties).run(cmd);
+        } catch (Exception e) {
+            logger.error("Chain scan failed to start", e);
+            return ChainScanLauncher.EXIT_FAILED;
+        }
+    }
+
+    /**
+     * Scan mode starts no node: only the statics that block and transaction parsing read are set.
+     * The transaction types get no services, which only validating and applying transactions use.
+     */
+    static void installForChainScan(PropertyService propertyService, Blockchain blockchain,
+            FluxCapacitor fluxCapacitor) {
+        Signum.propertyService = propertyService;
+        Signum.fluxCapacitor = fluxCapacitor;
+        TransactionType.init(blockchain, fluxCapacitor, null, null, null, null, null, null);
+    }
+
+    private static boolean applyNetworkParameters(PropertyService propertyService) {
+        String networkParametersClass = propertyService.getString(Props.NETWORK_PARAMETERS);
+        if (networkParametersClass == null) {
+            return true;
+        }
+        try {
+            NetworkParameters params = (NetworkParameters) Class
+                    .forName(networkParametersClass)
+                    .getConstructor()
+                    .newInstance();
+            propertyService.setNetworkParameters(params);
+            return true;
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return false;
+        }
+    }
+
     private static boolean validateVersionNotDev(PropertyService propertyService) {
         if (VERSION.isPrelease()
                 && propertyService
@@ -264,6 +361,8 @@ public final class Signum {
             SignumUtils.setValueSuffix(propertyService.getString(Props.VALUE_SUFIX));
 
             final TimeService timeService = new TimeServiceImpl();
+            final ClockDriftMonitor clockDriftMonitor = new ClockDriftMonitorImpl(timeService,
+                    propertyService.getInt(Props.CLOCK_DRIFT_WARN_SECONDS));
 
             final DerivedTableManager derivedTableManager = new DerivedTableManager();
 
@@ -395,7 +494,8 @@ public final class Signum {
                     dbCacheManager,
                     accountService,
                     indirectIncomingService,
-                    aliasService);
+                    aliasService,
+                    clockDriftMonitor);
 
             downloadCache.setBlockchainProcessor(blockchainProcessor);
 
@@ -434,7 +534,8 @@ public final class Signum {
                     transactionProcessor,
                     blockchainProcessor,
                     propertyService,
-                    threadPool);
+                    threadPool,
+                    clockDriftMonitor);
             if (params != null) {
                 params.initialize(parameterService, accountService, apiTransactionManager);
                 TransactionType.setNetworkParameters(params);
@@ -476,7 +577,8 @@ public final class Signum {
                     deepLinkQrCodeGenerator,
                     indirectIncomingService,
                     networkAnalysisService,
-                    params));
+                    params,
+                    clockDriftMonitor));
             webServer.start();
 
             if (propertyService.getBoolean(Props.BRS_DEBUG_TRACE_ENABLED)) {

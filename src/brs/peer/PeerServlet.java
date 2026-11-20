@@ -6,6 +6,7 @@ import brs.Blockchain;
 import brs.BlockchainProcessor;
 import brs.TransactionProcessor;
 import brs.props.PropertyService;
+import brs.props.Props;
 import brs.services.AccountService;
 import brs.services.TimeService;
 import brs.util.CountingInputStream;
@@ -73,7 +74,7 @@ public final class PeerServlet extends HttpServlet {
         final Map<String, PeerRequestHandler> map = new HashMap<>();
         map.put("addPeers", AddPeers.instance);
         map.put("getCumulativeDifficulty", new GetCumulativeDifficulty(blockchain));
-        map.put("getInfo", new GetInfo(timeService));
+        map.put("getInfo", new GetInfo(timeService, propertyService.getBoolean(Props.P2P_SHARE_CLOCK)));
         map.put("getMilestoneBlockIds", new GetMilestoneBlockIds(blockchain));
         map.put("getNextBlockIds", new GetNextBlockIds(blockchain));
         map.put("getBlocksFromHeight", new GetBlocksFromHeight(blockchain));

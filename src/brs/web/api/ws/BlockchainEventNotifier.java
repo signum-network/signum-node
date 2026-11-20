@@ -27,7 +27,7 @@ public class BlockchainEventNotifier {
   private final Debouncer blockPushedDebouncer = new Debouncer(BLOCK_PUSHED_DEBOUNCE_SECS * 1000);
   private SimpleScheduler heartbeat;
 
-  public static BlockchainEventNotifier getInstance(WebServerContext context) {
+  public static synchronized BlockchainEventNotifier getInstance(WebServerContext context) {
     if (BlockchainEventNotifier.instance == null) {
       BlockchainEventNotifier.instance = new BlockchainEventNotifier(context);
     }
@@ -89,6 +89,11 @@ public class BlockchainEventNotifier {
       withActiveConnectionsOnly(() -> sendToAll(connection -> new HeartBeatEventEmitter(connection).emit()))
     );
     heartbeat.start();
+  }
+
+  /** The number of currently open websocket connections. */
+  public int getConnectionCount() {
+    return connections.size();
   }
 
   public void removeConnection(WebSocketConnection connection) {

@@ -1,0 +1,70 @@
+name: Auto-tag release on main
+
+# Runs only after the build+test workflow ("Build Signum Node") finishes on main.
+# This makes the tag a *hard* guarantee that main's build and tests were green,
+# rather than relying on the promotion always being a clean merge of tested code.
+#
+# This is a privileged context (workflow_run has write access and secrets), so it
+# deliberately does NOT check out the repository. It reads the version and creates
+# the tag entirely through the GitHub API, so no repository code is ever placed on
+# the runner or executed.
+on:
+  workflow_run:
+    workflows: ["Build Signum Node"]
+    types:
+      - completed
+
+permissions:
+  contents: read
+
+jobs:
+  auto-tag:
+    runs-on: ubuntu-latest
+    # Only when the build succeeded, it was a push to main (not a PR build),
+    # so the tagged commit is exactly the one that passed CI.
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main'
+    env:
+      # The PAT is required so the created tag triggers the downstream
+      # release.yml / dockerhub.yml workflows (a tag from GITHUB_TOKEN would not).
+      GH_TOKEN: ${{ secrets.RELEASE_TAG_PAT }}
+      REPO: ${{ github.repository }}
+      SHA: ${{ github.event.workflow_run.head_sha }}
+    steps:
+      - name: Read version from gradle.properties at the built commit
+        id: ver
+        shell: bash
+        run: |
+          CONTENT=$(gh api "repos/$REPO/contents/gradle.properties?ref=$SHA" \
+            -H "Accept: application/vnd.github.raw")
+          VERSION=$(printf '%s\n' "$CONTENT" | grep -E '^version=' | head -1 | cut -d= -f2 | tr -d '[:space:]')
+          if [ -z "$VERSION" ]; then
+            echo "Could not read version from gradle.properties at $SHA" >&2
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Version at $SHA is $VERSION"
+
+      - name: Create tag if missing
+        shell: bash
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          TAG="v$VERSION"
+          if gh api "repos/$REPO/git/ref/tags/$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists; nothing to do."
+            exit 0
+          fi
+          # Create an annotated tag object pointing at the built commit, then the ref.
+          TAG_SHA=$(gh api "repos/$REPO/git/tags" \
+            -f tag="$TAG" \
+            -f message="Release $TAG" \
+            -f object="$SHA" \
+            -f type="commit" \
+            --jq '.sha')
+          gh api "repos/$REPO/git/refs" \
+            -f ref="refs/tags/$TAG" \
+            -f sha="$TAG_SHA" >/dev/null
+          echo "Created tag $TAG at $SHA"

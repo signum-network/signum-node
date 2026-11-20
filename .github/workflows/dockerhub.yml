@@ -24,6 +24,10 @@ on:
         tags:
             - 'v*'
 
+# Images are pushed to Docker Hub via secrets; no write access to the repo is needed.
+permissions:
+    contents: read
+
 jobs:
   publish-image:
     name: Push Docker image to Docker Hub

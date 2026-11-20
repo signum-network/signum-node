@@ -19,13 +19,12 @@ import brs.props.PropertyService;
 import brs.props.Props;
 import brs.services.TimeService;
 import brs.services.impl.TimeServiceImpl;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.runner.RunWith;
 import org.mockito.Answers;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
 
 import java.util.List;
 
@@ -37,12 +36,12 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Signum.class)
 public class UnconfirmedTransactionStoreTest {
+
+  private MockedStatic<Signum> signumMock;
 
   private BlockchainImpl mockBlockChain;
 
@@ -55,8 +54,7 @@ public class UnconfirmedTransactionStoreTest {
 
   @Before
   public void setUp() {
-    mockStatic(Signum.class);
-
+    signumMock = mockStatic(Signum.class);
     final PropertyService mockPropertyService = mock(PropertyService.class);
     when(Signum.getPropertyService()).thenReturn(mockPropertyService);
     when(mockPropertyService.getInt(eq(Props.P2P_MAX_UNCONFIRMED_TRANSACTIONS))).thenReturn(8192);
@@ -342,4 +340,8 @@ public class UnconfirmedTransactionStoreTest {
     assertNotNull(t.get(expensive.getId()));
   }
 
+  @After
+  public void tearDownSignumMock() {
+    signumMock.close();
+  }
 }

@@ -9,6 +9,7 @@ import brs.props.Props;
 import brs.services.ATService;
 import brs.services.AccountService;
 import brs.services.AliasService;
+import brs.services.ClockDriftMonitor;
 import brs.services.EscrowService;
 import brs.services.TimeService;
 
@@ -37,10 +38,12 @@ public final class GetState extends ApiServlet.JsonRequestHandler {
   private final ATService atService;
   private final Generator generator;
   private final PropertyService propertyService;
+  private final ClockDriftMonitor clockDriftMonitor;
   private final List<String> apiAdminKeyList;
 
   public GetState(Blockchain blockchain, AssetExchange assetExchange, AccountService accountService, EscrowService escrowService,
-                  AliasService aliasService, TimeService timeService, ATService atService, Generator generator, PropertyService propertyService) {
+                  AliasService aliasService, TimeService timeService, ATService atService, Generator generator, PropertyService propertyService,
+                  ClockDriftMonitor clockDriftMonitor) {
     super(new LegacyDocTag[] {LegacyDocTag.INFO}, INCLUDE_COUNTS_PARAMETER, API_KEY_PARAMETER);
     this.blockchain = blockchain;
     this.assetExchange = assetExchange;
@@ -50,6 +53,7 @@ public final class GetState extends ApiServlet.JsonRequestHandler {
     this.atService = atService;
     this.generator = generator;
     this.propertyService = propertyService;
+    this.clockDriftMonitor = clockDriftMonitor;
 
     apiAdminKeyList = propertyService.getStringList(Props.API_ADMIN_KEY_LIST);
   }
@@ -63,6 +67,7 @@ public final class GetState extends ApiServlet.JsonRequestHandler {
     response.addProperty("application", propertyService.getString(Props.APPLICATION));
     response.addProperty("version", propertyService.getString(Props.VERSION));
     response.addProperty(TIME_RESPONSE, timeService.getEpochTime());
+    ClockDriftFields.addTo(response, clockDriftMonitor);
 
     Block lastBlock = blockchain.getLastBlock();
     response.addProperty("lastBlock", lastBlock.getStringId());

@@ -114,13 +114,18 @@ public class Block {
     private volatile long generatorId;
 
     private long nonce;
-    private BigInteger pocTime = null;
+    // set by pre-verification threads and read by the block importer; non-null means verified
+    private volatile BigInteger pocTime = null;
     private long commitment = 0L;
     private final byte[] blockAts;
     private volatile Peer downloadedFrom = null;
     private volatile int byteLength = 0;
 
-    Block(
+    /**
+     * Creates a block with its signed transactions. The id is computed from the block bytes on first
+     * use.
+     */
+    public Block(
             int version,
             int timestamp,
             long previousBlockId,

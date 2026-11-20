@@ -247,6 +247,27 @@ public final class DownloadCacheImpl {
         }
     }
 
+    /**
+     * Removes up to {@code max} blocks from the front of the unverified queue and returns them in
+     * queue order, for pre-verification by the caller. Queued ids without a cached block are dropped.
+     */
+    public List<Block> takeUnverifiedBlocks(int max) {
+        long stamp = dcsl.writeLock();
+        try {
+            List<Block> blocks = new ArrayList<>(Math.min(max, unverified.size()));
+            while (blocks.size() < max && !unverified.isEmpty()) {
+                Block block = blockCache.get(unverified.remove(0));
+                if (block != null) {
+                    blocks.add(block);
+                }
+            }
+            return blocks;
+        } finally {
+            updateAndFireQueueStatus();
+            dcsl.unlockWrite(stamp);
+        }
+    }
+
     public void removeUnverified(long blockId) {
         long stamp = dcsl.writeLock();
         try {
@@ -475,11 +496,9 @@ public final class DownloadCacheImpl {
     }
 
     public Block getLastBlock() {
-        Long lastCacheId = getLastCacheId();
-        if (lastCacheId != null && blockCache.containsKey(lastCacheId)) {
-            return dcslRead(() -> blockCache.get(lastCacheId));
-        }
-        return blockchain.getLastBlock();
+        // id and entry are read together: the importer may remove the cached tip at any time
+        Block cached = dcslRead(() -> lastBlockId == null ? null : blockCache.get(lastBlockId));
+        return cached != null ? cached : blockchain.getLastBlock();
     }
 
     public int size() {

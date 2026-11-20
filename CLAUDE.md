@@ -10,7 +10,7 @@ Signum Node is the reference implementation of the Signum blockchain - a cryptoc
 
 ### Core Build Commands
 - `./gradlew build` - Compile and build the project
-- `./gradlew test` - Run unit tests (excludes some problematic tests by default)
+- `./gradlew test` - Run all tests
 - `./gradlew dist` - Create distribution ZIP package
 - `./gradlew shadowJar` - Create fat JAR with all dependencies
 - `./gradlew release` - Full release build including tests, dist, and Windows executable
@@ -21,10 +21,9 @@ Signum Node is the reference implementation of the Signum blockchain - a cryptoc
 - `java -jar signum-node.jar --config <path>` - Use custom config folder
 
 ### Testing Commands
-- `./gradlew test` - Run unit tests (some tests excluded by default in build.gradle)
+- `./gradlew test` - Run all tests
 - Tests are located in `test/java/` directory
-- Integration tests are in `test/java/it/` 
-- Test configuration excludes problematic tests like ATTest, FeeSuggestionCalculatorTest
+- Chain tests in `test/java/chain/` start a mock node (`conf/junit`) and drive it through the HTTP API
 
 ### Web UI Components
 - `./gradlew buildOpenApi` - Build OpenAPI documentation (requires Node.js)
@@ -105,8 +104,8 @@ Signum Node is the reference implementation of the Signum blockchain - a cryptoc
 ### Testing Approach
 - JUnit 5 for unit tests
 - Mockito for mocking
-- Some integration tests for blockchain functionality
-- Test configuration excludes flaky tests by default
+- Chain tests (`test/java/chain/`) for end-to-end blockchain functionality
+- Static methods (e.g. `Signum.getXxx()`) are mocked with Mockito's `mockStatic`; close the `MockedStatic` after each test. PowerMock is not used
 
 ### Database Development
 - See `DB_DEV.md` for detailed database development guide
@@ -130,7 +129,6 @@ Signum Node is the reference implementation of the Signum blockchain - a cryptoc
 - Gradle multi-project setup with main node + OpenAPI generation
 - Windows executable generation via jpackage
 - Distribution includes JRE bundling for Windows
-- Some tests are excluded by default due to reliability issues
 
 ## Clean Code Guidelines for AI Development
 

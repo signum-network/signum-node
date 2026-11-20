@@ -15,11 +15,10 @@ import brs.util.CollectionWithIndex;
 import brs.util.JSON;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collection;
@@ -32,11 +31,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.*;
+import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Signum.class)
 public class GetAssetsByIssuerTest extends AbstractUnitTest {
+
+  private MockedStatic<Signum> signumMock;
 
   private GetAssetsByIssuer t;
 
@@ -46,11 +45,10 @@ public class GetAssetsByIssuerTest extends AbstractUnitTest {
 
   @Before
   public void setUp() {
+    signumMock = mockStatic(Signum.class);
     mockParameterService = mock(ParameterService.class);
     mockAssetExchange = mock(AssetExchange.class);
     mockAccountService = mock(AccountService.class);
-
-    mockStatic(Signum.class);
     Blockchain mockBlockchain = mock(Blockchain.class);
     when(Signum.getBlockchain()).thenReturn(mockBlockchain);
     when(mockBlockchain.getHeight()).thenReturn(Integer.MAX_VALUE);
@@ -107,4 +105,8 @@ public class GetAssetsByIssuerTest extends AbstractUnitTest {
     assertEquals("" + mockAsset.getId(), JSON.getAsString(assetResult.get(ASSET_RESPONSE)));
   }
 
+  @After
+  public void tearDownSignumMock() {
+    signumMock.close();
+  }
 }

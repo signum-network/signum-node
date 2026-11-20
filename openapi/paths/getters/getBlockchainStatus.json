@@ -39,6 +39,28 @@
                   "type": "integer",
                   "format": "int64"
                 },
+                "clockOffsetSeconds": {
+                  "description": "Estimated offset of the node's local clock in seconds, from the timestamps of new blocks. Positive means ahead, negative means behind. Includes the block propagation delay, so a correct clock shows a small positive value. `null` until enough new blocks were seen.",
+                  "type": "integer",
+                  "nullable": true
+                },
+                "clockDrifting": {
+                  "description": "`true` if `clockOffsetSeconds` or `peerClockOffsetSeconds` is beyond `clockDriftWarnSeconds`. Enable time synchronization (NTP) on the host then.",
+                  "type": "boolean"
+                },
+                "clockDriftWarnSeconds": {
+                  "description": "Threshold in seconds above which the clock counts as drifting (`node.clockDriftWarnSeconds`). 0 means the check is disabled.",
+                  "type": "integer"
+                },
+                "peerClockOffsetSeconds": {
+                  "description": "Median offset of the node's local clock in seconds against the clocks connected peers reported in the handshake, corrected for the round trip. Positive means ahead, negative means behind. Independent of `clockOffsetSeconds`. `null` until at least 3 peers reported a clock within the last 2 hours.",
+                  "type": "integer",
+                  "nullable": true
+                },
+                "peerClockSamples": {
+                  "description": "Number of peers with a clock sample from the last 2 hours.",
+                  "type": "integer"
+                },
                 "lastBlock": {
                   "description": "The last forged block id",
                   "type": "integer",
@@ -81,6 +103,11 @@
                 "application": "BRS",
                 "version": "v3.4.0",
                 "time": 251548095,
+                "clockOffsetSeconds": 1,
+                "clockDrifting": false,
+                "clockDriftWarnSeconds": 10,
+                "peerClockOffsetSeconds": 0,
+                "peerClockSamples": 12,
                 "lastBlock": "11270170188371478756",
                 "lastBlockTimestamp": 251547917,
                 "cumulativeDifficulty": "57884336750738710",

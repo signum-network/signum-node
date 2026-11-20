@@ -49,6 +49,21 @@ public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
     return propertyService.getInt(Props.DB_SQLITE_CACHE_SIZE);
   }
 
+  /**
+   * WAL pages after which SQLite checkpoints the WAL into the database file. A value below 1 would turn
+   * automatic checkpoints off and let the WAL grow without limit, so it falls back to the default.
+   */
+  private int getWalAutocheckpoint() {
+    int pages = propertyService.getInt(Props.DB_SQLITE_WAL_AUTOCHECKPOINT);
+    if (pages < 1) {
+      int fallback = Props.DB_SQLITE_WAL_AUTOCHECKPOINT.getDefaultValue();
+      logger.warn("{} = {} would disable WAL checkpoints, using {}", Props.DB_SQLITE_WAL_AUTOCHECKPOINT.getName(),
+          pages, fallback);
+      return fallback;
+    }
+    return pages;
+  }
+
   @Override
   protected HikariConfig configureImpl(HikariConfig config) {
 
@@ -58,10 +73,11 @@ public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
     config.setConnectionTestQuery("SELECT 1;");
     config.addDataSourceProperty("foreign_keys", "off");
     config.addDataSourceProperty("busy_timeout", "30000");
-    config.addDataSourceProperty("wal_autocheckpoint", "500");
+    // sqlite-jdbc reads its settings with Properties.getProperty, which ignores values that are not strings
+    config.addDataSourceProperty("wal_autocheckpoint", String.valueOf(getWalAutocheckpoint()));
     config.addDataSourceProperty("journal_mode", getJournalMode());
     config.addDataSourceProperty("synchronous", getSynchronousMode());
-    config.addDataSourceProperty("cache_size", getCacheSize());
+    config.addDataSourceProperty("cache_size", String.valueOf(getCacheSize()));
     return config;
   }
 

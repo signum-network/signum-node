@@ -11,11 +11,10 @@ import brs.fluxcapacitor.FluxValues;
 import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.web.api.http.common.APITransactionManager;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -26,12 +25,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Signum.class)
 public class SetRewardRecipientTest extends AbstractTransactionTest {
+
+  private MockedStatic<Signum> signumMock;
 
   private SetRewardRecipient t;
 
@@ -42,6 +41,7 @@ public class SetRewardRecipientTest extends AbstractTransactionTest {
 
   @Before
   public void setUp() {
+    signumMock = mockStatic(Signum.class);
     parameterServiceMock = mock(ParameterService.class);
     blockchainMock = mock(Blockchain.class);
     accountServiceMock = mock(AccountService.class);
@@ -60,8 +60,6 @@ public class SetRewardRecipientTest extends AbstractTransactionTest {
 
     when(parameterServiceMock.getAccount(eq(req))).thenReturn(mockSenderAccount);
     when(accountServiceMock.getAccount(eq(123L))).thenReturn(mockRecipientAccount);
-
-    mockStatic(Signum.class);
     final FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(FluxValues.DIGITAL_GOODS_STORE);
     when(Signum.getFluxCapacitor()).thenReturn(fluxCapacitor);
     doReturn(Constants.FEE_QUANT_SIP3).when(fluxCapacitor).getValue(eq(FluxValues.FEE_QUANT));
@@ -78,8 +76,6 @@ public class SetRewardRecipientTest extends AbstractTransactionTest {
     final Account mockSenderAccount = mock(Account.class);
 
     when(parameterServiceMock.getAccount(eq(req))).thenReturn(mockSenderAccount);
-
-    mockStatic(Signum.class);
     final FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(FluxValues.DIGITAL_GOODS_STORE);
     when(Signum.getFluxCapacitor()).thenReturn(fluxCapacitor);
     doReturn(false).when(fluxCapacitor).getValue(eq(FluxValues.SMART_TOKEN));
@@ -95,12 +91,15 @@ public class SetRewardRecipientTest extends AbstractTransactionTest {
 
     when(parameterServiceMock.getAccount(eq(req))).thenReturn(mockSenderAccount);
     when(accountServiceMock.getAccount(eq(123L))).thenReturn(mockRecipientAccount);
-
-    mockStatic(Signum.class);
     final FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(FluxValues.DIGITAL_GOODS_STORE);
     when(Signum.getFluxCapacitor()).thenReturn(fluxCapacitor);
     doReturn(false).when(fluxCapacitor).getValue(eq(FluxValues.SMART_TOKEN));
 
     assertEquals(8, JSONTestHelper.errorCode(t.processRequest(req)));
+  }
+
+  @After
+  public void tearDownSignumMock() {
+    signumMock.close();
   }
 }

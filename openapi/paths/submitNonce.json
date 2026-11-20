@@ -1,7 +1,7 @@
 {
   "post": {
     "summary": "Submit Nonce",
-    "description": "Submits a nonce trying to validate a block. This is _the_ endpoint for (solo) miners",
+    "description": "Submits a nonce trying to validate a block. This is _the_ endpoint for (solo) miners.\n\nSend the parameters in the request body (`application/x-www-form-urlencoded`), so the passphrase stays out of URLs and access logs. Query string parameters still work for older miners; if a parameter is in both, the body wins.",
     "tags": [
       "mining"
     ],
@@ -13,35 +13,73 @@
         "name": "blockheight",
         "in": "query",
         "allowEmptyValue": false,
-        "required": true,
-        "description": "The block height for the submitted nonce.",
+        "required": false,
+        "description": "The block height for the submitted nonce. Deprecated in the query string: send it in the request body.",
         "schema": {
           "type": "integer",
           "format": "int32"
-        }
+        },
+        "deprecated": true
       },
       {
         "name": "nonce",
         "in": "query",
         "allowEmptyValue": false,
-        "required": true,
-        "description": "The nonce",
+        "required": false,
+        "description": "The nonce Deprecated in the query string: send it in the request body.",
         "schema": {
           "type": "integer",
           "format": "int64"
-        }
+        },
+        "deprecated": true
       },
       {
         "name": "accountId",
         "in": "query",
         "allowEmptyValue": false,
-        "description": "Instead of sending the passphrase you can send the accountId. The account id must be allowed in the configuration of the node.",
+        "description": "Instead of sending the passphrase you can send the accountId. The account id must be allowed in the configuration of the node. Deprecated in the query string: send it in the request body.",
         "schema": {
           "type": "integer",
           "format": "int64"
-        }
+        },
+        "required": false,
+        "deprecated": true
       }
     ],
+    "requestBody": {
+      "description": "The submission. Preferred over query string parameters.",
+      "content": {
+        "application/x-www-form-urlencoded": {
+          "schema": {
+            "type": "object",
+            "required": [
+              "nonce"
+            ],
+            "properties": {
+              "secretPhrase": {
+                "type": "string",
+                "description": "The passphrase of the mining account (solo mining). Either this or `accountId`."
+              },
+              "accountId": {
+                "type": "integer",
+                "format": "int64",
+                "description": "Instead of sending the passphrase you can send the accountId. The account id must be allowed in the configuration of the node."
+              },
+              "nonce": {
+                "type": "integer",
+                "format": "int64",
+                "description": "The nonce"
+              },
+              "blockheight": {
+                "type": "integer",
+                "format": "int32",
+                "description": "The block height for the submitted nonce."
+              }
+            }
+          }
+        }
+      }
+    },
     "responses": {
       "default": {
         "description": "This is the generic response",

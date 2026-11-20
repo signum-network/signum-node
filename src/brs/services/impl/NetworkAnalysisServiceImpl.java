@@ -9,6 +9,7 @@ import brs.peer.Peers;
 import brs.props.PropertyService;
 import brs.props.Props;
 import brs.services.NetworkAnalysisService;
+import brs.services.impl.PeerBlockProbe.ProbeResult;
 import brs.util.Convert;
 import brs.util.JSON;
 import com.google.gson.JsonArray;
@@ -20,14 +21,18 @@ import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
 
@@ -41,16 +46,30 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
     private static final Field<String> NEW_TOP_BLOCK_ID = DSL.field("new_top_block_id", String.class);
     private static final Field<String> PEER_SOURCE = DSL.field("peer_source", String.class);
 
+    /** Parallel block checks per snapshot, so one slow peer cannot add up all P2P timeouts. */
+    private static final int PROBE_THREADS = 8;
+
     private final Blockchain blockchain;
     private final PropertyService propertyService;
+    private final Supplier<Collection<Peer>> connectedPeers;
+    private final PeerBlockProbe probe;
+    private final ExecutorService probePool = Executors.newFixedThreadPool(PROBE_THREADS,
+            r -> { Thread t = new Thread(r, "network-analysis-probe"); t.setDaemon(true); return t; });
 
     private final AtomicReference<JsonObject> cachedStatus = new AtomicReference<>(null);
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(
             r -> { Thread t = new Thread(r, "network-analysis-worker"); t.setDaemon(true); return t; });
 
     public NetworkAnalysisServiceImpl(Blockchain blockchain, PropertyService propertyService) {
+        this(blockchain, propertyService, () -> Peers.getPeers(Peer.State.CONNECTED), new P2PPeerBlockProbe());
+    }
+
+    NetworkAnalysisServiceImpl(Blockchain blockchain, PropertyService propertyService,
+            Supplier<Collection<Peer>> connectedPeers, PeerBlockProbe probe) {
         this.blockchain = blockchain;
         this.propertyService = propertyService;
+        this.connectedPeers = connectedPeers;
+        this.probe = probe;
 
         int intervalSeconds = propertyService.getInt(Props.WEB_UI_NETWORK_STATUS_INTERVAL_SECONDS);
         scheduler.scheduleAtFixedRate(this::refreshNetworkStatus, 30, intervalSeconds, TimeUnit.SECONDS);
@@ -275,73 +294,87 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
         try {
             Block lastBlock = blockchain.getLastBlock();
             if (lastBlock == null) return;
-
-            String myBlockId = lastBlock.getStringId();
-            String myCumulativeDifficulty = lastBlock.getCumulativeDifficulty().toString();
-            int myHeight = lastBlock.getHeight();
-            BigInteger myDifficulty = new BigInteger(myCumulativeDifficulty);
-
-            Collection<Peer> peers = Peers.getAllPeers();
-            JsonArray peerArray = new JsonArray();
-            int onChain = 0, stale = 0, forking = 0;
-
-            for (Peer peer : peers) {
-                if (peer.isBlacklisted()) continue;
-
-                String peerCd = peer.getLastKnownCumulativeDifficulty();
-                int peerHeight = peer.getLastKnownHeight();
-                if (peerCd == null || peerHeight < 0) continue;
-
-                BigInteger peerDifficulty = new BigInteger(peerCd);
-                int heightDiff = Math.abs(myHeight - peerHeight);
-
-                String status;
-                boolean onOurChain;
-                if (peerDifficulty.equals(myDifficulty)) {
-                    status = "on-chain";
-                    onOurChain = true;
-                    onChain++;
-                } else if (heightDiff <= 5) {
-                    status = "stale";
-                    onOurChain = true;
-                    stale++;
-                } else {
-                    status = "forking";
-                    onOurChain = false;
-                    forking++;
-                }
-
-                JsonObject peerEntry = new JsonObject();
-                String address = peer.getAnnouncedAddress() != null ? peer.getAnnouncedAddress() : peer.getPeerAddress();
-                peerEntry.addProperty("address", address);
-                peerEntry.addProperty("cumulativeDifficulty", peerCd);
-                peerEntry.addProperty("height", peerHeight);
-                peerEntry.addProperty("onOurChain", onOurChain);
-                peerEntry.addProperty("status", status);
-                peerEntry.addProperty("connectionFailures", peer.getConnectionFailures());
-                peerEntry.addProperty("blacklisted", peer.isBlacklisted());
-                peerArray.add(peerEntry);
-            }
-
-            int total = peerArray.size();
-            double consensusPct = total > 0 ? (onChain + stale) * 100.0 / total : 0.0;
-
-            JsonObject snapshot = new JsonObject();
-            snapshot.addProperty("myBlockId", myBlockId);
-            snapshot.addProperty("myCumulativeDifficulty", myCumulativeDifficulty);
-            snapshot.addProperty("myHeight", myHeight);
-            snapshot.addProperty("consensusPercent", Math.round(consensusPct * 10.0) / 10.0);
-            snapshot.addProperty("totalPeers", total);
-            snapshot.addProperty("onChainPeers", onChain);
-            snapshot.addProperty("stalePeers", stale);
-            snapshot.addProperty("forkingPeers", forking);
-            snapshot.addProperty("cachedAt", System.currentTimeMillis());
-            snapshot.add("peers", peerArray);
-
-            cachedStatus.set(snapshot);
+            cachedStatus.set(buildSnapshot(lastBlock, checkPeers(lastBlock.getHeight())));
         } catch (Exception e) {
             logger.error("Error refreshing network status", e);
         }
+    }
+
+    /** One checked peer: the height it reported, its answer and the resulting status. */
+    private record PeerCheck(Peer peer, int height, ProbeResult result, PeerChainStatus status) {
+    }
+
+    /**
+     * Asks every connected, non-blacklisted peer that reported a height whether it has our block
+     * at {@code min(peerHeight, ourHeight)}. The checks run in parallel on {@link #probePool}.
+     */
+    private List<PeerCheck> checkPeers(int ourHeight) {
+        List<CompletableFuture<PeerCheck>> checks = new ArrayList<>();
+        for (Peer peer : connectedPeers.get()) {
+            int peerHeight = peer.getLastKnownHeight();
+            if (peer.isBlacklisted() || peerHeight < 0) continue;
+            long blockId = blockchain.getBlockIdAtHeight(Math.min(peerHeight, ourHeight));
+            checks.add(CompletableFuture.supplyAsync(() -> {
+                ProbeResult result = safeProbe(peer, blockId);
+                return new PeerCheck(peer, peerHeight, result,
+                        PeerChainClassifier.classify(ourHeight, peerHeight, result.hasBlock()));
+            }, probePool));
+        }
+        return checks.stream().map(CompletableFuture::join).toList();
+    }
+
+    private ProbeResult safeProbe(Peer peer, long blockId) {
+        try {
+            return probe.probe(peer, blockId);
+        } catch (RuntimeException e) {
+            logger.debug("Block check failed for peer {}", peer.getPeerAddress(), e);
+            return ProbeResult.noAnswer();
+        }
+    }
+
+    private JsonObject buildSnapshot(Block lastBlock, List<PeerCheck> checks) {
+        Map<PeerChainStatus, Integer> counts = new EnumMap<>(PeerChainStatus.class);
+        JsonArray peerArray = new JsonArray();
+        for (PeerCheck check : checks) {
+            counts.merge(check.status(), 1, Integer::sum);
+            peerArray.add(peerEntry(check));
+        }
+        int answered = checks.size() - counts.getOrDefault(PeerChainStatus.UNKNOWN, 0);
+        int agreeing = counts.getOrDefault(PeerChainStatus.ON_CHAIN, 0)
+                + counts.getOrDefault(PeerChainStatus.STALE, 0)
+                + counts.getOrDefault(PeerChainStatus.AHEAD, 0);
+        double consensusPct = answered > 0 ? agreeing * 100.0 / answered : 0.0;
+
+        JsonObject snapshot = new JsonObject();
+        snapshot.addProperty("myBlockId", lastBlock.getStringId());
+        snapshot.addProperty("myCumulativeDifficulty", lastBlock.getCumulativeDifficulty().toString());
+        snapshot.addProperty("myHeight", lastBlock.getHeight());
+        snapshot.addProperty("consensusPercent", Math.round(consensusPct * 10.0) / 10.0);
+        snapshot.addProperty("totalPeers", checks.size());
+        snapshot.addProperty("onChainPeers", counts.getOrDefault(PeerChainStatus.ON_CHAIN, 0));
+        snapshot.addProperty("stalePeers", counts.getOrDefault(PeerChainStatus.STALE, 0));
+        snapshot.addProperty("aheadPeers", counts.getOrDefault(PeerChainStatus.AHEAD, 0));
+        snapshot.addProperty("forkingPeers", counts.getOrDefault(PeerChainStatus.FORKING, 0));
+        snapshot.addProperty("unknownPeers", counts.getOrDefault(PeerChainStatus.UNKNOWN, 0));
+        snapshot.addProperty("cachedAt", System.currentTimeMillis());
+        snapshot.add("peers", peerArray);
+        return snapshot;
+    }
+
+    private static JsonObject peerEntry(PeerCheck check) {
+        Peer peer = check.peer();
+        JsonObject entry = new JsonObject();
+        entry.addProperty("address", peer.getAnnouncedAddress() != null ? peer.getAnnouncedAddress() : peer.getPeerAddress());
+        entry.addProperty("cumulativeDifficulty", peer.getLastKnownCumulativeDifficulty());
+        entry.addProperty("height", check.height());
+        entry.addProperty("status", check.status().apiValue());
+        entry.addProperty("onOurChain", check.status().isOnOurChain());
+        // Long: null (no answer) becomes JSON null
+        entry.addProperty("latencyMs", check.result().latencyMs());
+        entry.addProperty("checkedAt", check.result().checkedAt());
+        entry.addProperty("connectionFailures", peer.getConnectionFailures());
+        entry.addProperty("blacklisted", false);
+        return entry;
     }
 
     private void pruneOldForkHistory() {

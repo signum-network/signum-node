@@ -190,7 +190,7 @@ tasks.register('bunInstallOpenApi', Exec) {
     dependsOn setupBun
     workingDir 'openapi'
     commandLine bunExecutable.absolutePath, 'install', '--frozen-lockfile'
-    inputs.file('openapi/bun.lockb')
+    inputs.file('openapi/bun.lock')
     outputs.dir('openapi/node_modules')
 }
 
@@ -200,7 +200,8 @@ tasks.register('buildOpenApi', Exec) {
     dependsOn bunInstallOpenApi
     workingDir 'openapi'
     commandLine bunExecutable.absolutePath, 'run', 'dist'
-    inputs.dir('openapi/src')
+    inputs.file('openapi/signum-api.json')
+    ['paths', 'parameters', 'responses', 'schemas'].each { inputs.dir("openapi/$it") }
     inputs.file('openapi/package.json')
     outputs.dir('openapi/dist')
     doLast {

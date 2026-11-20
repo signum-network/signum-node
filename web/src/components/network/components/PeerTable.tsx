@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { Card, CardLabel, CardSkeleton } from '@/components/ui/Card'
@@ -98,9 +98,8 @@ export function PeerTable() {
             </tr>
           )}
           {peers.map((peer) => (
-            <>
+            <Fragment key={peer.address}>
               <tr
-                key={peer.address}
                 className="cursor-pointer transition-colors"
                 style={{
                   background: expanded === peer.address ? 'color-mix(in srgb, var(--blue2) 6%, transparent)' : undefined,
@@ -165,7 +164,7 @@ export function PeerTable() {
                   </td>
                 </tr>
               )}
-            </>
+            </Fragment>
           ))}
         </ScrollableTable>
       </Card>

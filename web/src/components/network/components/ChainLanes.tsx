@@ -4,11 +4,10 @@ import { useNetworkStatus } from '@/hooks/useNodeQuery'
 import type { PeerStatusEntry } from '@/lib/nodeApi'
 import { groupIntoLanes, cumulDiffRatio } from './chainLanes.utils'
 import type { Lane } from './chainLanes.utils'
+import { statusColor } from './peerStatus'
 
 function dotColor(peer: PeerStatusEntry): string {
-  if (peer.status === 'on-chain') return 'var(--green)'
-  if (peer.status === 'stale') return 'var(--gold)'
-  return 'var(--red, #ff4444)'
+  return statusColor(peer.status)
 }
 
 function PeerDot({ peer }: { peer: PeerStatusEntry }) {

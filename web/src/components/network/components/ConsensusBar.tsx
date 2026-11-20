@@ -32,7 +32,7 @@ export function ConsensusBar() {
           )}
           <CardSub className="mt-1">
             {data
-              ? t('network.agree', { on: data.onChainPeers, stale: data.stalePeers, forking: data.forkingPeers })
+              ? t('network.agree', { on: data.onChainPeers, stale: data.stalePeers, ahead: data.aheadPeers, forking: data.forkingPeers, unknown: data.unknownPeers })
               : t('network.onOurChain')}
           </CardSub>
         </div>

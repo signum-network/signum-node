@@ -4,26 +4,14 @@ import { useTranslation } from 'react-i18next'
 import { Card, CardLabel, CardSkeleton } from '@/components/ui/Card'
 import { ScrollableTable } from '@/components/ui/ScrollableTable'
 import { useNetworkStatus } from '@/hooks/useNodeQuery'
-import type { PeerStatusEntry } from '@/lib/nodeApi'
+import type { PeerChainStatus } from '@/lib/nodeApi'
 import { ForkPointModal } from './ForkPointModal'
+import { formatLatency, statusColor, statusLabelKey, statusSortRank } from './peerStatus'
 
-function statusColor(status: PeerStatusEntry['status'] | 'blacklisted') {
-  switch (status) {
-    case 'on-chain': return 'var(--green)'
-    case 'stale':    return 'var(--gold)'
-    case 'forking':  return 'var(--red, #ff4444)'
-    case 'blacklisted': return 'var(--muted)'
-    default: return 'var(--muted)'
-  }
-}
-
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status }: { status: PeerChainStatus | 'blacklisted' }) {
   const { t } = useTranslation()
-  const color = statusColor(status as PeerStatusEntry['status'])
-  const label = status === 'on-chain' ? t('status.onChain')
-    : status === 'stale' ? t('status.stale')
-    : status === 'forking' ? t('status.forking')
-    : t('status.blacklisted')
+  const color = statusColor(status)
+  const label = t(statusLabelKey(status))
   return (
     <span
       className="inline-block rounded-sm px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[1px]"
@@ -68,8 +56,7 @@ export function PeerTable() {
   const peers = [...(data?.peers ?? [])].sort((a, b) => {
     if (sortKey === 'height') return b.height - a.height
     if (sortKey === 'failures') return b.connectionFailures - a.connectionFailures
-    const order = { forking: 0, stale: 1, 'on-chain': 2 }
-    return (order[a.status] ?? 9) - (order[b.status] ?? 9)
+    return statusSortRank(a.status) - statusSortRank(b.status)
   })
 
   return (
@@ -89,6 +76,9 @@ export function PeerTable() {
               <th className="px-3 py-2"><ThBtn label={t('common.height')} k="height" sortKey={sortKey} onSort={setSortKey} /></th>
               <th className="px-3 py-2"><ThBtn label={t('network.status')} k="status" sortKey={sortKey} onSort={setSortKey} /></th>
               <th className="px-3 py-2"><ThBtn label={t('common.failures')} k="failures" sortKey={sortKey} onSort={setSortKey} /></th>
+              <th className="px-3 py-2">
+                <span className="text-[9px] uppercase tracking-[2px]" style={{ color: 'var(--muted)' }}>{t('network.latency')}</span>
+              </th>
               <th className="px-5 py-2" />
             </tr>
           }
@@ -126,6 +116,9 @@ export function PeerTable() {
                 <td className="px-3 py-3 text-center tabular-nums" style={{ color: peer.connectionFailures > 3 ? 'var(--gold)' : 'var(--muted)' }}>
                   {peer.connectionFailures}
                 </td>
+                <td className="px-3 py-3 text-center tabular-nums" style={{ color: 'var(--muted)' }}>
+                  {formatLatency(peer.latencyMs)}
+                </td>
                 <td className="px-5 py-3 text-right">
                   {!peer.blacklisted && peer.status === 'forking' && (() => {
                     const tooFarBehind = peer.height < (data?.myHeight ?? 0) - FORK_POINT_MAX_LOOKBACK
@@ -145,10 +138,15 @@ export function PeerTable() {
               </tr>
               {expanded === peer.address && (
                 <tr key={`${peer.address}-detail`} style={{ background: 'color-mix(in srgb, var(--blue2) 4%, transparent)' }}>
-                  <td colSpan={5} className="px-5 py-3">
+                  <td colSpan={6} className="px-5 py-3">
                     <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-[10px]">
                       <div><span style={{ color: 'var(--muted)' }}>{t('network.cumulDifficulty')}: </span><span className="font-mono" style={{ color: 'var(--text)' }}>{peer.cumulativeDifficulty}</span></div>
                       <div><span style={{ color: 'var(--muted)' }}>{t('common.failures')}: </span><span style={{ color: 'var(--text)' }}>{peer.connectionFailures}</span></div>
+                      <div style={{ color: 'var(--muted)' }}>
+                        {peer.checkedAt != null
+                          ? t('network.checkedAgo', { seconds: Math.max(0, Math.round((Date.now() - peer.checkedAt) / 1000)) })
+                          : '—'}
+                      </div>
                     </div>
                     {!peer.blacklisted && peer.status === 'forking' && (() => {
                       const tooFarBehind = peer.height < (data?.myHeight ?? 0) - FORK_POINT_MAX_LOOKBACK

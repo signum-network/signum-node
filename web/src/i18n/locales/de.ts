@@ -32,6 +32,8 @@ const de: Locale = {
     onChain: 'synchron',
     stale: 'veraltet',
     forking: 'abgezweigt',
+    ahead: 'voraus',
+    unknown: 'unbekannt',
     blacklisted: 'gesperrt',
   },
   dashboard: {
@@ -99,8 +101,10 @@ const de: Locale = {
     peers: 'Peers',
     forkHistory: 'Fork- / Reorganisationsverlauf',
     blacklistRecommendations: 'Sperr­empfehlungen',
-    agree: '{{on}} einig · {{stale}} veraltet · {{forking}} abgezweigt',
+    agree: '{{on}} einig · {{stale}} veraltet · {{ahead}} voraus · {{forking}} abgezweigt · {{unknown}} unbekannt',
     onOurChain: 'auf unserer Kette',
+    latency: 'Latenz',
+    checkedAgo: 'geprüft vor {{seconds}} s',
     noReorgs: 'Keine Reorganisationen seit Knotenstart',
     noRecommendations: 'Keine Empfehlungen im Moment',
     noPeerData: 'Keine Peer-Daten — Status aktualisiert alle 120 Sekunden',
@@ -137,7 +141,7 @@ const de: Locale = {
   },
   info: {
     chainConsensus:
-      'Der Prozentsatz der verbundenen Peers, deren kumulierte Schwierigkeit mit unserer übereinstimmt oder höchstens 5 Blöcke abweicht. Werte ≥90% zeigen eine starke Netzwerkeinigkeit über die kanonische Kette.',
+      'Der Anteil der geprüften Peers, die unseren Block auf ihrer Höhe haben: auf unserer Kette gleich hoch, zurück (veraltet) oder voraus. Peers ohne Antwort zählen nicht. Werte ≥90 % zeigen starke Einigkeit über unsere Kette.',
     cumulativeDifficulty:
       'Die gesamte Proof-of-Commitment-Arbeit, die seit dem Genesis-Block in die Kette investiert wurde. Die Kette mit der höchsten kumulierten Schwierigkeit gilt stets als kanonisch — das Umschreiben der Geschichte wird damit extrem kostspielig.',
     findFork:
@@ -147,7 +151,7 @@ const de: Locale = {
     baseTarget:
       'Wird nach jedem Block angepasst, um eine durchschnittliche Blockzeit von 4 Minuten zu halten. Ein niedrigerer Wert bedeutet höhere Schwierigkeit — schwieriger, Mining-Belohnungen zu erhalten.',
     peersTable:
-      '„Synchron"-Peers teilen exakt unsere kumulierte Schwierigkeit. „Veraltete" Peers liegen innerhalb von 5 Blöcken. „Abgezweigte" Peers befinden sich auf einer erheblich abweichenden Kette.',
+      '„Synchron"-Peers haben unseren Block auf unserer Höhe. „Veraltete" Peers haben ihn, sind aber zurück; Peers „voraus" haben ihn und sind weiter. „Abgezweigte" Peers haben unseren Block auf ihrer Höhe nicht und sind auf einer anderen Kette. „Unbekannte" Peers haben auf die Prüfung nicht geantwortet.',
     blacklistRecommendations:
       'Peers, die dauerhaft auf einer anderen Kette sind oder wiederholte Verbindungsfehler aufweisen. Das Eintragen in P2P.BlacklistedPeers verhindert, dass der Knoten Ressourcen an sie verschwendet.',
     effectiveCapacity:

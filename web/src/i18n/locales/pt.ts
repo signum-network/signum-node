@@ -32,6 +32,8 @@ const pt: Locale = {
     onChain: 'na cadeia',
     stale: 'desatualizado',
     forking: 'bifurcando',
+    ahead: 'adiantado',
+    unknown: 'desconhecido',
     blacklisted: 'bloqueado',
   },
   dashboard: {
@@ -99,8 +101,10 @@ const pt: Locale = {
     peers: 'Pares',
     forkHistory: 'Histórico de bifurcações',
     blacklistRecommendations: 'Recomendações de bloqueio',
-    agree: '{{on}} concordam · {{stale}} desatual. · {{forking}} bifurcando',
+    agree: '{{on}} concordam · {{stale}} desatual. · {{ahead}} adiant. · {{forking}} bifurcando · {{unknown}} desconh.',
     onOurChain: 'na nossa cadeia',
+    latency: 'Latência',
+    checkedAgo: 'verificado há {{seconds}} s',
     noReorgs: 'Nenhuma reorganização registrada desde o início do nó',
     noRecommendations: 'Sem recomendações no momento',
     noPeerData: 'Sem dados de pares — status atualiza a cada 120 segundos',
@@ -137,7 +141,7 @@ const pt: Locale = {
   },
   info: {
     chainConsensus:
-      'A porcentagem de pares conectados cuja dificuldade acumulada corresponde ou está dentro de 5 blocos da nossa. Valores ≥90% indicam que a rede está em forte acordo sobre a cadeia canônica.',
+      'A proporção de pares verificados que têm o nosso bloco na sua altura: na nossa cadeia na mesma altura, atrás (desatualizados) ou à frente. Pares que não responderam não contam. Valores ≥90% indicam forte acordo sobre a nossa cadeia.',
     cumulativeDifficulty:
       'O trabalho total de prova de compromisso investido na cadeia desde o genesis. A cadeia com maior dificuldade acumulada é sempre escolhida como canônica — tornando extremamente custoso reescrever o histórico.',
     findFork:
@@ -147,7 +151,7 @@ const pt: Locale = {
     baseTarget:
       'Ajustado a cada bloco para manter o tempo médio de bloco em 4 minutos. Um alvo base menor significa maior dificuldade — mais difícil ganhar a mineração.',
     peersTable:
-      'Pares "na cadeia" compartilham nossa dificuldade acumulada exata. Os "desatualizados" estão dentro de 5 blocos. Os "bifurcando" estão em uma cadeia significativamente diferente.',
+      'Pares "na cadeia" têm o nosso bloco na nossa altura. Pares "desatualizados" têm-no mas estão atrás; pares "adiantados" têm-no e estão à frente. Pares "bifurcando" não têm o nosso bloco na sua altura e estão noutra cadeia. Pares "desconhecidos" não responderam à verificação.',
     blacklistRecommendations:
       'Pares que estão consistentemente em uma cadeia diferente ou têm falhas de conexão repetidas. Adicioná-los a P2P.BlacklistedPeers em node.properties evita que seu nó gaste recursos com eles.',
     effectiveCapacity:

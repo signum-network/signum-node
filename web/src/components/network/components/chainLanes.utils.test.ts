@@ -9,6 +9,8 @@ function peer(overrides: Partial<PeerStatusEntry>): PeerStatusEntry {
     height: 100,
     onOurChain: true,
     status: 'on-chain',
+    latencyMs: null,
+    checkedAt: null,
     connectionFailures: 0,
     blacklisted: false,
     ...overrides,

@@ -136,12 +136,18 @@ export const getUnconfirmedTransactions = () =>
 export const getRecentBlocks = () =>
   query<BlocksResponse>('getBlocks', { firstIndex: '0', lastIndex: '99' })
 
+export type PeerChainStatus = 'on-chain' | 'stale' | 'ahead' | 'forking' | 'unknown'
+
 export interface PeerStatusEntry {
   address: string
   cumulativeDifficulty: string
   height: number
   onOurChain: boolean
-  status: 'on-chain' | 'stale' | 'forking'
+  status: PeerChainStatus
+  /** round trip of the block check in ms; null if the peer did not answer */
+  latencyMs: number | null
+  /** when the block check answered (epoch ms); null if the peer did not answer */
+  checkedAt: number | null
   connectionFailures: number
   blacklisted: boolean
 }
@@ -154,7 +160,9 @@ export interface NetworkStatus {
   totalPeers: number
   onChainPeers: number
   stalePeers: number
+  aheadPeers: number
   forkingPeers: number
+  unknownPeers: number
   cachedAt: number
   peers: PeerStatusEntry[]
 }

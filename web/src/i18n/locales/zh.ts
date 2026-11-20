@@ -32,6 +32,8 @@ const zh: Locale = {
     onChain: '同步',
     stale: '过时',
     forking: '分叉',
+    ahead: '领先',
+    unknown: '未知',
     blacklisted: '已屏蔽',
   },
   dashboard: {
@@ -99,8 +101,10 @@ const zh: Locale = {
     peers: '节点',
     forkHistory: '分叉 / 重组历史',
     blacklistRecommendations: '屏蔽建议',
-    agree: '{{on}} 一致 · {{stale}} 过时 · {{forking}} 分叉',
+    agree: '{{on}} 一致 · {{stale}} 过时 · {{ahead}} 领先 · {{forking}} 分叉 · {{unknown}} 未知',
     onOurChain: '在我们的链上',
+    latency: '延迟',
+    checkedAgo: '{{seconds}} 秒前检查',
     noReorgs: '节点启动以来无重组记录',
     noRecommendations: '暂无建议',
     noPeerData: '暂无节点数据 — 状态每 120 秒刷新',
@@ -137,7 +141,7 @@ const zh: Locale = {
   },
   info: {
     chainConsensus:
-      '连接节点中累积难度与我们相符或相差不超过 5 个区块的百分比。≥90% 表示网络在规范链上高度一致。',
+      '已检查节点中在其高度拥有我们区块的比例：在我们的链上同一高度、落后（过时）或领先。未响应的节点不计入。≥90% 表示对我们的链高度一致。',
     cumulativeDifficulty:
       '自创世以来投入链中的总 proof-of-commitment 工作量。具有最高累积难度的链始终被视为规范链——这使重写历史的代价极为高昂。',
     findFork:
@@ -147,7 +151,7 @@ const zh: Locale = {
     baseTarget:
       '每个区块后自动调整，以将平均出块时间维持在 4 分钟。基准目标越低，难度越大，越难获得挖矿奖励。',
     peersTable:
-      '"同步"节点与我们拥有完全相同的累积难度。"过时"节点相差不超过 5 个区块。"分叉"节点处于明显不同的链上。',
+      '"同步"节点在我们的高度拥有我们的区块。"过时"节点拥有它但落后，"领先"节点拥有它并且更靠前。"分叉"节点在其高度没有我们的区块，处于另一条链上。"未知"节点未响应检查。',
     blacklistRecommendations:
       '持续处于不同链上或多次连接失败的节点。将其添加到 P2P.BlacklistedPeers 可防止节点浪费资源与之通信。',
     effectiveCapacity:

@@ -6,7 +6,7 @@ export interface Locale {
     startBinarySearch: string; searching: string; selectTheme: string; selectLanguage: string
     enabled: string; disabled: string; live: string; connecting: string; polling: string
   }
-  status: { onChain: string; stale: string; forking: string; blacklisted: string }
+  status: { onChain: string; stale: string; ahead: string; forking: string; unknown: string; blacklisted: string }
   dashboard: {
     chainOverview: string; network: string; nodeHealth: string
     currentBlockHeight: string; syncing: string; synced: string
@@ -32,7 +32,7 @@ export interface Locale {
   }
   network: {
     chainConsensus: string; peers: string; forkHistory: string; blacklistRecommendations: string
-    agree: string; onOurChain: string; noReorgs: string; noRecommendations: string
+    agree: string; onOurChain: string; latency: string; checkedAgo: string; noReorgs: string; noRecommendations: string
     noPeerData: string; blacklistHint: string; copyForConfig: string
     peersOpen: string; peersOpen_other: string; peersClosed: string; peersClosed_other: string
     forkPoint: {
@@ -86,6 +86,8 @@ const en: Locale = {
     onChain: 'on-chain',
     stale: 'stale',
     forking: 'forking',
+    ahead: 'ahead',
+    unknown: 'unknown',
     blacklisted: 'blacklisted',
   },
   dashboard: {
@@ -153,8 +155,10 @@ const en: Locale = {
     peers: 'Peers',
     forkHistory: 'Fork / Reorg History',
     blacklistRecommendations: 'Blacklist Recommendations',
-    agree: '{{on}} agree · {{stale}} stale · {{forking}} forking',
+    agree: '{{on}} agree · {{stale}} stale · {{ahead}} ahead · {{forking}} forking · {{unknown}} unknown',
     onOurChain: 'on our chain',
+    latency: 'Latency',
+    checkedAgo: 'checked {{seconds}}s ago',
     noReorgs: 'No reorganizations recorded since node start',
     noRecommendations: 'No recommendations at this time',
     noPeerData: 'No peer data yet — status refreshes every 120 seconds',
@@ -191,7 +195,7 @@ const en: Locale = {
   },
   info: {
     chainConsensus:
-      'The percentage of connected peers whose cumulative difficulty matches or is within 5 blocks of ours. Values ≥90% indicate the network is in strong agreement on the canonical chain.',
+      'The share of checked peers that have our block at their height: on our chain at the same height, behind (stale) or ahead. Peers that did not answer are not counted. Values ≥90% indicate strong agreement on our chain.',
     cumulativeDifficulty:
       'The total proof-of-commitment work invested in the chain since genesis. The chain with the highest cumulative difficulty is always chosen as canonical — making it extremely costly to rewrite history.',
     findFork:
@@ -201,7 +205,7 @@ const en: Locale = {
     baseTarget:
       'Adjusted every block to keep the average block time at 4 minutes. A lower base target means higher network difficulty — harder to win the mining lottery.',
     peersTable:
-      '"On-chain" peers share our exact cumulative difficulty. "Stale" peers are within 5 blocks. "Forking" peers are on a significantly different chain and may indicate a network split.',
+      '"On-chain" peers have our block at our height. "Stale" peers have it but are behind; "ahead" peers have it and are further. "Forking" peers lack our block at their height and are on a different chain. "Unknown" peers did not answer the check.',
     blacklistRecommendations:
       'Peers that are consistently on a different chain or have repeated connection failures. Adding them to P2P.BlacklistedPeers in node.properties prevents your node from wasting resources on them.',
     effectiveCapacity:

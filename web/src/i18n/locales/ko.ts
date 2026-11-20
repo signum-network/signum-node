@@ -32,6 +32,8 @@ const ko: Locale = {
     onChain: '동기화됨',
     stale: '오래됨',
     forking: '포크 중',
+    ahead: '앞섬',
+    unknown: '알 수 없음',
     blacklisted: '차단됨',
   },
   dashboard: {
@@ -99,8 +101,10 @@ const ko: Locale = {
     peers: '피어',
     forkHistory: '포크 / 재편성 기록',
     blacklistRecommendations: '차단 목록 추천',
-    agree: '{{on}} 동의 · {{stale}} 오래됨 · {{forking}} 포크 중',
+    agree: '{{on}} 동의 · {{stale}} 오래됨 · {{ahead}} 앞섬 · {{forking}} 포크 중 · {{unknown}} 알 수 없음',
     onOurChain: '우리 체인에서',
+    latency: '지연 시간',
+    checkedAgo: '{{seconds}}초 전 확인',
     noReorgs: '노드 시작 이후 재편성 없음',
     noRecommendations: '현재 추천 없음',
     noPeerData: '피어 데이터 없음 — 120초마다 갱신',
@@ -137,7 +141,7 @@ const ko: Locale = {
   },
   info: {
     chainConsensus:
-      '연결된 피어 중 누적 난이도가 일치하거나 5블록 이내인 비율. ≥90%는 네트워크가 정규 체인에 강하게 동의하고 있음을 나타냅니다.',
+      '확인한 피어 중 자신의 높이에서 우리 블록을 가진 피어의 비율: 같은 높이의 우리 체인, 뒤처짐(오래됨) 또는 앞섬. 응답하지 않은 피어는 세지 않습니다. 90% 이상은 우리 체인에 대한 강한 합의를 나타냅니다.',
     cumulativeDifficulty:
       '창세 이후 체인에 투입된 총 proof-of-commitment 작업량. 누적 난이도가 가장 높은 체인이 항상 정규 체인으로 선택되어 역사 재작성에 극도로 높은 비용이 듭니다.',
     findFork:
@@ -147,7 +151,7 @@ const ko: Locale = {
     baseTarget:
       '평균 블록 시간을 4분으로 유지하기 위해 블록마다 조정됩니다. 값이 낮을수록 난이도가 높아 채굴 보상 획득이 어렵습니다.',
     peersTable:
-      '"동기화됨" 피어는 우리와 정확히 동일한 누적 난이도를 가집니다. "오래됨" 피어는 5블록 이내. "포크 중" 피어는 상당히 다른 체인에 있습니다.',
+      '"동기화됨" 피어는 우리 높이에서 우리 블록을 가지고 있습니다. "오래됨" 피어는 가지고 있지만 뒤처져 있고, "앞섬" 피어는 가지고 있으며 더 앞서 있습니다. "포크 중" 피어는 자신의 높이에서 우리 블록이 없으며 다른 체인에 있습니다. "알 수 없음" 피어는 확인에 응답하지 않았습니다.',
     blacklistRecommendations:
       '지속적으로 다른 체인에 있거나 반복적인 연결 실패가 있는 피어. P2P.BlacklistedPeers에 추가하면 노드 리소스 낭비를 막을 수 있습니다.',
     effectiveCapacity:

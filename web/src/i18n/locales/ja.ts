@@ -32,6 +32,8 @@ const ja: Locale = {
     onChain: '同期中',
     stale: '古い',
     forking: 'フォーク中',
+    ahead: '先行',
+    unknown: '不明',
     blacklisted: 'ブロック済',
   },
   dashboard: {
@@ -99,8 +101,10 @@ const ja: Locale = {
     peers: 'ピア',
     forkHistory: 'フォーク / 再編成履歴',
     blacklistRecommendations: 'ブロックリスト推奨',
-    agree: '{{on}} 一致 · {{stale}} 古い · {{forking}} フォーク中',
+    agree: '{{on}} 一致 · {{stale}} 古い · {{ahead}} 先行 · {{forking}} フォーク中 · {{unknown}} 不明',
     onOurChain: '当チェーン上',
+    latency: 'レイテンシ',
+    checkedAgo: '{{seconds}}秒前に確認',
     noReorgs: 'ノード起動以来再編成なし',
     noRecommendations: '現在推奨なし',
     noPeerData: 'ピアデータなし — 120秒ごとに更新',
@@ -137,7 +141,7 @@ const ja: Locale = {
   },
   info: {
     chainConsensus:
-      '接続中のピアのうち、累積難易度が一致または5ブロック以内に収まる割合。≥90%はネットワークが正規チェーンで強く合意していることを示します。',
+      '確認したピアのうち、自身の高さで当ノードのブロックを持つピアの割合（同じ高さ、遅れている＝古い、または先行）。応答のないピアは数えません。≥90%は当チェーンへの強い合意を示します。',
     cumulativeDifficulty:
       'ジェネシス以来チェーンに投じられた proof-of-commitment の累積作業量。累積難易度が最も高いチェーンが常に正規チェーンとして選択され、履歴の書き換えは極めてコストがかかります。',
     findFork:
@@ -147,7 +151,7 @@ const ja: Locale = {
     baseTarget:
       '平均ブロック時間を4分に維持するため、ブロックごとに調整されます。低い値ほど難易度が高く、マイニング報酬を得るのが困難になります。',
     peersTable:
-      '「同期中」ピアは当ノードと全く同じ累積難易度を持ちます。「古い」ピアは5ブロック以内。「フォーク中」ピアは大きく異なるチェーン上にあります。',
+      '「同期中」ピアは当ノードの高さで当ノードのブロックを持っています。「古い」ピアは持っていますが遅れており、「先行」ピアは持っていて先に進んでいます。「フォーク中」ピアは自身の高さで当ノードのブロックを持たず、別のチェーン上にいます。「不明」ピアは確認に応答しませんでした。',
     blacklistRecommendations:
       '継続的に異なるチェーン上にあるか、接続失敗が繰り返されるピア。P2P.BlacklistedPeers に追加することでノードのリソース無駄遣いを防げます。',
     effectiveCapacity:

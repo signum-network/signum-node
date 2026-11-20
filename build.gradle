@@ -216,8 +216,8 @@ tasks.register('buildOpenApi', Exec) {
 }
 
 tasks.register('dist', Zip) {
-    from(project.tasks.shadowJar.outputs.files) {
-        include "${baseNodeFileName}-all.jar"
+    // from(task) adds the dependency and takes the archive whatever its (versioned) name
+    from(tasks.named('shadowJar')) {
         rename { "${baseNodeFileName}.jar" }
     }
     into('conf') { from "conf/node-default.properties" }
@@ -248,7 +248,7 @@ tasks.register('jpackageWin', Exec) {
     def outputDir = "$buildDir/jpackage"
     def exePath = file("$outputDir/${appName}.exe")
 
-    inputs.file("$buildDir/libs/${baseNodeFileName}-all.jar")
+    inputs.file(tasks.shadowJar.archiveFile)
     outputs.dir(outputDir)
 
     doFirst {
@@ -264,7 +264,7 @@ tasks.register('jpackageWin', Exec) {
         '--input', "$buildDir/libs",
         '--dest', outputDir,
         '--name', appName,
-        '--main-jar', "${baseNodeFileName}-all.jar",
+        '--main-jar', tasks.shadowJar.archiveFileName.get(),
         '--main-class', application.mainClass.get(),
         '--app-version', version,
         '--icon', "${projectDir}/resources/images/signum_overlay_logo.ico"

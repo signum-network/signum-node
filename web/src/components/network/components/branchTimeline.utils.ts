@@ -39,7 +39,8 @@ export function buildBranchLayout(
   }
 
   const minHeight = Math.min(...forks.map(f => f.rollbackHeight)) - 5
-  const maxHeight = myHeight
+  // right after a pop-off the replaced blocks sit above the tip until the node resyncs
+  const maxHeight = Math.max(myHeight, ...forks.map(f => f.rollbackHeight + f.rollbackDepth))
   const range = maxHeight - minHeight || 1
   const chartW = svgW - 2 * PAD_X
 

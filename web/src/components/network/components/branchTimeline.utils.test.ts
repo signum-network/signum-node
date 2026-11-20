@@ -28,6 +28,16 @@ describe('archHeight', () => {
   })
 })
 
+describe('buildBranchLayout right after a pop-off', () => {
+  it('keeps the replaced blocks above the tip inside the chart', () => {
+    // tip is back at the common block until the node resyncs
+    const layout = buildBranchLayout([fork({ rollbackHeight: 1000, rollbackDepth: 2 })], 1000, 600)
+    const arch = layout.arches[0]
+    expect(layout.maxHeight).toBe(1002)
+    expect(arch.rightX).toBeLessThanOrEqual(600 - 50)
+  })
+})
+
 describe('buildBranchLayout', () => {
   const SVG_W = 600
   const forks = [

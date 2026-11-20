@@ -2630,7 +2630,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     public List<Block> popOffTo(int height) {
         List<Block> blocks = popOffTo(blockchain.getBlockAtHeight(height), null);
         if (!blocks.isEmpty()) {
-            notifyRollback(new RollbackEvent(blockchain.getHeight(), blocks.size(), blocks.get(0).getId(), null, null));
+            // from the popped blocks (newest first): the importer may already have pushed a new block
+            int commonHeight = blocks.get(blocks.size() - 1).getHeight() - 1;
+            notifyRollback(new RollbackEvent(commonHeight, blocks.size(), blocks.get(0).getId(), null, null));
         }
         if (Boolean.FALSE.equals(propertyService.getBoolean(Props.DB_SKIP_CHECK))
                 && checkDatabaseState() != 0) {

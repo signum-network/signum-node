@@ -473,6 +473,28 @@ class BlockchainProcessorImplTest {
     }
 
     @Test
+    void testPopOffTo_GivenBlockPushedRightAfterThePop_ReportsTheCommonHeight() {
+        List<Block> chain = stubPoppableChain(2);
+        Block common = chain.get(0);
+        Block imported = block(42L, TIP_HEIGHT - 1, 99);
+        BlockchainProcessorImpl processor = createProcessor();
+        List<RollbackEvent> events = new ArrayList<>();
+        processor.addRollbackListener(events::add);
+        // the importer is not paused for an API pop-off and can push a block as soon as the locks are free
+        boolean[] pushed = {false};
+        processor.addListener(b -> {
+            if (!pushed[0] && chain.get(chain.size() - 1) == common) {
+                pushed[0] = true;
+                chain.add(imported);
+            }
+        }, BlockchainProcessor.Event.BLOCK_AUTO_POPPED);
+
+        processor.popOffTo(TIP_HEIGHT - 2);
+
+        assertEquals(List.of(new RollbackEvent(TIP_HEIGHT - 2, 2, 10L, null, null)), events);
+    }
+
+    @Test
     void testPopOffTo_GivenTargetIsTip_NotifiesNothing() {
         stubPoppableChain(2);
         BlockchainProcessorImpl processor = createProcessor();

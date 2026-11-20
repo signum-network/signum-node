@@ -8,6 +8,7 @@ import com.google.gson.JsonObject;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 public interface BlockchainProcessor extends Observable<Block, BlockchainProcessor.Event> {
 
@@ -175,6 +176,9 @@ public interface BlockchainProcessor extends Observable<Block, BlockchainProcess
     void shutdown();
 
     List<Block> popOffTo(int height);
+
+    /** Adds a listener that is told once per rollback, after the blocks were popped off. */
+    void addRollbackListener(Consumer<RollbackEvent> listener);
 
     void popOff(int count);
 

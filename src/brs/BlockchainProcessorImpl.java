@@ -71,6 +71,7 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -79,6 +80,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
 import java.util.function.ToLongFunction;
@@ -170,6 +172,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     private final AtomicInteger currentTrimHeight = new AtomicInteger();
 
     private final Listeners<Block, Event> blockListeners = new Listeners<>();
+    private final List<Consumer<RollbackEvent>> rollbackListeners = new CopyOnWriteArrayList<>();
     private final AtomicReference<Peer> lastBlockchainFeeder = new AtomicReference<>();
     private final AtomicInteger lastBlockchainFeederHeight = new AtomicInteger();
     private final AtomicBoolean getMoreBlocks = new AtomicBoolean(true);
@@ -1848,6 +1851,22 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         return blockListeners.removeListener(listener, eventType);
     }
 
+    @Override
+    public void addRollbackListener(Consumer<RollbackEvent> listener) {
+        rollbackListeners.add(listener);
+    }
+
+    /** Tells every rollback listener; a failing listener neither stops the others nor the caller. */
+    void notifyRollback(RollbackEvent event) {
+        for (Consumer<RollbackEvent> listener : rollbackListeners) {
+            try {
+                listener.accept(event);
+            } catch (RuntimeException e) {
+                logger.warn("Rollback listener failed for {}", event, e);
+            }
+        }
+    }
+
     /**
      * One search polls at most as many random connected peers as the node may connect to, and stops
      * when the download thread is paused, for example for a pop-off or the shutdown, which wait for
@@ -2610,6 +2629,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     @Override
     public List<Block> popOffTo(int height) {
         List<Block> blocks = popOffTo(blockchain.getBlockAtHeight(height), null);
+        if (!blocks.isEmpty()) {
+            notifyRollback(new RollbackEvent(blockchain.getHeight(), blocks.size(), blocks.get(0).getId(), null, null));
+        }
         if (Boolean.FALSE.equals(propertyService.getBoolean(Props.DB_SKIP_CHECK))
                 && checkDatabaseState() != 0) {
             logger.warn(
@@ -2662,6 +2684,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
         int poppedBlocks = 0;
         Block block = blockchain.getLastBlock();
+        long oldTopBlockId = block.getId();
         try {
             synchronized (transactionProcessor.getUnconfirmedTransactionsSyncObj()) {
                 if (manualPopOffBlocksCount.get() == 0) {
@@ -2716,6 +2739,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         }
                     }
                     transactionProcessor.requeueAllUnconfirmedTransactions();
+                    if (poppedBlocks > 0) {
+                        notifyRollback(new RollbackEvent(block.getHeight(), poppedBlocks, oldTopBlockId, null, null));
+                    }
                 } catch (Exception e) {
                     manualPopOffBlocksCount.set(0);
                     manualLastPopOffHeight.set(-1);

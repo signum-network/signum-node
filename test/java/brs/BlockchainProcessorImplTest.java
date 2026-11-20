@@ -55,6 +55,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
@@ -456,6 +457,123 @@ class BlockchainProcessorImplTest {
         assertThrows(IllegalStateException.class, () -> processor.popOffTo(TIP_HEIGHT));
 
         assertFalse(processor.isScanning());
+    }
+
+    @Test
+    void testPopOffTo_GivenTwoBlocksPopped_NotifiesOneRollback() {
+        List<Block> chain = stubPoppableChain(2);
+        BlockchainProcessorImpl processor = createProcessor();
+        List<RollbackEvent> events = new ArrayList<>();
+        processor.addRollbackListener(events::add);
+
+        processor.popOffTo(TIP_HEIGHT - 2);
+
+        assertEquals(List.of(new RollbackEvent(TIP_HEIGHT - 2, 2, 10L, null, null)), events);
+        assertEquals(TIP_HEIGHT - 2, chain.get(chain.size() - 1).getHeight());
+    }
+
+    @Test
+    void testPopOffTo_GivenTargetIsTip_NotifiesNothing() {
+        stubPoppableChain(2);
+        BlockchainProcessorImpl processor = createProcessor();
+        List<RollbackEvent> events = new ArrayList<>();
+        processor.addRollbackListener(events::add);
+
+        processor.popOffTo(TIP_HEIGHT);
+
+        assertTrue(events.isEmpty());
+    }
+
+    @Test
+    void testPopOffTo_GivenRollbackBelowMinimum_NotifiesNothing() {
+        stubPoppableChain(2);
+        when(blockchain.getHeight()).thenReturn(TIP_HEIGHT + Constants.MAX_ROLLBACK);
+        Block old = block(5L, 1, 1);
+        when(blockchain.getBlockAtHeight(1)).thenReturn(old);
+        BlockchainProcessorImpl processor = createProcessor();
+        List<RollbackEvent> events = new ArrayList<>();
+        processor.addRollbackListener(events::add);
+
+        assertThrows(IllegalArgumentException.class, () -> processor.popOffTo(1));
+
+        assertTrue(events.isEmpty());
+    }
+
+    @Test
+    void testNotifyRollback_GivenThrowingListener_CallsLaterListeners() {
+        BlockchainProcessorImpl processor = createProcessor();
+        List<RollbackEvent> events = new ArrayList<>();
+        processor.addRollbackListener(e -> {
+            throw new IllegalStateException("listener broken");
+        });
+        processor.addRollbackListener(events::add);
+        RollbackEvent event = new RollbackEvent(7, 1, 3L, null, null);
+
+        assertDoesNotThrow(() -> processor.notifyRollback(event));
+
+        assertEquals(List.of(event), events);
+    }
+
+    @Test
+    void testPopOff_GivenTwoBlocks_NotifiesOneRollbackWithTotalDepth() {
+        stubPoppableChain(2);
+        BlockchainProcessorImpl processor = createProcessor();
+        List<RollbackEvent> events = new ArrayList<>();
+        processor.addRollbackListener(events::add);
+
+        processor.popOff(2);
+
+        assertEquals(List.of(new RollbackEvent(TIP_HEIGHT - 2, 2, 10L, null, null)), events);
+    }
+
+    @Test
+    void testPopOff_GivenPopOffAlreadyRunning_NotifiesOnlyTheRunThatPops() {
+        stubPoppableChain(3);
+        BlockchainProcessorImpl processor = createProcessor();
+        List<RollbackEvent> events = new ArrayList<>();
+        processor.addRollbackListener(events::add);
+        boolean[] added = {false};
+        // a second request while the first one runs only adds to the blocks to pop off
+        processor.addListener(b -> {
+            if (!added[0]) {
+                added[0] = true;
+                processor.popOff(1);
+            }
+        }, BlockchainProcessor.Event.BLOCK_MANUAL_POPPED);
+
+        processor.popOff(2);
+
+        assertEquals(List.of(new RollbackEvent(TIP_HEIGHT - 3, 3, 10L, null, null)), events);
+    }
+
+    /**
+     * Stubs a chain of {@code depth} blocks above a common block, ending in {@link #tip}, that
+     * {@code popLastBlock} can actually pop. Returns the live list, oldest first.
+     */
+    private List<Block> stubPoppableChain(int depth) {
+        when(propertyService.getBoolean(Props.DB_SKIP_CHECK)).thenReturn(true);
+        List<Block> chain = new ArrayList<>();
+        for (int i = depth; i >= 1; i--) {
+            chain.add(block(10L - i, TIP_HEIGHT - i, 100 - i));
+        }
+        chain.add(tip);
+        for (int i = 1; i < chain.size(); i++) {
+            long previousId = chain.get(i - 1).getId();
+            when(chain.get(i).getPreviousBlockId()).thenReturn(previousId);
+        }
+        for (Block b : chain) {
+            when(b.getBlockSignature()).thenReturn(new byte[0]); // read by a debug log while popping
+            int height = b.getHeight();
+            long id = b.getId();
+            when(blockchain.getBlockAtHeight(height)).thenReturn(b);
+            when(blockchain.hasBlock(id)).thenReturn(true);
+            when(blockDb.findBlock(id)).thenReturn(b);
+        }
+        when(blockchain.getLastBlock()).thenAnswer(i -> chain.get(chain.size() - 1));
+        when(blockchain.getHeight()).thenAnswer(i -> chain.get(chain.size() - 1).getHeight());
+        when(blockDb.findLastBlock()).thenAnswer(i -> chain.get(chain.size() - 1));
+        doAnswer(i -> chain.remove(chain.size() - 1)).when(blockchain).setLastBlock(any(Block.class), any(Block.class));
+        return chain;
     }
 
     private static Set<Thread> fetcherThreads() {

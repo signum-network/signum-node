@@ -6,7 +6,7 @@ import { ScrollableTable } from '@/components/ui/ScrollableTable'
 import { useNetworkStatus } from '@/hooks/useNodeQuery'
 import type { PeerChainStatus } from '@/lib/nodeApi'
 import { ForkPointModal } from './ForkPointModal'
-import { formatLatency, statusColor, statusLabelKey, statusSortRank } from './peerStatus'
+import { formatLatency, secondsAgo, statusColor, statusLabelKey, statusSortRank } from './peerStatus'
 
 function StatusBadge({ status }: { status: PeerChainStatus | 'blacklisted' }) {
   const { t } = useTranslation()
@@ -47,7 +47,7 @@ function ThBtn({ label, k, sortKey, onSort }: ThBtnProps) {
 }
 
 export function PeerTable() {
-  const { data, isLoading } = useNetworkStatus()
+  const { data, isLoading, dataUpdatedAt } = useNetworkStatus()
   const { t } = useTranslation()
   const [expanded, setExpanded] = useState<string | null>(null)
   const [forkModalPeer, setForkModalPeer] = useState<string | null>(null)
@@ -85,14 +85,14 @@ export function PeerTable() {
         >
           {isLoading && (
             <tr>
-              <td colSpan={5} className="px-5 py-6">
+              <td colSpan={6} className="px-5 py-6">
                 <div className="h-4 w-48"><CardSkeleton /></div>
               </td>
             </tr>
           )}
           {!isLoading && peers.length === 0 && (
             <tr>
-              <td colSpan={5} className="px-5 py-6 text-center text-[11px]" style={{ color: 'var(--muted)' }}>
+              <td colSpan={6} className="px-5 py-6 text-center text-[11px]" style={{ color: 'var(--muted)' }}>
                 {t('network.noPeerData')}
               </td>
             </tr>
@@ -144,7 +144,7 @@ export function PeerTable() {
                       <div><span style={{ color: 'var(--muted)' }}>{t('common.failures')}: </span><span style={{ color: 'var(--text)' }}>{peer.connectionFailures}</span></div>
                       <div style={{ color: 'var(--muted)' }}>
                         {peer.checkedAt != null
-                          ? t('network.checkedAgo', { seconds: Math.max(0, Math.round((Date.now() - peer.checkedAt) / 1000)) })
+                          ? t('network.checkedAgo', { seconds: secondsAgo(peer.checkedAt, data?.serverTime ?? peer.checkedAt, dataUpdatedAt, Date.now()) })
                           : '—'}
                       </div>
                     </div>

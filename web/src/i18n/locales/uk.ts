@@ -105,6 +105,7 @@ const uk: Locale = {
     onOurChain: 'у нашому ланцюгу',
     latency: 'Затримка',
     checkedAgo: 'перевірено {{seconds}} с тому',
+    noAnswerLane: 'Немає відповіді',
     noReorgs: 'Жодної реорганізації з моменту запуску вузла',
     noRecommendations: 'Наразі немає рекомендацій',
     noPeerData: 'Даних вузлів немає — статус оновлюється кожні 120 секунд',

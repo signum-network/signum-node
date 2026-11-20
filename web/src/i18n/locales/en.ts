@@ -32,7 +32,7 @@ export interface Locale {
   }
   network: {
     chainConsensus: string; peers: string; forkHistory: string; blacklistRecommendations: string
-    agree: string; onOurChain: string; latency: string; checkedAgo: string; noReorgs: string; noRecommendations: string
+    agree: string; onOurChain: string; latency: string; checkedAgo: string; noAnswerLane: string; noReorgs: string; noRecommendations: string
     noPeerData: string; blacklistHint: string; copyForConfig: string
     peersOpen: string; peersOpen_other: string; peersClosed: string; peersClosed_other: string
     forkPoint: {
@@ -159,6 +159,7 @@ const en: Locale = {
     onOurChain: 'on our chain',
     latency: 'Latency',
     checkedAgo: 'checked {{seconds}}s ago',
+    noAnswerLane: 'No answer',
     noReorgs: 'No reorganizations recorded since node start',
     noRecommendations: 'No recommendations at this time',
     noPeerData: 'No peer data yet — status refreshes every 120 seconds',

@@ -105,6 +105,7 @@ const ko: Locale = {
     onOurChain: '우리 체인에서',
     latency: '지연 시간',
     checkedAgo: '{{seconds}}초 전 확인',
+    noAnswerLane: '응답 없음',
     noReorgs: '노드 시작 이후 재편성 없음',
     noRecommendations: '현재 추천 없음',
     noPeerData: '피어 데이터 없음 — 120초마다 갱신',

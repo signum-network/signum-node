@@ -49,3 +49,8 @@ export function cumulDiffRatio(lane: Lane, lanes: Lane[]): number {
   const val = BigInt(lane.cumulativeDifficulty || '0')
   return Number((val * 10000n) / max) / 10000
 }
+
+/** Peers that did not answer the block check; they belong to no lane. */
+export function unansweredPeers(peers: PeerStatusEntry[]): PeerStatusEntry[] {
+  return peers.filter(p => p.status === 'unknown')
+}

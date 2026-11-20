@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Card, CardLabel, CardSkeleton } from '@/components/ui/Card'
 import { useNetworkStatus } from '@/hooks/useNodeQuery'
 import type { PeerStatusEntry } from '@/lib/nodeApi'
-import { groupIntoLanes, cumulDiffRatio } from './chainLanes.utils'
+import { groupIntoLanes, cumulDiffRatio, unansweredPeers } from './chainLanes.utils'
 import type { Lane } from './chainLanes.utils'
 import { statusColor } from './peerStatus'
 
@@ -85,11 +85,33 @@ function LaneCard({ lane, lanes }: { lane: Lane; lanes: Lane[] }) {
   )
 }
 
+/** Peers that did not answer the block check: no chain can be assigned to them. */
+function UnansweredCard({ peers }: { peers: PeerStatusEntry[] }) {
+  const { t } = useTranslation()
+  return (
+    <div
+      className="flex min-w-[140px] flex-col gap-3 rounded-sm p-3"
+      style={{ border: '1px dashed var(--muted)', background: 'color-mix(in srgb, var(--muted) 5%, transparent)' }}
+    >
+      <div className="text-[9px] font-semibold uppercase tracking-[2px]" style={{ color: 'var(--muted)' }}>
+        {t('network.noAnswerLane')}
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {peers.map(p => <PeerDot key={p.address} peer={p} />)}
+      </div>
+      <div className="text-[9px] tabular-nums" style={{ color: 'var(--muted)' }}>
+        {peers.length} {peers.length === 1 ? 'peer' : 'peers'}
+      </div>
+    </div>
+  )
+}
+
 export function ChainLanes() {
   const { data, isLoading } = useNetworkStatus()
   const { t } = useTranslation()
 
   const lanes = groupIntoLanes(data?.peers ?? [])
+  const unanswered = unansweredPeers(data?.peers ?? [])
   const hasForks = lanes.length > 1
 
   return (
@@ -107,6 +129,7 @@ export function ChainLanes() {
       {!isLoading && !hasForks && (
         <div className="flex gap-3 items-start">
           <LaneCard lane={lanes[0]} lanes={lanes} />
+          {unanswered.length > 0 && <UnansweredCard peers={unanswered} />}
           <div
             className="flex items-center text-[10px] self-center ml-4"
             style={{ color: 'var(--muted)' }}
@@ -122,6 +145,7 @@ export function ChainLanes() {
             {lanes.map(lane => (
               <LaneCard key={lane.isOurChain ? 'our' : lane.cumulativeDifficulty} lane={lane} lanes={lanes} />
             ))}
+            {unanswered.length > 0 && <UnansweredCard peers={unanswered} />}
           </div>
         </div>
       )}

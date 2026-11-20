@@ -105,6 +105,7 @@ const ru: Locale = {
     onOurChain: 'в нашей цепи',
     latency: 'Задержка',
     checkedAgo: 'проверено {{seconds}} с назад',
+    noAnswerLane: 'Нет ответа',
     noReorgs: 'Реорганизаций с момента запуска узла не было',
     noRecommendations: 'Рекомендаций пока нет',
     noPeerData: 'Данных об узлах нет — статус обновляется каждые 120 секунд',

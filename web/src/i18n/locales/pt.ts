@@ -105,6 +105,7 @@ const pt: Locale = {
     onOurChain: 'na nossa cadeia',
     latency: 'Latência',
     checkedAgo: 'verificado há {{seconds}} s',
+    noAnswerLane: 'Sem resposta',
     noReorgs: 'Nenhuma reorganização registrada desde o início do nó',
     noRecommendations: 'Sem recomendações no momento',
     noPeerData: 'Sem dados de pares — status atualiza a cada 120 segundos',

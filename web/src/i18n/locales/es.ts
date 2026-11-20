@@ -105,6 +105,7 @@ const es: Locale = {
     onOurChain: 'en nuestra cadena',
     latency: 'Latencia',
     checkedAgo: 'comprobado hace {{seconds}} s',
+    noAnswerLane: 'Sin respuesta',
     noReorgs: 'Sin reorganizaciones desde el inicio del nodo',
     noRecommendations: 'Sin recomendaciones por ahora',
     noPeerData: 'Sin datos de pares — el estado se actualiza cada 120 segundos',

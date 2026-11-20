@@ -55,8 +55,7 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
     private final PropertyService propertyService;
     private final Supplier<Collection<Peer>> connectedPeers;
     private final PeerBlockProbe probe;
-    private final ExecutorService probePool = Executors.newFixedThreadPool(PROBE_THREADS,
-            r -> { Thread t = new Thread(r, "network-analysis-probe"); t.setDaemon(true); return t; });
+    private final ExecutorService probePool;
 
     private final AtomicReference<JsonObject> cachedStatus = new AtomicReference<>(null);
     private final Object refreshLock = new Object();
@@ -67,18 +66,21 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
         this(blockchain, propertyService, () -> Peers.getPeers(Peer.State.CONNECTED), new P2PPeerBlockProbe(),
                 Executors.newSingleThreadScheduledExecutor(
                         r -> { Thread t = new Thread(r, "network-analysis-worker"); t.setDaemon(true); return t; }),
+                Executors.newFixedThreadPool(PROBE_THREADS,
+                        r -> { Thread t = new Thread(r, "network-analysis-probe"); t.setDaemon(true); return t; }),
                 propertyService.getInt(Props.P2P_TIMEOUT_CONNECT_MS) + propertyService.getInt(Props.P2P_TIMEOUT_READ_MS)
                         + PROBE_DEADLINE_MARGIN_MS);
     }
 
     NetworkAnalysisServiceImpl(Blockchain blockchain, PropertyService propertyService,
             Supplier<Collection<Peer>> connectedPeers, PeerBlockProbe probe,
-            ScheduledExecutorService scheduler, long probeTimeoutMs) {
+            ScheduledExecutorService scheduler, ExecutorService probePool, long probeTimeoutMs) {
         this.blockchain = blockchain;
         this.propertyService = propertyService;
         this.connectedPeers = connectedPeers;
         this.probe = probe;
         this.scheduler = scheduler;
+        this.probePool = probePool;
         this.probeTimeoutMs = probeTimeoutMs;
 
         // the endpoints exist only with the web UI enabled: don't probe peers for a snapshot nobody can read

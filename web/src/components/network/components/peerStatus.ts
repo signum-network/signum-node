@@ -44,3 +44,13 @@ export function statusLabelKey(status: DisplayStatus): (typeof LABEL_KEYS)[Displ
 export function formatLatency(ms: number | null): string {
   return ms == null ? '—' : `${ms} ms`
 }
+
+/**
+ * Age of a node-side event in whole seconds, measured on the node's clock (`eventMs`, `serverTime`)
+ * plus the time since the response arrived on the browser's clock (`fetchedAt`, `browserNow`), so a
+ * skewed browser clock does not distort it.
+ */
+export function secondsAgo(eventMs: number, serverTime: number, fetchedAt: number, browserNow: number): number {
+  const ms = (serverTime - eventMs) + (browserNow - fetchedAt)
+  return Math.max(0, Math.round(ms / 1000))
+}

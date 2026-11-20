@@ -8,6 +8,7 @@ import brs.props.Props;
 import brs.services.impl.PeerBlockProbe.ProbeResult;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -53,6 +54,7 @@ class NetworkAnalysisServiceImplNetworkStatusTest {
 
     private Blockchain blockchain;
     private ScheduledExecutorService scheduler;
+    private ExecutorService probePool;
     private long probeTimeoutMs = 5_000;
     private PeerBlockProbe probeOverride;
     private PropertyService propertyService;
@@ -75,6 +77,12 @@ class NetworkAnalysisServiceImplNetworkStatusTest {
         propertyService = mock(PropertyService.class);
         when(propertyService.getInt(Props.WEB_UI_NETWORK_STATUS_INTERVAL_SECONDS)).thenReturn(120);
         scheduler = mock(ScheduledExecutorService.class);
+        probePool = Executors.newFixedThreadPool(4, r -> new Thread(r, "test-probe"));
+    }
+
+    @AfterEach
+    void tearDown() {
+        probePool.shutdownNow();
     }
 
     private Peer peer(String address, int height, ProbeResult answer) {
@@ -95,7 +103,7 @@ class NetworkAnalysisServiceImplNetworkStatusTest {
             }
             return answers.get(p);
         };
-        return new NetworkAnalysisServiceImpl(blockchain, propertyService, () -> peers, probe, scheduler, probeTimeoutMs);
+        return new NetworkAnalysisServiceImpl(blockchain, propertyService, () -> peers, probe, scheduler, probePool, probeTimeoutMs);
     }
 
     private JsonObject networkStatus() {
@@ -360,5 +368,22 @@ class NetworkAnalysisServiceImplNetworkStatusTest {
         } finally {
             callers.shutdownNow();
         }
+    }
+
+    @Test
+    void getNetworkStatus_GivenInjectedProbePool_RunsChecksOnIt() {
+        // Arrange
+        Map<Peer, String> threads = new ConcurrentHashMap<>();
+        peer("A", 100, SAME_TIP);
+        probeOverride = (p, blockId) -> {
+            threads.put(p, Thread.currentThread().getName());
+            return answers.get(p);
+        };
+
+        // Act
+        networkStatus();
+
+        // Assert: the caller owns the pool and can shut it down
+        assertEquals("test-probe", threads.get(peers.get(0)));
     }
 }

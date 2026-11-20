@@ -105,6 +105,7 @@ const zh: Locale = {
     onOurChain: '在我们的链上',
     latency: '延迟',
     checkedAgo: '{{seconds}} 秒前检查',
+    noAnswerLane: '无响应',
     noReorgs: '节点启动以来无重组记录',
     noRecommendations: '暂无建议',
     noPeerData: '暂无节点数据 — 状态每 120 秒刷新',

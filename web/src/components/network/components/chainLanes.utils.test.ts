@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { groupIntoLanes, cumulDiffRatio } from './chainLanes.utils'
+import { groupIntoLanes, cumulDiffRatio, unansweredPeers } from './chainLanes.utils'
 import type { PeerStatusEntry } from '@/lib/nodeApi'
 
 function peer(overrides: Partial<PeerStatusEntry>): PeerStatusEntry {
@@ -97,5 +97,27 @@ describe('cumulDiffRatio', () => {
       { cumulativeDifficulty: '', isOurChain: true, peers: [], avgHeight: 0, index: 0 },
     ]
     expect(cumulDiffRatio(lanes[0], lanes)).toBe(0)
+  })
+})
+
+describe('unansweredPeers', () => {
+  it('returns the peers that did not answer the check', () => {
+    const peers = [
+      peer({ address: 'a', status: 'on-chain' }),
+      peer({ address: 'b', status: 'unknown', onOurChain: false }),
+    ]
+    expect(unansweredPeers(peers).map(p => p.address)).toEqual(['b'])
+  })
+
+  it('together with the lanes accounts for every listed peer', () => {
+    const peers = [
+      peer({ address: 'a', status: 'on-chain' }),
+      peer({ address: 'b', status: 'stale', height: 98 }),
+      peer({ address: 'c', status: 'ahead', height: 101 }),
+      peer({ address: 'd', status: 'forking', onOurChain: false, cumulativeDifficulty: '999' }),
+      peer({ address: 'e', status: 'unknown', onOurChain: false }),
+    ]
+    const inLanes = groupIntoLanes(peers).reduce((n, lane) => n + lane.peers.length, 0)
+    expect(inLanes + unansweredPeers(peers).length).toBe(peers.length)
   })
 })

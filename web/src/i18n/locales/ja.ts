@@ -105,6 +105,7 @@ const ja: Locale = {
     onOurChain: '当チェーン上',
     latency: 'レイテンシ',
     checkedAgo: '{{seconds}}秒前に確認',
+    noAnswerLane: '応答なし',
     noReorgs: 'ノード起動以来再編成なし',
     noRecommendations: '現在推奨なし',
     noPeerData: 'ピアデータなし — 120秒ごとに更新',

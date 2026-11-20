@@ -105,6 +105,7 @@ const de: Locale = {
     onOurChain: 'auf unserer Kette',
     latency: 'Latenz',
     checkedAgo: 'geprüft vor {{seconds}} s',
+    noAnswerLane: 'Keine Antwort',
     noReorgs: 'Keine Reorganisationen seit Knotenstart',
     noRecommendations: 'Keine Empfehlungen im Moment',
     noPeerData: 'Keine Peer-Daten — Status aktualisiert alle 120 Sekunden',

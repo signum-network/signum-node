@@ -164,6 +164,8 @@ export interface NetworkStatus {
   forkingPeers: number
   unknownPeers: number
   cachedAt: number
+  /** the node's clock when it answered (epoch ms); base for ages, independent of the browser clock */
+  serverTime: number
   peers: PeerStatusEntry[]
 }
 

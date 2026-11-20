@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { Card, CardLabel, CardSub, CardSkeleton } from '@/components/ui/Card'
 import { useNetworkStatus } from '@/hooks/useNodeQuery'
+import { secondsAgo } from './peerStatus'
 
 function consensusColor(pct: number) {
   if (pct >= 90) return 'var(--green)'
@@ -10,7 +11,7 @@ function consensusColor(pct: number) {
 }
 
 export function ConsensusBar() {
-  const { data, isLoading, refetch, isFetching } = useNetworkStatus()
+  const { data, isLoading, refetch, isFetching, dataUpdatedAt } = useNetworkStatus()
   const { t } = useTranslation()
   const pct = data?.consensusPercent ?? 0
   const color = consensusColor(pct)
@@ -45,7 +46,7 @@ export function ConsensusBar() {
             {data?.myHeight?.toLocaleString() ?? '—'}
           </div>
           {data?.cachedAt && (
-            <CardSub className="mt-1">{t('common.cachedAgo', { seconds: Math.round((Date.now() - data.cachedAt) / 1000) })}</CardSub>
+            <CardSub className="mt-1">{t('common.cachedAgo', { seconds: secondsAgo(data.cachedAt, data.serverTime ?? data.cachedAt, dataUpdatedAt, Date.now()) })}</CardSub>
           )}
           <button
             type="button"

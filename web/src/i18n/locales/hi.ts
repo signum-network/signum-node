@@ -105,6 +105,7 @@ const hi: Locale = {
     onOurChain: 'हमारी चेन पर',
     latency: 'विलंब',
     checkedAgo: '{{seconds}} से. पहले जाँचा',
+    noAnswerLane: 'कोई उत्तर नहीं',
     noReorgs: 'नोड शुरू होने के बाद से कोई पुनर्गठन नहीं',
     noRecommendations: 'अभी कोई सुझाव नहीं',
     noPeerData: 'पीयर डेटा नहीं — स्थिति हर 120 सेकंड में अपडेट होती है',

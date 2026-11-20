@@ -55,6 +55,7 @@ class ForkProcessorTest {
     private Block common;
     private Block own1;
     private Block own2;
+    private List<RollbackEvent> rollbacks;
 
     private ForkProcessor forkProcessor;
 
@@ -76,7 +77,10 @@ class ForkProcessorTest {
         own2 = block(3, 2, 30);
         chain.blocks.addAll(List.of(common, own1, own2));
 
-        forkProcessor = new ForkProcessor(blockchain, blockService, downloadCache, transactionProcessor, chain);
+        rollbacks = new ArrayList<>();
+        when(peer.getPeerAddress()).thenReturn("1.2.3.4");
+        forkProcessor = new ForkProcessor(blockchain, blockService, downloadCache, transactionProcessor, chain,
+                rollbacks::add);
     }
 
     @Test
@@ -348,6 +352,60 @@ class ForkProcessorTest {
         assertTrue(chain.pushed.isEmpty());
         verify(downloadCache).resetForkBlocks();
         verify(downloadCache).resetCache();
+    }
+
+    @Test
+    void testProcess_GivenStrongerFork_ReportsOneRollback() {
+        Block fork1 = block(12, COMMON_ID, 25);
+        Block fork2 = block(13, 12, 35);
+
+        forkProcessor.process(peer, List.of(fork1, fork2), COMMON_ID);
+
+        assertEquals(List.of(new RollbackEvent(common.getHeight(), 2, own2.getId(), fork2.getId(), "1.2.3.4")),
+                rollbacks);
+    }
+
+    @Test
+    void testProcess_GivenWeakerFork_ReportsNothing() {
+        Block fork1 = block(12, COMMON_ID, 25);
+        Block fork2 = block(13, 12, 28);
+
+        forkProcessor.process(peer, List.of(fork1, fork2), COMMON_ID);
+
+        assertTrue(rollbacks.isEmpty());
+    }
+
+    @Test
+    void testProcess_GivenForkThatPushesNothing_ReportsNothing() {
+        Block unconnected = block(12, 99, 40);
+
+        forkProcessor.process(peer, List.of(unconnected), COMMON_ID);
+
+        assertEquals(List.of(common, own1, own2), chain.blocks);
+        assertTrue(rollbacks.isEmpty());
+    }
+
+    @Test
+    void testProcess_GivenWeakerPartiallyPersistedFork_ReportsNothing() {
+        Block fork1 = block(12, COMMON_ID, 25);
+        Block fork2 = block(13, 12, 35);
+        chain.failOnPush(fork2, notPersisted());
+
+        forkProcessor.process(peer, List.of(fork1, fork2), COMMON_ID);
+
+        assertTrue(rollbacks.isEmpty());
+    }
+
+    @Test
+    void testProcess_GivenStrongerPartiallyPersistedFork_ReportsTheSwitch() {
+        Block fork1 = block(12, COMMON_ID, 35);
+        Block fork2 = block(13, 12, 45);
+        chain.failOnPush(fork2, notPersisted());
+
+        forkProcessor.process(peer, List.of(fork1, fork2), COMMON_ID);
+
+        assertEquals(List.of(new RollbackEvent(common.getHeight(), 2, own2.getId(), fork1.getId(), "1.2.3.4")),
+                rollbacks);
     }
 
     private static BlockNotPersistedException notPersisted() {

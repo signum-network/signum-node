@@ -435,7 +435,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 new BatchPocVerifier(blockService, generator, propertyService.getInt(Props.BRS_CHECKPOINT_HEIGHT)));
         this.verifyBatchSize = checkedVerifyBatchSize(propertyService, generator);
         this.forkProcessor = new ForkProcessor(blockchain, blockService, downloadCache, transactionProcessor,
-                new ForkChainOperations());
+                new ForkChainOperations(), this::notifyRollback);
         this.generator = generator;
         this.economicClustering = economicClustering;
         this.escrowService = escrowService;

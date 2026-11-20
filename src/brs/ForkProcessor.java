@@ -13,6 +13,7 @@ import signumj.entity.SignumID;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Switches the chain to a fork received from a peer, or keeps our own chain if the fork turns out
@@ -25,6 +26,9 @@ import java.util.List;
  * <p>
  * A peer is blacklisted only for faults of the peer (invalid or weaker fork), never because our
  * own database failed to persist a block (#1079).
+ * <p>
+ * A switch that sticks is reported once as a {@link RollbackEvent}; a fork that ends with our own
+ * chain restored is not.
  */
 final class ForkProcessor {
 
@@ -56,14 +60,17 @@ final class ForkProcessor {
     private final DownloadCacheImpl downloadCache;
     private final TransactionProcessorImpl transactionProcessor;
     private final ChainOperations chain;
+    private final Consumer<RollbackEvent> onRollback;
 
     ForkProcessor(Blockchain blockchain, BlockService blockService, DownloadCacheImpl downloadCache,
-            TransactionProcessorImpl transactionProcessor, ChainOperations chain) {
+            TransactionProcessorImpl transactionProcessor, ChainOperations chain,
+            Consumer<RollbackEvent> onRollback) {
         this.blockchain = blockchain;
         this.blockService = blockService;
         this.downloadCache = downloadCache;
         this.transactionProcessor = transactionProcessor;
         this.chain = chain;
+        this.onRollback = onRollback;
     }
 
     /**
@@ -154,6 +161,10 @@ final class ForkProcessor {
         } else {
             requeue(myPoppedOffBlocks);
             logger.debug("Successfully switched to better chain.");
+            if (!myPoppedOffBlocks.isEmpty()) {
+                onRollback.accept(new RollbackEvent(forkBlock.getHeight(), myPoppedOffBlocks.size(),
+                        myPoppedOffBlocks.get(0).getId(), blockchain.getLastBlock().getId(), peer.getPeerAddress()));
+            }
         }
     }
 

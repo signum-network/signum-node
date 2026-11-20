@@ -38,7 +38,7 @@ export function buildBranchLayout(
     return { arches: [], axisY: AXIS_Y, nowX: svgW - PAD_X, minHeight: myHeight, maxHeight: myHeight, svgW }
   }
 
-  const minHeight = Math.min(...forks.map(f => f.rollbackHeight - f.rollbackDepth)) - 5
+  const minHeight = Math.min(...forks.map(f => f.rollbackHeight)) - 5
   const maxHeight = myHeight
   const range = maxHeight - minHeight || 1
   const chartW = svgW - 2 * PAD_X
@@ -46,8 +46,9 @@ export function buildBranchLayout(
   const xAt = (h: number) => PAD_X + ((h - minHeight) / range) * chartW
 
   const arches: ArchLayout[] = forks.map(fork => {
-    const leftX = xAt(fork.rollbackHeight - fork.rollbackDepth)
-    const rightX = xAt(fork.rollbackHeight)
+    // rollbackHeight is the common block; the replaced blocks sit above it
+    const leftX = xAt(fork.rollbackHeight)
+    const rightX = xAt(fork.rollbackHeight + fork.rollbackDepth)
     const midX = (leftX + rightX) / 2
     const peakH = archHeight(fork.rollbackDepth)
     const color = fork.rollbackDepth >= 3 ? 'var(--red, #ff4444)' : 'var(--gold)'

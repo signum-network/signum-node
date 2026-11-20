@@ -6,28 +6,7 @@ import { useForkHistory, useNetworkStatus } from '@/hooks/useNodeQuery'
 import { BranchTimeline } from './BranchTimeline'
 import { RadialForkMap } from './RadialForkMap'
 
-const MERGE_WINDOW_MS = 5_000
 const STORAGE_KEY = 'forkHistory.view'
-
-function mergeReorgs(forks: ForkEvent[]): ForkEvent[] {
-  if (forks.length === 0) return forks
-  const sorted = [...forks].sort((a, b) => b.detectedAt - a.detectedAt)
-  const merged: ForkEvent[] = []
-  for (const fork of sorted) {
-    const last = merged[merged.length - 1]
-    if (
-      last &&
-      Math.abs(fork.detectedAt - last.detectedAt) <= MERGE_WINDOW_MS &&
-      fork.peerSource === last.peerSource
-    ) {
-      last.rollbackHeight = Math.min(last.rollbackHeight, fork.rollbackHeight)
-      last.rollbackDepth += fork.rollbackDepth
-    } else {
-      merged.push({ ...fork })
-    }
-  }
-  return merged
-}
 
 type ViewMode = 'branch' | 'radial' | 'table'
 
@@ -94,7 +73,7 @@ export function ForkHistory() {
   const { t } = useTranslation()
   const [view, setView] = useState<ViewMode>(readStoredView)
 
-  const forks = mergeReorgs(data?.forks ?? [])
+  const forks = data?.forks ?? []
   const forkingPeerAddresses = new Set(
     (networkData?.peers ?? [])
       .filter(p => p.status === 'forking' && !p.blacklisted)

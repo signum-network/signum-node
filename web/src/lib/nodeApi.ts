@@ -169,12 +169,18 @@ export interface NetworkStatus {
   peers: PeerStatusEntry[]
 }
 
+/** One rollback recorded by the node. */
 export interface ForkEvent {
   detectedAt: number
+  /** Height of the common block that stayed; the chain was cut above it. */
   rollbackHeight: number
+  /** Number of blocks popped off. */
   rollbackDepth: number
+  /** Tip before the rollback. */
   oldTopBlockId: string
+  /** Tip after a fork switch; null for a pop-off. */
   newTopBlockId: string | null
+  /** Peer whose fork we switched to; null for a pop-off. */
   peerSource: string | null
 }
 

@@ -51,6 +51,17 @@ describe('buildBranchLayout', () => {
     expect(layout.nowX).toBeCloseTo(SVG_W - 50, 0)
   })
 
+  it('starts the axis 5 blocks below the lowest common block', () => {
+    expect(layout.minHeight).toBe(1045)
+  })
+
+  it('arch spans from the common block up by the depth', () => {
+    const xAt = (h: number) => 50 + ((h - layout.minHeight) / (layout.maxHeight - layout.minHeight)) * (SVG_W - 100)
+    const deep = layout.arches.find(a => a.depth === 4)!
+    expect(deep.leftX).toBeCloseTo(xAt(1050), 6)
+    expect(deep.rightX).toBeCloseTo(xAt(1054), 6)
+  })
+
   it('deeper fork has taller peak', () => {
     const deep = layout.arches.find(a => a.depth === 4)!
     const shallow = layout.arches.find(a => a.depth === 1)!

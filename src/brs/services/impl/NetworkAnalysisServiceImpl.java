@@ -2,6 +2,7 @@ package brs.services.impl;
 
 import brs.Block;
 import brs.Blockchain;
+import brs.RollbackEvent;
 import brs.SignumException;
 import brs.db.sql.Db;
 import brs.peer.Peer;
@@ -293,20 +294,22 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
     }
 
     @Override
-    public void recordForkAsync(Block poppedBlock) {
-        if (poppedBlock == null) return;
-        scheduler.submit(() -> recordFork(poppedBlock));
+    public void recordRollback(RollbackEvent event) {
+        if (event == null) return;
+        scheduler.execute(() -> storeRollback(event));
     }
 
-    public void recordFork(Block poppedBlock) {
-        if (poppedBlock == null) return;
+    /** Writes one fork history row; a failure is logged, never thrown into the caller. */
+    void storeRollback(RollbackEvent event) {
         try {
+            String newTop = event.newTopBlockId() == null ? null : Convert.toUnsignedLong(event.newTopBlockId());
             Db.useDSLContext(ctx -> ctx.insertInto(FORK_HISTORY)
                     .columns(DETECTED_AT, ROLLBACK_HEIGHT, ROLLBACK_DEPTH, OLD_TOP_BLOCK_ID, NEW_TOP_BLOCK_ID, PEER_SOURCE)
-                    .values(System.currentTimeMillis(), poppedBlock.getHeight(), 1, poppedBlock.getStringId(), null, null)
+                    .values(System.currentTimeMillis(), event.rollbackHeight(), event.depth(),
+                            Convert.toUnsignedLong(event.oldTopBlockId()), newTop, event.peerAddress())
                     .execute());
         } catch (RuntimeException e) {
-            logger.error("Error recording fork event", e);
+            logger.error("Error recording rollback {}", event, e);
         }
     }
 

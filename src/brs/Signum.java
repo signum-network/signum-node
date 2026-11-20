@@ -547,12 +547,7 @@ public final class Signum {
 
             final brs.services.NetworkAnalysisService networkAnalysisService =
                     new brs.services.impl.NetworkAnalysisServiceImpl(blockchain, propertyService);
-            blockchainProcessor.addListener(
-                    networkAnalysisService::recordFork,
-                    BlockchainProcessor.Event.BLOCK_AUTO_POPPED);
-            blockchainProcessor.addListener(
-                    networkAnalysisService::recordFork,
-                    BlockchainProcessor.Event.BLOCK_MANUAL_POPPED);
+            blockchainProcessor.addRollbackListener(networkAnalysisService::recordRollback);
 
             webServer = new WebServerImpl(new WebServerContext(transactionProcessor,
                     blockchain,

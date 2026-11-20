@@ -1,9 +1,11 @@
 package brs.services.impl;
 
+import brs.services.impl.PeerBlockProbe.ProbeResult;
+
 /**
- * Decides a peer's {@link PeerChainStatus} from the heights and the peer's answer to "do you have
- * our block at height min(peerHeight, ourHeight)?". The block ID covers the whole block, so the
- * answer is exact, unlike comparing cumulative difficulty.
+ * Decides a peer's {@link PeerChainStatus} from its answer to "do you have our tip?". Block IDs cover
+ * the whole block, so the answer is exact, unlike comparing cumulative difficulty, and it uses only
+ * what the peer says now, not a height recorded earlier.
  */
 final class PeerChainClassifier {
 
@@ -11,21 +13,20 @@ final class PeerChainClassifier {
     }
 
     /**
-     * @param ourHeight   our current height
-     * @param peerHeight  the height the peer last reported
-     * @param hasOurBlock whether the peer has our block at {@code min(peerHeight, ourHeight)};
-     *                    {@code null} if it did not answer or answered with an error
+     * @param result         the peer's answer
+     * @param weHaveTheirTip whether we have the peer's newest block; only read when the peer lacks
+     *                       our tip and named its own
      */
-    static PeerChainStatus classify(int ourHeight, int peerHeight, Boolean hasOurBlock) {
-        if (hasOurBlock == null) {
+    static PeerChainStatus classify(ProbeResult result, boolean weHaveTheirTip) {
+        if (result.hasOurTip() == null) {
             return PeerChainStatus.UNKNOWN;
         }
-        if (!hasOurBlock) {
-            return PeerChainStatus.FORKING;
+        if (result.hasOurTip()) {
+            return result.ourTipIsTheirs() ? PeerChainStatus.ON_CHAIN : PeerChainStatus.AHEAD;
         }
-        if (peerHeight > ourHeight) {
-            return PeerChainStatus.AHEAD;
+        if (result.theirTipId() == null) {
+            return PeerChainStatus.UNKNOWN;
         }
-        return peerHeight < ourHeight ? PeerChainStatus.STALE : PeerChainStatus.ON_CHAIN;
+        return weHaveTheirTip ? PeerChainStatus.STALE : PeerChainStatus.FORKING;
     }
 }

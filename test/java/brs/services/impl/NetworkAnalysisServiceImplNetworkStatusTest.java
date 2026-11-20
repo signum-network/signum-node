@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -42,8 +41,15 @@ import static org.mockito.Mockito.when;
 class NetworkAnalysisServiceImplNetworkStatusTest {
 
     private static final int OUR_HEIGHT = 100;
-    private static final ProbeResult HAS = new ProbeResult(true, 12L, 1L);
-    private static final ProbeResult LACKS = new ProbeResult(false, 15L, 2L);
+    private static final long OUR_TIP = OUR_HEIGHT * 10L;
+    /** The peer's tip is our tip. */
+    private static final ProbeResult SAME_TIP = new ProbeResult(true, true, null, 12L, 1L);
+    /** The peer has our tip and more blocks. */
+    private static final ProbeResult BEYOND = new ProbeResult(true, false, null, 12L, 1L);
+    /** The peer lacks our tip; its tip 980 is a block we have. */
+    private static final ProbeResult BEHIND = new ProbeResult(false, false, "980", 15L, 2L);
+    /** The peer lacks our tip; its tip 999 is a block we lack. */
+    private static final ProbeResult FORKED = new ProbeResult(false, false, "999", 15L, 2L);
 
     private Blockchain blockchain;
     private ScheduledExecutorService scheduler;
@@ -61,10 +67,10 @@ class NetworkAnalysisServiceImplNetworkStatusTest {
         Block lastBlock = mock(Block.class);
         when(lastBlock.getHeight()).thenReturn(OUR_HEIGHT);
         when(lastBlock.getStringId()).thenReturn("tip");
-        when(lastBlock.getId()).thenReturn(OUR_HEIGHT * 10L);
+        when(lastBlock.getId()).thenReturn(OUR_TIP);
         when(lastBlock.getCumulativeDifficulty()).thenReturn(BigInteger.valueOf(1000));
         when(blockchain.getLastBlock()).thenReturn(lastBlock);
-        when(blockchain.getBlockIdAtHeight(anyInt())).thenAnswer(inv -> inv.<Integer>getArgument(0) * 10L);
+        when(blockchain.hasBlock(980L)).thenReturn(true);
 
         propertyService = mock(PropertyService.class);
         when(propertyService.getInt(Props.WEB_UI_NETWORK_STATUS_INTERVAL_SECONDS)).thenReturn(120);
@@ -112,10 +118,10 @@ class NetworkAnalysisServiceImplNetworkStatusTest {
     @Test
     void getNetworkStatus_GivenOnePeerPerStatus_CountsEachAndComputesConsensus() {
         // Arrange
-        peer("A", 100, HAS);
-        peer("B", 98, HAS);
-        peer("C", 101, HAS);
-        peer("D", 100, LACKS);
+        peer("A", 100, SAME_TIP);
+        peer("B", 98, BEHIND);
+        peer("C", 101, BEYOND);
+        peer("D", 100, FORKED);
         peer("E", 100, ProbeResult.noAnswer());
 
         // Act
@@ -140,23 +146,36 @@ class NetworkAnalysisServiceImplNetworkStatusTest {
     }
 
     @Test
-    void getNetworkStatus_GivenPeersBehindAndAhead_AsksForOurBlockAtTheLowerHeight() {
+    void getNetworkStatus_GivenPeersAtAnyHeight_AsksEachForOurTip() {
         // Arrange
-        Peer behind = peer("B", 98, HAS);
-        Peer ahead = peer("C", 101, HAS);
+        Peer behind = peer("B", 98, BEHIND);
+        Peer ahead = peer("C", 101, BEYOND);
 
         // Act
         networkStatus();
 
-        // Assert: our block at the peer's height, or at our tip when the peer is ahead
-        assertEquals(980L, askedBlockIds.get(behind));
-        assertEquals(1000L, askedBlockIds.get(ahead));
+        // Assert: the recorded height does not decide which block is asked for
+        assertEquals(OUR_TIP, askedBlockIds.get(behind));
+        assertEquals(OUR_TIP, askedBlockIds.get(ahead));
+    }
+
+    @Test
+    void getNetworkStatus_GivenPeerThatForkedAboveItsRecordedHeight_ReportsForking() {
+        // Arrange: recorded height 98 is old; the peer has since moved to another chain
+        peer("B", 98, FORKED);
+
+        // Act
+        JsonObject status = networkStatus();
+
+        // Assert: asking for our block at 98 would have said "has it" and counted it as stale
+        assertEquals("forking", statusOf(status, "B"));
+        assertEquals(0.0, status.get("consensusPercent").getAsDouble());
     }
 
     @Test
     void getNetworkStatus_GivenPeerAheadLackingOurTip_ReportsForking() {
         // Arrange
-        peer("C", 105, LACKS);
+        peer("C", 105, FORKED);
 
         // Act
         JsonObject status = networkStatus();
@@ -164,15 +183,14 @@ class NetworkAnalysisServiceImplNetworkStatusTest {
         // Assert
         assertEquals("forking", statusOf(status, "C"));
         assertEquals(1, status.get("forkingPeers").getAsInt());
-        assertEquals(0.0, status.get("consensusPercent").getAsDouble());
     }
 
     @Test
     void getNetworkStatus_GivenProbeThrows_ReportsUnknownAndStillListsOthers() {
         // Arrange
-        Peer failing = peer("A", 100, HAS);
+        Peer failing = peer("A", 100, SAME_TIP);
         failures.put(failing, new IllegalStateException("connection reset"));
-        peer("B", 100, HAS);
+        peer("B", 100, SAME_TIP);
 
         // Act
         JsonObject status = networkStatus();
@@ -181,6 +199,33 @@ class NetworkAnalysisServiceImplNetworkStatusTest {
         assertEquals("unknown", statusOf(status, "A"));
         assertEquals("on-chain", statusOf(status, "B"));
         assertEquals(100.0, status.get("consensusPercent").getAsDouble());
+    }
+
+    @Test
+    void getNetworkStatus_GivenBlockLookupThrows_ReportsThatPeerUnknownAndKeepsOthers() {
+        // Arrange: e.g. a database error while looking up the peer's tip
+        when(blockchain.hasBlock(980L)).thenThrow(new IllegalStateException("db closed"));
+        peer("A", 100, SAME_TIP);
+        peer("B", 98, BEHIND);
+
+        // Act
+        JsonObject status = networkStatus();
+
+        // Assert
+        assertEquals("on-chain", statusOf(status, "A"));
+        assertEquals("unknown", statusOf(status, "B"));
+    }
+
+    @Test
+    void getNetworkStatus_GivenPeerTipIdThatIsNoNumber_ReportsUnknown() {
+        // Arrange
+        peer("B", 98, new ProbeResult(false, false, "not-an-id", 15L, 2L));
+
+        // Act
+        JsonObject status = networkStatus();
+
+        // Assert
+        assertEquals("unknown", statusOf(status, "B"));
     }
 
     @Test
@@ -201,10 +246,10 @@ class NetworkAnalysisServiceImplNetworkStatusTest {
     @Test
     void getNetworkStatus_GivenBlacklistedOrUnreportedPeers_LeavesThemOut() {
         // Arrange
-        Peer blacklisted = peer("A", 100, HAS);
+        Peer blacklisted = peer("A", 100, SAME_TIP);
         when(blacklisted.isBlacklisted()).thenReturn(true);
-        Peer unreported = peer("B", -1, HAS);
-        peer("C", 100, HAS);
+        Peer unreported = peer("B", -1, SAME_TIP);
+        peer("C", 100, SAME_TIP);
 
         // Act
         JsonObject status = networkStatus();
@@ -219,7 +264,7 @@ class NetworkAnalysisServiceImplNetworkStatusTest {
     @Test
     void getNetworkStatus_GivenAnsweredAndUnansweredPeers_ReportsLatencyAndCheckTime() {
         // Arrange
-        peer("A", 100, HAS);
+        peer("A", 100, SAME_TIP);
         peer("B", 100, ProbeResult.noAnswer());
 
         // Act
@@ -236,8 +281,8 @@ class NetworkAnalysisServiceImplNetworkStatusTest {
     void getNetworkStatus_GivenProbeThatNeverReturns_ReportsUnknownAfterDeadline() {
         // Arrange: a peer that drips its answer forever must not freeze the snapshot
         CountDownLatch never = new CountDownLatch(1);
-        Peer hanging = peer("A", 100, HAS);
-        peer("B", 100, HAS);
+        Peer hanging = peer("A", 100, SAME_TIP);
+        peer("B", 100, SAME_TIP);
         probeOverride = (p, blockId) -> {
             if (p == hanging) {
                 try {
@@ -287,42 +332,10 @@ class NetworkAnalysisServiceImplNetworkStatusTest {
     }
 
     @Test
-    void getNetworkStatus_GivenBlockLookupFailsForOnePeer_ReportsItUnknownAndKeepsOthers() {
-        // Arrange: e.g. the tip was popped between reading it and looking up a height
-        when(blockchain.getBlockIdAtHeight(98)).thenThrow(new IllegalArgumentException("Invalid height 98"));
-        peer("A", 100, HAS);
-        peer("B", 98, HAS);
-
-        // Act
-        JsonObject status = networkStatus();
-
-        // Assert
-        assertEquals("on-chain", statusOf(status, "A"));
-        assertEquals("unknown", statusOf(status, "B"));
-    }
-
-    @Test
-    void getNetworkStatus_GivenPeerAtOrAboveOurHeight_AsksForOurTipWithoutLookup() {
-        // Arrange
-        when(blockchain.getBlockIdAtHeight(OUR_HEIGHT)).thenThrow(new IllegalArgumentException("Invalid height"));
-        Peer same = peer("A", 100, HAS);
-        Peer ahead = peer("C", 101, HAS);
-
-        // Act
-        JsonObject status = networkStatus();
-
-        // Assert
-        assertEquals(1000L, askedBlockIds.get(same));
-        assertEquals(1000L, askedBlockIds.get(ahead));
-        assertEquals("on-chain", statusOf(status, "A"));
-        assertEquals("ahead", statusOf(status, "C"));
-    }
-
-    @Test
     void getNetworkStatus_GivenConcurrentFirstCalls_RunsOneCheckRound() throws Exception {
         // Arrange
         AtomicInteger probes = new AtomicInteger();
-        Peer a = peer("A", 100, HAS);
+        peer("A", 100, SAME_TIP);
         probeOverride = (p, blockId) -> {
             probes.incrementAndGet();
             try {

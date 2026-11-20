@@ -141,7 +141,7 @@ const es: Locale = {
   },
   info: {
     chainConsensus:
-      'La proporción de pares comprobados que tienen nuestro bloque a su altura: en nuestra cadena a la misma altura, por detrás (desactualizados) o por delante. Los pares que no respondieron no cuentan. Valores ≥90% indican un fuerte acuerdo sobre nuestra cadena.',
+      'La proporción de pares comprobados en nuestra cadena: su bloque más reciente es el nuestro (en cadena), es anterior (desactualizado) o se construye sobre él (adelantado). Los pares que no respondieron no cuentan. Valores ≥90% indican un fuerte acuerdo sobre nuestra cadena.',
     cumulativeDifficulty:
       'El trabajo total de prueba de compromiso invertido en la cadena desde el génesis. La cadena con mayor dificultad acumulada siempre se elige como canónica — haciendo extremadamente costoso reescribir el historial.',
     findFork:
@@ -151,7 +151,7 @@ const es: Locale = {
     baseTarget:
       'Se ajusta en cada bloque para mantener el tiempo promedio de bloque en 4 minutos. Un objetivo base más bajo significa mayor dificultad — más difícil ganar la minería.',
     peersTable:
-      'Los pares "en cadena" tienen nuestro bloque a nuestra altura. Los "desactualizados" lo tienen pero van por detrás; los "adelantados" lo tienen y van por delante. Los que están "bifurcando" no tienen nuestro bloque a su altura y están en otra cadena. Los "desconocidos" no respondieron a la comprobación.',
+      'Los pares "en cadena" tienen nuestro bloque más reciente como el suyo. Los "adelantados" lo tienen y más. Los "desactualizados" no lo tienen, pero su bloque más reciente está en nuestra cadena. Los que están "bifurcando" no lo tienen y su bloque más reciente no está en nuestra cadena. Los "desconocidos" no respondieron a la comprobación.',
     blacklistRecommendations:
       'Pares que están consistentemente en una cadena diferente o tienen fallos de conexión repetidos. Agregarlos a P2P.BlacklistedPeers en node.properties evita que tu nodo gaste recursos en ellos.',
     effectiveCapacity:

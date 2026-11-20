@@ -141,7 +141,7 @@ const de: Locale = {
   },
   info: {
     chainConsensus:
-      'Der Anteil der geprüften Peers, die unseren Block auf ihrer Höhe haben: auf unserer Kette gleich hoch, zurück (veraltet) oder voraus. Peers ohne Antwort zählen nicht. Werte ≥90 % zeigen starke Einigkeit über unsere Kette.',
+      'Der Anteil der geprüften Peers auf unserer Kette: Ihr neuester Block ist unser neuester (synchron), liegt davor (veraltet) oder baut darauf auf (voraus). Peers ohne Antwort zählen nicht. Werte ≥90 % zeigen starke Einigkeit über unsere Kette.',
     cumulativeDifficulty:
       'Die gesamte Proof-of-Commitment-Arbeit, die seit dem Genesis-Block in die Kette investiert wurde. Die Kette mit der höchsten kumulierten Schwierigkeit gilt stets als kanonisch — das Umschreiben der Geschichte wird damit extrem kostspielig.',
     findFork:
@@ -151,7 +151,7 @@ const de: Locale = {
     baseTarget:
       'Wird nach jedem Block angepasst, um eine durchschnittliche Blockzeit von 4 Minuten zu halten. Ein niedrigerer Wert bedeutet höhere Schwierigkeit — schwieriger, Mining-Belohnungen zu erhalten.',
     peersTable:
-      '„Synchron"-Peers haben unseren Block auf unserer Höhe. „Veraltete" Peers haben ihn, sind aber zurück; Peers „voraus" haben ihn und sind weiter. „Abgezweigte" Peers haben unseren Block auf ihrer Höhe nicht und sind auf einer anderen Kette. „Unbekannte" Peers haben auf die Prüfung nicht geantwortet.',
+      '„Synchron"-Peers haben unseren neuesten Block auch als ihren neuesten. Peers „voraus" haben ihn und mehr. „Veraltete" Peers haben ihn nicht, ihr neuester Block liegt aber auf unserer Kette. „Abgezweigte" Peers haben ihn nicht, und ihr neuester Block liegt nicht auf unserer Kette. „Unbekannte" Peers haben auf die Prüfung nicht geantwortet.',
     blacklistRecommendations:
       'Peers, die dauerhaft auf einer anderen Kette sind oder wiederholte Verbindungsfehler aufweisen. Das Eintragen in P2P.BlacklistedPeers verhindert, dass der Knoten Ressourcen an sie verschwendet.',
     effectiveCapacity:

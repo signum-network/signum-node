@@ -195,7 +195,7 @@ const en: Locale = {
   },
   info: {
     chainConsensus:
-      'The share of checked peers that have our block at their height: on our chain at the same height, behind (stale) or ahead. Peers that did not answer are not counted. Values ≥90% indicate strong agreement on our chain.',
+      'The share of checked peers on our chain: their newest block is our newest block (on-chain), comes before it (stale) or builds on it (ahead). Peers that did not answer are not counted. Values ≥90% indicate strong agreement on our chain.',
     cumulativeDifficulty:
       'The total proof-of-commitment work invested in the chain since genesis. The chain with the highest cumulative difficulty is always chosen as canonical — making it extremely costly to rewrite history.',
     findFork:
@@ -205,7 +205,7 @@ const en: Locale = {
     baseTarget:
       'Adjusted every block to keep the average block time at 4 minutes. A lower base target means higher network difficulty — harder to win the mining lottery.',
     peersTable:
-      '"On-chain" peers have our block at our height. "Stale" peers have it but are behind; "ahead" peers have it and are further. "Forking" peers lack our block at their height and are on a different chain. "Unknown" peers did not answer the check.',
+      '"On-chain" peers have our newest block as theirs. "Ahead" peers have it and more. "Stale" peers lack it, but their newest block is on our chain. "Forking" peers lack it, and their newest block is not on our chain. "Unknown" peers did not answer the check.',
     blacklistRecommendations:
       'Peers that are consistently on a different chain or have repeated connection failures. Adding them to P2P.BlacklistedPeers in node.properties prevents your node from wasting resources on them.',
     effectiveCapacity:

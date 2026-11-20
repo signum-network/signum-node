@@ -141,7 +141,7 @@ const pt: Locale = {
   },
   info: {
     chainConsensus:
-      'A proporção de pares verificados que têm o nosso bloco na sua altura: na nossa cadeia na mesma altura, atrás (desatualizados) ou à frente. Pares que não responderam não contam. Valores ≥90% indicam forte acordo sobre a nossa cadeia.',
+      'A proporção de pares verificados na nossa cadeia: o bloco mais recente deles é o nosso (na cadeia), vem antes dele (desatualizado) ou constrói sobre ele (adiantado). Pares que não responderam não contam. Valores ≥90% indicam forte acordo sobre a nossa cadeia.',
     cumulativeDifficulty:
       'O trabalho total de prova de compromisso investido na cadeia desde o genesis. A cadeia com maior dificuldade acumulada é sempre escolhida como canônica — tornando extremamente custoso reescrever o histórico.',
     findFork:
@@ -151,7 +151,7 @@ const pt: Locale = {
     baseTarget:
       'Ajustado a cada bloco para manter o tempo médio de bloco em 4 minutos. Um alvo base menor significa maior dificuldade — mais difícil ganhar a mineração.',
     peersTable:
-      'Pares "na cadeia" têm o nosso bloco na nossa altura. Pares "desatualizados" têm-no mas estão atrás; pares "adiantados" têm-no e estão à frente. Pares "bifurcando" não têm o nosso bloco na sua altura e estão noutra cadeia. Pares "desconhecidos" não responderam à verificação.',
+      'Pares "na cadeia" têm o nosso bloco mais recente como o deles. Pares "adiantados" têm-no e mais. Pares "desatualizados" não o têm, mas o bloco mais recente deles está na nossa cadeia. Pares "bifurcando" não o têm e o bloco mais recente deles não está na nossa cadeia. Pares "desconhecidos" não responderam à verificação.',
     blacklistRecommendations:
       'Pares que estão consistentemente em uma cadeia diferente ou têm falhas de conexão repetidas. Adicioná-los a P2P.BlacklistedPeers em node.properties evita que seu nó gaste recursos com eles.',
     effectiveCapacity:

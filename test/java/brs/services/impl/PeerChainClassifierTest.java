@@ -1,5 +1,6 @@
 package brs.services.impl;
 
+import brs.services.impl.PeerBlockProbe.ProbeResult;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -17,40 +18,44 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PeerChainClassifierTest {
 
-    @Test
-    void classify_GivenSameHeightAndHasBlock_ReturnsOnChain() {
-        assertEquals(ON_CHAIN, classify(100, 100, true));
+    private static ProbeResult hasOurTip(boolean alsoTheirTip) {
+        return new ProbeResult(true, alsoTheirTip, null, 10L, 1L);
+    }
+
+    private static ProbeResult lacksOurTip(String theirTipId) {
+        return new ProbeResult(false, false, theirTipId, 10L, 1L);
     }
 
     @Test
-    void classify_GivenPeerBehindAndHasBlock_ReturnsStale() {
-        assertEquals(STALE, classify(100, 98, true));
+    void classify_GivenPeerWhoseTipIsOurTip_ReturnsOnChain() {
+        assertEquals(ON_CHAIN, classify(hasOurTip(true), false));
     }
 
     @Test
-    void classify_GivenPeerAheadAndHasBlock_ReturnsAhead() {
-        assertEquals(AHEAD, classify(100, 101, true));
+    void classify_GivenPeerThatHasOurTipAndMore_ReturnsAhead() {
+        assertEquals(AHEAD, classify(hasOurTip(false), false));
     }
 
     @Test
-    void classify_GivenSameHeightAndLacksBlock_ReturnsForking() {
-        assertEquals(FORKING, classify(100, 100, false));
+    void classify_GivenPeerLackingOurTipWithATipWeHave_ReturnsStale() {
+        // its newest block is on our chain: same chain, behind
+        assertEquals(STALE, classify(lacksOurTip("980"), true));
     }
 
     @Test
-    void classify_GivenPeerBehindAndLacksBlock_ReturnsForking() {
-        assertEquals(FORKING, classify(100, 50, false));
+    void classify_GivenPeerLackingOurTipWithATipWeLack_ReturnsForking() {
+        assertEquals(FORKING, classify(lacksOurTip("999"), false));
     }
 
     @Test
-    void classify_GivenPeerAheadAndLacksBlock_ReturnsForking() {
-        // the peer is ahead but lacks our tip: we may be the ones on the fork
-        assertEquals(FORKING, classify(100, 105, false));
+    void classify_GivenPeerLackingOurTipWithoutATip_ReturnsUnknown() {
+        // empty milestone list: nothing to judge
+        assertEquals(UNKNOWN, classify(lacksOurTip(null), false));
     }
 
     @Test
     void classify_GivenNoAnswer_ReturnsUnknown() {
-        assertEquals(UNKNOWN, classify(100, 100, null));
+        assertEquals(UNKNOWN, classify(ProbeResult.noAnswer(), false));
     }
 
     @Test

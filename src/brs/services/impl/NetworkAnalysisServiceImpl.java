@@ -314,7 +314,7 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
             try {
                 Block lastBlock = blockchain.getLastBlock();
                 if (lastBlock == null) return;
-                cachedStatus.set(buildSnapshot(lastBlock, checkPeers(lastBlock.getHeight(), lastBlock.getId())));
+                cachedStatus.set(buildSnapshot(lastBlock, checkPeers(lastBlock.getId())));
             } catch (Exception e) {
                 logger.error("Error refreshing network status", e);
             }
@@ -326,40 +326,37 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
     }
 
     /**
-     * Asks every connected, non-blacklisted peer that reported a height whether it has our block
-     * at {@code min(peerHeight, ourHeight)}. The checks run in parallel on {@link #probePool}; a
-     * check that misses its deadline counts as unknown, so a peer that drips its answer cannot
-     * freeze the snapshot.
+     * Asks every connected, non-blacklisted peer that reported a height whether it has our tip. The
+     * checks run in parallel on {@link #probePool}; a check that misses its deadline counts as
+     * unknown, so a peer that drips its answer cannot freeze the snapshot.
      */
-    private List<PeerCheck> checkPeers(int ourHeight, long ourTipId) {
+    private List<PeerCheck> checkPeers(long ourTipId) {
         List<CompletableFuture<PeerCheck>> checks = new ArrayList<>();
         for (Peer peer : connectedPeers.get()) {
             int peerHeight = peer.getLastKnownHeight();
             if (peer.isBlacklisted() || peerHeight < 0) continue;
             checks.add(CompletableFuture
-                    .supplyAsync(() -> {
-                        ProbeResult result = safeProbe(peer, peerHeight, ourHeight, ourTipId);
-                        return new PeerCheck(peer, peerHeight, result,
-                                PeerChainClassifier.classify(ourHeight, peerHeight, result.hasBlock()));
-                    }, probePool)
+                    .supplyAsync(() -> check(peer, peerHeight, ourTipId), probePool)
                     .completeOnTimeout(new PeerCheck(peer, peerHeight, ProbeResult.noAnswer(), PeerChainStatus.UNKNOWN),
                             probeTimeoutMs, TimeUnit.MILLISECONDS));
         }
         return checks.stream().map(CompletableFuture::join).toList();
     }
 
-    /**
-     * Looks up our block at {@code min(peerHeight, ourHeight)} and asks the peer for it. Any failure,
-     * including a lookup that fails because blocks were popped meanwhile, makes only this peer unknown.
-     */
-    private ProbeResult safeProbe(Peer peer, int peerHeight, int ourHeight, long ourTipId) {
+    /** Checks one peer; any failure makes only this peer unknown. */
+    private PeerCheck check(Peer peer, int peerHeight, long ourTipId) {
         try {
-            long blockId = peerHeight >= ourHeight ? ourTipId : blockchain.getBlockIdAtHeight(peerHeight);
-            return probe.probe(peer, blockId);
+            ProbeResult result = probe.probe(peer, ourTipId);
+            return new PeerCheck(peer, peerHeight, result, PeerChainClassifier.classify(result, weHave(result.theirTipId())));
         } catch (RuntimeException e) {
             logger.debug("Block check failed for peer {}", peer.getPeerAddress(), e);
-            return ProbeResult.noAnswer();
+            return new PeerCheck(peer, peerHeight, ProbeResult.noAnswer(), PeerChainStatus.UNKNOWN);
         }
+    }
+
+    /** @throws RuntimeException if the ID is malformed or the lookup fails */
+    private boolean weHave(String blockId) {
+        return blockId != null && blockchain.hasBlock(Convert.parseUnsignedLong(blockId));
     }
 
     private JsonObject buildSnapshot(Block lastBlock, List<PeerCheck> checks) {

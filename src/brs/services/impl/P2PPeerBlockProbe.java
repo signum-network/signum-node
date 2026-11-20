@@ -11,7 +11,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Asks over P2P with {@code getMilestoneBlockIds} and {@code lastBlockId}. A peer that has the block
- * answers with exactly that ID first; a peer without it answers with milestones of its own chain.
+ * answers with exactly that ID, plus {@code last: true} when it is also its newest block; a peer
+ * without it answers with milestones of its own chain, starting at its newest block.
  * This is the request the sync loop uses to find the common block with its feeder, so every node
  * understands it.
  */
@@ -36,7 +37,13 @@ final class P2PPeerBlockProbe implements PeerBlockProbe {
             return ProbeResult.noAnswer();
         }
         JsonArray ids = milestones.getAsJsonArray();
-        boolean hasBlock = !ids.isEmpty() && blockIdString.equals(JSON.getAsString(ids.get(0)));
-        return new ProbeResult(hasBlock, latencyMs, System.currentTimeMillis());
+        long checkedAt = System.currentTimeMillis();
+        String firstId = ids.isEmpty() ? null : JSON.getAsString(ids.get(0));
+        if (blockIdString.equals(firstId)) {
+            boolean last = response.has("last") && JSON.getAsBoolean(response.get("last"));
+            return new ProbeResult(true, last, null, latencyMs, checkedAt);
+        }
+        // without the block, the peer lists milestones of its own chain, starting at its newest block
+        return new ProbeResult(false, false, firstId, latencyMs, checkedAt);
     }
 }

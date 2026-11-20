@@ -95,8 +95,8 @@ export function BranchTimeline({ forks, myHeight, forkingPeerAddresses }: Props)
                   fill="none"
                   opacity={0.85}
                 />
-                {/* right foot dot (fork detection point) */}
-                <circle cx={arch.rightX} cy={axisY} r={isHovered ? 5.5 : 4} fill={arch.color} opacity={0.9} />
+                {/* left foot dot: the common block the chain was cut back to */}
+                <circle cx={arch.leftX} cy={axisY} r={isHovered ? 5.5 : 4} fill={arch.color} opacity={0.9} />
 
                 {/* depth label at peak — background rect for contrast */}
                 <rect
@@ -121,17 +121,17 @@ export function BranchTimeline({ forks, myHeight, forkingPeerAddresses }: Props)
                 </text>
 
                 {/* height label below axis */}
-                <text x={arch.rightX} y={axisY + 16} fill={arch.color} fontSize={9} textAnchor="middle" fontFamily="monospace" fontWeight={600}>
+                <text x={arch.leftX} y={axisY + 16} fill={arch.color} fontSize={9} textAnchor="middle" fontFamily="monospace" fontWeight={600}>
                   {arch.fork.rollbackHeight.toLocaleString()}
                 </text>
 
                 {/* timestamp + peer below height */}
-                <text x={arch.rightX} y={axisY + 29} fill="var(--muted)" fontSize={8} textAnchor="middle">
+                <text x={arch.leftX} y={axisY + 29} fill="var(--muted)" fontSize={8} textAnchor="middle">
                   {new Date(arch.fork.detectedAt).toLocaleTimeString()}
                 </text>
 
                 {arch.fork.peerSource && (
-                  <text x={arch.rightX} y={axisY + 41} fill="var(--muted)" fontSize={8} textAnchor="middle" fontFamily="monospace">
+                  <text x={arch.leftX} y={axisY + 41} fill="var(--muted)" fontSize={8} textAnchor="middle" fontFamily="monospace">
                     {arch.fork.peerSource.length > 15
                       ? `${arch.fork.peerSource.slice(0, 15)}…`
                       : arch.fork.peerSource}
@@ -140,7 +140,7 @@ export function BranchTimeline({ forks, myHeight, forkingPeerAddresses }: Props)
 
                 {/* FORKING PEER badge when peer is still active */}
                 {isClickable && (
-                  <text x={arch.rightX} y={axisY + 55} fill="var(--red, #ff4444)" fontSize={7} textAnchor="middle" letterSpacing={0.5} opacity={0.85} fontWeight={600}>
+                  <text x={arch.leftX} y={axisY + 55} fill="var(--red, #ff4444)" fontSize={7} textAnchor="middle" letterSpacing={0.5} opacity={0.85} fontWeight={600}>
                     FORKING PEER ↗
                   </text>
                 )}

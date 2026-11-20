@@ -16,13 +16,27 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class NetworkAnalysisServiceImplNetworkStatusTest {
@@ -32,6 +46,9 @@ class NetworkAnalysisServiceImplNetworkStatusTest {
     private static final ProbeResult LACKS = new ProbeResult(false, 15L, 2L);
 
     private Blockchain blockchain;
+    private ScheduledExecutorService scheduler;
+    private long probeTimeoutMs = 5_000;
+    private PeerBlockProbe probeOverride;
     private PropertyService propertyService;
     private final List<Peer> peers = new ArrayList<>();
     private final Map<Peer, ProbeResult> answers = new HashMap<>();
@@ -44,12 +61,14 @@ class NetworkAnalysisServiceImplNetworkStatusTest {
         Block lastBlock = mock(Block.class);
         when(lastBlock.getHeight()).thenReturn(OUR_HEIGHT);
         when(lastBlock.getStringId()).thenReturn("tip");
+        when(lastBlock.getId()).thenReturn(OUR_HEIGHT * 10L);
         when(lastBlock.getCumulativeDifficulty()).thenReturn(BigInteger.valueOf(1000));
         when(blockchain.getLastBlock()).thenReturn(lastBlock);
         when(blockchain.getBlockIdAtHeight(anyInt())).thenAnswer(inv -> inv.<Integer>getArgument(0) * 10L);
 
         propertyService = mock(PropertyService.class);
         when(propertyService.getInt(Props.WEB_UI_NETWORK_STATUS_INTERVAL_SECONDS)).thenReturn(120);
+        scheduler = mock(ScheduledExecutorService.class);
     }
 
     private Peer peer(String address, int height, ProbeResult answer) {
@@ -62,15 +81,19 @@ class NetworkAnalysisServiceImplNetworkStatusTest {
         return peer;
     }
 
-    private JsonObject networkStatus() {
-        PeerBlockProbe probe = (p, blockId) -> {
+    private NetworkAnalysisServiceImpl service() {
+        PeerBlockProbe probe = probeOverride != null ? probeOverride : (p, blockId) -> {
             askedBlockIds.put(p, blockId);
             if (failures.containsKey(p)) {
                 throw failures.get(p);
             }
             return answers.get(p);
         };
-        return new NetworkAnalysisServiceImpl(blockchain, propertyService, () -> peers, probe).getNetworkStatus();
+        return new NetworkAnalysisServiceImpl(blockchain, propertyService, () -> peers, probe, scheduler, probeTimeoutMs);
+    }
+
+    private JsonObject networkStatus() {
+        return service().getNetworkStatus();
     }
 
     private static JsonObject peerEntry(JsonObject status, String address) {
@@ -207,5 +230,122 @@ class NetworkAnalysisServiceImplNetworkStatusTest {
         assertEquals(1L, peerEntry(status, "A").get("checkedAt").getAsLong());
         assertTrue(peerEntry(status, "B").get("latencyMs").isJsonNull());
         assertTrue(peerEntry(status, "B").get("checkedAt").isJsonNull());
+    }
+
+    @Test
+    void getNetworkStatus_GivenProbeThatNeverReturns_ReportsUnknownAfterDeadline() {
+        // Arrange: a peer that drips its answer forever must not freeze the snapshot
+        CountDownLatch never = new CountDownLatch(1);
+        Peer hanging = peer("A", 100, HAS);
+        peer("B", 100, HAS);
+        probeOverride = (p, blockId) -> {
+            if (p == hanging) {
+                try {
+                    never.await();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+            return answers.get(p);
+        };
+        probeTimeoutMs = 200;
+
+        try {
+            // Act
+            JsonObject status = assertTimeoutPreemptively(Duration.ofSeconds(5), this::networkStatus);
+
+            // Assert
+            assertEquals("unknown", statusOf(status, "A"));
+            assertEquals("on-chain", statusOf(status, "B"));
+        } finally {
+            never.countDown();
+        }
+    }
+
+    @Test
+    void constructor_GivenWebUiDisabled_SchedulesNoNetworkStatusRefresh() {
+        // Arrange
+        when(propertyService.getBoolean(Props.WEB_UI_ENABLED)).thenReturn(false);
+
+        // Act
+        service();
+
+        // Assert: no background probing for a snapshot nobody can read
+        verify(scheduler, never()).scheduleAtFixedRate(any(Runnable.class), anyLong(), anyLong(), eq(TimeUnit.SECONDS));
+    }
+
+    @Test
+    void constructor_GivenWebUiEnabled_SchedulesNetworkStatusRefresh() {
+        // Arrange
+        when(propertyService.getBoolean(Props.WEB_UI_ENABLED)).thenReturn(true);
+
+        // Act
+        service();
+
+        // Assert
+        verify(scheduler).scheduleAtFixedRate(any(Runnable.class), eq(30L), eq(120L), eq(TimeUnit.SECONDS));
+    }
+
+    @Test
+    void getNetworkStatus_GivenBlockLookupFailsForOnePeer_ReportsItUnknownAndKeepsOthers() {
+        // Arrange: e.g. the tip was popped between reading it and looking up a height
+        when(blockchain.getBlockIdAtHeight(98)).thenThrow(new IllegalArgumentException("Invalid height 98"));
+        peer("A", 100, HAS);
+        peer("B", 98, HAS);
+
+        // Act
+        JsonObject status = networkStatus();
+
+        // Assert
+        assertEquals("on-chain", statusOf(status, "A"));
+        assertEquals("unknown", statusOf(status, "B"));
+    }
+
+    @Test
+    void getNetworkStatus_GivenPeerAtOrAboveOurHeight_AsksForOurTipWithoutLookup() {
+        // Arrange
+        when(blockchain.getBlockIdAtHeight(OUR_HEIGHT)).thenThrow(new IllegalArgumentException("Invalid height"));
+        Peer same = peer("A", 100, HAS);
+        Peer ahead = peer("C", 101, HAS);
+
+        // Act
+        JsonObject status = networkStatus();
+
+        // Assert
+        assertEquals(1000L, askedBlockIds.get(same));
+        assertEquals(1000L, askedBlockIds.get(ahead));
+        assertEquals("on-chain", statusOf(status, "A"));
+        assertEquals("ahead", statusOf(status, "C"));
+    }
+
+    @Test
+    void getNetworkStatus_GivenConcurrentFirstCalls_RunsOneCheckRound() throws Exception {
+        // Arrange
+        AtomicInteger probes = new AtomicInteger();
+        Peer a = peer("A", 100, HAS);
+        probeOverride = (p, blockId) -> {
+            probes.incrementAndGet();
+            try {
+                Thread.sleep(300);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            return answers.get(p);
+        };
+        NetworkAnalysisServiceImpl service = service();
+        ExecutorService callers = Executors.newFixedThreadPool(2);
+
+        try {
+            // Act
+            List<Future<JsonObject>> results = callers.invokeAll(List.of(service::getNetworkStatus, service::getNetworkStatus));
+
+            // Assert
+            assertEquals(1, probes.get());
+            for (Future<JsonObject> result : results) {
+                assertEquals("on-chain", statusOf(result.get(), "A"));
+            }
+        } finally {
+            callers.shutdownNow();
+        }
     }
 }

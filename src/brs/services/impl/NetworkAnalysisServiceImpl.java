@@ -48,6 +48,8 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
 
     /** Parallel block checks per snapshot, so one slow peer cannot add up all P2P timeouts. */
     private static final int PROBE_THREADS = 8;
+    /** Added to the P2P connect + read timeouts to get the deadline for one block check. */
+    private static final int PROBE_DEADLINE_MARGIN_MS = 1_000;
 
     private final Blockchain blockchain;
     private final PropertyService propertyService;
@@ -57,22 +59,33 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
             r -> { Thread t = new Thread(r, "network-analysis-probe"); t.setDaemon(true); return t; });
 
     private final AtomicReference<JsonObject> cachedStatus = new AtomicReference<>(null);
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(
-            r -> { Thread t = new Thread(r, "network-analysis-worker"); t.setDaemon(true); return t; });
+    private final Object refreshLock = new Object();
+    private final ScheduledExecutorService scheduler;
+    private final long probeTimeoutMs;
 
     public NetworkAnalysisServiceImpl(Blockchain blockchain, PropertyService propertyService) {
-        this(blockchain, propertyService, () -> Peers.getPeers(Peer.State.CONNECTED), new P2PPeerBlockProbe());
+        this(blockchain, propertyService, () -> Peers.getPeers(Peer.State.CONNECTED), new P2PPeerBlockProbe(),
+                Executors.newSingleThreadScheduledExecutor(
+                        r -> { Thread t = new Thread(r, "network-analysis-worker"); t.setDaemon(true); return t; }),
+                propertyService.getInt(Props.P2P_TIMEOUT_CONNECT_MS) + propertyService.getInt(Props.P2P_TIMEOUT_READ_MS)
+                        + PROBE_DEADLINE_MARGIN_MS);
     }
 
     NetworkAnalysisServiceImpl(Blockchain blockchain, PropertyService propertyService,
-            Supplier<Collection<Peer>> connectedPeers, PeerBlockProbe probe) {
+            Supplier<Collection<Peer>> connectedPeers, PeerBlockProbe probe,
+            ScheduledExecutorService scheduler, long probeTimeoutMs) {
         this.blockchain = blockchain;
         this.propertyService = propertyService;
         this.connectedPeers = connectedPeers;
         this.probe = probe;
+        this.scheduler = scheduler;
+        this.probeTimeoutMs = probeTimeoutMs;
 
-        int intervalSeconds = propertyService.getInt(Props.WEB_UI_NETWORK_STATUS_INTERVAL_SECONDS);
-        scheduler.scheduleAtFixedRate(this::refreshNetworkStatus, 30, intervalSeconds, TimeUnit.SECONDS);
+        // the endpoints exist only with the web UI enabled: don't probe peers for a snapshot nobody can read
+        if (propertyService.getBoolean(Props.WEB_UI_ENABLED)) {
+            int intervalSeconds = propertyService.getInt(Props.WEB_UI_NETWORK_STATUS_INTERVAL_SECONDS);
+            scheduler.scheduleAtFixedRate(this::refreshNetworkStatus, 30, intervalSeconds, TimeUnit.SECONDS);
+        }
         scheduler.scheduleAtFixedRate(this::pruneOldForkHistory, 1, 24, TimeUnit.HOURS);
     }
 
@@ -80,7 +93,12 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
     public JsonObject getNetworkStatus() {
         JsonObject cached = cachedStatus.get();
         if (cached != null) return cached;
-        refreshNetworkStatus();
+        synchronized (refreshLock) {
+            // concurrent first callers wait for one check round instead of each starting their own
+            if (cachedStatus.get() == null) {
+                refreshNetworkStatus();
+            }
+        }
         return cachedStatus.get();
     }
 
@@ -291,12 +309,15 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
     }
 
     private void refreshNetworkStatus() {
-        try {
-            Block lastBlock = blockchain.getLastBlock();
-            if (lastBlock == null) return;
-            cachedStatus.set(buildSnapshot(lastBlock, checkPeers(lastBlock.getHeight())));
-        } catch (Exception e) {
-            logger.error("Error refreshing network status", e);
+        // one round at a time, so an older round cannot overwrite a newer snapshot
+        synchronized (refreshLock) {
+            try {
+                Block lastBlock = blockchain.getLastBlock();
+                if (lastBlock == null) return;
+                cachedStatus.set(buildSnapshot(lastBlock, checkPeers(lastBlock.getHeight(), lastBlock.getId())));
+            } catch (Exception e) {
+                logger.error("Error refreshing network status", e);
+            }
         }
     }
 
@@ -306,25 +327,34 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
 
     /**
      * Asks every connected, non-blacklisted peer that reported a height whether it has our block
-     * at {@code min(peerHeight, ourHeight)}. The checks run in parallel on {@link #probePool}.
+     * at {@code min(peerHeight, ourHeight)}. The checks run in parallel on {@link #probePool}; a
+     * check that misses its deadline counts as unknown, so a peer that drips its answer cannot
+     * freeze the snapshot.
      */
-    private List<PeerCheck> checkPeers(int ourHeight) {
+    private List<PeerCheck> checkPeers(int ourHeight, long ourTipId) {
         List<CompletableFuture<PeerCheck>> checks = new ArrayList<>();
         for (Peer peer : connectedPeers.get()) {
             int peerHeight = peer.getLastKnownHeight();
             if (peer.isBlacklisted() || peerHeight < 0) continue;
-            long blockId = blockchain.getBlockIdAtHeight(Math.min(peerHeight, ourHeight));
-            checks.add(CompletableFuture.supplyAsync(() -> {
-                ProbeResult result = safeProbe(peer, blockId);
-                return new PeerCheck(peer, peerHeight, result,
-                        PeerChainClassifier.classify(ourHeight, peerHeight, result.hasBlock()));
-            }, probePool));
+            checks.add(CompletableFuture
+                    .supplyAsync(() -> {
+                        ProbeResult result = safeProbe(peer, peerHeight, ourHeight, ourTipId);
+                        return new PeerCheck(peer, peerHeight, result,
+                                PeerChainClassifier.classify(ourHeight, peerHeight, result.hasBlock()));
+                    }, probePool)
+                    .completeOnTimeout(new PeerCheck(peer, peerHeight, ProbeResult.noAnswer(), PeerChainStatus.UNKNOWN),
+                            probeTimeoutMs, TimeUnit.MILLISECONDS));
         }
         return checks.stream().map(CompletableFuture::join).toList();
     }
 
-    private ProbeResult safeProbe(Peer peer, long blockId) {
+    /**
+     * Looks up our block at {@code min(peerHeight, ourHeight)} and asks the peer for it. Any failure,
+     * including a lookup that fails because blocks were popped meanwhile, makes only this peer unknown.
+     */
+    private ProbeResult safeProbe(Peer peer, int peerHeight, int ourHeight, long ourTipId) {
         try {
+            long blockId = peerHeight >= ourHeight ? ourTipId : blockchain.getBlockIdAtHeight(peerHeight);
             return probe.probe(peer, blockId);
         } catch (RuntimeException e) {
             logger.debug("Block check failed for peer {}", peer.getPeerAddress(), e);

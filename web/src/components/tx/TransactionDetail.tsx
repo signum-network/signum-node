@@ -10,6 +10,7 @@ import { useConstants, useTransaction } from '@/hooks/useNodeQuery'
 import { signumTimestampToMs, type TransactionDetail as Tx } from '@/lib/nodeApi'
 import { fmtNqtFull } from '@/lib/utils'
 import { txAmountNqt, txTypeName } from '@/components/blocks/blocks.utils'
+import { showErrorInsteadOfData } from '@/components/account/account.utils'
 
 function UnconfirmedPill({ label }: { label: string }) {
   return (
@@ -73,7 +74,7 @@ export function TransactionDetail({ id }: { id: string }) {
 
   const body = (() => {
     if (tx === null) return <NotFound message={t('tx.notFound')} backLabel={t('tx.backToList')} />
-    if (isError) return <Card><p className="text-[12px]" style={{ color: 'var(--gold)' }}>{t('tx.loadError')}</p></Card>
+    if (showErrorInsteadOfData(isError, tx)) return <Card><p className="text-[12px]" style={{ color: 'var(--gold)' }}>{t('tx.loadError')}</p></Card>
     if (isLoading || !tx) return <Card><div className="h-24"><CardSkeleton /></div></Card>
     return <Details tx={tx} />
   })()

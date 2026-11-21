@@ -18,7 +18,7 @@ import { TokensTab } from './tabs/TokensTab'
 import { ContractsTab } from './tabs/ContractsTab'
 import { AliasesTab } from './tabs/AliasesTab'
 import { SubscriptionsTab } from './tabs/SubscriptionsTab'
-import type { AccountTab } from './account.utils'
+import { showErrorInsteadOfData, type AccountTab } from './account.utils'
 
 function Overview({ account }: { account: Account }) {
   const { t } = useTranslation()
@@ -137,7 +137,7 @@ export function AccountDetail({ id, tab }: { id: string; tab: AccountTab }) {
 
   const body = (() => {
     if (account === null) return <NotFound message={t('account.notFound')} backLabel={t('account.backToList')} />
-    if (isError) return <Card><p className="text-[12px]" style={{ color: 'var(--gold)' }}>{t('account.loadError')}</p></Card>
+    if (showErrorInsteadOfData(isError, account)) return <Card><p className="text-[12px]" style={{ color: 'var(--gold)' }}>{t('account.loadError')}</p></Card>
     if (isLoading || !account) return <Card><div className="h-24"><CardSkeleton /></div></Card>
     return (
       <>

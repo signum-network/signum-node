@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useBlockPeerCheck } from '@/hooks/useNodeQuery'
 import { peerCheckTone, relativeTime } from '../blocks.utils'
@@ -9,6 +10,14 @@ export function PeerCheck({ blockId }: { blockId: string }) {
   const { t, i18n } = useTranslation()
   const check = useBlockPeerCheck()
   const result = check.data
+  // the age reads node clock at answer time plus browser time since; re-render to let it advance
+  const [, setTick] = useState(0)
+  const [receivedAt, setReceivedAt] = useState(0)
+  useEffect(() => {
+    if (result?.status !== 'ok') return
+    const timer = setInterval(() => setTick((n) => n + 1), 10_000)
+    return () => clearInterval(timer)
+  }, [result])
 
   if (result?.status === 'tooOld') {
     return <span style={{ color: 'var(--muted)' }}>{t('blockPeers.peerTooOld')}</span>
@@ -19,7 +28,7 @@ export function PeerCheck({ blockId }: { blockId: string }) {
       <button
         type="button"
         disabled={check.isPending}
-        onClick={() => check.mutate(blockId)}
+        onClick={() => check.mutate(blockId, { onSuccess: () => setReceivedAt(Date.now()) })}
         className="rounded-sm px-2 py-1 text-[9px] uppercase tracking-[1px] transition-opacity"
         style={{ border: '1px solid var(--blue2)', color: 'var(--blue2)', opacity: check.isPending ? 0.5 : 1 }}
       >
@@ -30,7 +39,7 @@ export function PeerCheck({ blockId }: { blockId: string }) {
       {check.isError && <span style={{ color: 'var(--gold)' }}>{t('blockPeers.peerError')}</span>}
       {result?.status === 'ok' && (() => {
         const total = result.hasIt + result.missing + result.notYet + result.noAnswer
-        const age = relativeTime((result.serverTime - result.checkedAt) / 1000, i18n.language)
+        const age = relativeTime((result.serverTime - result.checkedAt + (Date.now() - receivedAt)) / 1000, i18n.language)
         return (
           <span>
             <span style={{ color: TONE_COLOR[peerCheckTone(result)] }}>

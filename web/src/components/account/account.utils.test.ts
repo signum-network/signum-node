@@ -11,6 +11,8 @@ import {
   parseAccountTab,
   contractState,
   shouldRefetchOverdue,
+  showErrorInsteadOfData,
+  consistentFetch,
 } from './account.utils'
 import { signumTimestampToMs } from '@/lib/nodeApi'
 
@@ -177,5 +179,42 @@ describe('shouldRefetchOverdue', () => {
 
   it('does not count the first block it sees as new', () => {
     expect(shouldRefetchOverdue(undefined, '101', true)).toBe(false)
+  })
+})
+
+describe('showErrorInsteadOfData', () => {
+  it('keeps shown data when a background refetch fails', () => {
+    expect(showErrorInsteadOfData(true, { id: 1 })).toBe(false)
+    expect(showErrorInsteadOfData(true, null)).toBe(false)
+    expect(showErrorInsteadOfData(true, undefined)).toBe(true)
+    expect(showErrorInsteadOfData(false, undefined)).toBe(false)
+  })
+})
+
+describe('consistentFetch', () => {
+  function markers(...values: string[]) {
+    let i = 0
+    return async () => values[Math.min(i++, values.length - 1)]
+  }
+
+  it('returns the pair when no block came in between', async () => {
+    let calls = 0
+    const result = await consistentFetch(markers('a', 'a'), async () => ++calls)
+    expect(result).toBe(1)
+    expect(calls).toBe(1)
+  })
+
+  it('fetches again once when a block came in between', async () => {
+    let calls = 0
+    const result = await consistentFetch(markers('a', 'b', 'b'), async () => ++calls)
+    expect(result).toBe(2)
+    expect(calls).toBe(2)
+  })
+
+  it('gives up after the second try and returns its result', async () => {
+    let calls = 0
+    const result = await consistentFetch(markers('a', 'b', 'c', 'd'), async () => ++calls)
+    expect(result).toBe(2)
+    expect(calls).toBe(2)
   })
 })

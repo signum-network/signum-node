@@ -95,3 +95,22 @@ export function contractState(c: Pick<Contract, 'dead' | 'finished' | 'frozen' |
 export function shouldRefetchOverdue(previousBlock: string | undefined, currentBlock: string | undefined, hasOverdue: boolean): boolean {
   return hasOverdue && previousBlock !== undefined && currentBlock !== undefined && previousBlock !== currentBlock
 }
+
+/** The error card only replaces a page that has nothing to show yet (`null` is "not found", not missing). */
+export function showErrorInsteadOfData(isError: boolean, data: unknown): boolean {
+  return isError && data === undefined
+}
+
+/**
+ * Fetches a pair of requests and checks that no block came in between (the marker is the chain's
+ * last block). If one did, fetches once more and keeps that result either way.
+ */
+export async function consistentFetch<T>(readMarker: () => Promise<string>, fetchPair: () => Promise<T>, maxTries = 2): Promise<T> {
+  let result!: T
+  for (let attempt = 0; attempt < maxTries; attempt++) {
+    const before = await readMarker()
+    result = await fetchPair()
+    if ((await readMarker()) === before) return result
+  }
+  return result
+}

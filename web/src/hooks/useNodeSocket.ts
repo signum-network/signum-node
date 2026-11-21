@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
@@ -46,6 +47,7 @@ export function useNodeSocketProvider() {
   const [connected, setConnected] = useState(false)
   const [wsEnabled, setWsEnabled] = useState(true)
   const [latestBlock, setLatestBlock] = useState<BlockPushEvent | null>(null)
+  const highestBlockSeen = useRef(0)
   const handleFrame = useCallback((frame: WsFrame) => {
     if (frame.e === 'CONNECTED') {
       const p = frame.p as ConnectedPayload
@@ -59,6 +61,15 @@ export function useNodeSocketProvider() {
       })
     } else if (frame.e === 'BLOCK_PUSHED') {
       const p = frame.p as BlockPushEvent
+      // a block at a height already seen replaced one after a rollback: cached block details are stale
+      if (p.localHeight <= highestBlockSeen.current) {
+        queryClient.invalidateQueries({ queryKey: ['block'] })
+      }
+      highestBlockSeen.current = Math.max(highestBlockSeen.current, p.localHeight)
+      // an open account page follows new blocks (balance, forged blocks, transactions)
+      queryClient.invalidateQueries({ queryKey: ['account'] })
+      queryClient.invalidateQueries({ queryKey: ['accountBlocks'] })
+      queryClient.invalidateQueries({ queryKey: ['accountTransactions'] })
       setLatestBlock({ ...p, progress: Math.min(1, p.progress) })
       queryClient.invalidateQueries({ queryKey: ['fullBlockchainStatus'] })
       // node time and last block move on with every block (account tabs judge due dates by them)

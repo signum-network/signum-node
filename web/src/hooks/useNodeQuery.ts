@@ -29,7 +29,7 @@ import {
 } from '@/lib/nodeApi'
 import { useEffect, useRef } from 'react'
 import { cachedExpiring, cachedImmutable, clientCache, networkKey } from '@/lib/clientCache'
-import { computeValidUntil, limitConcurrency, shouldRefetchOverdue, subscriptionTimesMs } from '@/components/account/account.utils'
+import { computeValidUntil, consistentFetch, limitConcurrency, shouldRefetchOverdue, subscriptionTimesMs } from '@/components/account/account.utils'
 import { anchoredRange, blocksFrom, pageRange, PAGE_SIZE } from '@/components/blocks/blocks.utils'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNodeSocket } from './useNodeSocket'
@@ -301,13 +301,15 @@ export function useAccountAliasesCached(account: string, page: number, enabled: 
   return useQuery({
     queryKey: ['accountAliases', genesis, account, page],
     queryFn: () => cachedExpiring(clientCache, aliasesCacheKey(genesis as string, account, page),
-      async () => {
+      // both from the same block: a renewal settled in between would pair an alias with a list
+      // that no longer has its subscription ("does not expire")
+      () => consistentFetch(async () => (await getBlockchainStatus()).lastBlock, async () => {
         const [aliases, subscriptions] = await Promise.all([
           getAccountAliases(account, page * ALIAS_PAGE, page * ALIAS_PAGE + ALIAS_PAGE - 1),
           getAccountSubscriptions(account),
         ])
         return { aliases: aliases.aliases, nextIndex: aliases.nextIndex, subscriptions: subscriptions.subscriptions }
-      },
+      }),
       (data, storedAt) => subscriptionsValidUntil(data.subscriptions, storedAt)),
     enabled: enabled && genesis !== undefined,
     staleTime: 60_000,

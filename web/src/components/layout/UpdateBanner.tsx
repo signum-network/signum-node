@@ -19,7 +19,7 @@ export function UpdateBanner() {
   }
 
   return (
-    <div className="px-4 pt-2 sm:px-10 md:px-16 xl:px-20">
+    <div className="px-4 pt-4 md:px-5 md:pt-5 xl:px-6 xl:pt-6">
       <div
         role="status"
         className="flex items-start gap-3 border px-3 py-2 text-[11px] sm:items-center"

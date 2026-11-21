@@ -7,6 +7,7 @@ import {
   isOverdue,
   frequencyParts,
   subscriptionTimesMs,
+  limitConcurrency,
 } from './account.utils'
 import { signumTimestampToMs } from '@/lib/nodeApi'
 
@@ -74,5 +75,44 @@ describe('subscriptionTimesMs', () => {
   it('turns the due dates into epoch milliseconds', () => {
     expect(subscriptionTimesMs([sub({ timeNext: 10 }), sub({ timeNext: 20 })]))
       .toEqual([signumTimestampToMs(10), signumTimestampToMs(20)])
+  })
+})
+
+describe('limitConcurrency', () => {
+  function deferred<T>() {
+    let resolve!: (v: T) => void
+    let reject!: (e: unknown) => void
+    const promise = new Promise<T>((res, rej) => { resolve = res; reject = rej })
+    return { promise, resolve, reject }
+  }
+
+  it('runs at most the given number of tasks at once, each with its own result', async () => {
+    const limit = limitConcurrency(2)
+    const gates = Array.from({ length: 5 }, () => deferred<number>())
+    let running = 0
+    let maxRunning = 0
+    const results = gates.map((gate, i) => limit(async () => {
+      running++
+      maxRunning = Math.max(maxRunning, running)
+      try {
+        await gate.promise
+        return i
+      } finally {
+        running--
+      }
+    }))
+    for (const gate of gates) {
+      await Promise.resolve()
+      gate.resolve(0)
+      await new Promise((r) => setTimeout(r, 0))
+    }
+    expect(await Promise.all(results)).toEqual([0, 1, 2, 3, 4])
+    expect(maxRunning).toBe(2)
+  })
+
+  it('frees the slot of a failed task', async () => {
+    const limit = limitConcurrency(1)
+    await expect(limit(async () => { throw new Error('boom') })).rejects.toThrow('boom')
+    await expect(limit(async () => 'next')).resolves.toBe('next')
   })
 })

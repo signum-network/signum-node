@@ -19,7 +19,17 @@ import {
   getAccountTransactions,
   getConstants,
   getBlockPeerStatus,
+  getAsset,
+  getAccountContracts,
+  getAccountAliases,
+  getAccountSubscriptions,
+  type AssetMeta,
+  type Contract,
+  type Subscription,
 } from '@/lib/nodeApi'
+import { useEffect, useRef } from 'react'
+import { cachedExpiring, cachedImmutable, clientCache, networkKey } from '@/lib/clientCache'
+import { computeValidUntil, limitConcurrency, subscriptionTimesMs } from '@/components/account/account.utils'
 import { anchoredRange, blocksFrom, pageRange, PAGE_SIZE } from '@/components/blocks/blocks.utils'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNodeSocket } from './useNodeSocket'
@@ -213,4 +223,106 @@ export function useConstants() {
 /** Asks the peers about one block on demand (a button), not on page load. */
 export function useBlockPeerCheck() {
   return useMutation({ mutationFn: (blockId: string) => getBlockPeerStatus(blockId) })
+}
+
+/** The node's network, for cache keys; undefined until the constants are loaded. */
+export function useNetworkGenesis(): string | undefined {
+  return useConstants().data?.genesisBlockId
+}
+
+const assetLimit = limitConcurrency(4)
+const pickAsset = ({ asset, name, description, decimals, issuer, issuerRS, mintable }: AssetMeta): AssetMeta =>
+  ({ asset, name, description, decimals, issuer, issuerRS, mintable })
+
+/** Token metadata, fetched once per browser and network, at most 4 requests at a time. */
+export function useAssetMetas(assetIds: string[], enabled: boolean) {
+  const genesis = useNetworkGenesis()
+  return useQueries({
+    queries: assetIds.map((id) => ({
+      queryKey: ['assetMeta', genesis, id],
+      queryFn: () => cachedImmutable(clientCache, 'assets', networkKey(genesis as string, id), () => assetLimit(() => getAsset(id)), pickAsset),
+      enabled: enabled && genesis !== undefined,
+      staleTime: Infinity,
+      retry: false,
+    })),
+  })
+}
+
+const CONTRACT_PAGE = 10
+const pickContract = ({ at, atRS, name, description, creationBlock, machineCodeHashId, atVersion }: Contract) =>
+  ({ at, atRS, name, description, creationBlock, machineCodeHashId, atVersion })
+
+/** Contracts the account deployed; status and balance change, so the list is always fetched. */
+export function useAccountContracts(account: string, page: number, enabled: boolean) {
+  const genesis = useNetworkGenesis()
+  return useQuery({
+    queryKey: ['accountContracts', account, page],
+    queryFn: async () => {
+      const result = await getAccountContracts(account, page * CONTRACT_PAGE, page * CONTRACT_PAGE + CONTRACT_PAGE - 1)
+      if (genesis) {
+        await Promise.all(result.ats.map((c) => clientCache.putImmutable('contracts', networkKey(genesis, c.at), pickContract(c))))
+      }
+      return result
+    },
+    enabled,
+    staleTime: 5 * 60_000,
+  })
+}
+
+const subscriptionsValidUntil = (subs: Subscription[], storedAt: number) =>
+  computeValidUntil(storedAt, subscriptionTimesMs(subs))
+
+export function subscriptionsCacheKey(genesis: string, account: string): string {
+  return networkKey(genesis, 'subscriptions', account)
+}
+
+export function aliasesCacheKey(genesis: string, account: string, page: number): string {
+  return networkKey(genesis, 'aliases', account, page)
+}
+
+/** Both directions of the account's subscriptions, cached until the earliest due date. */
+export function useAccountSubscriptionsCached(account: string, enabled: boolean) {
+  const genesis = useNetworkGenesis()
+  return useQuery({
+    queryKey: ['accountSubscriptions', genesis, account],
+    queryFn: () => cachedExpiring(clientCache, subscriptionsCacheKey(genesis as string, account),
+      async () => (await getAccountSubscriptions(account)).subscriptions,
+      subscriptionsValidUntil),
+    enabled: enabled && genesis !== undefined,
+    staleTime: 60_000,
+  })
+}
+
+const ALIAS_PAGE = 25
+
+/** A page of aliases with the subscriptions that renew them, as one cache entry of one age. */
+export function useAccountAliasesCached(account: string, page: number, enabled: boolean) {
+  const genesis = useNetworkGenesis()
+  return useQuery({
+    queryKey: ['accountAliases', genesis, account, page],
+    queryFn: () => cachedExpiring(clientCache, aliasesCacheKey(genesis as string, account, page),
+      async () => {
+        const [aliases, subscriptions] = await Promise.all([
+          getAccountAliases(account, page * ALIAS_PAGE, page * ALIAS_PAGE + ALIAS_PAGE - 1),
+          getAccountSubscriptions(account),
+        ])
+        return { aliases: aliases.aliases, nextIndex: aliases.nextIndex, subscriptions: subscriptions.subscriptions }
+      },
+      (data, storedAt) => subscriptionsValidUntil(data.subscriptions, storedAt)),
+    enabled: enabled && genesis !== undefined,
+    staleTime: 60_000,
+  })
+}
+
+/** While an overdue entry is shown, the next block settles it: forget the entry once and fetch again. */
+export function useRefetchWhenOverdue(hasOverdue: boolean, forgetKey: string | undefined, refetch: () => void) {
+  const { latestBlock } = useNodeSocket()
+  const seenBlock = useRef(latestBlock?.blockId)
+  useEffect(() => {
+    const blockId = latestBlock?.blockId
+    if (blockId === seenBlock.current) return
+    seenBlock.current = blockId
+    if (!hasOverdue || !forgetKey) return
+    void clientCache.forget(forgetKey).then(refetch)
+  }, [latestBlock?.blockId, hasOverdue, forgetKey, refetch])
 }

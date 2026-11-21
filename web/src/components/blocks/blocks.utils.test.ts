@@ -170,6 +170,7 @@ describe('relativeTime', () => {
 describe('txTypeName', () => {
   const constants = {
     addressPrefix: 'S',
+    genesisBlockId: '3444294670862540038',
     transactionTypes: [
       { value: 0, description: 'Payment', subtypes: [{ value: 0, description: 'Ordinary Payment' }] },
     ],

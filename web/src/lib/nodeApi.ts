@@ -129,6 +129,43 @@ export interface AccountTransactionsResponse {
   nextIndex?: number
 }
 
+export interface AssetMeta {
+  asset: string
+  name: string
+  description: string
+  decimals: number
+  issuer: string
+  issuerRS: string
+  mintable: boolean
+}
+
+export interface Contract {
+  at: string
+  atRS: string
+  name: string
+  description: string
+  creationBlock: number
+  machineCodeHashId: string
+  atVersion: number
+  balanceNQT: string
+  running: boolean
+  stopped: boolean
+  frozen: boolean
+  finished: boolean
+  dead: boolean
+}
+
+export interface Alias {
+  alias: string
+  aliasName: string
+  aliasURI: string
+  tldName: string
+  timestamp: number          // Signum epoch seconds
+  priceNQT?: string          // set while offered for sale
+  buyer?: string
+  buyerRS?: string
+}
+
 export interface Subscription {
   id: string
   sender: string
@@ -145,6 +182,7 @@ export interface Subscription {
 
 export interface Constants {
   addressPrefix: string
+  genesisBlockId: string
   transactionTypes: {
     value: number
     description: string
@@ -286,6 +324,23 @@ export type BlockPeerStatus =
 /** Asks the node's peers whether they have the block; `null` for an unknown block. */
 export const getBlockPeerStatus = (blockId: string) =>
   queryEntity<BlockPeerStatus>('getBlockPeerStatus', { block: blockId })
+
+export const getAsset = (id: string) =>
+  queryEntity<AssetMeta>('getAsset', { asset: id })
+
+export const getAccountContracts = (account: string, firstIndex: number, lastIndex: number) =>
+  query<{ ats: Contract[]; nextIndex?: number }>('getAccountATs', {
+    account, firstIndex: String(firstIndex), lastIndex: String(lastIndex),
+  })
+
+export const getAccountAliases = (account: string, firstIndex: number, lastIndex: number) =>
+  query<{ aliases: Alias[]; nextIndex?: number }>('getAliases', {
+    account, firstIndex: String(firstIndex), lastIndex: String(lastIndex),
+  })
+
+/** Subscriptions the account sends or receives (both directions in one answer). */
+export const getAccountSubscriptions = (account: string) =>
+  query<{ subscriptions: Subscription[] }>('getAccountSubscriptions', { account })
 
 export const getConstants = () =>
   query<Constants>('getConstants')

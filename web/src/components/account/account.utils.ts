@@ -49,3 +49,22 @@ export function frequencyParts(seconds: number): { unit: 'minute' | 'hour' | 'da
 export function subscriptionTimesMs(subs: Subscription[]): number[] {
   return subs.map((s) => signumTimestampToMs(s.timeNext))
 }
+
+/** Runs at most `max` of the given tasks at a time; the others wait in order. */
+export function limitConcurrency(max: number): <T>(task: () => Promise<T>) => Promise<T> {
+  let running = 0
+  const waiting: (() => void)[] = []
+  const next = () => {
+    running--
+    waiting.shift()?.()
+  }
+  return async <T>(task: () => Promise<T>): Promise<T> => {
+    if (running >= max) await new Promise<void>((resolve) => waiting.push(resolve))
+    running++
+    try {
+      return await task()
+    } finally {
+      next()
+    }
+  }
+}

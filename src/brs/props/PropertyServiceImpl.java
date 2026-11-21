@@ -126,7 +126,9 @@ public class PropertyServiceImpl implements PropertyService {
             boolean debugLevel,
             String logText,
             Object... arguments) {
-        if (Objects.equals(propertyName, Props.SOLO_MINING_PASSPHRASES.getName())) {
+        // secrets are never logged
+        if (Objects.equals(propertyName, Props.SOLO_MINING_PASSPHRASES.getName())
+                || Objects.equals(propertyName, Props.API_ADMIN_KEY_LIST.getName())) {
             return;
         }
         if (!this.alreadyLoggedProperties.contains(propertyName)) {

@@ -4,7 +4,11 @@ import brs.props.PropertyService;
 import brs.props.Props;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -89,5 +93,21 @@ class AdminKeysTest {
     void isExampleKey_GivenExampleKey_ReturnsTrue() {
         assertTrue(AdminKeys.isExampleKey(AdminKeys.EXAMPLE_KEY));
         assertFalse(AdminKeys.isExampleKey(GOOD_KEY));
+    }
+
+    @Test
+    void defaultConfig_GivenAdminKeyLineOnlyUncommented_UnlocksNothing() throws IOException {
+        // an operator who only uncomments the documented line must not get a published key
+        String line = Files.readAllLines(Path.of("conf/node-default.properties")).stream()
+                .filter(l -> l.matches("^#\\s*API\\.adminKeyList\\s*=.*"))
+                .findFirst().orElseThrow();
+        String value = line.substring(line.indexOf('=') + 1);
+        String[] entries = Arrays.stream(value.split(";")).map(String::trim).filter(e -> !e.isEmpty()).toArray(String[]::new);
+
+        AdminKeys adminKeys = keys(entries);
+
+        for (String entry : entries) {
+            assertFalse(adminKeys.isAllowed(entry), entry);
+        }
     }
 }

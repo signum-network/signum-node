@@ -26,7 +26,6 @@ import static brs.web.api.http.common.JSONResponses.ERROR_NOT_ALLOWED;
 import static brs.web.api.http.common.Parameters.API_KEY_PARAMETER;
 import static brs.web.api.http.common.ResultFields.*;
 
-
 public final class GetState extends ApiServlet.JsonRequestHandler {
 
   private final Blockchain blockchain;

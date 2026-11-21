@@ -73,14 +73,16 @@ class AdminKeysTest {
 
     @Test
     void describeWeaknesses_GivenExampleAndShortKey_NamesPositionsNotKeys() {
-        List<String> messages = AdminKeys.describeWeaknesses(List.of(GOOD_KEY, AdminKeys.EXAMPLE_KEY, "short"));
+        List<AdminKeys.Weakness> weaknesses = AdminKeys.describeWeaknesses(List.of(GOOD_KEY, AdminKeys.EXAMPLE_KEY, "k7Q"));
 
         assertEquals(List.of(
-                "API.adminKeyList entry 2 is the example key from node-default.properties and is ignored; replace it",
-                "API.adminKeyList entry 3 is shorter than 32 characters; use a long random key"), messages);
-        for (String message : messages) {
-            assertFalse(message.contains(AdminKeys.EXAMPLE_KEY));
-            assertFalse(message.contains("short;") || message.endsWith("short"));
+                new AdminKeys.Weakness(AdminKeys.Severity.ERROR,
+                        "API.adminKeyList entry 2 is the example key from node-default.properties and is ignored; replace it"),
+                new AdminKeys.Weakness(AdminKeys.Severity.WARNING,
+                        "API.adminKeyList entry 3 is shorter than 32 characters; use a long random key")), weaknesses);
+        for (AdminKeys.Weakness weakness : weaknesses) {
+            assertFalse(weakness.message().contains(AdminKeys.EXAMPLE_KEY));
+            assertFalse(weakness.message().contains("k7Q"));
         }
     }
 

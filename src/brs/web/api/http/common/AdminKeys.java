@@ -20,6 +20,13 @@ public final class AdminKeys {
     /** Shorter keys still work, but the node warns about them at startup. */
     public static final int MIN_RECOMMENDED_LENGTH = 32;
 
+    /** How serious a weak {@code API.adminKeyList} entry is. */
+    public enum Severity { ERROR, WARNING }
+
+    /** A weak entry: what to log and at which level; the message never contains the key. */
+    public record Weakness(Severity severity, String message) {
+    }
+
     private final List<byte[]> keys;
 
     private AdminKeys(List<byte[]> keys) {
@@ -56,21 +63,21 @@ public final class AdminKeys {
 
     /**
      * @param configured the keys as configured, in order
-     * @return one message per weak key, naming its 1-based position but never the key
+     * @return one entry per weak key, naming its 1-based position but never the key
      */
-    public static List<String> describeWeaknesses(List<String> configured) {
-        List<String> messages = new ArrayList<>();
+    public static List<Weakness> describeWeaknesses(List<String> configured) {
+        List<Weakness> weaknesses = new ArrayList<>();
         for (int i = 0; i < configured.size(); i++) {
             String key = configured.get(i);
             int entry = i + 1;
             if (isExampleKey(key)) {
-                messages.add("API.adminKeyList entry " + entry
-                        + " is the example key from node-default.properties and is ignored; replace it");
+                weaknesses.add(new Weakness(Severity.ERROR, "API.adminKeyList entry " + entry
+                        + " is the example key from node-default.properties and is ignored; replace it"));
             } else if (key.length() < MIN_RECOMMENDED_LENGTH) {
-                messages.add("API.adminKeyList entry " + entry + " is shorter than " + MIN_RECOMMENDED_LENGTH
-                        + " characters; use a long random key");
+                weaknesses.add(new Weakness(Severity.WARNING, "API.adminKeyList entry " + entry + " is shorter than "
+                        + MIN_RECOMMENDED_LENGTH + " characters; use a long random key"));
             }
         }
-        return messages;
+        return weaknesses;
     }
 }

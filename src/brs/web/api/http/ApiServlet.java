@@ -55,11 +55,11 @@ public final class ApiServlet extends HttpServlet {
 
   /** Names weak entries of API.adminKeyList once at startup, by position, never the key itself. */
   private static void logWeakAdminKeys(PropertyService propertyService) {
-    for (String message : AdminKeys.describeWeaknesses(propertyService.getStringList(Props.API_ADMIN_KEY_LIST))) {
-      if (message.contains("example key")) {
-        logger.error(message);
+    for (AdminKeys.Weakness weakness : AdminKeys.describeWeaknesses(propertyService.getStringList(Props.API_ADMIN_KEY_LIST))) {
+      if (weakness.severity() == AdminKeys.Severity.ERROR) {
+        logger.error(weakness.message());
       } else {
-        logger.warn(message);
+        logger.warn(weakness.message());
       }
     }
   }

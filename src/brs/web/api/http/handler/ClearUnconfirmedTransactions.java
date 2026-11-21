@@ -16,7 +16,6 @@ import static brs.web.api.http.common.Parameters.API_KEY_PARAMETER;
 import static brs.web.api.http.common.ResultFields.DONE_RESPONSE;
 import static brs.web.api.http.common.ResultFields.ERROR_RESPONSE;
 
-
 public final class ClearUnconfirmedTransactions extends ApiServlet.JsonRequestHandler {
 
   private final TransactionProcessor transactionProcessor;

@@ -5,7 +5,6 @@ import static brs.web.api.http.common.JSONResponses.ERROR_NOT_ALLOWED;
 import static brs.web.api.http.common.Parameters.API_KEY_PARAMETER;
 import static brs.web.api.http.common.ResultFields.ERROR_RESPONSE;
 
-
 import jakarta.servlet.http.HttpServletRequest;
 
 import brs.web.api.http.ApiServlet;

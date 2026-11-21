@@ -10,6 +10,30 @@ async function query<T>(
   return res.json() as Promise<T>
 }
 
+/** An API answer with an `errorCode` other than "unknown entity". */
+export class NodeApiError extends Error {
+  readonly code: number
+
+  constructor(code: number, message: string) {
+    super(message)
+    this.name = 'NodeApiError'
+    this.code = code
+  }
+}
+
+const UNKNOWN_ENTITY = 5
+
+/**
+ * Like `query`, for requests that look up one block, transaction or account: the node answers an
+ * unknown ID with HTTP 200 and `errorCode 5`, which becomes `null`; other error codes throw.
+ */
+export async function queryEntity<T>(requestType: string, params: Record<string, string>): Promise<T | null> {
+  const body = await query<T & { errorCode?: number; errorDescription?: string }>(requestType, params)
+  if (body.errorCode === undefined) return body
+  if (body.errorCode === UNKNOWN_ENTITY) return null
+  throw new NodeApiError(body.errorCode, body.errorDescription ?? `Node API error ${body.errorCode}: ${requestType}`)
+}
+
 export interface BlockchainStatus {
   application: string
   version: string
@@ -43,6 +67,73 @@ export interface BlockSummary {
   totalFeeNQT: string       // NQT
   baseTarget: string
   numberOfTransactions: number
+}
+
+export interface TransactionDetail {
+  transaction: string
+  type: number
+  subtype: number
+  timestamp: number          // Signum epoch seconds
+  sender: string
+  senderRS: string
+  recipient?: string
+  recipientRS?: string
+  amountNQT: string
+  feeNQT: string
+  block?: string             // absent while unconfirmed
+  height?: number
+  confirmations?: number
+  attachment?: Record<string, unknown>
+}
+
+export interface BlockDetail {
+  block: string
+  height: number
+  generator: string
+  generatorRS: string
+  timestamp: number          // Signum epoch seconds
+  numberOfTransactions: number
+  totalAmountNQT: string
+  totalFeeNQT: string
+  blockRewardNQT: string
+  payloadLength: number
+  baseTarget: string
+  averageCommitmentNQT: string
+  cumulativeDifficulty: string
+  previousBlock?: string     // absent for the genesis block
+  nextBlock?: string         // absent for the tip
+  generationSignature: string
+  transactions?: TransactionDetail[]
+}
+
+export interface AccountDetail {
+  account: string
+  accountRS: string
+  name?: string
+  balanceNQT: string
+  unconfirmedBalanceNQT: string
+  guaranteedBalanceNQT: string
+  committedBalanceNQT?: string
+  isAT: boolean
+}
+
+export interface AccountBlocksResponse {
+  blocks: BlockDetail[]
+  nextIndex?: number
+}
+
+export interface AccountTransactionsResponse {
+  transactions: TransactionDetail[]
+  nextIndex?: number
+}
+
+export interface Constants {
+  addressPrefix: string
+  transactionTypes: {
+    value: number
+    description: string
+    subtypes: { value: number; description: string }[]
+  }[]
 }
 
 export interface BlocksResponse {
@@ -135,6 +226,34 @@ export const getUnconfirmedTransactions = () =>
 
 export const getRecentBlocks = () =>
   query<BlocksResponse>('getBlocks', { firstIndex: '0', lastIndex: '99' })
+
+export const getBlocksPage = (firstIndex: number, lastIndex: number) =>
+  query<{ blocks: BlockDetail[] }>('getBlocks', { firstIndex: String(firstIndex), lastIndex: String(lastIndex) })
+
+export const getBlockAtHeight = (height: number, includeTransactions: boolean) =>
+  queryEntity<BlockDetail>('getBlock', { height: String(height), includeTransactions: String(includeTransactions) })
+
+export const getBlockById = (id: string) =>
+  queryEntity<BlockDetail>('getBlock', { block: id })
+
+export const getTransaction = (id: string) =>
+  queryEntity<TransactionDetail>('getTransaction', { transaction: id })
+
+export const getAccount = (id: string) =>
+  queryEntity<AccountDetail>('getAccount', { account: id })
+
+export const getAccountBlocks = (id: string, firstIndex: number, lastIndex: number) =>
+  query<AccountBlocksResponse>('getAccountBlocks', {
+    account: id, firstIndex: String(firstIndex), lastIndex: String(lastIndex),
+  })
+
+export const getAccountTransactions = (id: string, firstIndex: number, lastIndex: number) =>
+  query<AccountTransactionsResponse>('getAccountTransactions', {
+    account: id, firstIndex: String(firstIndex), lastIndex: String(lastIndex),
+  })
+
+export const getConstants = () =>
+  query<Constants>('getConstants')
 
 export type PeerChainStatus = 'on-chain' | 'stale' | 'ahead' | 'forking' | 'unknown'
 

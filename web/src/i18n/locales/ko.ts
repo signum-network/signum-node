@@ -257,6 +257,18 @@ const ko: Locale = {
     noBlocks: '생성한 블록 없음',
     loadError: '계정을 불러오지 못했습니다',
   },
+  blockPeers: {
+    peers: '피어',
+    peerCheck: '피어에게 확인',
+    peerChecking: '피어에게 확인 중…',
+    peerResult: '{{total}}개 피어 중 {{hasIt}}개가 이 블록을 보유',
+    peerMissing: '없음: {{count}}',
+    peerNotYet: '아직 도달하지 않음: {{count}}',
+    peerNoAnswer: '응답 없음: {{count}}',
+    peerBusy: '다른 확인이 진행 중입니다 – 잠시 후 다시 시도하세요',
+    peerTooOld: '너무 오래되어 피어에게 확인할 수 없습니다',
+    peerError: '피어에게 확인하지 못했습니다',
+  },
 }
 
 export default ko

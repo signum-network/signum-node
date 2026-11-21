@@ -257,6 +257,18 @@ const pt: Locale = {
     noBlocks: 'Sem blocos forjados',
     loadError: 'Não foi possível carregar a conta',
   },
+  blockPeers: {
+    peers: 'Peers',
+    peerCheck: 'Perguntar aos peers',
+    peerChecking: 'Perguntando aos peers…',
+    peerResult: '{{hasIt}} de {{total}} peers têm este bloco',
+    peerMissing: 'ausentes: {{count}}',
+    peerNotYet: 'ainda não chegaram: {{count}}',
+    peerNoAnswer: 'sem resposta: {{count}}',
+    peerBusy: 'Outra verificação em andamento – tente novamente em breve',
+    peerTooOld: 'Antigo demais para perguntar aos peers',
+    peerError: 'Não foi possível perguntar aos peers',
+  },
 }
 
 export default pt

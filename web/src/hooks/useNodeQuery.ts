@@ -18,6 +18,7 @@ import {
   getAccountBlocks,
   getAccountTransactions,
   getConstants,
+  getBlockPeerStatus,
 } from '@/lib/nodeApi'
 import { anchoredRange, blocksFrom, pageRange, PAGE_SIZE } from '@/components/blocks/blocks.utils'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -207,4 +208,9 @@ export function useConstants() {
     queryFn: getConstants,
     staleTime: Infinity,
   })
+}
+
+/** Asks the peers about one block on demand (a button), not on page load. */
+export function useBlockPeerCheck() {
+  return useMutation({ mutationFn: (blockId: string) => getBlockPeerStatus(blockId) })
 }

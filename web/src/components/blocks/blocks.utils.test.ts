@@ -15,6 +15,7 @@ import {
   blocksFrom,
   olderFrom,
   newerFrom,
+  canCheckPeers,
 } from './blocks.utils'
 
 const TIP = 1_607_462
@@ -228,5 +229,17 @@ describe('anchored paging', () => {
   it('goes back up by a page, or to the live page near the tip', () => {
     expect(newerFrom(800, 1000)).toBe(825)
     expect(newerFrom(980, 1000)).toBeNull()
+  })
+})
+
+describe('canCheckPeers', () => {
+  it('allows blocks within 360 heights of the tip', () => {
+    expect(canCheckPeers(1_000, 1_000)).toBe(true)
+    expect(canCheckPeers(640, 1_000)).toBe(true)
+    expect(canCheckPeers(639, 1_000)).toBe(false)
+  })
+
+  it('waits for the tip', () => {
+    expect(canCheckPeers(1_000, undefined)).toBe(false)
   })
 })

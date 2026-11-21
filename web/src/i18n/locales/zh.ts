@@ -257,6 +257,18 @@ const zh: Locale = {
     noBlocks: '没有锻造的区块',
     loadError: '无法加载账户',
   },
+  blockPeers: {
+    peers: '节点',
+    peerCheck: '询问节点',
+    peerChecking: '正在询问节点…',
+    peerResult: '{{total}} 个节点中有 {{hasIt}} 个拥有此区块',
+    peerMissing: '缺失：{{count}}',
+    peerNotYet: '尚未到达：{{count}}',
+    peerNoAnswer: '无应答：{{count}}',
+    peerBusy: '另一项检查正在进行 – 请稍后再试',
+    peerTooOld: '区块太旧，无法询问节点',
+    peerError: '无法询问节点',
+  },
 }
 
 export default zh

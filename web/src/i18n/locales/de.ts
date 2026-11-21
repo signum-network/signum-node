@@ -257,6 +257,18 @@ const de: Locale = {
     noBlocks: 'Keine geschmiedeten Blöcke',
     loadError: 'Konto konnte nicht geladen werden',
   },
+  blockPeers: {
+    peers: 'Peers',
+    peerCheck: 'Peers fragen',
+    peerChecking: 'Frage Peers…',
+    peerResult: '{{hasIt}} von {{total}} Peers haben diesen Block',
+    peerMissing: 'ohne den Block: {{count}}',
+    peerNotYet: 'noch nicht so weit: {{count}}',
+    peerNoAnswer: 'ohne Antwort: {{count}}',
+    peerBusy: 'Gerade läuft eine andere Prüfung – gleich noch einmal versuchen',
+    peerTooOld: 'Zu alt, um die Peers zu fragen',
+    peerError: 'Die Peers konnten nicht gefragt werden',
+  },
 }
 
 export default de

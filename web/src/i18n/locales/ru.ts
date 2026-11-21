@@ -257,6 +257,18 @@ const ru: Locale = {
     noBlocks: 'Нет созданных блоков',
     loadError: 'Не удалось загрузить аккаунт',
   },
+  blockPeers: {
+    peers: 'Пиры',
+    peerCheck: 'Спросить пиров',
+    peerChecking: 'Опрашиваю пиров…',
+    peerResult: 'Этот блок есть у {{hasIt}} из {{total}} пиров',
+    peerMissing: 'нет блока: {{count}}',
+    peerNotYet: 'ещё не дошли: {{count}}',
+    peerNoAnswer: 'без ответа: {{count}}',
+    peerBusy: 'Идёт другая проверка – попробуйте чуть позже',
+    peerTooOld: 'Слишком старый, чтобы спрашивать пиров',
+    peerError: 'Не удалось опросить пиров',
+  },
 }
 
 export default ru

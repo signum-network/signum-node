@@ -257,6 +257,18 @@ const ja: Locale = {
     noBlocks: '生成したブロックはありません',
     loadError: 'アカウントを読み込めませんでした',
   },
+  blockPeers: {
+    peers: 'ピア',
+    peerCheck: 'ピアに確認',
+    peerChecking: 'ピアに確認中…',
+    peerResult: '{{total}} ピア中 {{hasIt}} がこのブロックを保持',
+    peerMissing: '欠落: {{count}}',
+    peerNotYet: '未到達: {{count}}',
+    peerNoAnswer: '応答なし: {{count}}',
+    peerBusy: '別の確認を実行中です – 少し後でもう一度お試しください',
+    peerTooOld: '古すぎるためピアに確認できません',
+    peerError: 'ピアに確認できませんでした',
+  },
 }
 
 export default ja

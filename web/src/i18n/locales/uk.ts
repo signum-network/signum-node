@@ -257,6 +257,18 @@ const uk: Locale = {
     noBlocks: 'Немає створених блоків',
     loadError: 'Не вдалося завантажити обліковий запис',
   },
+  blockPeers: {
+    peers: 'Піри',
+    peerCheck: 'Запитати пірів',
+    peerChecking: 'Опитую пірів…',
+    peerResult: 'Цей блок є в {{hasIt}} з {{total}} пірів',
+    peerMissing: 'немає блоку: {{count}}',
+    peerNotYet: 'ще не дійшли: {{count}}',
+    peerNoAnswer: 'без відповіді: {{count}}',
+    peerBusy: 'Триває інша перевірка – спробуйте трохи пізніше',
+    peerTooOld: 'Занадто старий, щоб питати пірів',
+    peerError: 'Не вдалося опитати пірів',
+  },
 }
 
 export default uk

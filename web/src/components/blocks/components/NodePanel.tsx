@@ -4,14 +4,15 @@ import { Card, CardLabel } from '@/components/ui/Card'
 import { KeyValueList } from '@/components/shared/KeyValueList'
 import type { BlockDetail, ForkEvent } from '@/lib/nodeApi'
 import { fmtNqt } from '@/lib/utils'
-import { relativeTime } from '../blocks.utils'
+import { canCheckPeers, relativeTime } from '../blocks.utils'
+import { PeerCheck } from './PeerCheck'
 
 function shortHash(hash: string): string {
   return hash.length > 20 ? `${hash.slice(0, 10)}…${hash.slice(-8)}` : hash
 }
 
 /** What this node knows about the block beyond its content: chain values and a rollback that replaced it. */
-export function NodePanel({ block, rollback }: { block: BlockDetail; rollback: ForkEvent | null }) {
+export function NodePanel({ block, rollback, tipHeight }: { block: BlockDetail; rollback: ForkEvent | null; tipHeight: number | undefined }) {
   const { t, i18n } = useTranslation()
   const rollbackText = rollback && [
     t('block.rollbackText', {
@@ -34,6 +35,7 @@ export function NodePanel({ block, rollback }: { block: BlockDetail; rollback: F
           [t('block.rollback'), rollbackText ? (
             <Link to="/network" style={{ color: 'var(--red, #ff4444)' }}>⑂ {rollbackText}</Link>
           ) : null],
+          [t('blockPeers.peers'), canCheckPeers(block.height, tipHeight) ? <PeerCheck key={block.block} blockId={block.block} /> : null],
         ]}
       />
     </Card>

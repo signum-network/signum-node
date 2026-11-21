@@ -56,6 +56,7 @@ export interface Locale {
   block: { title: string; notFound: string; backToList: string; panelBlock: string; panelNode: string; id: string; time: string; delta: string; generator: string; reward: string; rewardValue: string; transactions: string; payload: string; baseTarget: string; avgCommitment: string; cumulativeDifficulty: string; generationSignature: string; previousBlock: string; rollback: string; rollbackText: string; rollbackFrom: string; txTitle: string; colId: string; colType: string; colFrom: string; colTo: string; colAmount: string; colFee: string; noTransactions: string; loadError: string }
   tx: { section: string; title: string; notFound: string; backToList: string; id: string; type: string; sender: string; recipient: string; amount: string; fee: string; block: string; confirmations: string; time: string; unconfirmed: string; attachment: string; loadError: string }
   account: { section: string; overview: string; notFound: string; backToList: string; address: string; id: string; name: string; balance: string; committed: string; guaranteed: string; smartContract: string; forgedBlocks: string; transactions: string; colHeight: string; colTime: string; colFees: string; noBlocks: string; loadError: string }
+  blockPeers: { peers: string; peerCheck: string; peerChecking: string; peerResult: string; peerMissing: string; peerNotYet: string; peerNoAnswer: string; peerBusy: string; peerTooOld: string; peerError: string }
 }
 
 const en: Locale = {
@@ -314,6 +315,18 @@ const en: Locale = {
     colFees: 'Fees',
     noBlocks: 'No forged blocks',
     loadError: 'Could not load the account',
+  },
+  blockPeers: {
+    peers: 'Peers',
+    peerCheck: 'Ask peers',
+    peerChecking: 'Asking peers…',
+    peerResult: '{{hasIt}} of {{total}} peers have this block',
+    peerMissing: 'missing: {{count}}',
+    peerNotYet: 'not that far yet: {{count}}',
+    peerNoAnswer: 'no answer: {{count}}',
+    peerBusy: 'Another check is running – try again shortly',
+    peerTooOld: 'Too old to ask the peers',
+    peerError: 'The peers could not be asked',
   },
 }
 

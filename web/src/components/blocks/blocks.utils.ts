@@ -152,3 +152,10 @@ export function newerFrom(from: number, tipHeight: number): number | null {
   const newer = from + PAGE_SIZE
   return newer >= tipHeight - PAGE_SIZE + 1 ? null : newer
 }
+
+/** The node asks its peers only about blocks this close to the tip (`getBlockPeerStatus`). */
+export const RECENT_BLOCKS = 360
+
+export function canCheckPeers(height: number, tipHeight: number | undefined): boolean {
+  return tipHeight !== undefined && height >= tipHeight - RECENT_BLOCKS
+}

@@ -43,7 +43,7 @@ export function BlockDetail({ heightParam }: { heightParam: string }) {
       <>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
           <BlockPanel block={block} deltaSeconds={blockDeltaSeconds(block.timestamp, previous?.timestamp)} />
-          <NodePanel block={block} rollback={rollbackCovering(block.height, forkHistory?.forks ?? [])} />
+          <NodePanel block={block} rollback={rollbackCovering(block.height, forkHistory?.forks ?? [])} tipHeight={tipHeight} />
         </div>
         <Card className="overflow-hidden p-0">
           <div className="px-5 pt-5">

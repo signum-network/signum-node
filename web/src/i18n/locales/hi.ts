@@ -257,6 +257,18 @@ const hi: Locale = {
     noBlocks: 'कोई बनाया गया ब्लॉक नहीं',
     loadError: 'खाता लोड नहीं हो सका',
   },
+  blockPeers: {
+    peers: 'पीयर',
+    peerCheck: 'पीयर से पूछें',
+    peerChecking: 'पीयर से पूछ रहे हैं…',
+    peerResult: '{{total}} में से {{hasIt}} पीयर के पास यह ब्लॉक है',
+    peerMissing: 'अनुपस्थित: {{count}}',
+    peerNotYet: 'अभी नहीं पहुँचे: {{count}}',
+    peerNoAnswer: 'कोई उत्तर नहीं: {{count}}',
+    peerBusy: 'दूसरी जाँच चल रही है – थोड़ी देर में फिर कोशिश करें',
+    peerTooOld: 'पीयर से पूछने के लिए बहुत पुराना',
+    peerError: 'पीयर से पूछा नहीं जा सका',
+  },
 }
 
 export default hi

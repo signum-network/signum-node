@@ -254,6 +254,25 @@ export const getAccountTransactions = (id: string, firstIndex: number, lastIndex
     account: id, firstIndex: String(firstIndex), lastIndex: String(lastIndex),
   })
 
+export type BlockPeerStatus =
+  | {
+      status: 'ok'
+      block: string
+      height: number
+      hasIt: number
+      missing: number
+      notYet: number
+      noAnswer: number
+      checkedAt: number       // epoch ms, node clock
+      serverTime: number      // epoch ms, node clock
+    }
+  | { status: 'tooOld' }
+  | { status: 'busy' }
+
+/** Asks the node's peers whether they have the block; `null` for an unknown block. */
+export const getBlockPeerStatus = (blockId: string) =>
+  queryEntity<BlockPeerStatus>('getBlockPeerStatus', { block: blockId })
+
 export const getConstants = () =>
   query<Constants>('getConstants')
 

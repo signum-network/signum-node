@@ -23,6 +23,11 @@ public class DatabaseInstancePostgres extends DatabaseInstanceBaseImpl {
   protected void onShutdownImpl() {}
 
   @Override
+  protected String getDatabaseSizeSQL() {
+    return "SELECT pg_database_size(current_database())";
+  }
+
+  @Override
   public SQLDialect getDialect() {
     return SQLDialect.POSTGRES;
   }

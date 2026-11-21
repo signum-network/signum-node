@@ -36,6 +36,11 @@ public class DatabaseInstanceMariaDb extends DatabaseInstanceBaseImpl {
   protected void onShutdownImpl() {}
 
   @Override
+  protected String getDatabaseSizeSQL() {
+    return "SELECT COALESCE(SUM(data_length + index_length), 0) FROM information_schema.tables WHERE table_schema = DATABASE()";
+  }
+
+  @Override
   public SQLDialect getDialect() {
     return SQLDialect.MARIADB;
   }

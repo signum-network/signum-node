@@ -66,6 +66,11 @@ public final class Db {
     private Db() {
     } // never
 
+    /** @return the database in use, or null before {@link #init} */
+    public static DatabaseInstance getDatabaseInstance() {
+        return databaseInstance;
+    }
+
     public static Dbs getDbsByDatabaseType() {
         return new SqlDbs();
     }

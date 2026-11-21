@@ -11,6 +11,8 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
+import java.util.OptionalLong;
 
 public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
   private static final Logger logger = LoggerFactory.getLogger(DatabaseInstanceSqlite.class);
@@ -90,6 +92,45 @@ public class DatabaseInstanceSqlite extends DatabaseInstanceBaseImpl {
   @Override
   public SQLDialect getDialect() {
     return SQLDialect.SQLITE;
+  }
+
+  @Override
+  public Optional<Path> getDatabaseFile() {
+    return sqliteFile(propertyService.getString(Props.DB_URL));
+  }
+
+  @Override
+  public OptionalLong getDatabaseSizeBytes() {
+    return getDatabaseFile().map(DatabaseInstanceSqlite::sqliteFileSize).orElse(OptionalLong.empty());
+  }
+
+  /** @return the absolute database file of a SQLite JDBC URL, without URL parameters */
+  static Optional<Path> sqliteFile(String jdbcUrl) {
+    if (jdbcUrl == null || !jdbcUrl.startsWith("jdbc:sqlite:")) {
+      return Optional.empty();
+    }
+    String path = jdbcUrl.startsWith("jdbc:sqlite:file:")
+        ? jdbcUrl.substring("jdbc:sqlite:file:".length())
+        : jdbcUrl.substring("jdbc:sqlite:".length());
+    int parameters = path.indexOf('?');
+    if (parameters >= 0) {
+      path = path.substring(0, parameters);
+    }
+    return path.isEmpty() ? Optional.empty() : Optional.of(Paths.get(path).toAbsolutePath());
+  }
+
+  /** @return the size of the database file plus its write-ahead log, empty if the file is missing */
+  static OptionalLong sqliteFileSize(Path dbFile) {
+    try {
+      long size = Files.size(dbFile);
+      Path wal = dbFile.resolveSibling(dbFile.getFileName() + "-wal");
+      if (Files.exists(wal)) {
+        size += Files.size(wal);
+      }
+      return OptionalLong.of(size);
+    } catch (Exception e) {
+      return OptionalLong.empty();
+    }
   }
 
   private static Path extractSqliteFolderPath(String jdbcUrl) {

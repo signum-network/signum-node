@@ -1,8 +1,13 @@
 package brs.db.sql.dialects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
+import java.util.OptionalLong;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -73,6 +78,48 @@ class DatabaseInstanceSqliteTest {
         instance = open(CACHE_SIZE, "-65536");
 
         assertEquals(-65_536, pragma("cache_size"));
+    }
+
+    @Test
+    void sqliteFileSize_GivenDbAndWalFile_SumsBoth() throws IOException {
+        Path db = dir.resolve("x.db");
+        Files.write(db, new byte[100]);
+        Files.write(dir.resolve("x.db-wal"), new byte[20]);
+
+        assertEquals(OptionalLong.of(120), DatabaseInstanceSqlite.sqliteFileSize(db));
+    }
+
+    @Test
+    void sqliteFileSize_GivenOnlyDbFile_ReturnsItsSize() throws IOException {
+        Path db = dir.resolve("x.db");
+        Files.write(db, new byte[100]);
+
+        assertEquals(OptionalLong.of(100), DatabaseInstanceSqlite.sqliteFileSize(db));
+    }
+
+    @Test
+    void sqliteFileSize_GivenMissingFile_IsEmpty() {
+        assertTrue(DatabaseInstanceSqlite.sqliteFileSize(dir.resolve("missing.db")).isEmpty());
+    }
+
+    @Test
+    void sqliteFile_GivenUrlWithParameters_IgnoresThem() {
+        assertEquals(Optional.of(dir.resolve("x.db").toAbsolutePath()),
+                DatabaseInstanceSqlite.sqliteFile("jdbc:sqlite:file:" + dir.resolve("x.db") + "?journal_mode=WAL"));
+    }
+
+    @Test
+    void sqliteFile_GivenUrlWithoutFilePrefix_ReturnsAbsolutePath() {
+        assertEquals(Optional.of(Path.of("db/x.db").toAbsolutePath()), DatabaseInstanceSqlite.sqliteFile("jdbc:sqlite:db/x.db"));
+        assertTrue(DatabaseInstanceSqlite.sqliteFile("jdbc:mariadb://localhost/signum").isEmpty());
+    }
+
+    @Test
+    void getDatabaseFile_GivenInstance_ReturnsTheDbFile() {
+        instance = open(null, null);
+
+        assertEquals(Optional.of(dir.resolve("test.sqlite.db").toAbsolutePath()), instance.getDatabaseFile());
+        assertTrue(instance.getDatabaseSizeBytes().orElse(0) > 0);
     }
 
     private DatabaseInstanceSqlite open(String setting, String value) {

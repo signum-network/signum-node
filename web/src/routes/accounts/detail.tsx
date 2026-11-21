@@ -5,6 +5,6 @@ const route = getRouteApi('/accounts/$id')
 
 export default function AccountPage() {
   const { id } = route.useParams()
-  const { tab } = route.useSearch()
-  return <AccountDetail key={id} id={id} tab={tab ?? 'overview'} />
+  const { tab, page } = route.useSearch()
+  return <AccountDetail key={id} id={id} tab={tab ?? 'overview'} page={page ?? 0} />
 }

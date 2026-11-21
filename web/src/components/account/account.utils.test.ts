@@ -13,6 +13,8 @@ import {
   shouldRefetchOverdue,
   showErrorInsteadOfData,
   consistentFetch,
+  nextTabIndex,
+  parseAccountSearch,
 } from './account.utils'
 import { signumTimestampToMs } from '@/lib/nodeApi'
 
@@ -216,5 +218,33 @@ describe('consistentFetch', () => {
     const result = await consistentFetch(markers('a', 'b', 'c', 'd'), async () => ++calls)
     expect(result).toBe(2)
     expect(calls).toBe(2)
+  })
+})
+
+describe('nextTabIndex', () => {
+  it('moves with the arrow keys and wraps around', () => {
+    expect(nextTabIndex(0, 'ArrowRight', 5)).toBe(1)
+    expect(nextTabIndex(4, 'ArrowRight', 5)).toBe(0)
+    expect(nextTabIndex(0, 'ArrowLeft', 5)).toBe(4)
+  })
+
+  it('jumps to the first and last tab', () => {
+    expect(nextTabIndex(2, 'Home', 5)).toBe(0)
+    expect(nextTabIndex(2, 'End', 5)).toBe(4)
+  })
+})
+
+describe('parseAccountSearch', () => {
+  it('reads tab and page', () => {
+    expect(parseAccountSearch({ tab: 'aliases', page: '2' })).toEqual({ tab: 'aliases', page: 2 })
+    expect(parseAccountSearch({ tab: 'tokens', page: 3 })).toEqual({ tab: 'tokens', page: 3 })
+  })
+
+  it('drops the overview tab, page 0 and invalid pages', () => {
+    expect(parseAccountSearch({})).toEqual({})
+    expect(parseAccountSearch({ tab: 'overview', page: '2' })).toEqual({})
+    expect(parseAccountSearch({ tab: 'aliases', page: '0' })).toEqual({ tab: 'aliases' })
+    expect(parseAccountSearch({ tab: 'aliases', page: '-1' })).toEqual({ tab: 'aliases' })
+    expect(parseAccountSearch({ tab: 'aliases', page: 'x' })).toEqual({ tab: 'aliases' })
   })
 })

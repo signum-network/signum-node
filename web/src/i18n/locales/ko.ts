@@ -27,6 +27,7 @@ const ko: Locale = {
     live: '라이브',
     connecting: '연결 중',
     polling: '폴링',
+    copied: '복사됨',
   },
   status: {
     onChain: '동기화됨',

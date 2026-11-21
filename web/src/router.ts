@@ -6,7 +6,7 @@ import BlocksPage from './routes/blocks/index'
 import BlockDetailPage from './routes/blocks/detail'
 import TransactionPage from './routes/tx/detail'
 import AccountPage from './routes/accounts/detail'
-import { parseAccountTab, type AccountTab } from './components/account/account.utils'
+import { parseAccountSearch, type AccountSearch } from './components/account/account.utils'
 
 const rootRoute = createRootRoute({
   component: RootLayout,
@@ -51,11 +51,8 @@ const transactionRoute = createRoute({
 const accountRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/accounts/$id',
-  // `tab` absent for the overview; unknown values are dropped
-  validateSearch: (search: Record<string, unknown>): { tab?: Exclude<AccountTab, 'overview'> } => {
-    const tab = parseAccountTab(search.tab)
-    return tab === 'overview' ? {} : { tab }
-  },
+  // `tab` absent for the overview, `page` absent for the first page; unknown values are dropped
+  validateSearch: (search: Record<string, unknown>): AccountSearch => parseAccountSearch(search),
   component: AccountPage,
 })
 

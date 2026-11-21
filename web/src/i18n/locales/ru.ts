@@ -27,6 +27,7 @@ const ru: Locale = {
     live: 'Онлайн',
     connecting: 'Подключение',
     polling: 'Опрос',
+    copied: 'скопировано',
   },
   status: {
     onChain: 'в цепи',

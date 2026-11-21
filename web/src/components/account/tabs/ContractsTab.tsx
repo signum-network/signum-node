@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { Card, CardSkeleton } from '@/components/ui/Card'
@@ -18,9 +17,9 @@ const STATE_COLOR: Record<ContractState, string> = {
 }
 
 /** Contracts the account deployed, 10 per page (each answer carries its machine code). */
-export function ContractsTab({ accountId }: { accountId: string }) {
+export function ContractsTab({ accountId, page, onPage }: { accountId: string; page: number; onPage: (page: number) => void }) {
   const { t } = useTranslation()
-  const [page, setPage] = useState(0)
+  const setPage = onPage
   const { data, isLoading, isError } = useAccountContracts(accountId, page, true)
   const contracts = data?.ats ?? []
 

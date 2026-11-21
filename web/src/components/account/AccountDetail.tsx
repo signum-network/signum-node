@@ -128,12 +128,15 @@ function OverviewTab({ id }: { id: string }) {
   )
 }
 
-export function AccountDetail({ id, tab }: { id: string; tab: AccountTab }) {
+export function AccountDetail({ id, tab, page }: { id: string; tab: AccountTab; page: number }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { data: account, isLoading, isError } = useAccount(id)
   const selectTab = (next: AccountTab) =>
     void navigate({ to: '/accounts/$id', params: { id }, search: next === 'overview' ? {} : { tab: next } })
+  // the tab's list page lives in the URL, so Back and reload keep it
+  const selectPage = (next: number) =>
+    void navigate({ to: '/accounts/$id', params: { id }, search: { tab: tab === 'overview' ? undefined : tab, page: next > 0 ? next : undefined } })
 
   const body = (() => {
     if (account === null) return <NotFound message={t('account.notFound')} backLabel={t('account.backToList')} />
@@ -143,11 +146,13 @@ export function AccountDetail({ id, tab }: { id: string; tab: AccountTab }) {
       <>
         <Overview account={account} />
         <AccountTabs active={tab} onSelect={selectTab} />
-        {tab === 'overview' && <OverviewTab id={id} />}
-        {tab === 'tokens' && <TokensTab account={account} />}
-        {tab === 'contracts' && <ContractsTab accountId={account.account} />}
-        {tab === 'aliases' && <AliasesTab accountId={account.account} />}
-        {tab === 'subscriptions' && <SubscriptionsTab accountId={account.account} />}
+        <div role="tabpanel" id={`account-panel-${tab}`} aria-labelledby={`account-tab-${tab}`}>
+          {tab === 'overview' && <OverviewTab id={id} />}
+          {tab === 'tokens' && <TokensTab account={account} page={page} onPage={selectPage} />}
+          {tab === 'contracts' && <ContractsTab accountId={account.account} page={page} onPage={selectPage} />}
+          {tab === 'aliases' && <AliasesTab accountId={account.account} page={page} onPage={selectPage} />}
+          {tab === 'subscriptions' && <SubscriptionsTab accountId={account.account} />}
+        </div>
       </>
     )
   })()

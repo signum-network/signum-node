@@ -32,14 +32,14 @@ export function Topbar() {
 
   return (
     <header
-      className="sticky top-0 z-20 grid h-[64px] grid-cols-[auto_1fr_auto] items-center px-10 md:px-16 lg:px-20"
+      className="sticky top-0 z-20 grid grid-cols-[auto_1fr] items-center gap-y-1 px-4 pt-2 sm:px-10 md:px-16 xl:h-[64px] xl:grid-cols-[auto_1fr_auto] xl:px-20 xl:pt-0"
       style={{
         background: 'linear-gradient(180deg, rgba(0,0,0,.08) 0%, transparent 100%)',
         borderBottom: '1px solid var(--border)'
       }}
     >
       {/* Logo — Signum + "Node Dashboard" stacked vertically; clearly separate from nav */}
-      <div className="mr-16 flex flex-col justify-center md:mr-24 lg:mr-28">
+      <div className="mr-4 flex flex-col justify-center xl:mr-8">
         <span
           className="text-[15px] font-black uppercase leading-none tracking-[3px] md:text-[18px] md:tracking-[5px]"
           style={{
@@ -62,8 +62,8 @@ export function Topbar() {
         </span>
       </div>
 
-      {/* Navigation — clean rectangular tabs with gap, no clip-path cutting characters */}
-      <nav className="flex h-full min-w-0 items-stretch overflow-hidden ml-4">
+      {/* Navigation — below xl its own full-width row that scrolls sideways instead of cutting items off */}
+      <nav className="themed-scroll order-last col-span-2 flex h-10 min-w-0 items-stretch overflow-x-auto xl:order-none xl:col-span-1 xl:ml-4 xl:h-full">
         {NAV_ITEMS.map((item) => (
           <NavItem
             key={item.path}
@@ -78,8 +78,8 @@ export function Topbar() {
         ))}
       </nav>
 
-      {/* Right side — audio toggle, theme switcher, then status */}
-      <div className="flex items-center gap-3 md:gap-5">
+      {/* Right side — audio toggle, theme switcher, then status; wraps on narrow screens (dropdowns must not be clipped) */}
+      <div className="flex flex-wrap items-center justify-end gap-2 md:gap-5">
         <AudioToggle />
         <LanguageSwitcher />
         <ThemeSwitcher />

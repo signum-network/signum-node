@@ -27,6 +27,7 @@ const ja: Locale = {
     live: 'ライブ',
     connecting: '接続中',
     polling: 'ポーリング',
+    copied: 'コピーしました',
   },
   status: {
     onChain: '同期中',

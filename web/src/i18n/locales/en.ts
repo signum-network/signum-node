@@ -4,8 +4,7 @@ export interface Locale {
     refresh: string; refreshing: string; copy: string; height: string; address: string
     failures: string; cachedAgo: string; noData: string; searchAgain: string
     startBinarySearch: string; searching: string; selectTheme: string; selectLanguage: string
-    enabled: string; disabled: string; live: string; connecting: string; polling: string
-  }
+    enabled: string; disabled: string; live: string; connecting: string; polling: string; copied: string }
   status: { onChain: string; stale: string; ahead: string; forking: string; unknown: string; blacklisted: string }
   dashboard: {
     chainOverview: string; network: string; nodeHealth: string
@@ -92,6 +91,7 @@ const en: Locale = {
     live: 'Live',
     connecting: 'Connecting',
     polling: 'Polling',
+    copied: 'copied',
   },
   status: {
     onChain: 'on-chain',

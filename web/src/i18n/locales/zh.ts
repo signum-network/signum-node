@@ -27,6 +27,7 @@ const zh: Locale = {
     live: '实时',
     connecting: '连接中',
     polling: '轮询',
+    copied: '已复制',
   },
   status: {
     onChain: '同步',

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Card, CardSkeleton } from '@/components/ui/Card'
 import { AccountLink } from '@/components/shared/AccountLink'
@@ -17,10 +17,10 @@ import { EmptyRow, TabTable } from './TabTable'
 import { useFrequencyText } from './useFrequencyText'
 
 /** The account's aliases with their renewal, from one cache entry with the subscriptions behind them. */
-export function AliasesTab({ accountId }: { accountId: string }) {
+export function AliasesTab({ accountId, page, onPage }: { accountId: string; page: number; onPage: (page: number) => void }) {
   const { t } = useTranslation()
   const frequencyText = useFrequencyText()
-  const [page, setPage] = useState(0)
+  const setPage = onPage
   const genesis = useNetworkGenesis()
   const { data, isLoading, isError, refetch } = useAccountAliasesCached(accountId, page, true)
   const nodeTime = useBlockchainStatus().data?.time

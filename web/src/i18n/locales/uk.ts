@@ -27,6 +27,7 @@ const uk: Locale = {
     live: 'Онлайн',
     connecting: 'Підключення',
     polling: 'Опитування',
+    copied: 'скопійовано',
   },
   status: {
     onChain: 'у ланцюгу',

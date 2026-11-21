@@ -78,6 +78,7 @@ export function BlockTable({ blocks, forks, isLoading }: BlockTableProps) {
                 <Link
                   to="/network"
                   title={t('blocks.rollbackMarker', { count: rollback.rollbackDepth })}
+                  aria-label={t('blocks.rollbackMarker', { count: rollback.rollbackDepth })}
                   className="font-semibold"
                   style={{ color: 'var(--red, #ff4444)' }}
                 >

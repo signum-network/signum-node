@@ -27,6 +27,7 @@ const de: Locale = {
     live: 'Live',
     connecting: 'Verbinde',
     polling: 'Polling',
+    copied: 'kopiert',
   },
   status: {
     onChain: 'synchron',

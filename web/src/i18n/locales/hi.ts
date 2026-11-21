@@ -27,6 +27,7 @@ const hi: Locale = {
     live: 'लाइव',
     connecting: 'जोड़ रहा है',
     polling: 'पोलिंग',
+    copied: 'कॉपी किया',
   },
   status: {
     onChain: 'सिंक्रोनाइज़',

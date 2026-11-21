@@ -114,3 +114,26 @@ export async function consistentFetch<T>(readMarker: () => Promise<string>, fetc
   }
   return result
 }
+
+/** Index of the tab a key moves to in a tab bar of `count` tabs (wraps around). */
+export function nextTabIndex(current: number, key: 'ArrowRight' | 'ArrowLeft' | 'Home' | 'End', count: number): number {
+  switch (key) {
+    case 'ArrowRight': return (current + 1) % count
+    case 'ArrowLeft': return (current - 1 + count) % count
+    case 'Home': return 0
+    case 'End': return count - 1
+  }
+}
+
+export type AccountSearch = { tab?: Exclude<AccountTab, 'overview'>; page?: number }
+
+/**
+ * Search params of the account page: the tab (absent for the overview) and the page of the tab's
+ * list (tokens, contracts, aliases; absent for the first page and for tabs without one list).
+ */
+export function parseAccountSearch(search: Record<string, unknown>): AccountSearch {
+  const tab = parseAccountTab(search.tab)
+  if (tab === 'overview') return {}
+  const page = Number(search.page)
+  return Number.isSafeInteger(page) && page > 0 ? { tab, page } : { tab }
+}

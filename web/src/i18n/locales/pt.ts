@@ -27,6 +27,7 @@ const pt: Locale = {
     live: 'Ao vivo',
     connecting: 'Conectando',
     polling: 'Consultando',
+    copied: 'copiado',
   },
   status: {
     onChain: 'na cadeia',

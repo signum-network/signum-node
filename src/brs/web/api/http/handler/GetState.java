@@ -14,6 +14,7 @@ import brs.services.EscrowService;
 import brs.services.TimeService;
 
 import brs.web.api.http.ApiServlet;
+import brs.web.api.http.common.AdminKeys;
 import brs.web.api.http.common.LegacyDocTag;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -24,8 +25,6 @@ import static brs.web.api.http.common.Parameters.INCLUDE_COUNTS_PARAMETER;
 import static brs.web.api.http.common.JSONResponses.ERROR_NOT_ALLOWED;
 import static brs.web.api.http.common.Parameters.API_KEY_PARAMETER;
 import static brs.web.api.http.common.ResultFields.*;
-
-import java.util.List;
 
 public final class GetState extends ApiServlet.JsonRequestHandler {
 
@@ -38,7 +37,7 @@ public final class GetState extends ApiServlet.JsonRequestHandler {
   private final Generator generator;
   private final PropertyService propertyService;
   private final ClockDriftMonitor clockDriftMonitor;
-  private final List<String> apiAdminKeyList;
+  private final AdminKeys adminKeys;
 
   public GetState(Blockchain blockchain, AssetExchange assetExchange, AccountService accountService, EscrowService escrowService,
                   AliasService aliasService, TimeService timeService, ATService atService, Generator generator, PropertyService propertyService,
@@ -54,7 +53,7 @@ public final class GetState extends ApiServlet.JsonRequestHandler {
     this.propertyService = propertyService;
     this.clockDriftMonitor = clockDriftMonitor;
 
-    apiAdminKeyList = propertyService.getStringList(Props.API_ADMIN_KEY_LIST);
+    adminKeys = AdminKeys.from(propertyService);
   }
 
   @Override
@@ -78,7 +77,7 @@ public final class GetState extends ApiServlet.JsonRequestHandler {
 
     if ("true".equalsIgnoreCase(req.getParameter(INCLUDE_COUNTS_PARAMETER))) {
       String apiKey = req.getParameter(API_KEY_PARAMETER);
-      if(!apiAdminKeyList.contains(apiKey)) {
+      if(!adminKeys.isAllowed(apiKey)) {
         return ERROR_NOT_ALLOWED;
       }
 

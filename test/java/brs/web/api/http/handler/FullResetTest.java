@@ -5,6 +5,7 @@ import brs.common.QuickMocker;
 import brs.props.PropertyService;
 import brs.props.Props;
 import brs.util.JSON;
+import brs.web.api.http.common.AdminKeys;
 import com.google.gson.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -61,6 +62,21 @@ public class FullResetTest {
     doReturn("").when(req).getParameter(API_KEY_PARAMETER);
 
     final JsonObject result = ((JsonObject) t.processRequest(req));
+
+    assertEquals(7, JSON.getAsInt(result.get(ERROR_CODE_RESPONSE)));
+  }
+
+  @Test
+  public void processRequestWithExampleKey_NotAllowed() {
+    // the example key from older default configs is public and must not unlock the admin API
+    ArrayList<String> keys = new ArrayList<>();
+    keys.add(AdminKeys.EXAMPLE_KEY);
+    doReturn(keys).when(propertyService).getStringList(Props.API_ADMIN_KEY_LIST);
+    FullReset withExampleKey = new FullReset(blockchainProcessor, propertyService);
+    final HttpServletRequest req = QuickMocker.httpServletRequest();
+    doReturn(AdminKeys.EXAMPLE_KEY).when(req).getParameter(API_KEY_PARAMETER);
+
+    final JsonObject result = ((JsonObject) withExampleKey.processRequest(req));
 
     assertEquals(7, JSON.getAsInt(result.get(ERROR_CODE_RESPONSE)));
   }

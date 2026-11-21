@@ -50,6 +50,18 @@ public final class ApiServlet extends HttpServlet {
     this.acceptSurplusParams = context.getPropertyService().getBoolean(Props.API_ACCEPT_SURPLUS_PARAMS);
 
     apiRequestHandlers = mapRequestHandlers();
+    logWeakAdminKeys(context.getPropertyService());
+  }
+
+  /** Names weak entries of API.adminKeyList once at startup, by position, never the key itself. */
+  private static void logWeakAdminKeys(PropertyService propertyService) {
+    for (AdminKeys.Weakness weakness : AdminKeys.describeWeaknesses(propertyService.getStringList(Props.API_ADMIN_KEY_LIST))) {
+      if (weakness.severity() == AdminKeys.Severity.ERROR) {
+        logger.error(weakness.message());
+      } else {
+        logger.warn(weakness.message());
+      }
+    }
   }
 
   private Map<String, HttpRequestHandler> mapRequestHandlers() {

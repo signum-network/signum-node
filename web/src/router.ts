@@ -3,6 +3,7 @@ import RootLayout from './routes/__root'
 import DashboardPage from './routes/index'
 import NetworkPage from './routes/network/index'
 import BlocksPage from './routes/blocks/index'
+import BlockDetailPage from './routes/blocks/detail'
 
 const rootRoute = createRootRoute({
   component: RootLayout,
@@ -31,13 +32,13 @@ const blocksRoute = createRoute({
   component: BlocksPage,
 })
 
-// detail pages follow; until then they lead back to the list
 const blockDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/blocks/$height',
-  beforeLoad: () => { throw redirect({ to: '/blocks', search: { page: 0 } }) },
+  component: BlockDetailPage,
 })
 
+// detail pages follow; until then they lead back to the list
 const transactionRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/tx/$id',

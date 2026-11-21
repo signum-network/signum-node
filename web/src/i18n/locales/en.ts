@@ -53,6 +53,7 @@ export interface Locale {
     chainLanes: string
   }
   blocks: { section: string; latest: string; searchPlaceholder: string; search: string; searching: string; notFound: string; colHeight: string; colTime: string; colDelta: string; colGenerator: string; colTxs: string; colFees: string; newer: string; older: string; page: string; liveOnFirstPage: string; rollbackMarker: string; loadError: string; empty: string }
+  block: { title: string; notFound: string; backToList: string; panelBlock: string; panelNode: string; id: string; time: string; delta: string; generator: string; reward: string; rewardValue: string; transactions: string; payload: string; baseTarget: string; avgCommitment: string; cumulativeDifficulty: string; generationSignature: string; previousBlock: string; rollback: string; rollbackText: string; rollbackFrom: string; txTitle: string; colId: string; colType: string; colFrom: string; colTo: string; colAmount: string; colFee: string; noTransactions: string; loadError: string }
 }
 
 const en: Locale = {
@@ -241,6 +242,38 @@ const en: Locale = {
     rollbackMarker: 'Replaced by a rollback of {{count}} blocks on this node – see the network page',
     loadError: 'Could not load the blocks',
     empty: 'No blocks',
+  },
+  block: {
+    title: 'Block {{height}}',
+    notFound: 'Block not found',
+    backToList: 'Back to the block list',
+    panelBlock: 'Block',
+    panelNode: 'Node view',
+    id: 'ID',
+    time: 'Time',
+    delta: 'Δt',
+    generator: 'Generator',
+    reward: 'Reward',
+    rewardValue: '{{reward}} + {{fees}} fees',
+    transactions: 'Transactions',
+    payload: 'Payload',
+    baseTarget: 'Base target',
+    avgCommitment: 'Ø Commitment',
+    cumulativeDifficulty: 'Cumulative difficulty',
+    generationSignature: 'Generation signature',
+    previousBlock: 'Previous block',
+    rollback: 'Rollback',
+    rollbackText: 'Replaced by a rollback of {{count}} blocks, {{ago}}',
+    rollbackFrom: 'from {{peer}}',
+    txTitle: 'Transactions ({{count}})',
+    colId: 'ID',
+    colType: 'Type',
+    colFrom: 'From',
+    colTo: 'To',
+    colAmount: 'Amount',
+    colFee: 'Fee',
+    noTransactions: 'No transactions',
+    loadError: 'Could not load the data',
   },
 }
 

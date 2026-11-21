@@ -10,6 +10,7 @@ import {
   hasOlderPage,
   parseHeightParam,
   relativeTime,
+  txTypeName,
 } from './blocks.utils'
 
 const TIP = 1_607_462
@@ -163,5 +164,24 @@ describe('relativeTime', () => {
 
   it('never says "in" for a clock slightly ahead', () => {
     expect(relativeTime(-3, 'en')).toBe('0 seconds ago')
+  })
+})
+
+describe('txTypeName', () => {
+  const constants = {
+    addressPrefix: 'S',
+    transactionTypes: [
+      { value: 0, description: 'Payment', subtypes: [{ value: 0, description: 'Ordinary Payment' }] },
+    ],
+  }
+
+  it('names type and subtype from the node constants', () => {
+    expect(txTypeName(constants, 0, 0)).toBe('Ordinary Payment')
+  })
+
+  it('falls back to the numbers when the constants do not know the pair', () => {
+    expect(txTypeName(constants, 0, 9)).toBe('0/9')
+    expect(txTypeName(constants, 22, 1)).toBe('22/1')
+    expect(txTypeName(undefined, 0, 0)).toBe('0/0')
   })
 })

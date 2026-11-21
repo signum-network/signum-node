@@ -1,4 +1,4 @@
-import type { ForkEvent } from '@/lib/nodeApi'
+import type { Constants, ForkEvent } from '@/lib/nodeApi'
 
 export type SearchTarget =
   | { kind: 'height'; height: number }
@@ -103,4 +103,12 @@ export function relativeTime(ageSeconds: number, locale: string): string {
   if (age < 3_600) return format.format(-Math.round(age / 60), 'minute')
   if (age < 86_400) return format.format(-Math.round(age / 3_600), 'hour')
   return format.format(-Math.round(age / 86_400), 'day')
+}
+
+/** The subtype's name from the node constants, e.g. "Ordinary Payment"; `type/subtype` if unknown. */
+export function txTypeName(constants: Constants | undefined, type: number, subtype: number): string {
+  const name = constants?.transactionTypes
+    .find((t) => t.value === type)
+    ?.subtypes.find((s) => s.value === subtype)?.description
+  return name ?? `${type}/${subtype}`
 }

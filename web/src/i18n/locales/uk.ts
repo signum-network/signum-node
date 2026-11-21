@@ -284,6 +284,19 @@ const uk: Locale = {
     colIssuer: 'Емітент',
     metaMissing: 'немає даних – вихідна кількість',
   },
+  contracts: {
+    empty: 'Немає розгорнутих контрактів',
+    colName: 'Назва',
+    colAddress: 'Адреса',
+    colState: 'Стан',
+    colBalance: 'Баланс',
+    colCreated: 'Створено в блоці',
+    dead: 'мертвий',
+    finished: 'завершено',
+    frozen: 'заморожено',
+    running: 'працює',
+    stopped: 'зупинено',
+  },
 }
 
 export default uk

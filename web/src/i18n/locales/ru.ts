@@ -284,6 +284,19 @@ const ru: Locale = {
     colIssuer: 'Эмитент',
     metaMissing: 'нет данных – исходное количество',
   },
+  contracts: {
+    empty: 'Нет развёрнутых контрактов',
+    colName: 'Название',
+    colAddress: 'Адрес',
+    colState: 'Состояние',
+    colBalance: 'Баланс',
+    colCreated: 'Создан в блоке',
+    dead: 'мёртв',
+    finished: 'завершён',
+    frozen: 'заморожен',
+    running: 'работает',
+    stopped: 'остановлен',
+  },
 }
 
 export default ru

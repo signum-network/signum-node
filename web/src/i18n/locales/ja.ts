@@ -284,6 +284,19 @@ const ja: Locale = {
     colIssuer: '発行者',
     metaMissing: '詳細を取得できません – 生の数量',
   },
+  contracts: {
+    empty: 'デプロイしたコントラクトなし',
+    colName: '名前',
+    colAddress: 'アドレス',
+    colState: '状態',
+    colBalance: '残高',
+    colCreated: '作成ブロック',
+    dead: '停止（死亡）',
+    finished: '完了',
+    frozen: '凍結',
+    running: '実行中',
+    stopped: '停止中',
+  },
 }
 
 export default ja

@@ -59,6 +59,7 @@ export interface Locale {
   blockPeers: { peers: string; peerCheck: string; peerChecking: string; peerResult: string; peerMissing: string; peerNotYet: string; peerNoAnswer: string; peerBusy: string; peerTooOld: string; peerError: string }
   accountTabs: { overview: string; tokens: string; contracts: string; aliases: string; subscriptions: string }
   tokens: { empty: string; colName: string; colBalance: string; colToken: string; colIssuer: string; metaMissing: string }
+  contracts: { empty: string; colName: string; colAddress: string; colState: string; colBalance: string; colCreated: string; dead: string; finished: string; frozen: string; running: string; stopped: string }
 }
 
 const en: Locale = {
@@ -344,6 +345,19 @@ const en: Locale = {
     colToken: 'Token ID',
     colIssuer: 'Issuer',
     metaMissing: 'details unavailable – raw quantity',
+  },
+  contracts: {
+    empty: 'No contracts deployed',
+    colName: 'Name',
+    colAddress: 'Address',
+    colState: 'State',
+    colBalance: 'Balance',
+    colCreated: 'Created at block',
+    dead: 'dead',
+    finished: 'finished',
+    frozen: 'frozen',
+    running: 'running',
+    stopped: 'stopped',
   },
 }
 

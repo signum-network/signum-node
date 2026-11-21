@@ -284,6 +284,19 @@ const zh: Locale = {
     colIssuer: '发行者',
     metaMissing: '详情不可用 – 原始数量',
   },
+  contracts: {
+    empty: '没有部署的合约',
+    colName: '名称',
+    colAddress: '地址',
+    colState: '状态',
+    colBalance: '余额',
+    colCreated: '创建区块',
+    dead: '已失效',
+    finished: '已完成',
+    frozen: '已冻结',
+    running: '运行中',
+    stopped: '已停止',
+  },
 }
 
 export default zh

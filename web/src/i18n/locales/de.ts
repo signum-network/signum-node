@@ -284,6 +284,19 @@ const de: Locale = {
     colIssuer: 'Herausgeber',
     metaMissing: 'Details nicht verfügbar – Rohmenge',
   },
+  contracts: {
+    empty: 'Keine Contracts deployt',
+    colName: 'Name',
+    colAddress: 'Adresse',
+    colState: 'Zustand',
+    colBalance: 'Kontostand',
+    colCreated: 'Erstellt in Block',
+    dead: 'tot',
+    finished: 'beendet',
+    frozen: 'eingefroren',
+    running: 'läuft',
+    stopped: 'angehalten',
+  },
 }
 
 export default de

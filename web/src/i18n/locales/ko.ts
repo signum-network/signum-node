@@ -284,6 +284,19 @@ const ko: Locale = {
     colIssuer: '발행자',
     metaMissing: '세부 정보 없음 – 원시 수량',
   },
+  contracts: {
+    empty: '배포한 컨트랙트 없음',
+    colName: '이름',
+    colAddress: '주소',
+    colState: '상태',
+    colBalance: '잔액',
+    colCreated: '생성 블록',
+    dead: '종료됨',
+    finished: '완료',
+    frozen: '동결',
+    running: '실행 중',
+    stopped: '중지됨',
+  },
 }
 
 export default ko

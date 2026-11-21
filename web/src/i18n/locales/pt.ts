@@ -284,6 +284,19 @@ const pt: Locale = {
     colIssuer: 'Emissor',
     metaMissing: 'detalhes indisponíveis – quantidade bruta',
   },
+  contracts: {
+    empty: 'Nenhum contrato implantado',
+    colName: 'Nome',
+    colAddress: 'Endereço',
+    colState: 'Estado',
+    colBalance: 'Saldo',
+    colCreated: 'Criado no bloco',
+    dead: 'morto',
+    finished: 'concluído',
+    frozen: 'congelado',
+    running: 'em execução',
+    stopped: 'parado',
+  },
 }
 
 export default pt

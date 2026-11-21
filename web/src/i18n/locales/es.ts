@@ -284,6 +284,19 @@ const es: Locale = {
     colIssuer: 'Emisor',
     metaMissing: 'detalles no disponibles – cantidad bruta',
   },
+  contracts: {
+    empty: 'Sin contratos desplegados',
+    colName: 'Nombre',
+    colAddress: 'Dirección',
+    colState: 'Estado',
+    colBalance: 'Saldo',
+    colCreated: 'Creado en el bloque',
+    dead: 'muerto',
+    finished: 'terminado',
+    frozen: 'congelado',
+    running: 'en ejecución',
+    stopped: 'detenido',
+  },
 }
 
 export default es

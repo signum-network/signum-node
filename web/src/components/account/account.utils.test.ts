@@ -9,6 +9,7 @@ import {
   subscriptionTimesMs,
   limitConcurrency,
   parseAccountTab,
+  contractState,
 } from './account.utils'
 import { signumTimestampToMs } from '@/lib/nodeApi'
 
@@ -127,5 +128,18 @@ describe('parseAccountTab', () => {
   it('falls back to the overview', () => {
     expect(parseAccountTab('x')).toBe('overview')
     expect(parseAccountTab(undefined)).toBe('overview')
+  })
+})
+
+describe('contractState', () => {
+  const base = { dead: false, finished: false, frozen: false, running: false, stopped: false }
+
+  it('reports the most final state first', () => {
+    expect(contractState({ ...base, dead: true, finished: true, running: true })).toBe('dead')
+    expect(contractState({ ...base, finished: true, frozen: true })).toBe('finished')
+    expect(contractState({ ...base, frozen: true, running: true })).toBe('frozen')
+    expect(contractState({ ...base, running: true })).toBe('running')
+    expect(contractState({ ...base, stopped: true })).toBe('stopped')
+    expect(contractState(base)).toBe('stopped')
   })
 })

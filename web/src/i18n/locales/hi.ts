@@ -284,6 +284,19 @@ const hi: Locale = {
     colIssuer: 'जारीकर्ता',
     metaMissing: 'विवरण उपलब्ध नहीं – मूल मात्रा',
   },
+  contracts: {
+    empty: 'कोई कॉन्ट्रैक्ट तैनात नहीं',
+    colName: 'नाम',
+    colAddress: 'पता',
+    colState: 'स्थिति',
+    colBalance: 'शेष',
+    colCreated: 'ब्लॉक में बनाया',
+    dead: 'निष्क्रिय',
+    finished: 'समाप्त',
+    frozen: 'जमा हुआ',
+    running: 'चल रहा है',
+    stopped: 'रुका हुआ',
+  },
 }
 
 export default hi

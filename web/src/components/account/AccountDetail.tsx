@@ -15,6 +15,7 @@ import { signumTimestampToMs, type AccountDetail as Account, type BlockDetail } 
 import { fmtNqt } from '@/lib/utils'
 import { AccountTabs } from './AccountTabs'
 import { TokensTab } from './tabs/TokensTab'
+import { ContractsTab } from './tabs/ContractsTab'
 import type { AccountTab } from './account.utils'
 
 function Overview({ account }: { account: Account }) {
@@ -142,6 +143,7 @@ export function AccountDetail({ id, tab }: { id: string; tab: AccountTab }) {
         <AccountTabs active={tab} onSelect={selectTab} />
         {tab === 'overview' && <OverviewTab id={id} />}
         {tab === 'tokens' && <TokensTab account={account} />}
+        {tab === 'contracts' && <ContractsTab accountId={account.account} />}
       </>
     )
   })()

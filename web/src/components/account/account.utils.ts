@@ -1,4 +1,4 @@
-import { signumTimestampToMs, type Subscription } from '@/lib/nodeApi'
+import { signumTimestampToMs, type Contract, type Subscription } from '@/lib/nodeApi'
 
 const MIN_VALID_MS = 60_000
 const MAX_VALID_MS = 300_000
@@ -75,4 +75,15 @@ export type AccountTab = (typeof ACCOUNT_TABS)[number]
 /** The `?tab=` value of the account page; anything unknown shows the overview. */
 export function parseAccountTab(value: unknown): AccountTab {
   return (ACCOUNT_TABS as readonly unknown[]).includes(value) ? (value as AccountTab) : 'overview'
+}
+
+export type ContractState = 'dead' | 'finished' | 'frozen' | 'running' | 'stopped'
+
+/** One state for the status flags of a contract, the most final first. */
+export function contractState(c: Pick<Contract, 'dead' | 'finished' | 'frozen' | 'running' | 'stopped'>): ContractState {
+  if (c.dead) return 'dead'
+  if (c.finished) return 'finished'
+  if (c.frozen) return 'frozen'
+  if (c.running) return 'running'
+  return 'stopped'
 }

@@ -6,6 +6,7 @@ import {
   fetchLatestRelease,
   isDismissed,
   dismiss,
+  browserStorage,
   OK_TTL_MS,
   FAIL_TTL_MS,
   type KeyValueStore,
@@ -151,5 +152,12 @@ describe('dismiss', () => {
     expect(() => dismiss(throwingStore, 'v3.10.0')).not.toThrow()
     expect(isDismissed(throwingStore, 'v3.10.0')).toBe(false)
     expect(isDismissed(null, 'v3.10.0')).toBe(false)
+  })
+})
+
+describe('browserStorage', () => {
+  it('returns null where there is no window storage', () => {
+    // vitest runs in node: no window, the access throws and must be caught
+    expect(browserStorage()).toBeNull()
   })
 })

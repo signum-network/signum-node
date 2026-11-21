@@ -328,6 +328,11 @@ const hi: Locale = {
     everyDays: 'हर {{count}} दि.',
     everyWeeks: 'हर {{count}} सप्ता.',
   },
+  update: {
+    available: 'Signum Node {{latest}} उपलब्ध है (यह नोड {{current}} चला रहा है)',
+    releaseNotes: 'रिलीज़ नोट्स',
+    dismiss: 'छिपाएँ',
+  },
 }
 
 export default hi

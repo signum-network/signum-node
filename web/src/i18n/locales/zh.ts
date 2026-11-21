@@ -328,6 +328,11 @@ const zh: Locale = {
     everyDays: '每 {{count}} 天',
     everyWeeks: '每 {{count}} 周',
   },
+  update: {
+    available: 'Signum Node {{latest}} 已发布（本节点运行 {{current}}）',
+    releaseNotes: '发布说明',
+    dismiss: '隐藏',
+  },
 }
 
 export default zh

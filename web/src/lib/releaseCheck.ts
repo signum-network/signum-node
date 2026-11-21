@@ -108,3 +108,12 @@ export function isDismissed(store: KeyValueStore | null, version: string): boole
 export function dismiss(store: KeyValueStore | null, version: string): void {
   write(store, DISMISS_KEY, version)
 }
+
+/** `window.localStorage`, or `null` where the browser blocks it (accessing it can throw). */
+export function browserStorage(): KeyValueStore | null {
+  try {
+    return window.localStorage
+  } catch {
+    return null
+  }
+}

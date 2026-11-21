@@ -62,6 +62,7 @@ export interface Locale {
   aliases: { empty: string; colAlias: string; colUri: string; colUpdated: string; colOffer: string; colRenewal: string; renewsOn: string; renewalDue: string; noExpiry: string }
   subscriptions: { outgoing: string; incoming: string; empty: string; colCounterpart: string; colAmount: string; colFrequency: string; colNext: string; colAlias: string; due: string }
   frequency: { everyMinutes: string; everyHours: string; everyDays: string; everyWeeks: string }
+  update: { available: string; releaseNotes: string; dismiss: string }
 }
 
 const en: Locale = {
@@ -391,6 +392,11 @@ const en: Locale = {
     everyHours: 'every {{count}} h',
     everyDays: 'every {{count}} d',
     everyWeeks: 'every {{count}} wk',
+  },
+  update: {
+    available: 'Signum Node {{latest}} is available (this node runs {{current}})',
+    releaseNotes: 'Release notes',
+    dismiss: 'Dismiss',
   },
 }
 

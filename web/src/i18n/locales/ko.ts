@@ -328,6 +328,11 @@ const ko: Locale = {
     everyDays: '{{count}}일마다',
     everyWeeks: '{{count}}주마다',
   },
+  update: {
+    available: 'Signum Node {{latest}} 사용 가능 (이 노드는 {{current}} 실행 중)',
+    releaseNotes: '릴리스 노트',
+    dismiss: '닫기',
+  },
 }
 
 export default ko

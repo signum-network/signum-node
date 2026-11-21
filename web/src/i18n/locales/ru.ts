@@ -328,6 +328,11 @@ const ru: Locale = {
     everyDays: 'каждые {{count}} дн.',
     everyWeeks: 'каждые {{count}} нед.',
   },
+  update: {
+    available: 'Доступен Signum Node {{latest}} (на этом узле {{current}})',
+    releaseNotes: 'Примечания к выпуску',
+    dismiss: 'Скрыть',
+  },
 }
 
 export default ru

@@ -328,6 +328,11 @@ const de: Locale = {
     everyDays: 'alle {{count}} Tg.',
     everyWeeks: 'alle {{count}} Wo.',
   },
+  update: {
+    available: 'Signum Node {{latest}} ist verfügbar (dieser Node läuft mit {{current}})',
+    releaseNotes: 'Release-Notes',
+    dismiss: 'Ausblenden',
+  },
 }
 
 export default de

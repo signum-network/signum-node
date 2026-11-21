@@ -33,6 +33,7 @@ import { computeValidUntil, consistentFetch, limitConcurrency, shouldRefetchOver
 import { anchoredRange, blocksFrom, pageRange, PAGE_SIZE } from '@/lib/blocks'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNodeSocket } from './useNodeSocket'
+import { browserStorage, fetchLatestRelease, OK_TTL_MS } from '@/lib/releaseCheck'
 
 type NodeQueryOptions<TData, TResult = TData> = Omit<
   UseQueryOptions<TData, Error, TResult>,
@@ -329,4 +330,15 @@ export function useRefetchWhenOverdue(hasOverdue: boolean, forgetKey: string | u
     if (!forgetKey || !shouldRefetchOverdue(previous, lastBlock, hasOverdue)) return
     void clientCache.forget(forgetKey).then(refetch)
   }, [lastBlock, hasOverdue, forgetKey, refetch])
+}
+
+/** The newest stable release on GitHub (asked by the browser, cached 6 h in localStorage). */
+export function useLatestRelease() {
+  return useQuery({
+    queryKey: ['latestRelease'],
+    queryFn: () => fetchLatestRelease({ store: browserStorage(), fetch: (...a) => fetch(...a), now: Date.now }),
+    staleTime: OK_TTL_MS,
+    retry: false,
+    refetchOnWindowFocus: false,
+  })
 }

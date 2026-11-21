@@ -328,6 +328,11 @@ const ja: Locale = {
     everyDays: '{{count}} 日ごと',
     everyWeeks: '{{count}} 週ごと',
   },
+  update: {
+    available: 'Signum Node {{latest}} が利用可能です（このノードは {{current}}）',
+    releaseNotes: 'リリースノート',
+    dismiss: '閉じる',
+  },
 }
 
 export default ja

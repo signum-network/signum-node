@@ -328,6 +328,11 @@ const uk: Locale = {
     everyDays: 'кожні {{count}} дн.',
     everyWeeks: 'кожні {{count}} тиж.',
   },
+  update: {
+    available: 'Доступний Signum Node {{latest}} (на цьому вузлі {{current}})',
+    releaseNotes: 'Примітки до випуску',
+    dismiss: 'Сховати',
+  },
 }
 
 export default uk

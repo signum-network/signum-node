@@ -3,6 +3,7 @@ import { Outlet, useLocation } from '@tanstack/react-router'
 import { AnimatePresence } from 'framer-motion'
 import { Shell } from '@/components/layout/Shell'
 import { Topbar } from '@/components/layout/topbar'
+import { UpdateBanner } from '@/components/layout/UpdateBanner'
 import { NodeSocketContext, useNodeSocketProvider } from '@/hooks/useNodeSocket'
 import { ThemeProvider } from '@/theme/ThemeProvider'
 import { AudioProvider } from '@/audio'
@@ -25,6 +26,7 @@ export default function RootLayout() {
         <NodeSocketProvider>
           <Shell>
             <Topbar />
+            <UpdateBanner />
             <AnimatePresence mode="wait">
               <Outlet key={location.pathname} />
             </AnimatePresence>

@@ -10,6 +10,7 @@ import brs.util.ThreadPool;
 import brs.web.api.http.common.APITransactionManager;
 import signum.net.NetworkParameters;
 import brs.services.NetworkAnalysisService;
+import brs.services.NodeHealthService;
 
 public class WebServerContext {
     private final TransactionProcessor transactionProcessor;
@@ -35,10 +36,11 @@ public class WebServerContext {
     private final DeeplinkQRCodeGenerator deepLinkQRCodeGenerator;
     private final IndirectIncomingService indirectIncomingService;
     private final NetworkAnalysisService networkAnalysisService;
+    private final NodeHealthService nodeHealthService;
     private final NetworkParameters params;
     private final ClockDriftMonitor clockDriftMonitor;
 
-    public WebServerContext(TransactionProcessor transactionProcessor, Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService, AccountService accountService, AliasService aliasService, AssetExchange assetExchange, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService, SubscriptionService subscriptionService, ATService atService, TimeService timeService, EconomicClustering economicClustering, PropertyService propertyService, ThreadPool threadPool, TransactionService transactionService, BlockService blockService, Generator generator, APITransactionManager apiTransactionManager, FeeSuggestionCalculator feeSuggestionCalculator, DeeplinkQRCodeGenerator deepLinkQRCodeGenerator, IndirectIncomingService indirectIncomingService, NetworkAnalysisService networkAnalysisService, NetworkParameters params, ClockDriftMonitor clockDriftMonitor) {
+    public WebServerContext(TransactionProcessor transactionProcessor, Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService, AccountService accountService, AliasService aliasService, AssetExchange assetExchange, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService, SubscriptionService subscriptionService, ATService atService, TimeService timeService, EconomicClustering economicClustering, PropertyService propertyService, ThreadPool threadPool, TransactionService transactionService, BlockService blockService, Generator generator, APITransactionManager apiTransactionManager, FeeSuggestionCalculator feeSuggestionCalculator, DeeplinkQRCodeGenerator deepLinkQRCodeGenerator, IndirectIncomingService indirectIncomingService, NetworkAnalysisService networkAnalysisService, NodeHealthService nodeHealthService, NetworkParameters params, ClockDriftMonitor clockDriftMonitor) {
         this.transactionProcessor = transactionProcessor;
         this.blockchain = blockchain;
         this.blockchainProcessor = blockchainProcessor;
@@ -62,6 +64,7 @@ public class WebServerContext {
         this.deepLinkQRCodeGenerator = deepLinkQRCodeGenerator;
         this.indirectIncomingService = indirectIncomingService;
         this.networkAnalysisService = networkAnalysisService;
+        this.nodeHealthService = nodeHealthService;
         this.params = params;
         this.clockDriftMonitor = clockDriftMonitor;
     }
@@ -160,6 +163,10 @@ public class WebServerContext {
 
     public NetworkAnalysisService getNetworkAnalysisService() {
         return networkAnalysisService;
+    }
+
+    public NodeHealthService getNodeHealthService() {
+        return nodeHealthService;
     }
 
     public NetworkParameters getNetworkParameters() {

@@ -228,6 +228,7 @@ public final class ApiServlet extends HttpServlet {
       map.put("findForkPoint", new FindForkPoint(networkAnalysisService));
       map.put("getBlacklist", new GetBlacklist(networkAnalysisService));
       map.put("getBlockPeerStatus", new GetBlockPeerStatus(networkAnalysisService));
+      map.put("getNodeHealth", new GetNodeHealth(context.getNodeHealthService()));
     }
 
     return Collections.unmodifiableMap(map);

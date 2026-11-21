@@ -548,6 +548,8 @@ public final class Signum {
             final brs.services.NetworkAnalysisService networkAnalysisService =
                     new brs.services.impl.NetworkAnalysisServiceImpl(blockchain, propertyService);
             blockchainProcessor.addRollbackListener(networkAnalysisService::recordRollback);
+            final brs.services.NodeHealthService nodeHealthService = new brs.services.impl.NodeHealthServiceImpl(
+                    brs.db.sql.Db.getDatabaseInstance(), new brs.peer.PeersServerFacts());
 
             webServer = new WebServerImpl(new WebServerContext(transactionProcessor,
                     blockchain,
@@ -572,6 +574,7 @@ public final class Signum {
                     deepLinkQrCodeGenerator,
                     indirectIncomingService,
                     networkAnalysisService,
+                    nodeHealthService,
                     params,
                     clockDriftMonitor));
             webServer.start();

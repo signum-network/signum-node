@@ -12,6 +12,8 @@ import brs.props.Props;
 import brs.services.NetworkAnalysisService;
 import brs.services.impl.PeerBlockProbe.ProbeResult;
 import brs.util.Convert;
+import brs.services.BlockPeerCheck.Outcome;
+import brs.services.BlockPeerCheck;
 import brs.util.JSON;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -28,11 +30,13 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
 public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
@@ -62,6 +66,15 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
     private final Object refreshLock = new Object();
     private final ScheduledExecutorService scheduler;
     private final long probeTimeoutMs;
+    private final LongSupplier clock;
+
+    /** Blocks asked about: only near the tip, where forks happen (about one day). */
+    static final int RECENT_BLOCKS = 360;
+    static final long BLOCK_CHECK_CACHE_TTL_MS = 60_000;
+    private final Map<Long, BlockPeerCheck> blockChecks = new ConcurrentHashMap<>();
+    private final Object blockCheckLock = new Object();
+    private long runningBlockId;
+    private CompletableFuture<BlockPeerCheck> runningBlockCheck;
 
     public NetworkAnalysisServiceImpl(Blockchain blockchain, PropertyService propertyService) {
         this(blockchain, propertyService, () -> Peers.getPeers(Peer.State.CONNECTED), new P2PPeerBlockProbe(),
@@ -76,6 +89,15 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
     NetworkAnalysisServiceImpl(Blockchain blockchain, PropertyService propertyService,
             Supplier<Collection<Peer>> connectedPeers, PeerBlockProbe probe,
             ScheduledExecutorService scheduler, ExecutorService probePool, long probeTimeoutMs) {
+        this(blockchain, propertyService, connectedPeers, probe, scheduler, probePool, probeTimeoutMs,
+                System::currentTimeMillis);
+    }
+
+    NetworkAnalysisServiceImpl(Blockchain blockchain, PropertyService propertyService,
+            Supplier<Collection<Peer>> connectedPeers, PeerBlockProbe probe,
+            ScheduledExecutorService scheduler, ExecutorService probePool, long probeTimeoutMs,
+            LongSupplier clock) {
+        this.clock = clock;
         this.blockchain = blockchain;
         this.propertyService = propertyService;
         this.connectedPeers = connectedPeers;
@@ -291,6 +313,70 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
         result.add("blacklisted", blacklisted);
         result.addProperty("count", blacklisted.size());
         return result;
+    }
+
+    @Override
+    public BlockPeerCheck checkBlockPeers(long blockId) {
+        Block block = blockchain.getBlock(blockId);
+        if (block == null) {
+            return BlockPeerCheck.without(Outcome.UNKNOWN_BLOCK, blockId, 0);
+        }
+        int height = block.getHeight();
+        if (height < blockchain.getHeight() - RECENT_BLOCKS) {
+            return BlockPeerCheck.without(Outcome.TOO_OLD, blockId, height);
+        }
+        CompletableFuture<BlockPeerCheck> round;
+        synchronized (blockCheckLock) {
+            long now = clock.getAsLong();
+            blockChecks.values().removeIf(check -> now - check.checkedAt() >= BLOCK_CHECK_CACHE_TTL_MS);
+            BlockPeerCheck cached = blockChecks.get(blockId);
+            if (cached != null) {
+                return cached;
+            }
+            if (runningBlockCheck != null && !runningBlockCheck.isDone()) {
+                // one round at a time: a request for the same block waits for it, any other is turned away
+                if (runningBlockId != blockId) {
+                    return BlockPeerCheck.without(Outcome.BUSY, blockId, height);
+                }
+                round = runningBlockCheck;
+            } else {
+                runningBlockId = blockId;
+                runningBlockCheck = round = startBlockCheck(blockId, height, now);
+            }
+        }
+        return round.join();
+    }
+
+    /** Asks every connected peer in parallel, each bounded by the probe deadline. */
+    private CompletableFuture<BlockPeerCheck> startBlockCheck(long blockId, int height, long startedAt) {
+        List<CompletableFuture<BlockPeerState>> answers = new ArrayList<>();
+        for (Peer peer : connectedPeers.get()) {
+            int peerHeight = peer.getLastKnownHeight();
+            if (peer.isBlacklisted() || peerHeight < 0) continue;
+            answers.add(CompletableFuture
+                    .supplyAsync(() -> askForBlock(peer, peerHeight, blockId, height), probePool)
+                    .completeOnTimeout(BlockPeerState.NO_ANSWER, probeTimeoutMs, TimeUnit.MILLISECONDS));
+        }
+        return CompletableFuture.allOf(answers.toArray(new CompletableFuture[0])).thenApply(done -> {
+            Map<BlockPeerState, Integer> counts = new EnumMap<>(BlockPeerState.class);
+            answers.forEach(answer -> counts.merge(answer.join(), 1, Integer::sum));
+            BlockPeerCheck check = new BlockPeerCheck(Outcome.OK, blockId, height,
+                    counts.getOrDefault(BlockPeerState.HAS_IT, 0), counts.getOrDefault(BlockPeerState.MISSING, 0),
+                    counts.getOrDefault(BlockPeerState.NOT_YET, 0), counts.getOrDefault(BlockPeerState.NO_ANSWER, 0),
+                    startedAt);
+            blockChecks.put(blockId, check);
+            return check;
+        });
+    }
+
+    /** Asks one peer; any failure counts as no answer from this peer only. */
+    private BlockPeerState askForBlock(Peer peer, int peerHeight, long blockId, int blockHeight) {
+        try {
+            return BlockPeerClassifier.classify(probe.probe(peer, blockId), peerHeight, blockHeight);
+        } catch (RuntimeException e) {
+            logger.debug("Block check failed for peer {}", peer.getPeerAddress(), e);
+            return BlockPeerState.NO_ANSWER;
+        }
     }
 
     @Override

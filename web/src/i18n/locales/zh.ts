@@ -219,6 +219,24 @@ const zh: Locale = {
     noTransactions: '没有交易',
     loadError: '无法加载数据',
   },
+  tx: {
+    section: '交易',
+    title: '详情',
+    notFound: '未找到交易',
+    backToList: '返回区块列表',
+    id: 'ID',
+    type: '类型',
+    sender: '发送方',
+    recipient: '接收方',
+    amount: '金额',
+    fee: '手续费',
+    block: '区块',
+    confirmations: '确认数',
+    time: '时间',
+    unconfirmed: '未确认',
+    attachment: '附件',
+    loadError: '无法加载交易',
+  },
 }
 
 export default zh

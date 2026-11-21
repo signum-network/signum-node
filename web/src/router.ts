@@ -4,6 +4,7 @@ import DashboardPage from './routes/index'
 import NetworkPage from './routes/network/index'
 import BlocksPage from './routes/blocks/index'
 import BlockDetailPage from './routes/blocks/detail'
+import TransactionPage from './routes/tx/detail'
 
 const rootRoute = createRootRoute({
   component: RootLayout,
@@ -38,13 +39,13 @@ const blockDetailRoute = createRoute({
   component: BlockDetailPage,
 })
 
-// detail pages follow; until then they lead back to the list
 const transactionRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/tx/$id',
-  beforeLoad: () => { throw redirect({ to: '/blocks', search: { page: 0 } }) },
+  component: TransactionPage,
 })
 
+// the account page follows; until then it leads back to the list
 const accountRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/accounts/$id',

@@ -54,6 +54,7 @@ export interface Locale {
   }
   blocks: { section: string; latest: string; searchPlaceholder: string; search: string; searching: string; notFound: string; colHeight: string; colTime: string; colDelta: string; colGenerator: string; colTxs: string; colFees: string; newer: string; older: string; page: string; liveOnFirstPage: string; rollbackMarker: string; loadError: string; empty: string }
   block: { title: string; notFound: string; backToList: string; panelBlock: string; panelNode: string; id: string; time: string; delta: string; generator: string; reward: string; rewardValue: string; transactions: string; payload: string; baseTarget: string; avgCommitment: string; cumulativeDifficulty: string; generationSignature: string; previousBlock: string; rollback: string; rollbackText: string; rollbackFrom: string; txTitle: string; colId: string; colType: string; colFrom: string; colTo: string; colAmount: string; colFee: string; noTransactions: string; loadError: string }
+  tx: { section: string; title: string; notFound: string; backToList: string; id: string; type: string; sender: string; recipient: string; amount: string; fee: string; block: string; confirmations: string; time: string; unconfirmed: string; attachment: string; loadError: string }
 }
 
 const en: Locale = {
@@ -274,6 +275,24 @@ const en: Locale = {
     colFee: 'Fee',
     noTransactions: 'No transactions',
     loadError: 'Could not load the data',
+  },
+  tx: {
+    section: 'Transaction',
+    title: 'Details',
+    notFound: 'Transaction not found',
+    backToList: 'Back to the block list',
+    id: 'ID',
+    type: 'Type',
+    sender: 'Sender',
+    recipient: 'Recipient',
+    amount: 'Amount',
+    fee: 'Fee',
+    block: 'Block',
+    confirmations: 'Confirmations',
+    time: 'Time',
+    unconfirmed: 'unconfirmed',
+    attachment: 'Attachment',
+    loadError: 'Could not load the transaction',
   },
 }
 

@@ -219,6 +219,24 @@ const hi: Locale = {
     noTransactions: 'कोई लेनदेन नहीं',
     loadError: 'डेटा लोड नहीं हो सका',
   },
+  tx: {
+    section: 'लेनदेन',
+    title: 'विवरण',
+    notFound: 'लेनदेन नहीं मिला',
+    backToList: 'ब्लॉक सूची पर वापस',
+    id: 'ID',
+    type: 'प्रकार',
+    sender: 'प्रेषक',
+    recipient: 'प्राप्तकर्ता',
+    amount: 'राशि',
+    fee: 'शुल्क',
+    block: 'ब्लॉक',
+    confirmations: 'पुष्टियाँ',
+    time: 'समय',
+    unconfirmed: 'अपुष्ट',
+    attachment: 'संलग्नक',
+    loadError: 'लेनदेन लोड नहीं हो सका',
+  },
 }
 
 export default hi

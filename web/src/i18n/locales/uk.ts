@@ -219,6 +219,24 @@ const uk: Locale = {
     noTransactions: 'Немає транзакцій',
     loadError: 'Не вдалося завантажити дані',
   },
+  tx: {
+    section: 'Транзакція',
+    title: 'Подробиці',
+    notFound: 'Транзакцію не знайдено',
+    backToList: 'До списку блоків',
+    id: 'ID',
+    type: 'Тип',
+    sender: 'Відправник',
+    recipient: 'Отримувач',
+    amount: 'Сума',
+    fee: 'Комісія',
+    block: 'Блок',
+    confirmations: 'Підтвердження',
+    time: 'Час',
+    unconfirmed: 'не підтверджена',
+    attachment: 'Вкладення',
+    loadError: 'Не вдалося завантажити транзакцію',
+  },
 }
 
 export default uk

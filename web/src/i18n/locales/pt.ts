@@ -219,6 +219,24 @@ const pt: Locale = {
     noTransactions: 'Sem transações',
     loadError: 'Não foi possível carregar os dados',
   },
+  tx: {
+    section: 'Transação',
+    title: 'Detalhes',
+    notFound: 'Transação não encontrada',
+    backToList: 'Voltar à lista de blocos',
+    id: 'ID',
+    type: 'Tipo',
+    sender: 'Remetente',
+    recipient: 'Destinatário',
+    amount: 'Valor',
+    fee: 'Taxa',
+    block: 'Bloco',
+    confirmations: 'Confirmações',
+    time: 'Hora',
+    unconfirmed: 'não confirmada',
+    attachment: 'Anexo',
+    loadError: 'Não foi possível carregar a transação',
+  },
 }
 
 export default pt

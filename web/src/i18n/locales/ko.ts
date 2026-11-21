@@ -219,6 +219,24 @@ const ko: Locale = {
     noTransactions: '트랜잭션 없음',
     loadError: '데이터를 불러오지 못했습니다',
   },
+  tx: {
+    section: '트랜잭션',
+    title: '세부 정보',
+    notFound: '트랜잭션을 찾을 수 없습니다',
+    backToList: '블록 목록으로',
+    id: 'ID',
+    type: '유형',
+    sender: '보낸 사람',
+    recipient: '받는 사람',
+    amount: '금액',
+    fee: '수수료',
+    block: '블록',
+    confirmations: '확인 수',
+    time: '시간',
+    unconfirmed: '미확인',
+    attachment: '첨부',
+    loadError: '트랜잭션을 불러오지 못했습니다',
+  },
 }
 
 export default ko

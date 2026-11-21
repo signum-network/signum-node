@@ -219,6 +219,24 @@ const de: Locale = {
     noTransactions: 'Keine Transaktionen',
     loadError: 'Daten konnten nicht geladen werden',
   },
+  tx: {
+    section: 'Transaktion',
+    title: 'Details',
+    notFound: 'Transaktion nicht gefunden',
+    backToList: 'Zurück zur Blockliste',
+    id: 'ID',
+    type: 'Typ',
+    sender: 'Absender',
+    recipient: 'Empfänger',
+    amount: 'Betrag',
+    fee: 'Gebühr',
+    block: 'Block',
+    confirmations: 'Bestätigungen',
+    time: 'Zeit',
+    unconfirmed: 'unbestätigt',
+    attachment: 'Anhang',
+    loadError: 'Transaktion konnte nicht geladen werden',
+  },
 }
 
 export default de

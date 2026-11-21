@@ -219,6 +219,24 @@ const ja: Locale = {
     noTransactions: 'トランザクションなし',
     loadError: 'データを読み込めませんでした',
   },
+  tx: {
+    section: 'トランザクション',
+    title: '詳細',
+    notFound: 'トランザクションが見つかりません',
+    backToList: 'ブロック一覧に戻る',
+    id: 'ID',
+    type: '種類',
+    sender: '送信者',
+    recipient: '受信者',
+    amount: '金額',
+    fee: '手数料',
+    block: 'ブロック',
+    confirmations: '承認数',
+    time: '時刻',
+    unconfirmed: '未承認',
+    attachment: '添付データ',
+    loadError: 'トランザクションを読み込めませんでした',
+  },
 }
 
 export default ja

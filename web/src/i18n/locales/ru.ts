@@ -219,6 +219,24 @@ const ru: Locale = {
     noTransactions: 'Нет транзакций',
     loadError: 'Не удалось загрузить данные',
   },
+  tx: {
+    section: 'Транзакция',
+    title: 'Подробности',
+    notFound: 'Транзакция не найдена',
+    backToList: 'К списку блоков',
+    id: 'ID',
+    type: 'Тип',
+    sender: 'Отправитель',
+    recipient: 'Получатель',
+    amount: 'Сумма',
+    fee: 'Комиссия',
+    block: 'Блок',
+    confirmations: 'Подтверждения',
+    time: 'Время',
+    unconfirmed: 'не подтверждена',
+    attachment: 'Вложение',
+    loadError: 'Не удалось загрузить транзакцию',
+  },
 }
 
 export default ru

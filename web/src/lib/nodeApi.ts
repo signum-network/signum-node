@@ -258,7 +258,28 @@ export interface FullBlockchainStatus {
   "indirectIncomingServiceEnabled": boolean,
   "databaseTrimmingEnabled": boolean,
   "requestProcessingTime": number
+  /** local clock offset in seconds (negative: behind); null while unknown */
+  "clockOffsetSeconds"?: number | null
+  "clockDrifting"?: boolean
+  /** median clock offset against peers in seconds; null while unknown */
+  "peerClockOffsetSeconds"?: number | null
 }
+
+/** getNodeHealth: web-UI-only, cached 60 s by the node */
+export interface NodeHealth {
+  startedAt: number
+  databaseType: string
+  databaseSizeBytes: number | null
+  freeDiskBytes: number | null
+  freeDiskScope: 'database' | 'node'
+  lastInboundPeerAt: number | null
+  lastLocalInboundPeerAt: number | null
+  peerServerRunning: boolean
+  announcesAddress: boolean
+  serverTime: number
+}
+
+export const getNodeHealth = () => query<NodeHealth>('getNodeHealth')
 
 export const getBlockchainStatus = () =>
   query<BlockchainStatus>('getBlockchainStatus')

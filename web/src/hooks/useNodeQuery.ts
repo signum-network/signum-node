@@ -1,5 +1,6 @@
 import { useQuery, useQueries, type UseQueryOptions } from '@tanstack/react-query'
 import {
+  getNodeHealth,
   getBlockchainStatus,
   getFullBlockchainStatus,
   getMiningInfo,
@@ -338,5 +339,17 @@ export function useLatestRelease() {
     queryKey: ['latestRelease'],
     queryFn: () => fetchLatestRelease({ store: browserStorage(), fetch: (...a) => fetch(...a), now: Date.now }),
     ...LATEST_RELEASE_QUERY_OPTIONS,
+  })
+}
+
+/**
+ * Node health (uptime, database, free disk, reachability), once a minute. A plain query on purpose:
+ * useNodeQuery stops polling while the WebSocket is connected, and no socket event covers this data.
+ */
+export function useNodeHealth() {
+  return useQuery({
+    queryKey: ['nodeHealth'],
+    queryFn: getNodeHealth,
+    refetchInterval: 60_000,
   })
 }

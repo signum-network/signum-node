@@ -3,6 +3,7 @@ import { Card, CardLabel, CardSkeleton } from '@/components/ui/Card'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { Badge } from '@/components/ui/Badge'
 import type { FullBlockchainStatus } from '@/lib/nodeApi'
+import { NodeHealthDetails } from './NodeHealthDetails'
 
 interface NodeHealthStripProps {
   fullStatus?: FullBlockchainStatus
@@ -85,6 +86,9 @@ export function NodeHealthStrip({ fullStatus, isLoading }: NodeHealthStripProps)
         </div>
 
       </div>
+
+      <div className="my-4" style={{ borderTop: '1px solid var(--border)' }} />
+      <NodeHealthDetails fullStatus={fullStatus} />
     </Card>
   )
 }

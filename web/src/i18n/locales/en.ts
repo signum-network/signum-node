@@ -63,6 +63,7 @@ export interface Locale {
   subscriptions: { outgoing: string; incoming: string; empty: string; colCounterpart: string; colAmount: string; colFrequency: string; colNext: string; colAlias: string; due: string }
   frequency: { everyMinutes: string; everyHours: string; everyDays: string; everyWeeks: string }
   update: { available: string; releaseNotes: string; dismiss: string }
+  nodeHealth: { uptime: string; uptimeDays: string; uptimeHours: string; database: string; freeDisk: string; freeDiskDatabase: string; freeDiskNode: string; reachability: string; reachable: string; lastContact: string; localOnly: string; waiting: string; noAddress: string; noContact: string; off: string; hintLocalOnly: string; hintNoAddress: string; hintNoContact: string; hintOff: string; clock: string; clockValue: string; clockUnknown: string }
 }
 
 const en: Locale = {
@@ -397,6 +398,30 @@ const en: Locale = {
     available: 'Signum Node {{latest}} is available (this node runs {{current}})',
     releaseNotes: 'Release notes',
     dismiss: 'Dismiss',
+  },
+  nodeHealth: {
+    uptime: 'Uptime',
+    uptimeDays: '{{days}} d {{hours}} h',
+    uptimeHours: '{{hours}} h {{minutes}} min',
+    database: 'Database',
+    freeDisk: 'Free disk',
+    freeDiskDatabase: 'DB volume',
+    freeDiskNode: 'node folder',
+    reachability: 'Reachability',
+    reachable: 'reachable',
+    lastContact: 'last inbound contact {{ago}}',
+    localOnly: 'local contact only',
+    waiting: 'waiting for contact',
+    noAddress: 'no public address',
+    noContact: 'no inbound contact',
+    off: 'P2P server off',
+    hintLocalOnly: 'Contacts come only from local addresses – behind a reverse proxy or container the real source may be hidden',
+    hintNoAddress: 'Set P2P.myAddress – without an announced address other nodes do not pass this node on',
+    hintNoContact: 'No other node connected in 30 min – check port forwarding and firewall for the P2P port',
+    hintOff: 'P2P.shareMyAddress is off – other nodes cannot connect',
+    clock: 'Clock',
+    clockValue: '{{own}} s · peers {{peers}} s',
+    clockUnknown: 'unknown',
   },
 }
 

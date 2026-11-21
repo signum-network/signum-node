@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ACCOUNT_TABS, nextTabIndex, type AccountTab } from './account.utils'
+import { scrollLeftToShow } from '@/lib/blocks'
 
 const KEYS = ['ArrowRight', 'ArrowLeft', 'Home', 'End'] as const
 
@@ -13,8 +14,11 @@ export function AccountTabs({ active, onSelect }: { active: AccountTab; onSelect
   const buttons = useRef<(HTMLButtonElement | null)[]>([])
   const activeIndex = ACCOUNT_TABS.indexOf(active)
 
+  // keep the active tab in view by scrolling the bar sideways only, never the page
+  const bar = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    buttons.current[activeIndex]?.scrollIntoView({ inline: 'nearest', block: 'nearest' })
+    const button = buttons.current[activeIndex]
+    if (bar.current && button) bar.current.scrollLeft = scrollLeftToShow(bar.current, button)
   }, [activeIndex])
 
   const onKeyDown = (event: React.KeyboardEvent) => {
@@ -28,10 +32,11 @@ export function AccountTabs({ active, onSelect }: { active: AccountTab; onSelect
 
   return (
     <div
+      ref={bar}
       role="tablist"
       aria-label={t('account.section')}
       onKeyDown={onKeyDown}
-      className="themed-scroll flex gap-1 overflow-x-auto"
+      className="themed-scroll relative flex gap-1 overflow-x-auto"
       style={{ borderBottom: '1px solid var(--border)' }}
     >
       {ACCOUNT_TABS.map((tab, i) => (

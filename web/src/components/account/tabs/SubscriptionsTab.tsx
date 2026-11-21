@@ -12,7 +12,7 @@ import {
 } from '@/hooks/useNodeQuery'
 import { signumTimestampToMs, type Subscription } from '@/lib/nodeApi'
 import { fmtNqt } from '@/lib/utils'
-import { isOverdue, splitSubscriptions } from '../account.utils'
+import { isOverdue, showErrorInsteadOfData, splitSubscriptions } from '../account.utils'
 import { EmptyRow, TabTable } from './TabTable'
 import { useFrequencyText } from './useFrequencyText'
 
@@ -74,7 +74,7 @@ export function SubscriptionsTab({ accountId }: { accountId: string }) {
   useRefetchWhenOverdue(anyOverdue, genesis && subscriptionsCacheKey(genesis, accountId), refetchNow)
 
   if (isLoading) return <Card><div className="h-4 w-48"><CardSkeleton /></div></Card>
-  if (isError) return <Card><p className="text-[11px]" style={{ color: 'var(--gold)' }}>{t('account.loadError')}</p></Card>
+  if (showErrorInsteadOfData(isError, data)) return <Card><p className="text-[11px]" style={{ color: 'var(--gold)' }}>{t('account.loadError')}</p></Card>
   return (
     <div className="grid grid-cols-1 gap-3 md:gap-4">
       <SubscriptionList title={t('subscriptions.outgoing')} subscriptions={outgoing} counterpart={(s) => ({ id: s.recipient, rs: s.recipientRS })} nodeTime={nodeTime} />

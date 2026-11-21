@@ -49,3 +49,26 @@ export function txAmountNqt(tx: TransactionDetail): string {
   if (typeof committed === 'number' && Number.isSafeInteger(committed)) return String(committed)
   return tx.amountNQT
 }
+
+/**
+ * Follows the node's height from WebSocket frames. A pushed block at a height already seen replaced
+ * one (a fork switch). The node throttles block events (first block per second), so during catch-up
+ * some heights are never seen and their replacement goes unnoticed; at normal block times that is rare.
+ */
+export function trackBlockHeight(highest: number, event: { type: 'connected' | 'pushed'; height: number }): { highest: number; replaced: boolean } {
+  const replaced = event.type === 'pushed' && event.height <= highest
+  return { highest: Math.max(highest, event.height), replaced }
+}
+
+/** A page number that exists for `total` items (old or shared links may point past the end). */
+export function clampPage(page: number, total: number, pageSize: number): number {
+  const last = Math.max(0, Math.ceil(total / pageSize) - 1)
+  return Math.min(Math.max(0, page), last)
+}
+
+/** The `scrollLeft` that shows an item in a sideways-scrolling row, moving as little as possible. */
+export function scrollLeftToShow(container: { scrollLeft: number; clientWidth: number }, item: { offsetLeft: number; offsetWidth: number }): number {
+  if (item.offsetLeft < container.scrollLeft) return item.offsetLeft
+  const overflow = item.offsetLeft + item.offsetWidth - (container.scrollLeft + container.clientWidth)
+  return overflow > 0 ? container.scrollLeft + overflow : container.scrollLeft
+}

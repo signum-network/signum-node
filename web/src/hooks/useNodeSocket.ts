@@ -9,6 +9,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query'
 import type { UnconfirmedTransactions } from '@/lib/nodeApi'
 import { NodeSocketClient, type WsFrame } from '@/lib/nodeSocketClient'
+import { trackBlockHeight } from '@/lib/blocks'
 
 export interface BlockPushEvent {
   blockId: string
@@ -51,6 +52,7 @@ export function useNodeSocketProvider() {
   const handleFrame = useCallback((frame: WsFrame) => {
     if (frame.e === 'CONNECTED') {
       const p = frame.p as ConnectedPayload
+      highestBlockSeen.current = trackBlockHeight(highestBlockSeen.current, { type: 'connected', height: p.localHeight }).highest
       setLatestBlock({
         blockId: '',
         localHeight: p.localHeight,
@@ -62,10 +64,9 @@ export function useNodeSocketProvider() {
     } else if (frame.e === 'BLOCK_PUSHED') {
       const p = frame.p as BlockPushEvent
       // a block at a height already seen replaced one after a rollback: cached block details are stale
-      if (p.localHeight <= highestBlockSeen.current) {
-        queryClient.invalidateQueries({ queryKey: ['block'] })
-      }
-      highestBlockSeen.current = Math.max(highestBlockSeen.current, p.localHeight)
+      const tracked = trackBlockHeight(highestBlockSeen.current, { type: 'pushed', height: p.localHeight })
+      highestBlockSeen.current = tracked.highest
+      if (tracked.replaced) queryClient.invalidateQueries({ queryKey: ['block'] })
       // an open account page follows new blocks (balance, forged blocks, transactions)
       queryClient.invalidateQueries({ queryKey: ['account'] })
       queryClient.invalidateQueries({ queryKey: ['accountBlocks'] })

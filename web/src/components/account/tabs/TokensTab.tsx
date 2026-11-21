@@ -6,6 +6,7 @@ import { Pager } from '@/components/ui/Pager'
 import { useAssetMetas } from '@/hooks/useNodeQuery'
 import type { AccountDetail } from '@/lib/nodeApi'
 import { fmtUnits } from '@/lib/utils'
+import { clampPage } from '@/lib/blocks'
 import { EmptyRow, TabTable } from './TabTable'
 
 const PAGE_SIZE = 25
@@ -15,6 +16,8 @@ export function TokensTab({ account, page, onPage }: { account: AccountDetail; p
   const { t } = useTranslation()
   const setPage = onPage
   const balances = account.assetBalances ?? []
+  // an old or shared link may point past the last page
+  page = clampPage(page, balances.length, PAGE_SIZE)
   const visible = balances.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
   const metas = useAssetMetas(visible.map((b) => b.asset), true)
 

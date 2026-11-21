@@ -63,6 +63,8 @@ export function useNodeSocketProvider() {
       queryClient.invalidateQueries({ queryKey: ['fullBlockchainStatus'] })
       queryClient.invalidateQueries({ queryKey: ['miningInfo'] })
       queryClient.invalidateQueries({ queryKey: ['recentBlocks'] })
+      // only the newest page of the block list follows new blocks; older pages stay where the user is
+      queryClient.invalidateQueries({ queryKey: ['blocksPage', 0], exact: true })
       // Reset pending count — block likely consumed some txs
       queryClient.invalidateQueries({ queryKey: ['unconfirmedTxCount'] })
     } else if (frame.e === 'PENDING_TRANSACTIONS_ADDED') {

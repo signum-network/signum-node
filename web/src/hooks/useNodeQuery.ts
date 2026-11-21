@@ -11,7 +11,15 @@ import {
   getForkHistory,
   findForkPoint,
   getBlacklist,
+  getBlocksPage,
+  getBlockAtHeight,
+  getTransaction,
+  getAccount,
+  getAccountBlocks,
+  getAccountTransactions,
+  getConstants,
 } from '@/lib/nodeApi'
+import { pageRange } from '@/components/blocks/blocks.utils'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNodeSocket } from './useNodeSocket'
 
@@ -124,5 +132,70 @@ export function useFindForkPoint() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['networkStatus'] })
     },
+  })
+}
+
+/** A page of the block list; page 0 (newest) follows new blocks, older pages stay as loaded. */
+export function useBlocksPage(page: number) {
+  const { connected } = useNodeSocket()
+  const { firstIndex, lastIndex } = pageRange(page)
+  return useQuery({
+    queryKey: ['blocksPage', page],
+    queryFn: () => getBlocksPage(firstIndex, lastIndex),
+    staleTime: page === 0 ? 0 : Infinity,
+    refetchInterval: page === 0 && !connected ? 30_000 : false,
+  })
+}
+
+/** One block with its transactions; `null` height disables the query, unknown heights give `null`. */
+export function useBlock(height: number | null) {
+  return useQuery({
+    queryKey: ['block', height],
+    queryFn: () => getBlockAtHeight(height as number, true),
+    enabled: height !== null,
+    staleTime: 60_000,
+  })
+}
+
+export function useTransaction(id: string) {
+  return useQuery({
+    queryKey: ['transaction', id],
+    queryFn: () => getTransaction(id),
+    // an unconfirmed transaction gets its block soon
+    refetchInterval: (query) => (query.state.data && !query.state.data.block ? 30_000 : false),
+  })
+}
+
+export function useAccount(id: string) {
+  return useQuery({
+    queryKey: ['account', id],
+    queryFn: () => getAccount(id),
+    staleTime: 60_000,
+  })
+}
+
+export function useAccountBlocks(id: string, page: number) {
+  const { firstIndex, lastIndex } = pageRange(page)
+  return useQuery({
+    queryKey: ['accountBlocks', id, page],
+    queryFn: () => getAccountBlocks(id, firstIndex, lastIndex),
+    staleTime: 60_000,
+  })
+}
+
+export function useAccountTransactions(id: string, page: number) {
+  const { firstIndex, lastIndex } = pageRange(page)
+  return useQuery({
+    queryKey: ['accountTransactions', id, page],
+    queryFn: () => getAccountTransactions(id, firstIndex, lastIndex),
+    staleTime: 60_000,
+  })
+}
+
+export function useConstants() {
+  return useQuery({
+    queryKey: ['constants'],
+    queryFn: getConstants,
+    staleTime: Infinity,
   })
 }

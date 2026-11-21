@@ -2,9 +2,9 @@ package brs.services.impl;
 
 /** Where a peer stands relative to our chain, as reported by {@code getNetworkStatus}. */
 enum PeerChainStatus {
-    /** Has our block at our height: same chain, same height. */
+    /** Has our tip, or is at most {@code STALE_GAP - 1} blocks behind it on our chain. */
     ON_CHAIN("on-chain", true),
-    /** Has our block at its own, lower height: same chain, behind. */
+    /** Its newest block is on our chain, at least {@code STALE_GAP} blocks below our tip. */
     STALE("stale", true),
     /** Has our tip and is higher: same chain, ahead. */
     AHEAD("ahead", true),

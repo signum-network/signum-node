@@ -47,8 +47,12 @@ class NetworkAnalysisServiceImplNetworkStatusTest {
     private static final ProbeResult SAME_TIP = new ProbeResult(true, true, null, 12L, 1L);
     /** The peer has our tip and more blocks. */
     private static final ProbeResult BEYOND = new ProbeResult(true, false, null, 12L, 1L);
-    /** The peer lacks our tip; its tip 980 is a block we have. */
+    /** The peer lacks our tip; its tip 980 is our block at height 90 (10 behind). */
     private static final ProbeResult BEHIND = new ProbeResult(false, false, "980", 15L, 2L);
+    /** The peer lacks our tip; its tip 970 is our block at height 97 (3 behind). */
+    private static final ProbeResult SLIGHTLY_BEHIND = new ProbeResult(false, false, "970", 15L, 2L);
+    /** The peer lacks our tip; its tip 960 is our block at height 96 (4 behind). */
+    private static final ProbeResult FOUR_BEHIND = new ProbeResult(false, false, "960", 15L, 2L);
     /** The peer lacks our tip; its tip 999 is a block we lack. */
     private static final ProbeResult FORKED = new ProbeResult(false, false, "999", 15L, 2L);
 
@@ -72,7 +76,9 @@ class NetworkAnalysisServiceImplNetworkStatusTest {
         when(lastBlock.getId()).thenReturn(OUR_TIP);
         when(lastBlock.getCumulativeDifficulty()).thenReturn(BigInteger.valueOf(1000));
         when(blockchain.getLastBlock()).thenReturn(lastBlock);
-        when(blockchain.hasBlock(980L)).thenReturn(true);
+        ourBlock(980L, 90);
+        ourBlock(970L, 97);
+        ourBlock(960L, 96);
 
         propertyService = mock(PropertyService.class);
         when(propertyService.getInt(Props.WEB_UI_NETWORK_STATUS_INTERVAL_SECONDS)).thenReturn(120);
@@ -83,6 +89,12 @@ class NetworkAnalysisServiceImplNetworkStatusTest {
     @AfterEach
     void tearDown() {
         probePool.shutdownNow();
+    }
+
+    private void ourBlock(long id, int height) {
+        Block block = mock(Block.class);
+        when(block.getHeight()).thenReturn(height);
+        when(blockchain.getBlock(id)).thenReturn(block);
     }
 
     private Peer peer(String address, int height, ProbeResult answer) {
@@ -154,6 +166,22 @@ class NetworkAnalysisServiceImplNetworkStatusTest {
     }
 
     @Test
+    void getNetworkStatus_GivenPeersAFewBlocksBehind_CountsStaleOnlyFromFourBlocks() {
+        // Arrange: up to 3 blocks behind is propagation delay
+        peer("A", 97, SLIGHTLY_BEHIND);
+        peer("B", 96, FOUR_BEHIND);
+
+        // Act
+        JsonObject status = networkStatus();
+
+        // Assert
+        assertEquals("on-chain", statusOf(status, "A"));
+        assertEquals("stale", statusOf(status, "B"));
+        assertEquals(1, status.get("onChainPeers").getAsInt());
+        assertEquals(1, status.get("stalePeers").getAsInt());
+    }
+
+    @Test
     void getNetworkStatus_GivenPeersAtAnyHeight_AsksEachForOurTip() {
         // Arrange
         Peer behind = peer("B", 98, BEHIND);
@@ -212,7 +240,7 @@ class NetworkAnalysisServiceImplNetworkStatusTest {
     @Test
     void getNetworkStatus_GivenBlockLookupThrows_ReportsThatPeerUnknownAndKeepsOthers() {
         // Arrange: e.g. a database error while looking up the peer's tip
-        when(blockchain.hasBlock(980L)).thenThrow(new IllegalStateException("db closed"));
+        when(blockchain.getBlock(980L)).thenThrow(new IllegalStateException("db closed"));
         peer("A", 100, SAME_TIP);
         peer("B", 98, BEHIND);
 

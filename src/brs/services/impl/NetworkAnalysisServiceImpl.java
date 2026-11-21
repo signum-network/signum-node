@@ -414,7 +414,7 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
             try {
                 Block lastBlock = blockchain.getLastBlock();
                 if (lastBlock == null) return;
-                cachedStatus.set(buildSnapshot(lastBlock, checkPeers(lastBlock.getId())));
+                cachedStatus.set(buildSnapshot(lastBlock, checkPeers(lastBlock.getId(), lastBlock.getHeight())));
             } catch (Exception e) {
                 logger.error("Error refreshing network status", e);
             }
@@ -430,13 +430,13 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
      * checks run in parallel on {@link #probePool}; a check that misses its deadline counts as
      * unknown, so a peer that drips its answer cannot freeze the snapshot.
      */
-    private List<PeerCheck> checkPeers(long ourTipId) {
+    private List<PeerCheck> checkPeers(long ourTipId, int ourHeight) {
         List<CompletableFuture<PeerCheck>> checks = new ArrayList<>();
         for (Peer peer : connectedPeers.get()) {
             int peerHeight = peer.getLastKnownHeight();
             if (peer.isBlacklisted() || peerHeight < 0) continue;
             checks.add(CompletableFuture
-                    .supplyAsync(() -> check(peer, peerHeight, ourTipId), probePool)
+                    .supplyAsync(() -> check(peer, peerHeight, ourTipId, ourHeight), probePool)
                     .completeOnTimeout(new PeerCheck(peer, peerHeight, ProbeResult.noAnswer(), PeerChainStatus.UNKNOWN),
                             probeTimeoutMs, TimeUnit.MILLISECONDS));
         }
@@ -444,10 +444,10 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
     }
 
     /** Checks one peer; any failure makes only this peer unknown. */
-    private PeerCheck check(Peer peer, int peerHeight, long ourTipId) {
+    private PeerCheck check(Peer peer, int peerHeight, long ourTipId, int ourHeight) {
         try {
             ProbeResult result = probe.probe(peer, ourTipId);
-            return new PeerCheck(peer, peerHeight, result, PeerChainClassifier.classify(result, weHave(result.theirTipId())));
+            return new PeerCheck(peer, peerHeight, result, PeerChainClassifier.classify(result, heightInOurChain(result.theirTipId()), ourHeight));
         } catch (RuntimeException e) {
             logger.debug("Block check failed for peer {}", peer.getPeerAddress(), e);
             return new PeerCheck(peer, peerHeight, ProbeResult.noAnswer(), PeerChainStatus.UNKNOWN);
@@ -462,9 +462,6 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
     }
 
     /** @throws RuntimeException if the ID is malformed or the lookup fails */
-    private boolean weHave(String blockId) {
-        return blockId != null && blockchain.hasBlock(Convert.parseUnsignedLong(blockId));
-    }
 
     private JsonObject buildSnapshot(Block lastBlock, List<PeerCheck> checks) {
         Map<PeerChainStatus, Integer> counts = new EnumMap<>(PeerChainStatus.class);

@@ -143,7 +143,7 @@ const es: Locale = {
   },
   info: {
     chainConsensus:
-      'La proporción de pares comprobados en nuestra cadena: su bloque más reciente es el nuestro (en cadena), es anterior (desactualizado) o se construye sobre él (adelantado). Los pares que no respondieron no cuentan. Valores ≥90% indican un fuerte acuerdo sobre nuestra cadena.',
+      'La proporción de pares comprobados en nuestra cadena: su bloque más reciente es el nuestro o está como máximo 3 bloques por detrás (en cadena), 4 o más bloques por detrás (desactualizado) o se construye sobre él (adelantado). Los pares que no respondieron no cuentan. Valores ≥90% indican un fuerte acuerdo sobre nuestra cadena.',
     cumulativeDifficulty:
       'El trabajo total de prueba de compromiso invertido en la cadena desde el génesis. La cadena con mayor dificultad acumulada siempre se elige como canónica — haciendo extremadamente costoso reescribir el historial.',
     findFork:

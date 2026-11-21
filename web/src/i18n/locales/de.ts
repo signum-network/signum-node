@@ -143,7 +143,7 @@ const de: Locale = {
   },
   info: {
     chainConsensus:
-      'Der Anteil der geprüften Peers auf unserer Kette: Ihr neuester Block ist unser neuester (synchron), liegt davor (veraltet) oder baut darauf auf (voraus). Peers ohne Antwort zählen nicht. Werte ≥90 % zeigen starke Einigkeit über unsere Kette.',
+      'Der Anteil der geprüften Peers auf unserer Kette: Ihr neuester Block ist unser neuester oder höchstens 3 Blöcke dahinter (synchron), 4 oder mehr Blöcke dahinter (veraltet) oder baut darauf auf (voraus). Peers ohne Antwort zählen nicht. Werte ≥90 % zeigen starke Einigkeit über unsere Kette.',
     cumulativeDifficulty:
       'Die gesamte Proof-of-Commitment-Arbeit, die seit dem Genesis-Block in die Kette investiert wurde. Die Kette mit der höchsten kumulierten Schwierigkeit gilt stets als kanonisch — das Umschreiben der Geschichte wird damit extrem kostspielig.',
     findFork:

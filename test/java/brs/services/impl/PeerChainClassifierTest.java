@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.OptionalInt;
 
 import static brs.services.impl.PeerChainClassifier.classify;
 import static brs.services.impl.PeerChainStatus.AHEAD;
@@ -18,6 +19,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PeerChainClassifierTest {
 
+    private static final int OUR_HEIGHT = 1000;
+    private static final OptionalInt NOT_ON_OUR_CHAIN = OptionalInt.empty();
+
+    private static OptionalInt behind(int blocks) {
+        return OptionalInt.of(OUR_HEIGHT - blocks);
+    }
+
     private static ProbeResult hasOurTip(boolean alsoTheirTip) {
         return new ProbeResult(true, alsoTheirTip, null, 10L, 1L);
     }
@@ -28,34 +36,42 @@ class PeerChainClassifierTest {
 
     @Test
     void classify_GivenPeerWhoseTipIsOurTip_ReturnsOnChain() {
-        assertEquals(ON_CHAIN, classify(hasOurTip(true), false));
+        assertEquals(ON_CHAIN, classify(hasOurTip(true), NOT_ON_OUR_CHAIN, OUR_HEIGHT));
     }
 
     @Test
     void classify_GivenPeerThatHasOurTipAndMore_ReturnsAhead() {
-        assertEquals(AHEAD, classify(hasOurTip(false), false));
+        assertEquals(AHEAD, classify(hasOurTip(false), NOT_ON_OUR_CHAIN, OUR_HEIGHT));
     }
 
     @Test
-    void classify_GivenPeerLackingOurTipWithATipWeHave_ReturnsStale() {
-        // its newest block is on our chain: same chain, behind
-        assertEquals(STALE, classify(lacksOurTip("980"), true));
+    void classify_GivenPeerFourBlocksBehindOnOurChain_ReturnsStale() {
+        // its newest block is on our chain, 4 blocks below our tip: same chain, really behind
+        assertEquals(STALE, classify(lacksOurTip("980"), behind(4), OUR_HEIGHT));
+        assertEquals(STALE, classify(lacksOurTip("980"), behind(20), OUR_HEIGHT));
+    }
+
+    @Test
+    void classify_GivenPeerUpToThreeBlocksBehindOnOurChain_ReturnsOnChain() {
+        // 1-3 blocks behind is usually propagation delay, not a stuck peer
+        assertEquals(ON_CHAIN, classify(lacksOurTip("999"), behind(1), OUR_HEIGHT));
+        assertEquals(ON_CHAIN, classify(lacksOurTip("997"), behind(3), OUR_HEIGHT));
     }
 
     @Test
     void classify_GivenPeerLackingOurTipWithATipWeLack_ReturnsForking() {
-        assertEquals(FORKING, classify(lacksOurTip("999"), false));
+        assertEquals(FORKING, classify(lacksOurTip("999"), NOT_ON_OUR_CHAIN, OUR_HEIGHT));
     }
 
     @Test
     void classify_GivenPeerLackingOurTipWithoutATip_ReturnsUnknown() {
         // empty milestone list: nothing to judge
-        assertEquals(UNKNOWN, classify(lacksOurTip(null), false));
+        assertEquals(UNKNOWN, classify(lacksOurTip(null), NOT_ON_OUR_CHAIN, OUR_HEIGHT));
     }
 
     @Test
     void classify_GivenNoAnswer_ReturnsUnknown() {
-        assertEquals(UNKNOWN, classify(ProbeResult.noAnswer(), false));
+        assertEquals(UNKNOWN, classify(ProbeResult.noAnswer(), NOT_ON_OUR_CHAIN, OUR_HEIGHT));
     }
 
     @Test

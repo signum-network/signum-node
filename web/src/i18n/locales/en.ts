@@ -208,7 +208,7 @@ const en: Locale = {
   },
   info: {
     chainConsensus:
-      'The share of checked peers on our chain: their newest block is our newest block (on-chain), comes before it (stale) or builds on it (ahead). Peers that did not answer are not counted. Values ≥90% indicate strong agreement on our chain.',
+      'The share of checked peers on our chain: their newest block is our newest block or at most 3 blocks behind it (on-chain), 4 or more blocks behind it (stale), or builds on it (ahead). Peers that did not answer are not counted. Values ≥90% indicate strong agreement on our chain.',
     cumulativeDifficulty:
       'The total proof-of-commitment work invested in the chain since genesis. The chain with the highest cumulative difficulty is always chosen as canonical — making it extremely costly to rewrite history.',
     findFork:

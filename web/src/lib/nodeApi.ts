@@ -279,7 +279,14 @@ export interface NodeHealth {
   serverTime: number
 }
 
-export const getNodeHealth = () => query<NodeHealth>('getNodeHealth')
+/** Rejects with NodeApiError when the node answers with an error body (it does so with HTTP 200). */
+export async function getNodeHealth(): Promise<NodeHealth> {
+  const body = await query<NodeHealth & { errorCode?: number; errorDescription?: string }>('getNodeHealth')
+  if (body.errorCode !== undefined) {
+    throw new NodeApiError(body.errorCode, body.errorDescription ?? `Node API error ${body.errorCode}: getNodeHealth`)
+  }
+  return body
+}
 
 export const getBlockchainStatus = () =>
   query<BlockchainStatus>('getBlockchainStatus')

@@ -163,4 +163,32 @@ class NodeHealthServiceImplTest {
         assertFalse(health.get("peerServerRunning").getAsBoolean());
         assertFalse(health.get("announcesAddress").getAsBoolean());
     }
+
+    @Test
+    void getNodeHealth_GivenRefreshInProgress_ServesTheLastValueWithoutWaiting() throws Exception {
+        // a slow database (pool exhausted, server down) must not hold every dashboard request
+        NodeHealthServiceImpl service = service();
+        JsonObject first = service.getNodeHealth();
+        now.addAndGet(NodeHealthServiceImpl.CACHE_MS);
+        CountDownLatch insideRefresh = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        when(database.getDatabaseSizeBytes()).thenAnswer(invocation -> {
+            insideRefresh.countDown();
+            release.await();
+            return OptionalLong.of(5_678L);
+        });
+        Thread refresher = new Thread(service::getNodeHealth);
+        refresher.start();
+        insideRefresh.await();
+
+        long before = System.nanoTime();
+        JsonObject served = service.getNodeHealth();
+        long waitedMs = (System.nanoTime() - before) / 1_000_000;
+
+        release.countDown();
+        refresher.join();
+        assertEquals(first, served);
+        assertTrue(waitedMs < 1_000, "waited " + waitedMs + " ms");
+        assertEquals(5_678L, service.getNodeHealth().get("databaseSizeBytes").getAsLong());
+    }
 }

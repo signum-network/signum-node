@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { queryEntity, NodeApiError, getBlockAtHeight } from './nodeApi'
+import { queryEntity, NodeApiError, getBlockAtHeight, getNodeHealth } from './nodeApi'
 
 function respond(body: unknown) {
   const fetchMock = vi.fn(async (_input: RequestInfo | URL) => new Response(JSON.stringify(body), { status: 200 }))
@@ -45,5 +45,11 @@ describe('nodeApi', () => {
     expect(url.searchParams.get('requestType')).toBe('getBlock')
     expect(url.searchParams.get('height')).toBe('5')
     expect(url.searchParams.get('includeTransactions')).toBe('true')
+  })
+
+  it('getNodeHealth rejects an error body instead of returning it as data', async () => {
+    // the node answers errors with HTTP 200; as data they would show NaN and a false "P2P server off"
+    respond({ errorCode: 1, errorDescription: 'Incorrect request' })
+    await expect(getNodeHealth()).rejects.toBeInstanceOf(NodeApiError)
   })
 })

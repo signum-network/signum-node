@@ -13,6 +13,7 @@ import java.lang.management.ManagementFactory;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.LongSupplier;
 import java.util.function.ToLongFunction;
 
@@ -32,8 +33,9 @@ public class NodeHealthServiceImpl implements NodeHealthService {
     private final long startedAtMillis;
     private final ToLongFunction<Path> usableSpace;
 
-    private JsonObject cached;
-    private long cachedAt;
+    private final ReentrantLock refreshLock = new ReentrantLock();
+    private volatile JsonObject cached;
+    private volatile long cachedAt;
 
     public NodeHealthServiceImpl(DatabaseInstance database, PeerServerFacts peers) {
         this(database, peers, System::currentTimeMillis, ManagementFactory.getRuntimeMXBean().getStartTime(),
@@ -49,14 +51,35 @@ public class NodeHealthServiceImpl implements NodeHealthService {
         this.usableSpace = usableSpace;
     }
 
+    /**
+     * One caller refreshes an expired value; while it does, everyone else gets the last value at once
+     * instead of waiting on a slow database. Only the very first call makes others wait.
+     */
     @Override
-    public synchronized JsonObject getNodeHealth() {
-        long now = clock.getAsLong();
-        if (cached == null || now - cachedAt >= CACHE_MS) {
-            cached = build();
-            cachedAt = now;
+    public JsonObject getNodeHealth() {
+        JsonObject current = cached;
+        if (current != null && !expired()) {
+            return current;
         }
-        return cached;
+        if (current != null && !refreshLock.tryLock()) {
+            return current;
+        }
+        if (current == null) {
+            refreshLock.lock();
+        }
+        try {
+            if (cached == null || expired()) {
+                cached = build();
+                cachedAt = clock.getAsLong();
+            }
+            return cached;
+        } finally {
+            refreshLock.unlock();
+        }
+    }
+
+    private boolean expired() {
+        return clock.getAsLong() - cachedAt >= CACHE_MS;
     }
 
     private JsonObject build() {

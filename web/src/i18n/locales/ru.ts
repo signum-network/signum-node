@@ -297,6 +297,34 @@ const ru: Locale = {
     running: 'работает',
     stopped: 'остановлен',
   },
+  aliases: {
+    empty: 'Нет алиасов',
+    colAlias: 'Алиас',
+    colUri: 'URI',
+    colCreated: 'Создан',
+    colOffer: 'Продаётся',
+    colRenewal: 'Продление',
+    renewsOn: 'продление {{date}} · {{amount}} {{every}}',
+    renewalDue: 'продление просрочено',
+    noExpiry: 'бессрочно',
+  },
+  subscriptions: {
+    outgoing: 'Исходящие',
+    incoming: 'Входящие',
+    empty: 'Нет',
+    colCounterpart: 'Контрагент',
+    colAmount: 'Сумма',
+    colFrequency: 'Интервал',
+    colNext: 'Следующий платёж',
+    colAlias: 'Алиас',
+    due: 'просрочено',
+  },
+  frequency: {
+    everyMinutes: 'каждые {{count}} мин.',
+    everyHours: 'каждые {{count}} ч',
+    everyDays: 'каждые {{count}} дн.',
+    everyWeeks: 'каждые {{count}} нед.',
+  },
 }
 
 export default ru

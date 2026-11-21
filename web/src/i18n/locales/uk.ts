@@ -297,6 +297,34 @@ const uk: Locale = {
     running: 'працює',
     stopped: 'зупинено',
   },
+  aliases: {
+    empty: 'Немає аліасів',
+    colAlias: 'Аліас',
+    colUri: 'URI',
+    colCreated: 'Створено',
+    colOffer: 'Продається',
+    colRenewal: 'Продовження',
+    renewsOn: 'продовження {{date}} · {{amount}} {{every}}',
+    renewalDue: 'продовження прострочено',
+    noExpiry: 'безстроково',
+  },
+  subscriptions: {
+    outgoing: 'Вихідні',
+    incoming: 'Вхідні',
+    empty: 'Немає',
+    colCounterpart: 'Контрагент',
+    colAmount: 'Сума',
+    colFrequency: 'Інтервал',
+    colNext: 'Наступний платіж',
+    colAlias: 'Аліас',
+    due: 'прострочено',
+  },
+  frequency: {
+    everyMinutes: 'кожні {{count}} хв',
+    everyHours: 'кожні {{count}} год',
+    everyDays: 'кожні {{count}} дн.',
+    everyWeeks: 'кожні {{count}} тиж.',
+  },
 }
 
 export default uk

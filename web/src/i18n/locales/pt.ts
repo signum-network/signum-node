@@ -297,6 +297,34 @@ const pt: Locale = {
     running: 'em execução',
     stopped: 'parado',
   },
+  aliases: {
+    empty: 'Sem aliases',
+    colAlias: 'Alias',
+    colUri: 'URI',
+    colCreated: 'Criado',
+    colOffer: 'À venda',
+    colRenewal: 'Renovação',
+    renewsOn: 'renova em {{date}} · {{amount}} {{every}}',
+    renewalDue: 'renovação pendente',
+    noExpiry: 'não expira',
+  },
+  subscriptions: {
+    outgoing: 'Enviadas',
+    incoming: 'Recebidas',
+    empty: 'Nenhuma',
+    colCounterpart: 'Contraparte',
+    colAmount: 'Valor',
+    colFrequency: 'Intervalo',
+    colNext: 'Próximo pagamento',
+    colAlias: 'Alias',
+    due: 'pendente',
+  },
+  frequency: {
+    everyMinutes: 'a cada {{count}} min',
+    everyHours: 'a cada {{count}} h',
+    everyDays: 'a cada {{count}} d',
+    everyWeeks: 'a cada {{count}} sem.',
+  },
 }
 
 export default pt

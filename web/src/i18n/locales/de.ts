@@ -297,6 +297,34 @@ const de: Locale = {
     running: 'läuft',
     stopped: 'angehalten',
   },
+  aliases: {
+    empty: 'Keine Aliases',
+    colAlias: 'Alias',
+    colUri: 'URI',
+    colCreated: 'Erstellt',
+    colOffer: 'Zum Verkauf',
+    colRenewal: 'Erneuerung',
+    renewsOn: 'erneuert am {{date}} · {{amount}} {{every}}',
+    renewalDue: 'Erneuerung fällig',
+    noExpiry: 'läuft nicht ab',
+  },
+  subscriptions: {
+    outgoing: 'Ausgehend',
+    incoming: 'Eingehend',
+    empty: 'Keine',
+    colCounterpart: 'Gegenpartei',
+    colAmount: 'Betrag',
+    colFrequency: 'Intervall',
+    colNext: 'Nächste Zahlung',
+    colAlias: 'Alias',
+    due: 'fällig',
+  },
+  frequency: {
+    everyMinutes: 'alle {{count}} Min.',
+    everyHours: 'alle {{count}} Std.',
+    everyDays: 'alle {{count}} Tg.',
+    everyWeeks: 'alle {{count}} Wo.',
+  },
 }
 
 export default de

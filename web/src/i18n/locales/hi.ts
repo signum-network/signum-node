@@ -297,6 +297,34 @@ const hi: Locale = {
     running: 'चल रहा है',
     stopped: 'रुका हुआ',
   },
+  aliases: {
+    empty: 'कोई उपनाम नहीं',
+    colAlias: 'उपनाम',
+    colUri: 'URI',
+    colCreated: 'बनाया गया',
+    colOffer: 'बिक्री के लिए',
+    colRenewal: 'नवीनीकरण',
+    renewsOn: '{{date}} को नवीनीकरण · {{amount}} {{every}}',
+    renewalDue: 'नवीनीकरण बाकी',
+    noExpiry: 'समाप्त नहीं होता',
+  },
+  subscriptions: {
+    outgoing: 'भेजी गई',
+    incoming: 'प्राप्त',
+    empty: 'कोई नहीं',
+    colCounterpart: 'दूसरा पक्ष',
+    colAmount: 'राशि',
+    colFrequency: 'अंतराल',
+    colNext: 'अगला भुगतान',
+    colAlias: 'उपनाम',
+    due: 'बाकी',
+  },
+  frequency: {
+    everyMinutes: 'हर {{count}} मि.',
+    everyHours: 'हर {{count}} घं.',
+    everyDays: 'हर {{count}} दि.',
+    everyWeeks: 'हर {{count}} सप्ता.',
+  },
 }
 
 export default hi

@@ -297,6 +297,34 @@ const ko: Locale = {
     running: '실행 중',
     stopped: '중지됨',
   },
+  aliases: {
+    empty: '별칭 없음',
+    colAlias: '별칭',
+    colUri: 'URI',
+    colCreated: '생성',
+    colOffer: '판매 중',
+    colRenewal: '갱신',
+    renewsOn: '{{date}} 갱신 · {{amount}} {{every}}',
+    renewalDue: '갱신 기한 지남',
+    noExpiry: '만료 없음',
+  },
+  subscriptions: {
+    outgoing: '보내는 구독',
+    incoming: '받는 구독',
+    empty: '없음',
+    colCounterpart: '상대방',
+    colAmount: '금액',
+    colFrequency: '주기',
+    colNext: '다음 결제',
+    colAlias: '별칭',
+    due: '기한 지남',
+  },
+  frequency: {
+    everyMinutes: '{{count}}분마다',
+    everyHours: '{{count}}시간마다',
+    everyDays: '{{count}}일마다',
+    everyWeeks: '{{count}}주마다',
+  },
 }
 
 export default ko

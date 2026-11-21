@@ -297,6 +297,34 @@ const zh: Locale = {
     running: '运行中',
     stopped: '已停止',
   },
+  aliases: {
+    empty: '没有别名',
+    colAlias: '别名',
+    colUri: 'URI',
+    colCreated: '创建时间',
+    colOffer: '出售中',
+    colRenewal: '续费',
+    renewsOn: '{{date}} 续费 · {{amount}} {{every}}',
+    renewalDue: '续费已到期',
+    noExpiry: '永不过期',
+  },
+  subscriptions: {
+    outgoing: '转出',
+    incoming: '转入',
+    empty: '无',
+    colCounterpart: '对方',
+    colAmount: '金额',
+    colFrequency: '间隔',
+    colNext: '下次付款',
+    colAlias: '别名',
+    due: '已到期',
+  },
+  frequency: {
+    everyMinutes: '每 {{count}} 分钟',
+    everyHours: '每 {{count}} 小时',
+    everyDays: '每 {{count}} 天',
+    everyWeeks: '每 {{count}} 周',
+  },
 }
 
 export default zh

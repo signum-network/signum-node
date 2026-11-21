@@ -297,6 +297,34 @@ const ja: Locale = {
     running: '実行中',
     stopped: '停止中',
   },
+  aliases: {
+    empty: 'エイリアスなし',
+    colAlias: 'エイリアス',
+    colUri: 'URI',
+    colCreated: '作成日',
+    colOffer: '販売中',
+    colRenewal: '更新',
+    renewsOn: '{{date}} に更新 · {{amount}} {{every}}',
+    renewalDue: '更新期限切れ',
+    noExpiry: '期限なし',
+  },
+  subscriptions: {
+    outgoing: '送信',
+    incoming: '受信',
+    empty: 'なし',
+    colCounterpart: '相手',
+    colAmount: '金額',
+    colFrequency: '間隔',
+    colNext: '次回支払い',
+    colAlias: 'エイリアス',
+    due: '期限切れ',
+  },
+  frequency: {
+    everyMinutes: '{{count}} 分ごと',
+    everyHours: '{{count}} 時間ごと',
+    everyDays: '{{count}} 日ごと',
+    everyWeeks: '{{count}} 週ごと',
+  },
 }
 
 export default ja

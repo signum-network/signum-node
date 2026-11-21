@@ -297,6 +297,34 @@ const es: Locale = {
     running: 'en ejecución',
     stopped: 'detenido',
   },
+  aliases: {
+    empty: 'Sin alias',
+    colAlias: 'Alias',
+    colUri: 'URI',
+    colCreated: 'Creado',
+    colOffer: 'En venta',
+    colRenewal: 'Renovación',
+    renewsOn: 'se renueva el {{date}} · {{amount}} {{every}}',
+    renewalDue: 'renovación pendiente',
+    noExpiry: 'no caduca',
+  },
+  subscriptions: {
+    outgoing: 'Salientes',
+    incoming: 'Entrantes',
+    empty: 'Ninguna',
+    colCounterpart: 'Contraparte',
+    colAmount: 'Importe',
+    colFrequency: 'Intervalo',
+    colNext: 'Próximo pago',
+    colAlias: 'Alias',
+    due: 'pendiente',
+  },
+  frequency: {
+    everyMinutes: 'cada {{count}} min',
+    everyHours: 'cada {{count}} h',
+    everyDays: 'cada {{count}} d',
+    everyWeeks: 'cada {{count}} sem.',
+  },
 }
 
 export default es

@@ -16,6 +16,8 @@ import { fmtNqt } from '@/lib/utils'
 import { AccountTabs } from './AccountTabs'
 import { TokensTab } from './tabs/TokensTab'
 import { ContractsTab } from './tabs/ContractsTab'
+import { AliasesTab } from './tabs/AliasesTab'
+import { SubscriptionsTab } from './tabs/SubscriptionsTab'
 import type { AccountTab } from './account.utils'
 
 function Overview({ account }: { account: Account }) {
@@ -144,6 +146,8 @@ export function AccountDetail({ id, tab }: { id: string; tab: AccountTab }) {
         {tab === 'overview' && <OverviewTab id={id} />}
         {tab === 'tokens' && <TokensTab account={account} />}
         {tab === 'contracts' && <ContractsTab accountId={account.account} />}
+        {tab === 'aliases' && <AliasesTab accountId={account.account} />}
+        {tab === 'subscriptions' && <SubscriptionsTab accountId={account.account} />}
       </>
     )
   })()

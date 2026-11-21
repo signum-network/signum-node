@@ -9,6 +9,7 @@ import {
   pageRange,
   parseHeightParam,
   relativeTime,
+  timeUntil,
   txTypeName,
   txAmountNqt,
   anchoredRange,
@@ -242,5 +243,17 @@ describe('canCheckPeers', () => {
 
   it('waits for the tip', () => {
     expect(canCheckPeers(1_000, undefined)).toBe(false)
+  })
+})
+
+describe('timeUntil', () => {
+  it('picks minutes, hours or days ahead', () => {
+    expect(timeUntil(150, 'en')).toBe('in 3 minutes')
+    expect(timeUntil(7_200, 'en')).toBe('in 2 hours')
+    expect(timeUntil(86_400 * 3, 'en')).toBe('in 3 days')
+  })
+
+  it('reads a time already passed as now', () => {
+    expect(timeUntil(-30, 'en')).toBe('in 0 seconds')
   })
 })

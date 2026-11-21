@@ -60,6 +60,9 @@ export interface Locale {
   accountTabs: { overview: string; tokens: string; contracts: string; aliases: string; subscriptions: string }
   tokens: { empty: string; colName: string; colBalance: string; colToken: string; colIssuer: string; metaMissing: string }
   contracts: { empty: string; colName: string; colAddress: string; colState: string; colBalance: string; colCreated: string; dead: string; finished: string; frozen: string; running: string; stopped: string }
+  aliases: { empty: string; colAlias: string; colUri: string; colCreated: string; colOffer: string; colRenewal: string; renewsOn: string; renewalDue: string; noExpiry: string }
+  subscriptions: { outgoing: string; incoming: string; empty: string; colCounterpart: string; colAmount: string; colFrequency: string; colNext: string; colAlias: string; due: string }
+  frequency: { everyMinutes: string; everyHours: string; everyDays: string; everyWeeks: string }
 }
 
 const en: Locale = {
@@ -358,6 +361,34 @@ const en: Locale = {
     frozen: 'frozen',
     running: 'running',
     stopped: 'stopped',
+  },
+  aliases: {
+    empty: 'No aliases',
+    colAlias: 'Alias',
+    colUri: 'URI',
+    colCreated: 'Created',
+    colOffer: 'For sale',
+    colRenewal: 'Renewal',
+    renewsOn: 'renews on {{date}} · {{amount}} {{every}}',
+    renewalDue: 'renewal due',
+    noExpiry: 'does not expire',
+  },
+  subscriptions: {
+    outgoing: 'Outgoing',
+    incoming: 'Incoming',
+    empty: 'None',
+    colCounterpart: 'Counterpart',
+    colAmount: 'Amount',
+    colFrequency: 'Interval',
+    colNext: 'Next payment',
+    colAlias: 'Alias',
+    due: 'due',
+  },
+  frequency: {
+    everyMinutes: 'every {{count}} min',
+    everyHours: 'every {{count}} h',
+    everyDays: 'every {{count}} d',
+    everyWeeks: 'every {{count}} wk',
   },
 }
 

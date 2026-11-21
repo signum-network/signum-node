@@ -69,8 +69,12 @@ function cached(store: KeyValueStore | null, now: number): CacheEntry | undefine
   const raw = read(store, CACHE_KEY)
   if (raw === null) return undefined
   try {
-    const entry = JSON.parse(raw) as CacheEntry
-    return typeof entry?.until === 'number' && now < entry.until ? entry : undefined
+    const entry = JSON.parse(raw) as { release?: { version?: unknown; url?: unknown } | null; until?: unknown }
+    if (typeof entry?.until !== 'number' || now >= entry.until) return undefined
+    // an entry of another shape (older/newer UI, hand edit) must not reach the banner
+    if (entry.release === null) return { release: null, until: entry.until }
+    if (typeof entry.release?.version !== 'string') return undefined
+    return { release: { version: entry.release.version, url: safeReleaseUrl(entry.release.url) }, until: entry.until }
   } catch {
     return undefined
   }
@@ -78,7 +82,10 @@ function cached(store: KeyValueStore | null, now: number): CacheEntry | undefine
 
 async function ask(fetchFn: typeof fetch): Promise<LatestRelease | null> {
   try {
-    const res = await fetchFn(RELEASES_URL, { headers: { Accept: 'application/vnd.github+json' } })
+    const res = await fetchFn(RELEASES_URL, {
+      headers: { Accept: 'application/vnd.github+json' },
+      referrerPolicy: 'no-referrer', // GitHub needn't learn which node is being browsed
+    })
     if (!res.ok) return null
     const body = (await res.json()) as { tag_name?: unknown; html_url?: unknown }
     if (typeof body?.tag_name !== 'string') return null
@@ -87,6 +94,17 @@ async function ask(fetchFn: typeof fetch): Promise<LatestRelease | null> {
     return null
   }
 }
+
+/**
+ * Query options for the check. The interval keeps an open tab (e.g. a dashboard left running) asking;
+ * most runs are answered by the localStorage cache, so GitHub sees a request only after it expired.
+ */
+export const LATEST_RELEASE_QUERY_OPTIONS = {
+  staleTime: OK_TTL_MS,
+  refetchInterval: FAIL_TTL_MS,
+  retry: false,
+  refetchOnWindowFocus: false,
+} as const
 
 export async function fetchLatestRelease(deps: {
   store: KeyValueStore | null

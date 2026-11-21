@@ -7,6 +7,7 @@ import {
   isDismissed,
   dismiss,
   browserStorage,
+  LATEST_RELEASE_QUERY_OPTIONS,
   OK_TTL_MS,
   FAIL_TTL_MS,
   type KeyValueStore,
@@ -159,5 +160,33 @@ describe('browserStorage', () => {
   it('returns null where there is no window storage', () => {
     // vitest runs in node: no window, the access throws and must be caught
     expect(browserStorage()).toBeNull()
+  })
+})
+
+describe('review fixes', () => {
+  it('asks again in an open tab at least hourly', () => {
+    // a dashboard left open must notice a release (and recover from a failure) without a reload
+    expect(LATEST_RELEASE_QUERY_OPTIONS.refetchInterval).toBeLessThanOrEqual(FAIL_TTL_MS)
+  })
+
+  it('drops a cache entry with the wrong shape instead of crashing the banner', async () => {
+    const store = memoryStore()
+    store.setItem('signum.latestRelease', JSON.stringify({ release: { version: null }, until: 9e15 }))
+    const { deps, fetch } = setup(store)
+    expect(await fetchLatestRelease(deps)).toEqual({ version: 'v3.10.0', url: NOTES })
+    expect(fetch).toHaveBeenCalledTimes(1)
+  })
+
+  it('re-checks a cached url', async () => {
+    const store = memoryStore()
+    store.setItem('signum.latestRelease', JSON.stringify({ release: { version: 'v3.10.0', url: 'https://evil.example' }, until: 9e15 }))
+    const { deps } = setup(store)
+    expect(await fetchLatestRelease(deps)).toEqual({ version: 'v3.10.0', url: null })
+  })
+
+  it('does not tell GitHub which node is being browsed', async () => {
+    const { deps, fetch } = setup()
+    await fetchLatestRelease(deps)
+    expect(fetch).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({ referrerPolicy: 'no-referrer' }))
   })
 })

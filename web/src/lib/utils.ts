@@ -74,3 +74,12 @@ export function fmtNqt(nqt: string, decimals = 2, locale?: string): string {
   const sign = negative && value !== 0n ? '-' : ''
   return decimals > 0 ? `${sign}${integer}${decimalSeparator}${fraction}` : `${sign}${integer}`
 }
+
+/** Like `fmtNqt`, with every significant decimal (at least two), for detail pages. */
+export function fmtNqtFull(nqt: string, locale?: string): string {
+  const full = fmtNqt(nqt, 8, locale)
+  const decimalSeparator = new Intl.NumberFormat(locale).formatToParts(0.5).find((p) => p.type === 'decimal')?.value ?? '.'
+  const cut = full.lastIndexOf(decimalSeparator)
+  const fraction = full.slice(cut + 1).replace(/0+$/, '').padEnd(2, '0')
+  return `${full.slice(0, cut)}${decimalSeparator}${fraction}`
+}

@@ -6,7 +6,7 @@ export function NotFound({ message, backLabel }: { message: string; backLabel: s
   return (
     <Card>
       <p className="text-[13px]" style={{ color: 'var(--gold)' }}>{message}</p>
-      <Link to="/blocks" search={{ page: 0 }} className="mt-3 inline-block text-[11px]" style={{ color: 'var(--blue2)' }}>
+      <Link to="/blocks" search={{}} className="mt-3 inline-block text-[11px]" style={{ color: 'var(--blue2)' }}>
         ‹ {backLabel}
       </Link>
     </Card>

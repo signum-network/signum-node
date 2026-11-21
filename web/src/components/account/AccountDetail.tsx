@@ -84,7 +84,9 @@ function PagedSection({ title, page, hasOlder, onPage, loading, children }: {
     <Card className="overflow-hidden p-0">
       <div className="px-5 pt-5"><CardLabel>{title}</CardLabel></div>
       {loading ? <div className="mx-5 my-4 h-4 w-48"><CardSkeleton /></div> : children}
-      <div className="px-5 py-4"><Pager page={page} hasOlder={hasOlder} onChange={onPage} /></div>
+      <div className="px-5 py-4">
+        <Pager page={page + 1} hasNewer={page > 0} hasOlder={hasOlder} onNewer={() => onPage(page - 1)} onOlder={() => onPage(page + 1)} />
+      </div>
     </Card>
   )
 }

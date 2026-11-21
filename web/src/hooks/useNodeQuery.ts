@@ -19,7 +19,7 @@ import {
   getAccountTransactions,
   getConstants,
 } from '@/lib/nodeApi'
-import { pageRange } from '@/components/blocks/blocks.utils'
+import { anchoredRange, blocksFrom, pageRange, PAGE_SIZE } from '@/components/blocks/blocks.utils'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNodeSocket } from './useNodeSocket'
 
@@ -135,15 +135,24 @@ export function useFindForkPoint() {
   })
 }
 
-/** A page of the block list; page 0 (newest) follows new blocks, older pages stay as loaded. */
-export function useBlocksPage(page: number) {
+/**
+ * A page of the block list. Without `from` it is the live page at the tip and follows new blocks;
+ * with `from` it is anchored to that height, so blocks arriving meanwhile do not shift it.
+ */
+export function useBlocksPage(from: number | undefined, tipHeight: number | undefined) {
   const { connected } = useNodeSocket()
-  const { firstIndex, lastIndex } = pageRange(page)
+  const live = from === undefined
   return useQuery({
-    queryKey: ['blocksPage', page],
-    queryFn: () => getBlocksPage(firstIndex, lastIndex),
-    staleTime: page === 0 ? 0 : Infinity,
-    refetchInterval: page === 0 && !connected ? 30_000 : false,
+    queryKey: ['blocksPage', live ? 'live' : from],
+    queryFn: async () => {
+      if (live) return getBlocksPage(0, PAGE_SIZE - 1)
+      const { firstIndex, lastIndex } = anchoredRange(from, tipHeight as number)
+      const { blocks } = await getBlocksPage(firstIndex, lastIndex)
+      return { blocks: blocksFrom(blocks, from) }
+    },
+    enabled: live || tipHeight !== undefined,
+    staleTime: live ? 0 : Infinity,
+    refetchInterval: live && !connected ? 30_000 : false,
   })
 }
 

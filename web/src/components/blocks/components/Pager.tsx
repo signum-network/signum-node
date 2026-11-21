@@ -1,9 +1,12 @@
 import { useTranslation } from 'react-i18next'
 
 interface PagerProps {
+  /** 1-based page number shown between the buttons */
   page: number
+  hasNewer: boolean
   hasOlder: boolean
-  onChange: (page: number) => void
+  onNewer: () => void
+  onOlder: () => void
 }
 
 function PagerButton({ label, disabled, onClick }: { label: string; disabled: boolean; onClick: () => void }) {
@@ -25,16 +28,16 @@ function PagerButton({ label, disabled, onClick }: { label: string; disabled: bo
   )
 }
 
-/** Newer / older paging; page 0 holds the newest entries. */
-export function Pager({ page, hasOlder, onChange }: PagerProps) {
+/** Newer / older paging. */
+export function Pager({ page, hasNewer, hasOlder, onNewer, onOlder }: PagerProps) {
   const { t } = useTranslation()
   return (
     <div className="flex items-center justify-between gap-3">
-      <PagerButton label={t('blocks.newer')} disabled={page === 0} onClick={() => onChange(page - 1)} />
+      <PagerButton label={t('blocks.newer')} disabled={!hasNewer} onClick={onNewer} />
       <span className="text-[10px] tabular-nums" style={{ color: 'var(--muted)' }}>
-        {t('blocks.page', { page: page + 1 })}
+        {t('blocks.page', { page })}
       </span>
-      <PagerButton label={t('blocks.older')} disabled={!hasOlder} onClick={() => onChange(page + 1)} />
+      <PagerButton label={t('blocks.older')} disabled={!hasOlder} onClick={onOlder} />
     </div>
   )
 }

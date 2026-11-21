@@ -7,10 +7,14 @@ import {
   deltaTone,
   rollbackCovering,
   pageRange,
-  hasOlderPage,
   parseHeightParam,
   relativeTime,
   txTypeName,
+  txAmountNqt,
+  anchoredRange,
+  blocksFrom,
+  olderFrom,
+  newerFrom,
 } from './blocks.utils'
 
 const TIP = 1_607_462
@@ -132,11 +136,6 @@ describe('paging', () => {
     expect(pageRange(2)).toEqual({ firstIndex: 50, lastIndex: 74 })
   })
 
-  it('has no older page once a page reaches height 0', () => {
-    expect(hasOlderPage(0, 30)).toBe(true)
-    expect(hasOlderPage(1, 30)).toBe(false)
-    expect(hasOlderPage(0, 24)).toBe(false)
-  })
 })
 
 describe('parseHeightParam', () => {
@@ -183,5 +182,51 @@ describe('txTypeName', () => {
     expect(txTypeName(constants, 0, 9)).toBe('0/9')
     expect(txTypeName(constants, 22, 1)).toBe('22/1')
     expect(txTypeName(undefined, 0, 0)).toBe('0/0')
+  })
+})
+
+describe('txAmountNqt', () => {
+  const base = { transaction: '1', type: 0, subtype: 0, timestamp: 0, sender: '1', senderRS: 'S-A', amountNQT: '0', feeNQT: '1' }
+
+  it('takes the committed amount from the attachment for commitment transactions', () => {
+    expect(txAmountNqt({ ...base, type: 20, subtype: 1, attachment: { amountNQT: '5000000000' } })).toBe('5000000000')
+    expect(txAmountNqt({ ...base, type: 20, subtype: 2, attachment: { amountNQT: '700' } })).toBe('700')
+  })
+
+  it('accepts the committed amount as a JSON number, as the node sends it', () => {
+    expect(txAmountNqt({ ...base, type: 20, subtype: 1, attachment: { amountNQT: 5000000000000 } })).toBe('5000000000000')
+  })
+
+  it('uses the transaction amount otherwise', () => {
+    expect(txAmountNqt({ ...base, amountNQT: '42', attachment: { amountNQT: '9' } })).toBe('42')
+    expect(txAmountNqt({ ...base, type: 20, subtype: 1 })).toBe('0')
+  })
+})
+
+describe('anchored paging', () => {
+  const block = (height: number) => ({ height }) as unknown as import('@/lib/nodeApi').BlockDetail
+
+  it('asks for the page below an anchor height with a margin for new blocks', () => {
+    // tip 1000, page starting at 900: index 100 is height 900 while the tip stays at 1000
+    expect(anchoredRange(900, 1000)).toEqual({ firstIndex: 100, lastIndex: 134 })
+  })
+
+  it('keeps the page fixed when blocks arrived after the tip was read', () => {
+    // two new blocks: the window starts at height 902, the filter cuts back to 900
+    const fetched = Array.from({ length: 35 }, (_, i) => block(902 - i))
+    const page = blocksFrom(fetched, 900)
+    expect(page).toHaveLength(25)
+    expect(page[0].height).toBe(900)
+    expect(page[24].height).toBe(876)
+  })
+
+  it('continues below the lowest block of a page', () => {
+    expect(olderFrom([block(900), block(876)])).toBe(875)
+    expect(olderFrom([block(10), block(0)])).toBeNull()
+  })
+
+  it('goes back up by a page, or to the live page near the tip', () => {
+    expect(newerFrom(800, 1000)).toBe(825)
+    expect(newerFrom(980, 1000)).toBeNull()
   })
 })

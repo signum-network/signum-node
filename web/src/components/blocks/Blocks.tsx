@@ -7,17 +7,21 @@ import { useBlockchainStatus, useBlocksPage, useForkHistory } from '@/hooks/useN
 import { BlockSearch } from './components/BlockSearch'
 import { BlockTable } from './components/BlockTable'
 import { Pager } from './components/Pager'
-import { hasOlderPage } from './blocks.utils'
+import { newerFrom, olderFrom, PAGE_SIZE } from './blocks.utils'
 
-export function Blocks({ page }: { page: number }) {
+export function Blocks({ from }: { from: number | undefined }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { data: status } = useBlockchainStatus()
-  const { data, isLoading, isError } = useBlocksPage(page)
+  const tipHeight = status ? status.numberOfBlocks - 1 : undefined
+  const { data, isLoading, isError } = useBlocksPage(from, tipHeight)
   const { data: forkHistory } = useForkHistory(200)
-  const tipHeight = status ? status.numberOfBlocks - 1 : 0
+  const blocks = data?.blocks ?? []
+  const older = olderFrom(blocks)
+  const live = from === undefined
+  const page = live || tipHeight === undefined ? 1 : Math.floor((tipHeight - from) / PAGE_SIZE) + 1
 
-  const changePage = (next: number) => void navigate({ to: '/blocks', search: { page: next } })
+  const goTo = (anchor: number | null) => void navigate({ to: '/blocks', search: anchor === null ? {} : { from: anchor } })
 
   return (
     <PageWrapper>
@@ -25,23 +29,29 @@ export function Blocks({ page }: { page: number }) {
         <SectionDivider label={t('blocks.section')} />
 
         <Card>
-          <BlockSearch tipHeight={tipHeight} />
+          <BlockSearch tipHeight={tipHeight ?? 0} />
         </Card>
 
         <Card className="overflow-hidden p-0">
           <div className="flex items-center justify-between px-5 pt-5">
             <CardLabel>{t('blocks.latest')}</CardLabel>
-            {page > 0 && (
+            {!live && (
               <span className="text-[10px]" style={{ color: 'var(--muted)' }}>{t('blocks.liveOnFirstPage')}</span>
             )}
           </div>
           {isError ? (
             <p className="px-5 py-6 text-[11px]" style={{ color: 'var(--gold)' }}>{t('blocks.loadError')}</p>
           ) : (
-            <BlockTable blocks={data?.blocks ?? []} forks={forkHistory?.forks ?? []} isLoading={isLoading} />
+            <BlockTable blocks={blocks} forks={forkHistory?.forks ?? []} isLoading={isLoading} />
           )}
           <div className="px-5 py-4">
-            <Pager page={page} hasOlder={status ? hasOlderPage(page, tipHeight) : false} onChange={changePage} />
+            <Pager
+              page={page}
+              hasNewer={!live}
+              hasOlder={older !== null}
+              onNewer={() => goTo(live || tipHeight === undefined ? null : newerFrom(from, tipHeight))}
+              onOlder={() => goTo(older)}
+            />
           </div>
         </Card>
       </div>

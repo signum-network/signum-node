@@ -4,7 +4,7 @@ import { ScrollableTable } from '@/components/ui/ScrollableTable'
 import { useConstants } from '@/hooks/useNodeQuery'
 import type { TransactionDetail } from '@/lib/nodeApi'
 import { fmtNqt } from '@/lib/utils'
-import { txTypeName } from '@/components/blocks/blocks.utils'
+import { txAmountNqt, txTypeName } from '@/components/blocks/blocks.utils'
 import { AccountLink } from './AccountLink'
 
 function Th({ children, align = 'left' }: { children: React.ReactNode; align?: 'left' | 'right' }) {
@@ -50,7 +50,7 @@ export function TxTable({ transactions }: { transactions: TransactionDetail[] })
           <td className="px-3 py-2.5">
             {tx.recipient ? <AccountLink id={tx.recipient} rs={tx.recipientRS} /> : <span style={{ color: 'var(--muted)' }}>—</span>}
           </td>
-          <td className="px-3 py-2.5 text-right tabular-nums" style={{ color: 'var(--text)' }}>{fmtNqt(tx.amountNQT)}</td>
+          <td className="px-3 py-2.5 text-right tabular-nums" style={{ color: 'var(--text)' }}>{fmtNqt(txAmountNqt(tx))}</td>
           <td className="py-2.5 pl-3 pr-5 text-right tabular-nums" style={{ color: 'var(--muted)' }}>{fmtNqt(tx.feeNQT)}</td>
         </tr>
       ))}

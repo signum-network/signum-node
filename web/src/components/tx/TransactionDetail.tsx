@@ -8,8 +8,8 @@ import { KeyValueList } from '@/components/shared/KeyValueList'
 import { NotFound } from '@/components/shared/NotFound'
 import { useConstants, useTransaction } from '@/hooks/useNodeQuery'
 import { signumTimestampToMs, type TransactionDetail as Tx } from '@/lib/nodeApi'
-import { fmtNqt } from '@/lib/utils'
-import { txTypeName } from '@/components/blocks/blocks.utils'
+import { fmtNqtFull } from '@/lib/utils'
+import { txAmountNqt, txTypeName } from '@/components/blocks/blocks.utils'
 
 function UnconfirmedPill({ label }: { label: string }) {
   return (
@@ -38,8 +38,8 @@ function Details({ tx }: { tx: Tx }) {
             [t('tx.type'), txTypeName(constants, tx.type, tx.subtype)],
             [t('tx.sender'), <AccountLink id={tx.sender} rs={tx.senderRS} />],
             [t('tx.recipient'), tx.recipient ? <AccountLink id={tx.recipient} rs={tx.recipientRS} /> : null],
-            [t('tx.amount'), fmtNqt(tx.amountNQT)],
-            [t('tx.fee'), fmtNqt(tx.feeNQT)],
+            [t('tx.amount'), fmtNqtFull(txAmountNqt(tx))],
+            [t('tx.fee'), fmtNqtFull(tx.feeNQT)],
             [t('tx.time'), new Date(signumTimestampToMs(tx.timestamp)).toLocaleString()],
             [t('tx.block'), confirmed ? (
               <Link to="/blocks/$height" params={{ height: String(tx.height) }} style={{ color: 'var(--blue2)' }}>

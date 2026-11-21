@@ -27,9 +27,10 @@ const networkRoute = createRoute({
 const blocksRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/blocks',
-  validateSearch: (search: Record<string, unknown>): { page: number } => {
-    const page = Number(search.page)
-    return { page: Number.isSafeInteger(page) && page > 0 ? page : 0 }
+  // `from`: height of the newest block on an older page; absent for the live page
+  validateSearch: (search: Record<string, unknown>): { from?: number } => {
+    const from = Number(search.from)
+    return search.from !== undefined && Number.isSafeInteger(from) && from >= 0 ? { from } : {}
   },
   component: BlocksPage,
 })

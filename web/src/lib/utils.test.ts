@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { fmtNqt } from './utils'
+import { fmtNqt, fmtNqtFull } from './utils'
 
 describe('fmtNqt', () => {
   it('formats NQT as SIGNA with two decimals', () => {
@@ -25,5 +25,18 @@ describe('fmtNqt', () => {
 
   it('keeps the sign of a negative amount', () => {
     expect(fmtNqt('-150000000', 2, 'en-US')).toBe('-1.50')
+  })
+})
+
+describe('fmtNqtFull', () => {
+  it('shows every significant decimal for detail pages', () => {
+    expect(fmtNqtFull('500000', 'en-US')).toBe('0.005')
+    expect(fmtNqtFull('735000', 'en-US')).toBe('0.00735')
+    expect(fmtNqtFull('1', 'en-US')).toBe('0.00000001')
+  })
+
+  it('keeps at least two decimals', () => {
+    expect(fmtNqtFull('100000000', 'en-US')).toBe('1.00')
+    expect(fmtNqtFull('0', 'en-US')).toBe('0.00')
   })
 })

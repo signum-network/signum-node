@@ -29,7 +29,7 @@ import {
 } from '@/lib/nodeApi'
 import { useEffect, useRef } from 'react'
 import { cachedExpiring, cachedImmutable, clientCache, networkKey } from '@/lib/clientCache'
-import { computeValidUntil, limitConcurrency, subscriptionTimesMs } from '@/components/account/account.utils'
+import { computeValidUntil, limitConcurrency, shouldRefetchOverdue, subscriptionTimesMs } from '@/components/account/account.utils'
 import { anchoredRange, blocksFrom, pageRange, PAGE_SIZE } from '@/components/blocks/blocks.utils'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNodeSocket } from './useNodeSocket'
@@ -314,15 +314,17 @@ export function useAccountAliasesCached(account: string, page: number, enabled: 
   })
 }
 
-/** While an overdue entry is shown, the next block settles it: forget the entry once and fetch again. */
+/**
+ * While an overdue entry is shown, the next block settles it: forget the entry once and fetch again.
+ * Follows the last block of the node status, which advances over the WebSocket and when polling.
+ */
 export function useRefetchWhenOverdue(hasOverdue: boolean, forgetKey: string | undefined, refetch: () => void) {
-  const { latestBlock } = useNodeSocket()
-  const seenBlock = useRef(latestBlock?.blockId)
+  const lastBlock = useBlockchainStatus().data?.lastBlock
+  const seenBlock = useRef(lastBlock)
   useEffect(() => {
-    const blockId = latestBlock?.blockId
-    if (blockId === seenBlock.current) return
-    seenBlock.current = blockId
-    if (!hasOverdue || !forgetKey) return
+    const previous = seenBlock.current
+    seenBlock.current = lastBlock
+    if (!forgetKey || !shouldRefetchOverdue(previous, lastBlock, hasOverdue)) return
     void clientCache.forget(forgetKey).then(refetch)
-  }, [latestBlock?.blockId, hasOverdue, forgetKey, refetch])
+  }, [lastBlock, hasOverdue, forgetKey, refetch])
 }

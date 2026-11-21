@@ -87,3 +87,11 @@ export function contractState(c: Pick<Contract, 'dead' | 'finished' | 'frozen' |
   if (c.running) return 'running'
   return 'stopped'
 }
+
+/**
+ * Whether to fetch an overdue entry again: once per new block (identified by the chain's last block
+ * ID), only while an overdue entry is shown, and not for the first block seen after mounting.
+ */
+export function shouldRefetchOverdue(previousBlock: string | undefined, currentBlock: string | undefined, hasOverdue: boolean): boolean {
+  return hasOverdue && previousBlock !== undefined && currentBlock !== undefined && previousBlock !== currentBlock
+}

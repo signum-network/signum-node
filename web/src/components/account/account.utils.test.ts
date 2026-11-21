@@ -10,6 +10,7 @@ import {
   limitConcurrency,
   parseAccountTab,
   contractState,
+  shouldRefetchOverdue,
 } from './account.utils'
 import { signumTimestampToMs } from '@/lib/nodeApi'
 
@@ -112,6 +113,26 @@ describe('limitConcurrency', () => {
     expect(maxRunning).toBe(2)
   })
 
+  it('gives a freed slot to a waiting task before a new caller', async () => {
+    // a caller arriving in the same tick a task finishes must not slip past the waiting one
+    const limit = limitConcurrency(1)
+    const first = deferred<void>()
+    let running = 0
+    let maxRunning = 0
+    const track = (gate: Promise<void>) => async () => {
+      running++
+      maxRunning = Math.max(maxRunning, running)
+      try { await gate } finally { running-- }
+    }
+    const a = limit(track(first.promise))
+    const b = limit(track(Promise.resolve()))
+    first.resolve()
+    await a
+    const c = limit(track(Promise.resolve()))
+    await Promise.all([b, c])
+    expect(maxRunning).toBe(1)
+  })
+
   it('frees the slot of a failed task', async () => {
     const limit = limitConcurrency(1)
     await expect(limit(async () => { throw new Error('boom') })).rejects.toThrow('boom')
@@ -141,5 +162,20 @@ describe('contractState', () => {
     expect(contractState({ ...base, running: true })).toBe('running')
     expect(contractState({ ...base, stopped: true })).toBe('stopped')
     expect(contractState(base)).toBe('stopped')
+  })
+})
+
+describe('shouldRefetchOverdue', () => {
+  it('refetches once when a new block arrives while an overdue entry is shown', () => {
+    expect(shouldRefetchOverdue('100', '101', true)).toBe(true)
+  })
+
+  it('does not refetch without a new block or without an overdue entry', () => {
+    expect(shouldRefetchOverdue('101', '101', true)).toBe(false)
+    expect(shouldRefetchOverdue('100', '101', false)).toBe(false)
+  })
+
+  it('does not count the first block it sees as new', () => {
+    expect(shouldRefetchOverdue(undefined, '101', true)).toBe(false)
   })
 })

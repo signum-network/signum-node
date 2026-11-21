@@ -61,6 +61,8 @@ export function useNodeSocketProvider() {
       const p = frame.p as BlockPushEvent
       setLatestBlock({ ...p, progress: Math.min(1, p.progress) })
       queryClient.invalidateQueries({ queryKey: ['fullBlockchainStatus'] })
+      // node time and last block move on with every block (account tabs judge due dates by them)
+      queryClient.invalidateQueries({ queryKey: ['blockchainStatus'] })
       queryClient.invalidateQueries({ queryKey: ['miningInfo'] })
       queryClient.invalidateQueries({ queryKey: ['recentBlocks'] })
       // only the newest page of the block list follows new blocks; older pages stay where the user is

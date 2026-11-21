@@ -269,6 +269,13 @@ const es: Locale = {
     peerTooOld: 'Demasiado antiguo para preguntar a los peers',
     peerError: 'No se pudo preguntar a los peers',
   },
+  accountTabs: {
+    overview: 'Resumen',
+    tokens: 'Tokens',
+    contracts: 'Contratos',
+    aliases: 'Alias',
+    subscriptions: 'Suscripciones',
+  },
 }
 
 export default es

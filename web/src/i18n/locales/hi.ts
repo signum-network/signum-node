@@ -269,6 +269,13 @@ const hi: Locale = {
     peerTooOld: 'पीयर से पूछने के लिए बहुत पुराना',
     peerError: 'पीयर से पूछा नहीं जा सका',
   },
+  accountTabs: {
+    overview: 'सारांश',
+    tokens: 'टोकन',
+    contracts: 'कॉन्ट्रैक्ट',
+    aliases: 'उपनाम',
+    subscriptions: 'सदस्यताएँ',
+  },
 }
 
 export default hi

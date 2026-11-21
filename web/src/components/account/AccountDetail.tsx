@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { PageWrapper } from '@/components/layout/PageWrapper'
 import { Card, CardLabel, CardSkeleton } from '@/components/ui/Card'
@@ -13,6 +13,8 @@ import { relativeTime } from '@/components/blocks/blocks.utils'
 import { useAccount, useAccountBlocks, useAccountTransactions } from '@/hooks/useNodeQuery'
 import { signumTimestampToMs, type AccountDetail as Account, type BlockDetail } from '@/lib/nodeApi'
 import { fmtNqt } from '@/lib/utils'
+import { AccountTabs } from './AccountTabs'
+import type { AccountTab } from './account.utils'
 
 function Overview({ account }: { account: Account }) {
   const { t } = useTranslation()
@@ -91,13 +93,43 @@ function PagedSection({ title, page, hasOlder, onPage, loading, children }: {
   )
 }
 
-export function AccountDetail({ id }: { id: string }) {
+/** Forged blocks and transactions; mounted only on the overview tab, so other tabs do not load them. */
+function OverviewTab({ id }: { id: string }) {
   const { t } = useTranslation()
   const [blockPage, setBlockPage] = useState(0)
   const [txPage, setTxPage] = useState(0)
-  const { data: account, isLoading, isError } = useAccount(id)
   const blocks = useAccountBlocks(id, blockPage)
   const transactions = useAccountTransactions(id, txPage)
+  return (
+    <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] md:gap-4">
+      <PagedSection
+        title={t('account.forgedBlocks')}
+        page={blockPage}
+        hasOlder={blocks.data?.nextIndex !== undefined}
+        onPage={setBlockPage}
+        loading={blocks.isLoading}
+      >
+        <ForgedBlocks blocks={blocks.data?.blocks ?? []} />
+      </PagedSection>
+      <PagedSection
+        title={t('account.transactions')}
+        page={txPage}
+        hasOlder={transactions.data?.nextIndex !== undefined}
+        onPage={setTxPage}
+        loading={transactions.isLoading}
+      >
+        <TxTable transactions={transactions.data?.transactions ?? []} />
+      </PagedSection>
+    </div>
+  )
+}
+
+export function AccountDetail({ id, tab }: { id: string; tab: AccountTab }) {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const { data: account, isLoading, isError } = useAccount(id)
+  const selectTab = (next: AccountTab) =>
+    void navigate({ to: '/accounts/$id', params: { id }, search: next === 'overview' ? {} : { tab: next } })
 
   const body = (() => {
     if (account === null) return <NotFound message={t('account.notFound')} backLabel={t('account.backToList')} />
@@ -106,26 +138,8 @@ export function AccountDetail({ id }: { id: string }) {
     return (
       <>
         <Overview account={account} />
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] md:gap-4">
-          <PagedSection
-            title={t('account.forgedBlocks')}
-            page={blockPage}
-            hasOlder={blocks.data?.nextIndex !== undefined}
-            onPage={setBlockPage}
-            loading={blocks.isLoading}
-          >
-            <ForgedBlocks blocks={blocks.data?.blocks ?? []} />
-          </PagedSection>
-          <PagedSection
-            title={t('account.transactions')}
-            page={txPage}
-            hasOlder={transactions.data?.nextIndex !== undefined}
-            onPage={setTxPage}
-            loading={transactions.isLoading}
-          >
-            <TxTable transactions={transactions.data?.transactions ?? []} />
-          </PagedSection>
-        </div>
+        <AccountTabs active={tab} onSelect={selectTab} />
+        {tab === 'overview' && <OverviewTab id={id} />}
       </>
     )
   })()

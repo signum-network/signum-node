@@ -269,6 +269,13 @@ const zh: Locale = {
     peerTooOld: '区块太旧，无法询问节点',
     peerError: '无法询问节点',
   },
+  accountTabs: {
+    overview: '概览',
+    tokens: '代币',
+    contracts: '合约',
+    aliases: '别名',
+    subscriptions: '订阅',
+  },
 }
 
 export default zh

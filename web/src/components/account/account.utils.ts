@@ -68,3 +68,11 @@ export function limitConcurrency(max: number): <T>(task: () => Promise<T>) => Pr
     }
   }
 }
+
+export const ACCOUNT_TABS = ['overview', 'tokens', 'contracts', 'aliases', 'subscriptions'] as const
+export type AccountTab = (typeof ACCOUNT_TABS)[number]
+
+/** The `?tab=` value of the account page; anything unknown shows the overview. */
+export function parseAccountTab(value: unknown): AccountTab {
+  return (ACCOUNT_TABS as readonly unknown[]).includes(value) ? (value as AccountTab) : 'overview'
+}

@@ -8,6 +8,7 @@ import {
   frequencyParts,
   subscriptionTimesMs,
   limitConcurrency,
+  parseAccountTab,
 } from './account.utils'
 import { signumTimestampToMs } from '@/lib/nodeApi'
 
@@ -114,5 +115,17 @@ describe('limitConcurrency', () => {
     const limit = limitConcurrency(1)
     await expect(limit(async () => { throw new Error('boom') })).rejects.toThrow('boom')
     await expect(limit(async () => 'next')).resolves.toBe('next')
+  })
+})
+
+describe('parseAccountTab', () => {
+  it('accepts the known tabs', () => {
+    expect(parseAccountTab('tokens')).toBe('tokens')
+    expect(parseAccountTab('subscriptions')).toBe('subscriptions')
+  })
+
+  it('falls back to the overview', () => {
+    expect(parseAccountTab('x')).toBe('overview')
+    expect(parseAccountTab(undefined)).toBe('overview')
   })
 })

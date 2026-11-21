@@ -269,6 +269,13 @@ const ja: Locale = {
     peerTooOld: '古すぎるためピアに確認できません',
     peerError: 'ピアに確認できませんでした',
   },
+  accountTabs: {
+    overview: '概要',
+    tokens: 'トークン',
+    contracts: 'コントラクト',
+    aliases: 'エイリアス',
+    subscriptions: 'サブスクリプション',
+  },
 }
 
 export default ja

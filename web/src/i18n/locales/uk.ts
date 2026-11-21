@@ -269,6 +269,13 @@ const uk: Locale = {
     peerTooOld: 'Занадто старий, щоб питати пірів',
     peerError: 'Не вдалося опитати пірів',
   },
+  accountTabs: {
+    overview: 'Огляд',
+    tokens: 'Токени',
+    contracts: 'Контракти',
+    aliases: 'Аліаси',
+    subscriptions: 'Підписки',
+  },
 }
 
 export default uk

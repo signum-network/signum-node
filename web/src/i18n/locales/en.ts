@@ -57,6 +57,7 @@ export interface Locale {
   tx: { section: string; title: string; notFound: string; backToList: string; id: string; type: string; sender: string; recipient: string; amount: string; fee: string; block: string; confirmations: string; time: string; unconfirmed: string; attachment: string; loadError: string }
   account: { section: string; overview: string; notFound: string; backToList: string; address: string; id: string; name: string; balance: string; committed: string; guaranteed: string; smartContract: string; forgedBlocks: string; transactions: string; colHeight: string; colTime: string; colFees: string; noBlocks: string; loadError: string }
   blockPeers: { peers: string; peerCheck: string; peerChecking: string; peerResult: string; peerMissing: string; peerNotYet: string; peerNoAnswer: string; peerBusy: string; peerTooOld: string; peerError: string }
+  accountTabs: { overview: string; tokens: string; contracts: string; aliases: string; subscriptions: string }
 }
 
 const en: Locale = {
@@ -327,6 +328,13 @@ const en: Locale = {
     peerBusy: 'Another check is running – try again shortly',
     peerTooOld: 'Too old to ask the peers',
     peerError: 'The peers could not be asked',
+  },
+  accountTabs: {
+    overview: 'Overview',
+    tokens: 'Tokens',
+    contracts: 'Contracts',
+    aliases: 'Aliases',
+    subscriptions: 'Subscriptions',
   },
 }
 

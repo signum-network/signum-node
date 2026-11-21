@@ -269,6 +269,13 @@ const ru: Locale = {
     peerTooOld: 'Слишком старый, чтобы спрашивать пиров',
     peerError: 'Не удалось опросить пиров',
   },
+  accountTabs: {
+    overview: 'Обзор',
+    tokens: 'Токены',
+    contracts: 'Контракты',
+    aliases: 'Алиасы',
+    subscriptions: 'Подписки',
+  },
 }
 
 export default ru

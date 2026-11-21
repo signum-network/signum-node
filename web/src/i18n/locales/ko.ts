@@ -269,6 +269,13 @@ const ko: Locale = {
     peerTooOld: '너무 오래되어 피어에게 확인할 수 없습니다',
     peerError: '피어에게 확인하지 못했습니다',
   },
+  accountTabs: {
+    overview: '개요',
+    tokens: '토큰',
+    contracts: '컨트랙트',
+    aliases: '별칭',
+    subscriptions: '구독',
+  },
 }
 
 export default ko

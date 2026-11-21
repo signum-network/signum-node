@@ -14,7 +14,7 @@ export function AccountLink({ id, rs }: { id: string; rs?: string }) {
       to="/accounts/$id"
       params={{ id: rs ?? id }}
       title={label}
-      className="font-mono transition-opacity hover:opacity-80"
+      className="whitespace-nowrap font-mono transition-opacity hover:opacity-80"
       style={{ color: 'var(--blue2)' }}
       onClick={(e) => e.stopPropagation()}
     >

@@ -11,9 +11,8 @@ import { NodePanel } from './components/NodePanel'
 import { blockDeltaSeconds, parseHeightParam, rollbackCovering } from './blocks.utils'
 
 function HeightLink({ height, label, enabled }: { height: number; label: string; enabled: boolean }) {
-  if (!enabled) {
-    return <span className="text-[11px] opacity-40" style={{ color: 'var(--muted)' }}>{label}</span>
-  }
+  // nothing before the genesis block or after the tip; the empty span keeps the other link in place
+  if (!enabled) return <span />
   return (
     <Link to="/blocks/$height" params={{ height: String(height) }} className="text-[11px]" style={{ color: 'var(--blue2)' }}>
       {label}

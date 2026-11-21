@@ -5,11 +5,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { router } from './router'
 import './i18n'
 import './index.css'
+import { NodeApiError } from '@/lib/nodeApi'
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 2,
+      // an error answer from the node (NodeApiError) will not change on a retry
+      retry: (failureCount, error) => !(error instanceof NodeApiError) && failureCount < 2,
       staleTime: 5_000,
     },
   },

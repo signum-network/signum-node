@@ -20,11 +20,17 @@ describe('nodeApi', () => {
     await expect(queryEntity('getBlock', { block: '1' })).resolves.toBeNull()
   })
 
+  it('queryEntity returns null for a malformed ID (errorCode 4)', async () => {
+    // "Incorrect account" for "xyz": for the user that is just not found
+    respond({ errorCode: 4, errorDescription: 'Incorrect account' })
+    await expect(queryEntity('getAccount', { account: 'xyz' })).resolves.toBeNull()
+  })
+
   it('queryEntity throws NodeApiError for other error codes', async () => {
-    respond({ errorCode: 4, errorDescription: 'Incorrect block' })
-    const error = await queryEntity('getBlock', { block: 'x' }).catch((e: unknown) => e)
+    respond({ errorCode: 3, errorDescription: '"account" not specified' })
+    const error = await queryEntity('getAccount', { account: '' }).catch((e: unknown) => e)
     expect(error).toBeInstanceOf(NodeApiError)
-    expect((error as NodeApiError).code).toBe(4)
+    expect((error as NodeApiError).code).toBe(3)
   })
 
   it('queryEntity returns the body otherwise', async () => {

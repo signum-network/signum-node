@@ -21,16 +21,18 @@ export class NodeApiError extends Error {
   }
 }
 
+const INCORRECT_PARAMETER = 4
 const UNKNOWN_ENTITY = 5
 
 /**
  * Like `query`, for requests that look up one block, transaction or account: the node answers an
- * unknown ID with HTTP 200 and `errorCode 5`, which becomes `null`; other error codes throw.
+ * unknown ID (`errorCode 5`) or a malformed one (`errorCode 4`) with HTTP 200; both become `null`,
+ * since either way there is nothing to show. Other error codes throw.
  */
 export async function queryEntity<T>(requestType: string, params: Record<string, string>): Promise<T | null> {
   const body = await query<T & { errorCode?: number; errorDescription?: string }>(requestType, params)
   if (body.errorCode === undefined) return body
-  if (body.errorCode === UNKNOWN_ENTITY) return null
+  if (body.errorCode === UNKNOWN_ENTITY || body.errorCode === INCORRECT_PARAMETER) return null
   throw new NodeApiError(body.errorCode, body.errorDescription ?? `Node API error ${body.errorCode}: ${requestType}`)
 }
 

@@ -57,4 +57,20 @@ class InboundContactsTest {
         assertTrue(contacts.lastPublicMillis().isEmpty());
         assertTrue(contacts.lastLocalMillis().isEmpty());
     }
+
+    @Test
+    void record_GivenBracketedIpv6_AsJettyReportsIt_Counts() {
+        contacts.record("[2001:db8::1]", 100L);
+        contacts.record("[fd00::5]", 200L);
+
+        assertEquals(OptionalLong.of(100L), contacts.lastPublicMillis());
+        assertEquals(OptionalLong.of(200L), contacts.lastLocalMillis());
+    }
+
+    @Test
+    void record_GivenOctetAbove255_Ignores() {
+        contacts.record("999.1.1.1", 100L);
+
+        assertTrue(contacts.lastPublicMillis().isEmpty());
+    }
 }

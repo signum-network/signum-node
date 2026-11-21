@@ -71,4 +71,20 @@ class DatabaseInstanceSizeQueryTest {
     void getDatabaseFile_GivenServerDatabase_IsEmpty() {
         assertTrue(mock(DatabaseInstancePostgres.class, CALLS_REAL_METHODS).getDatabaseFile().isEmpty());
     }
+
+    @Test
+    void getDatabaseSizeBytes_GivenNoVisibleTables_IsEmptyNotZero() throws SQLException {
+        // SUM over no rows is NULL: report "unknown", not a database of 0 bytes
+        DatabaseInstanceMariaDb instance = mock(DatabaseInstanceMariaDb.class, CALLS_REAL_METHODS);
+        answering(instance, 0L);
+        ResultSet nullResult = mock(ResultSet.class);
+        when(nullResult.next()).thenReturn(true);
+        when(nullResult.getLong(1)).thenReturn(0L);
+        when(nullResult.wasNull()).thenReturn(true);
+        PreparedStatement statement = mock(PreparedStatement.class);
+        when(statement.executeQuery()).thenReturn(nullResult);
+        when(instance.getDataSource().getConnection().prepareStatement(org.mockito.ArgumentMatchers.anyString())).thenReturn(statement);
+
+        assertTrue(instance.getDatabaseSizeBytes().isEmpty());
+    }
 }

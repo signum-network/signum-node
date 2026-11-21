@@ -418,7 +418,7 @@ const en: Locale = {
     hintLocalOnly: 'Contacts come only from local addresses – behind a reverse proxy or container the real source may be hidden',
     hintNoAddress: 'Set P2P.myAddress – without an announced address other nodes do not pass this node on',
     hintNoContact: 'No other node connected in 30 min – check port forwarding and firewall for the P2P port',
-    hintOff: 'P2P.shareMyAddress is off – other nodes cannot connect',
+    hintOff: 'P2P.shareMyAddress is off or the node runs offline – other nodes cannot connect',
     clock: 'Clock',
     clockValue: '{{own}} s · peers {{peers}} s',
     clockUnknown: 'unknown',

@@ -352,7 +352,7 @@ const es: Locale = {
     hintLocalOnly: 'Los contactos solo llegan de direcciones locales: detrás de un proxy inverso o contenedor la fuente real puede quedar oculta',
     hintNoAddress: 'Configura P2P.myAddress: sin una dirección anunciada otros nodos no difunden este nodo',
     hintNoContact: 'Ningún nodo se conectó en 30 min: revisa el reenvío de puertos y el firewall del puerto P2P',
-    hintOff: 'P2P.shareMyAddress está desactivado: otros nodos no pueden conectarse',
+    hintOff: 'P2P.shareMyAddress está desactivado o el nodo funciona sin conexión: otros nodos no pueden conectarse',
     clock: 'Reloj',
     clockValue: '{{own}} s · pares {{peers}} s',
     clockUnknown: 'desconocido',

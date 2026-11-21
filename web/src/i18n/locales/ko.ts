@@ -352,7 +352,7 @@ const ko: Locale = {
     hintLocalOnly: '연결이 로컬 주소에서만 옵니다 – 리버스 프록시나 컨테이너 뒤에서는 실제 출처가 가려질 수 있습니다',
     hintNoAddress: 'P2P.myAddress를 설정하세요 – 알린 주소가 없으면 다른 노드가 이 노드를 전파하지 않습니다',
     hintNoContact: '30분 동안 연결한 노드가 없습니다 – P2P 포트의 포트 포워딩과 방화벽을 확인하세요',
-    hintOff: 'P2P.shareMyAddress가 꺼져 있습니다 – 다른 노드가 연결할 수 없습니다',
+    hintOff: 'P2P.shareMyAddress가 꺼져 있거나 노드가 오프라인으로 실행 중입니다 – 다른 노드가 연결할 수 없습니다',
     clock: '시계',
     clockValue: '{{own}}초 · 피어 {{peers}}초',
     clockUnknown: '알 수 없음',

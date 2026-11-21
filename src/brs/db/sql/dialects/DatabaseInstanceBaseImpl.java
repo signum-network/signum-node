@@ -95,7 +95,11 @@ public abstract class DatabaseInstanceBaseImpl implements DatabaseInstance {
     try (Connection connection = getDataSource().getConnection();
          PreparedStatement statement = connection.prepareStatement(sql);
          ResultSet resultSet = statement.executeQuery()) {
-      return resultSet.next() ? OptionalLong.of(resultSet.getLong(1)) : OptionalLong.empty();
+      if (!resultSet.next()) {
+        return OptionalLong.empty();
+      }
+      long size = resultSet.getLong(1);
+      return resultSet.wasNull() ? OptionalLong.empty() : OptionalLong.of(size);
     } catch (SQLException | RuntimeException e) {
       logger.debug("Could not determine the database size", e);
       return OptionalLong.empty();

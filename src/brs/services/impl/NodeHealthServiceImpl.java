@@ -29,6 +29,7 @@ public class NodeHealthServiceImpl implements NodeHealthService {
 
     private final DatabaseInstance database;
     private final PeerServerFacts peers;
+    /** milliseconds on any clock that only moves forward; used for the cache age only */
     private final LongSupplier clock;
     private final long startedAtMillis;
     private final ToLongFunction<Path> usableSpace;
@@ -38,7 +39,8 @@ public class NodeHealthServiceImpl implements NodeHealthService {
     private volatile long cachedAt;
 
     public NodeHealthServiceImpl(DatabaseInstance database, PeerServerFacts peers) {
-        this(database, peers, System::currentTimeMillis, ManagementFactory.getRuntimeMXBean().getStartTime(),
+        // cache age on a monotonic clock: a wall-clock step back must not freeze the cached value
+        this(database, peers, () -> System.nanoTime() / 1_000_000L, ManagementFactory.getRuntimeMXBean().getStartTime(),
                 path -> path.toFile().getUsableSpace());
     }
 

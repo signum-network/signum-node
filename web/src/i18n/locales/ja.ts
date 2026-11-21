@@ -352,7 +352,7 @@ const ja: Locale = {
     hintLocalOnly: '接続はローカルアドレスからのみです。リバースプロキシやコンテナの背後では実際の送信元が見えないことがあります',
     hintNoAddress: 'P2P.myAddress を設定してください。公開アドレスがないと他のノードはこのノードを広めません',
     hintNoContact: '30 分間どのノードも接続していません。P2P ポートのポート転送とファイアウォールを確認してください',
-    hintOff: 'P2P.shareMyAddress がオフです。他のノードは接続できません',
+    hintOff: 'P2P.shareMyAddress がオフか、ノードがオフラインで動作しています。他のノードは接続できません',
     clock: '時計',
     clockValue: '{{own}} 秒 · ピア {{peers}} 秒',
     clockUnknown: '不明',

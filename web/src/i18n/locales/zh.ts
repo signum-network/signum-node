@@ -352,7 +352,7 @@ const zh: Locale = {
     hintLocalOnly: '连接仅来自本地地址——在反向代理或容器后面，真实来源可能被隐藏',
     hintNoAddress: '请设置 P2P.myAddress——未公布地址时其他节点不会传播本节点',
     hintNoContact: '30 分钟内没有其他节点连接——请检查 P2P 端口的端口转发和防火墙',
-    hintOff: 'P2P.shareMyAddress 已关闭——其他节点无法连接',
+    hintOff: 'P2P.shareMyAddress 已关闭或节点处于离线模式——其他节点无法连接',
     clock: '时钟',
     clockValue: '{{own}} 秒 · 节点 {{peers}} 秒',
     clockUnknown: '未知',

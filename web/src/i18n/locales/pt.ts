@@ -352,7 +352,7 @@ const pt: Locale = {
     hintLocalOnly: 'Os contatos vêm apenas de endereços locais – atrás de um proxy reverso ou contêiner a origem real pode ficar oculta',
     hintNoAddress: 'Defina P2P.myAddress – sem um endereço anunciado outros nós não divulgam este nó',
     hintNoContact: 'Nenhum nó se conectou em 30 min – verifique o redirecionamento de porta e o firewall da porta P2P',
-    hintOff: 'P2P.shareMyAddress está desligado – outros nós não podem se conectar',
+    hintOff: 'P2P.shareMyAddress está desligado ou o nó roda offline – outros nós não podem se conectar',
     clock: 'Relógio',
     clockValue: '{{own}} s · pares {{peers}} s',
     clockUnknown: 'desconhecido',

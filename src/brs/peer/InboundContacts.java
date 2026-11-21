@@ -13,7 +13,8 @@ import java.util.regex.Pattern;
  */
 public final class InboundContacts {
 
-    private static final Pattern IPV4 = Pattern.compile("^\\d{1,3}(\\.\\d{1,3}){3}$");
+    private static final String OCTET = "(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)";
+    private static final Pattern IPV4 = Pattern.compile("^" + OCTET + "(\\." + OCTET + "){3}$");
 
     private final AtomicLong lastPublic = new AtomicLong();
     private final AtomicLong lastLocal = new AtomicLong();
@@ -48,7 +49,8 @@ public final class InboundContacts {
         if (remoteAddress == null) {
             return null;
         }
-        // a host name never contains ':' and never looks like dotted IPv4: only literals reach getByName
+        // only a valid dotted IPv4 or a string with ':' (IPv6; host names never contain one) reaches
+        // getByName, which parses literals without a name lookup
         if (!IPV4.matcher(remoteAddress).matches() && remoteAddress.indexOf(':') < 0) {
             return null;
         }

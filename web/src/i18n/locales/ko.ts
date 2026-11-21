@@ -186,6 +186,7 @@ const ko: Locale = {
     rollbackMarker: '이 노드에서 {{count}}개 블록 롤백으로 교체됨 – 네트워크 페이지 참조',
     loadError: '블록을 불러오지 못했습니다',
     empty: '블록 없음',
+    searchUnavailable: '노드가 응답하지 않았습니다 – 다시 시도하세요',
   },
   block: {
     title: '블록 {{height}}',
@@ -265,9 +266,10 @@ const ko: Locale = {
     peerMissing: '없음: {{count}}',
     peerNotYet: '아직 도달하지 않음: {{count}}',
     peerNoAnswer: '응답 없음: {{count}}',
-    peerBusy: '다른 확인이 진행 중입니다 – 잠시 후 다시 시도하세요',
+    peerBusy: '방금 확인이 실행되었습니다 – 몇 초 후 다시 시도하세요',
     peerTooOld: '너무 오래되어 피어에게 확인할 수 없습니다',
     peerError: '피어에게 확인하지 못했습니다',
+    peerUnknownBlock: '이 노드에는 더 이상 이 블록이 없습니다 – 교체되었습니다',
   },
   accountTabs: {
     overview: '개요',
@@ -301,7 +303,7 @@ const ko: Locale = {
     empty: '별칭 없음',
     colAlias: '별칭',
     colUri: 'URI',
-    colCreated: '생성',
+    colUpdated: '변경',
     colOffer: '판매 중',
     colRenewal: '갱신',
     renewsOn: '{{date}} 갱신 · {{amount}} {{every}}',

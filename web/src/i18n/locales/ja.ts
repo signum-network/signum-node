@@ -186,6 +186,7 @@ const ja: Locale = {
     rollbackMarker: 'このノードで {{count}} ブロックのロールバックにより置き換えられました – ネットワークページを参照',
     loadError: 'ブロックを読み込めませんでした',
     empty: 'ブロックがありません',
+    searchUnavailable: 'ノードが応答しませんでした – もう一度お試しください',
   },
   block: {
     title: 'ブロック {{height}}',
@@ -265,9 +266,10 @@ const ja: Locale = {
     peerMissing: '欠落: {{count}}',
     peerNotYet: '未到達: {{count}}',
     peerNoAnswer: '応答なし: {{count}}',
-    peerBusy: '別の確認を実行中です – 少し後でもう一度お試しください',
+    peerBusy: '直前に確認が行われました – 数秒後にもう一度お試しください',
     peerTooOld: '古すぎるためピアに確認できません',
     peerError: 'ピアに確認できませんでした',
+    peerUnknownBlock: 'このノードにはこのブロックがもうありません – 置き換えられました',
   },
   accountTabs: {
     overview: '概要',
@@ -301,7 +303,7 @@ const ja: Locale = {
     empty: 'エイリアスなし',
     colAlias: 'エイリアス',
     colUri: 'URI',
-    colCreated: '作成日',
+    colUpdated: '更新日',
     colOffer: '販売中',
     colRenewal: '更新',
     renewsOn: '{{date}} に更新 · {{amount}} {{every}}',

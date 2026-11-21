@@ -186,6 +186,7 @@ const es: Locale = {
     rollbackMarker: 'Reemplazado en este nodo por un rollback (profundidad {{count}}) – ver la página de red',
     loadError: 'No se pudieron cargar los bloques',
     empty: 'Sin bloques',
+    searchUnavailable: 'El nodo no respondió – inténtalo de nuevo',
   },
   block: {
     title: 'Bloque {{height}}',
@@ -265,9 +266,10 @@ const es: Locale = {
     peerMissing: 'faltan: {{count}}',
     peerNotYet: 'aún sin llegar: {{count}}',
     peerNoAnswer: 'sin respuesta: {{count}}',
-    peerBusy: 'Hay otra comprobación en curso – inténtalo de nuevo en breve',
+    peerBusy: 'Hace un momento hubo una comprobación – inténtalo de nuevo en unos segundos',
     peerTooOld: 'Demasiado antiguo para preguntar a los peers',
     peerError: 'No se pudo preguntar a los peers',
+    peerUnknownBlock: 'Este nodo ya no tiene este bloque – fue reemplazado',
   },
   accountTabs: {
     overview: 'Resumen',
@@ -301,7 +303,7 @@ const es: Locale = {
     empty: 'Sin alias',
     colAlias: 'Alias',
     colUri: 'URI',
-    colCreated: 'Creado',
+    colUpdated: 'Modificado',
     colOffer: 'En venta',
     colRenewal: 'Renovación',
     renewsOn: 'se renueva el {{date}} · {{amount}} {{every}}',

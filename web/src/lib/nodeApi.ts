@@ -163,8 +163,7 @@ export interface Alias {
   tldName: string
   timestamp: number          // Signum epoch seconds
   priceNQT?: string          // set while offered for sale
-  buyer?: string
-  buyerRS?: string
+  buyer?: string             // numeric ID only; the node sends no RS address here
 }
 
 export interface Subscription {

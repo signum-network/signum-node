@@ -186,6 +186,7 @@ const ru: Locale = {
     rollbackMarker: 'Заменён на этом узле откатом (глубина {{count}}) – см. страницу сети',
     loadError: 'Не удалось загрузить блоки',
     empty: 'Нет блоков',
+    searchUnavailable: 'Узел не ответил – попробуйте ещё раз',
   },
   block: {
     title: 'Блок {{height}}',
@@ -265,9 +266,10 @@ const ru: Locale = {
     peerMissing: 'нет блока: {{count}}',
     peerNotYet: 'ещё не дошли: {{count}}',
     peerNoAnswer: 'без ответа: {{count}}',
-    peerBusy: 'Идёт другая проверка – попробуйте чуть позже',
+    peerBusy: 'Проверка только что выполнялась – попробуйте через несколько секунд',
     peerTooOld: 'Слишком старый, чтобы спрашивать пиров',
     peerError: 'Не удалось опросить пиров',
+    peerUnknownBlock: 'У этого узла больше нет этого блока – он был заменён',
   },
   accountTabs: {
     overview: 'Обзор',
@@ -301,7 +303,7 @@ const ru: Locale = {
     empty: 'Нет алиасов',
     colAlias: 'Алиас',
     colUri: 'URI',
-    colCreated: 'Создан',
+    colUpdated: 'Изменён',
     colOffer: 'Продаётся',
     colRenewal: 'Продление',
     renewsOn: 'продление {{date}} · {{amount}} {{every}}',

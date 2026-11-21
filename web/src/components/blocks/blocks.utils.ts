@@ -1,9 +1,11 @@
-import type { BlockDetail, Constants, ForkEvent, TransactionDetail } from '@/lib/nodeApi'
+import { NodeApiError, type BlockDetail, type Constants, type ForkEvent, type TransactionDetail } from '@/lib/nodeApi'
 
 export type SearchTarget =
   | { kind: 'height'; height: number }
   | { kind: 'account'; id: string }
   | { kind: 'id'; id: string }
+  /** a number while the tip is not known yet: tried as a height first, then as an ID */
+  | { kind: 'heightOrId'; value: string }
   | { kind: 'invalid' }
 
 export type SearchHit =
@@ -13,6 +15,7 @@ export type SearchHit =
 
 /** The lookups `resolveSearch` needs; each resolves to `null` for an unknown ID. */
 export interface SearchApi {
+  blockAtHeight(height: number): Promise<{ height: number } | null>
   blockById(id: string): Promise<{ height: number } | null>
   transaction(id: string): Promise<unknown | null>
   account(id: string): Promise<unknown | null>
@@ -22,13 +25,14 @@ const ADDRESS = /^[A-Za-z]{1,3}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-
 const MAX_UNSIGNED_64 = 18_446_744_073_709_551_615n
 
 /** Decides what a search input means, without asking the node. */
-export function classifySearch(input: string, tipHeight: number): SearchTarget {
+export function classifySearch(input: string, tipHeight: number | undefined): SearchTarget {
   const text = input.trim()
   if (ADDRESS.test(text)) return { kind: 'account', id: text.toUpperCase() }
   if (!/^\d+$/.test(text)) return { kind: 'invalid' }
   const value = BigInt(text)
-  if (value <= BigInt(tipHeight)) return { kind: 'height', height: Number(value) }
   if (value > MAX_UNSIGNED_64) return { kind: 'invalid' }
+  if (tipHeight === undefined) return { kind: 'heightOrId', value: value.toString() }
+  if (value <= BigInt(tipHeight)) return { kind: 'height', height: Number(value) }
   return { kind: 'id', id: value.toString() }
 }
 
@@ -41,6 +45,13 @@ export async function resolveSearch(target: SearchTarget, api: SearchApi): Promi
       return { to: '/accounts/$id', params: { id: target.id } }
     case 'invalid':
       return null
+    case 'heightOrId': {
+      const height = Number(target.value)
+      if (Number.isSafeInteger(height) && (await api.blockAtHeight(height))) {
+        return { to: '/blocks/$height', params: { height: target.value } }
+      }
+      return resolveSearch({ kind: 'id', id: target.value }, api)
+    }
     case 'id': {
       const block = await api.blockById(target.id)
       if (block) return { to: '/blocks/$height', params: { height: String(block.height) } }
@@ -166,4 +177,15 @@ export const RECENT_BLOCKS = 360
 
 export function canCheckPeers(height: number, tipHeight: number | undefined): boolean {
   return tipHeight !== undefined && height >= tipHeight - RECENT_BLOCKS
+}
+
+/** Colour of a peer check result: positive only if a peer has the block and none misses it. */
+export function peerCheckTone(c: { hasIt: number; missing: number; notYet: number; noAnswer: number }): 'ok' | 'warn' | 'muted' {
+  if (c.missing > 0) return 'warn'
+  return c.hasIt > 0 ? 'ok' : 'muted'
+}
+
+/** A node answer (any error code) means nothing matched; anything else means the node was not reached. */
+export function searchErrorKind(error: unknown): 'notFound' | 'unavailable' {
+  return error instanceof NodeApiError ? 'notFound' : 'unavailable'
 }

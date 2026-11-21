@@ -186,6 +186,7 @@ const uk: Locale = {
     rollbackMarker: 'Замінено на цьому вузлі відкатом (глибина {{count}}) – див. сторінку мережі',
     loadError: 'Не вдалося завантажити блоки',
     empty: 'Немає блоків',
+    searchUnavailable: 'Вузол не відповів – спробуйте ще раз',
   },
   block: {
     title: 'Блок {{height}}',
@@ -265,9 +266,10 @@ const uk: Locale = {
     peerMissing: 'немає блоку: {{count}}',
     peerNotYet: 'ще не дійшли: {{count}}',
     peerNoAnswer: 'без відповіді: {{count}}',
-    peerBusy: 'Триває інша перевірка – спробуйте трохи пізніше',
+    peerBusy: 'Перевірка щойно виконувалася – спробуйте за кілька секунд',
     peerTooOld: 'Занадто старий, щоб питати пірів',
     peerError: 'Не вдалося опитати пірів',
+    peerUnknownBlock: 'Цей вузол більше не має цього блоку – його замінено',
   },
   accountTabs: {
     overview: 'Огляд',
@@ -301,7 +303,7 @@ const uk: Locale = {
     empty: 'Немає аліасів',
     colAlias: 'Аліас',
     colUri: 'URI',
-    colCreated: 'Створено',
+    colUpdated: 'Змінено',
     colOffer: 'Продається',
     colRenewal: 'Продовження',
     renewsOn: 'продовження {{date}} · {{amount}} {{every}}',

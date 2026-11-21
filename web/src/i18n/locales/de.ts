@@ -186,6 +186,7 @@ const de: Locale = {
     rollbackMarker: 'Auf diesem Node durch einen Rollback ersetzt (Tiefe {{count}}) – siehe Netzwerk-Seite',
     loadError: 'Blöcke konnten nicht geladen werden',
     empty: 'Keine Blöcke',
+    searchUnavailable: 'Der Node hat nicht geantwortet – bitte erneut versuchen',
   },
   block: {
     title: 'Block {{height}}',
@@ -265,9 +266,10 @@ const de: Locale = {
     peerMissing: 'ohne den Block: {{count}}',
     peerNotYet: 'noch nicht so weit: {{count}}',
     peerNoAnswer: 'ohne Antwort: {{count}}',
-    peerBusy: 'Gerade läuft eine andere Prüfung – gleich noch einmal versuchen',
+    peerBusy: 'Gerade lief eine Peer-Prüfung – in ein paar Sekunden noch einmal versuchen',
     peerTooOld: 'Zu alt, um die Peers zu fragen',
     peerError: 'Die Peers konnten nicht gefragt werden',
+    peerUnknownBlock: 'Dieser Node hat den Block nicht mehr – er wurde ersetzt',
   },
   accountTabs: {
     overview: 'Übersicht',
@@ -301,7 +303,7 @@ const de: Locale = {
     empty: 'Keine Aliases',
     colAlias: 'Alias',
     colUri: 'URI',
-    colCreated: 'Erstellt',
+    colUpdated: 'Geändert',
     colOffer: 'Zum Verkauf',
     colRenewal: 'Erneuerung',
     renewsOn: 'erneuert am {{date}} · {{amount}} {{every}}',

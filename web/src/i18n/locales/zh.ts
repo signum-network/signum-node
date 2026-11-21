@@ -186,6 +186,7 @@ const zh: Locale = {
     rollbackMarker: '在本节点被 {{count}} 个区块的回滚替换 – 参见网络页面',
     loadError: '无法加载区块',
     empty: '没有区块',
+    searchUnavailable: '节点没有响应 – 请重试',
   },
   block: {
     title: '区块 {{height}}',
@@ -265,9 +266,10 @@ const zh: Locale = {
     peerMissing: '缺失：{{count}}',
     peerNotYet: '尚未到达：{{count}}',
     peerNoAnswer: '无应答：{{count}}',
-    peerBusy: '另一项检查正在进行 – 请稍后再试',
+    peerBusy: '刚刚进行过检查 – 请几秒后再试',
     peerTooOld: '区块太旧，无法询问节点',
     peerError: '无法询问节点',
+    peerUnknownBlock: '本节点已没有此区块 – 已被替换',
   },
   accountTabs: {
     overview: '概览',
@@ -301,7 +303,7 @@ const zh: Locale = {
     empty: '没有别名',
     colAlias: '别名',
     colUri: 'URI',
-    colCreated: '创建时间',
+    colUpdated: '修改时间',
     colOffer: '出售中',
     colRenewal: '续费',
     renewsOn: '{{date}} 续费 · {{amount}} {{every}}',

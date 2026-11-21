@@ -44,7 +44,7 @@ export function AliasesTab({ accountId }: { accountId: string }) {
           heads={[
             { label: t('aliases.colAlias') },
             { label: t('aliases.colUri') },
-            { label: t('aliases.colCreated') },
+            { label: t('aliases.colUpdated') },
             { label: t('aliases.colOffer') },
             { label: t('aliases.colRenewal') },
           ]}
@@ -68,7 +68,7 @@ export function AliasesTab({ accountId }: { accountId: string }) {
                   {alias.priceNQT ? (
                     <span style={{ color: 'var(--text)' }}>
                       {fmtNqt(alias.priceNQT)}
-                      {alias.buyer && <> · <AccountLink id={alias.buyer} rs={alias.buyerRS} /></>}
+                      {alias.buyer && <> · <AccountLink id={alias.buyer} /></>}
                     </span>
                   ) : <span style={{ color: 'var(--muted)' }}>—</span>}
                 </td>

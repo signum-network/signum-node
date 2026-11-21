@@ -29,7 +29,7 @@ export function Blocks({ from }: { from: number | undefined }) {
         <SectionDivider label={t('blocks.section')} />
 
         <Card>
-          <BlockSearch tipHeight={tipHeight ?? 0} />
+          <BlockSearch tipHeight={tipHeight} />
         </Card>
 
         <Card className="overflow-hidden p-0">

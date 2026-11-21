@@ -52,15 +52,15 @@ export interface Locale {
     avgCommitment: string; jvmHeap: string; dbTrimming: string
     chainLanes: string
   }
-  blocks: { section: string; latest: string; searchPlaceholder: string; search: string; searching: string; notFound: string; colHeight: string; colTime: string; colDelta: string; colGenerator: string; colTxs: string; colFees: string; newer: string; older: string; page: string; liveOnFirstPage: string; rollbackMarker: string; loadError: string; empty: string }
+  blocks: { section: string; latest: string; searchPlaceholder: string; search: string; searching: string; notFound: string; colHeight: string; colTime: string; colDelta: string; colGenerator: string; colTxs: string; colFees: string; newer: string; older: string; page: string; liveOnFirstPage: string; rollbackMarker: string; loadError: string; empty: string; searchUnavailable: string }
   block: { title: string; notFound: string; backToList: string; panelBlock: string; panelNode: string; id: string; time: string; delta: string; generator: string; reward: string; rewardValue: string; transactions: string; payload: string; baseTarget: string; avgCommitment: string; cumulativeDifficulty: string; generationSignature: string; previousBlock: string; rollback: string; rollbackText: string; rollbackFrom: string; txTitle: string; colId: string; colType: string; colFrom: string; colTo: string; colAmount: string; colFee: string; noTransactions: string; loadError: string }
   tx: { section: string; title: string; notFound: string; backToList: string; id: string; type: string; sender: string; recipient: string; amount: string; fee: string; block: string; confirmations: string; time: string; unconfirmed: string; attachment: string; loadError: string }
   account: { section: string; overview: string; notFound: string; backToList: string; address: string; id: string; name: string; balance: string; committed: string; guaranteed: string; smartContract: string; forgedBlocks: string; transactions: string; colHeight: string; colTime: string; colFees: string; noBlocks: string; loadError: string }
-  blockPeers: { peers: string; peerCheck: string; peerChecking: string; peerResult: string; peerMissing: string; peerNotYet: string; peerNoAnswer: string; peerBusy: string; peerTooOld: string; peerError: string }
+  blockPeers: { peers: string; peerCheck: string; peerChecking: string; peerResult: string; peerMissing: string; peerNotYet: string; peerNoAnswer: string; peerBusy: string; peerTooOld: string; peerError: string; peerUnknownBlock: string }
   accountTabs: { overview: string; tokens: string; contracts: string; aliases: string; subscriptions: string }
   tokens: { empty: string; colName: string; colBalance: string; colToken: string; colIssuer: string; metaMissing: string }
   contracts: { empty: string; colName: string; colAddress: string; colState: string; colBalance: string; colCreated: string; dead: string; finished: string; frozen: string; running: string; stopped: string }
-  aliases: { empty: string; colAlias: string; colUri: string; colCreated: string; colOffer: string; colRenewal: string; renewsOn: string; renewalDue: string; noExpiry: string }
+  aliases: { empty: string; colAlias: string; colUri: string; colUpdated: string; colOffer: string; colRenewal: string; renewsOn: string; renewalDue: string; noExpiry: string }
   subscriptions: { outgoing: string; incoming: string; empty: string; colCounterpart: string; colAmount: string; colFrequency: string; colNext: string; colAlias: string; due: string }
   frequency: { everyMinutes: string; everyHours: string; everyDays: string; everyWeeks: string }
 }
@@ -251,6 +251,7 @@ const en: Locale = {
     rollbackMarker: 'Replaced on this node by a rollback (depth {{count}}) – see the network page',
     loadError: 'Could not load the blocks',
     empty: 'No blocks',
+    searchUnavailable: 'The node did not answer – try again',
   },
   block: {
     title: 'Block {{height}}',
@@ -330,9 +331,10 @@ const en: Locale = {
     peerMissing: 'missing: {{count}}',
     peerNotYet: 'not that far yet: {{count}}',
     peerNoAnswer: 'no answer: {{count}}',
-    peerBusy: 'Another check is running – try again shortly',
+    peerBusy: 'A peer check ran moments ago – try again in a few seconds',
     peerTooOld: 'Too old to ask the peers',
     peerError: 'The peers could not be asked',
+    peerUnknownBlock: 'This node no longer has this block – it was replaced',
   },
   accountTabs: {
     overview: 'Overview',
@@ -366,7 +368,7 @@ const en: Locale = {
     empty: 'No aliases',
     colAlias: 'Alias',
     colUri: 'URI',
-    colCreated: 'Created',
+    colUpdated: 'Updated',
     colOffer: 'For sale',
     colRenewal: 'Renewal',
     renewsOn: 'renews on {{date}} · {{amount}} {{every}}',

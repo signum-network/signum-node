@@ -186,6 +186,7 @@ const hi: Locale = {
     rollbackMarker: 'इस नोड पर {{count}} ब्लॉक के रोलबैक से बदला गया – नेटवर्क पृष्ठ देखें',
     loadError: 'ब्लॉक लोड नहीं हो सके',
     empty: 'कोई ब्लॉक नहीं',
+    searchUnavailable: 'नोड ने उत्तर नहीं दिया – फिर कोशिश करें',
   },
   block: {
     title: 'ब्लॉक {{height}}',
@@ -265,9 +266,10 @@ const hi: Locale = {
     peerMissing: 'अनुपस्थित: {{count}}',
     peerNotYet: 'अभी नहीं पहुँचे: {{count}}',
     peerNoAnswer: 'कोई उत्तर नहीं: {{count}}',
-    peerBusy: 'दूसरी जाँच चल रही है – थोड़ी देर में फिर कोशिश करें',
+    peerBusy: 'अभी-अभी एक जाँच हुई – कुछ सेकंड में फिर कोशिश करें',
     peerTooOld: 'पीयर से पूछने के लिए बहुत पुराना',
     peerError: 'पीयर से पूछा नहीं जा सका',
+    peerUnknownBlock: 'इस नोड के पास अब यह ब्लॉक नहीं है – इसे बदल दिया गया',
   },
   accountTabs: {
     overview: 'सारांश',
@@ -301,7 +303,7 @@ const hi: Locale = {
     empty: 'कोई उपनाम नहीं',
     colAlias: 'उपनाम',
     colUri: 'URI',
-    colCreated: 'बनाया गया',
+    colUpdated: 'बदला गया',
     colOffer: 'बिक्री के लिए',
     colRenewal: 'नवीनीकरण',
     renewsOn: '{{date}} को नवीनीकरण · {{amount}} {{every}}',

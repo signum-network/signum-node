@@ -186,6 +186,7 @@ const pt: Locale = {
     rollbackMarker: 'Substituído neste nó por um rollback (profundidade {{count}}) – veja a página de rede',
     loadError: 'Não foi possível carregar os blocos',
     empty: 'Sem blocos',
+    searchUnavailable: 'O nó não respondeu – tente novamente',
   },
   block: {
     title: 'Bloco {{height}}',
@@ -265,9 +266,10 @@ const pt: Locale = {
     peerMissing: 'ausentes: {{count}}',
     peerNotYet: 'ainda não chegaram: {{count}}',
     peerNoAnswer: 'sem resposta: {{count}}',
-    peerBusy: 'Outra verificação em andamento – tente novamente em breve',
+    peerBusy: 'Uma verificação acabou de rodar – tente novamente em alguns segundos',
     peerTooOld: 'Antigo demais para perguntar aos peers',
     peerError: 'Não foi possível perguntar aos peers',
+    peerUnknownBlock: 'Este nó não tem mais este bloco – foi substituído',
   },
   accountTabs: {
     overview: 'Visão geral',
@@ -301,7 +303,7 @@ const pt: Locale = {
     empty: 'Sem aliases',
     colAlias: 'Alias',
     colUri: 'URI',
-    colCreated: 'Criado',
+    colUpdated: 'Alterado',
     colOffer: 'À venda',
     colRenewal: 'Renovação',
     renewsOn: 'renova em {{date}} · {{amount}} {{every}}',

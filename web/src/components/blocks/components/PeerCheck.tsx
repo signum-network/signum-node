@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { useBlockPeerCheck } from '@/hooks/useNodeQuery'
-import { relativeTime } from '../blocks.utils'
+import { peerCheckTone, relativeTime } from '../blocks.utils'
+
+const TONE_COLOR = { ok: 'var(--green)', warn: 'var(--text)', muted: 'var(--muted)' } as const
 
 /** "Ask peers" button and the answer: how many connected peers have this exact block. */
 export function PeerCheck({ blockId }: { blockId: string }) {
@@ -24,13 +26,14 @@ export function PeerCheck({ blockId }: { blockId: string }) {
         {check.isPending ? t('blockPeers.peerChecking') : t('blockPeers.peerCheck')}
       </button>
       {result?.status === 'busy' && <span style={{ color: 'var(--gold)' }}>{t('blockPeers.peerBusy')}</span>}
-      {(check.isError || result === null) && <span style={{ color: 'var(--gold)' }}>{t('blockPeers.peerError')}</span>}
+      {result === null && <span style={{ color: 'var(--gold)' }}>{t('blockPeers.peerUnknownBlock')}</span>}
+      {check.isError && <span style={{ color: 'var(--gold)' }}>{t('blockPeers.peerError')}</span>}
       {result?.status === 'ok' && (() => {
         const total = result.hasIt + result.missing + result.notYet + result.noAnswer
         const age = relativeTime((result.serverTime - result.checkedAt) / 1000, i18n.language)
         return (
           <span>
-            <span style={{ color: result.missing > 0 ? 'var(--text)' : 'var(--green)' }}>
+            <span style={{ color: TONE_COLOR[peerCheckTone(result)] }}>
               {t('blockPeers.peerResult', { hasIt: result.hasIt, total })}
             </span>
             {result.missing > 0 && <span style={{ color: 'var(--red, #ff4444)' }}> · {t('blockPeers.peerMissing', { count: result.missing })}</span>}

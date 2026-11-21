@@ -17,7 +17,10 @@ import {
   olderFrom,
   newerFrom,
   canCheckPeers,
+  peerCheckTone,
+  searchErrorKind,
 } from './blocks.utils'
+import { NodeApiError } from '@/lib/nodeApi'
 
 const TIP = 1_607_462
 
@@ -63,8 +66,9 @@ describe('classifySearch', () => {
 })
 
 describe('resolveSearch', () => {
-  function api(found: { block?: { height: number }; tx?: object; account?: object }) {
+  function api(found: { block?: { height: number }; atHeight?: { height: number }; tx?: object; account?: object }) {
     return {
+      blockAtHeight: vi.fn(async () => found.atHeight ?? null),
       blockById: vi.fn(async () => found.block ?? null),
       transaction: vi.fn(async () => found.tx ?? null),
       account: vi.fn(async () => found.account ?? null),
@@ -255,5 +259,44 @@ describe('timeUntil', () => {
 
   it('reads a time already passed as now', () => {
     expect(timeUntil(-30, 'en')).toBe('in 0 seconds')
+  })
+})
+
+describe('search before the tip is known', () => {
+  it('keeps a number open as height or ID', () => {
+    expect(classifySearch('1607400', undefined)).toEqual({ kind: 'heightOrId', value: '1607400' })
+  })
+
+  it('tries the height first, then the IDs', async () => {
+    const byHeight = {
+      blockAtHeight: vi.fn(async () => ({ height: 1_607_400 })),
+      blockById: vi.fn(async () => null),
+      transaction: vi.fn(async () => null),
+      account: vi.fn(async () => null),
+    }
+    await expect(resolveSearch({ kind: 'heightOrId', value: '1607400' }, byHeight))
+      .resolves.toEqual({ to: '/blocks/$height', params: { height: '1607400' } })
+    expect(byHeight.blockById).not.toHaveBeenCalled()
+
+    const byId = { ...byHeight, blockAtHeight: vi.fn(async () => null), transaction: vi.fn(async () => ({})) }
+    await expect(resolveSearch({ kind: 'heightOrId', value: '1607400' }, byId))
+      .resolves.toEqual({ to: '/tx/$id', params: { id: '1607400' } })
+  })
+})
+
+describe('peerCheckTone', () => {
+  it('is only positive when some peer has the block and none misses it', () => {
+    expect(peerCheckTone({ hasIt: 0, missing: 0, notYet: 0, noAnswer: 14 })).toBe('muted')
+    expect(peerCheckTone({ hasIt: 0, missing: 0, notYet: 0, noAnswer: 0 })).toBe('muted')
+    expect(peerCheckTone({ hasIt: 5, missing: 0, notYet: 1, noAnswer: 2 })).toBe('ok')
+    expect(peerCheckTone({ hasIt: 5, missing: 1, notYet: 0, noAnswer: 0 })).toBe('warn')
+  })
+})
+
+describe('searchErrorKind', () => {
+  it('tells an answer from the node apart from no answer', () => {
+    expect(searchErrorKind(new NodeApiError(4, 'Incorrect'))).toBe('notFound')
+    expect(searchErrorKind(new TypeError('Failed to fetch'))).toBe('unavailable')
+    expect(searchErrorKind(new Error('Node API error 502: getBlock'))).toBe('unavailable')
   })
 })

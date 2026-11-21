@@ -41,6 +41,7 @@ public final class JSONResponses {
   public static final JsonElement MISSING_ASSET = missing(ASSET_PARAMETER);
   public static final JsonElement UNKNOWN_ASSET = unknown(ASSET_PARAMETER);
   public static final JsonElement INCORRECT_ASSET = incorrect(ASSET_PARAMETER);
+  public static final JsonElement MISSING_BLOCK = missing(BLOCK_PARAMETER);
   public static final JsonElement UNKNOWN_BLOCK = unknown(BLOCK_PARAMETER);
   public static final JsonElement INCORRECT_BLOCK = incorrect(BLOCK_PARAMETER);
   public static final JsonElement INCORRECT_NUMBER_OF_CONFIRMATIONS = incorrect(NUMBER_OF_CONFIRMATIONS_PARAMETER);

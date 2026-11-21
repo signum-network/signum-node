@@ -9,6 +9,7 @@ import {
   pageRange,
   hasOlderPage,
   parseHeightParam,
+  relativeTime,
 } from './blocks.utils'
 
 const TIP = 1_607_462
@@ -149,5 +150,18 @@ describe('parseHeightParam', () => {
     expect(parseHeightParam('-1', TIP)).toBeNull()
     expect(parseHeightParam('1.5', TIP)).toBeNull()
     expect(parseHeightParam(String(TIP + 1), TIP)).toBeNull()
+  })
+})
+
+describe('relativeTime', () => {
+  it('picks seconds, minutes, hours or days', () => {
+    expect(relativeTime(30, 'en')).toBe('30 seconds ago')
+    expect(relativeTime(150, 'en')).toBe('3 minutes ago')
+    expect(relativeTime(7_200, 'en')).toBe('2 hours ago')
+    expect(relativeTime(172_800, 'en')).toBe('2 days ago')
+  })
+
+  it('never says "in" for a clock slightly ahead', () => {
+    expect(relativeTime(-3, 'en')).toBe('0 seconds ago')
   })
 })

@@ -166,6 +166,27 @@ const de: Locale = {
     chainLanes:
       'Zeigt, welche Peers auf derselben Kette wie Ihr Knoten sind und welche auf konkurrierenden Ketten, gruppiert nach kumulativer Schwierigkeit.',
   },
+  blocks: {
+    section: 'Blöcke',
+    latest: 'Neueste Blöcke',
+    searchPlaceholder: 'Höhe, Block-ID, Transaktions-ID oder Adresse (S-…)',
+    search: 'Suchen',
+    searching: 'Suche…',
+    notFound: 'Nichts gefunden für „{{query}}“',
+    colHeight: 'Höhe',
+    colTime: 'Zeit',
+    colDelta: 'Δt',
+    colGenerator: 'Generator',
+    colTxs: 'Tx',
+    colFees: 'Gebühren',
+    newer: '‹ neuer',
+    older: 'älter ›',
+    page: 'Seite {{page}}',
+    liveOnFirstPage: 'Neue Blöcke erscheinen auf Seite 1',
+    rollbackMarker: 'Auf diesem Node durch einen Rollback über {{count}} Blöcke ersetzt – siehe Netzwerk-Seite',
+    loadError: 'Blöcke konnten nicht geladen werden',
+    empty: 'Keine Blöcke',
+  },
 }
 
 export default de

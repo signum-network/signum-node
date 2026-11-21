@@ -166,6 +166,27 @@ const ja: Locale = {
     chainLanes:
       '自ノードと同じチェーン上のピアと競合チェーン上のピアを累積難易度でグループ化して表示します。',
   },
+  blocks: {
+    section: 'ブロック',
+    latest: '最新のブロック',
+    searchPlaceholder: '高さ、ブロックID、トランザクションID、またはアドレス (S-…)',
+    search: '検索',
+    searching: '検索中…',
+    notFound: '「{{query}}」に一致するものはありません',
+    colHeight: '高さ',
+    colTime: '時刻',
+    colDelta: 'Δt',
+    colGenerator: '生成者',
+    colTxs: 'Tx',
+    colFees: '手数料',
+    newer: '‹ 新しい',
+    older: '古い ›',
+    page: '{{page}} ページ',
+    liveOnFirstPage: '新しいブロックは 1 ページ目に表示されます',
+    rollbackMarker: 'このノードで {{count}} ブロックのロールバックにより置き換えられました – ネットワークページを参照',
+    loadError: 'ブロックを読み込めませんでした',
+    empty: 'ブロックがありません',
+  },
 }
 
 export default ja

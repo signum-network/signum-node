@@ -166,6 +166,27 @@ const hi: Locale = {
     chainLanes:
       'दिखाता है कि कौन से पीयर आपके नोड की चेन पर हैं और कौन से प्रतिस्पर्धी चेन पर, संचित कठिनाई द्वारा समूहीकृत।',
   },
+  blocks: {
+    section: 'ब्लॉक',
+    latest: 'नवीनतम ब्लॉक',
+    searchPlaceholder: 'ऊँचाई, ब्लॉक ID, लेनदेन ID या पता (S-…)',
+    search: 'खोजें',
+    searching: 'खोज रहे हैं…',
+    notFound: '“{{query}}” के लिए कुछ नहीं मिला',
+    colHeight: 'ऊँचाई',
+    colTime: 'समय',
+    colDelta: 'Δt',
+    colGenerator: 'जनरेटर',
+    colTxs: 'Tx',
+    colFees: 'शुल्क',
+    newer: '‹ नए',
+    older: 'पुराने ›',
+    page: 'पृष्ठ {{page}}',
+    liveOnFirstPage: 'नए ब्लॉक पृष्ठ 1 पर दिखते हैं',
+    rollbackMarker: 'इस नोड पर {{count}} ब्लॉक के रोलबैक से बदला गया – नेटवर्क पृष्ठ देखें',
+    loadError: 'ब्लॉक लोड नहीं हो सके',
+    empty: 'कोई ब्लॉक नहीं',
+  },
 }
 
 export default hi

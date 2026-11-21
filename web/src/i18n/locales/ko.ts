@@ -166,6 +166,27 @@ const ko: Locale = {
     chainLanes:
       '누적 난이도별로 그룹화하여 자신의 노드와 같은 체인의 피어와 경쟁 체인의 피어를 표시합니다.',
   },
+  blocks: {
+    section: '블록',
+    latest: '최신 블록',
+    searchPlaceholder: '높이, 블록 ID, 트랜잭션 ID 또는 주소 (S-…)',
+    search: '검색',
+    searching: '검색 중…',
+    notFound: '“{{query}}”에 대한 결과가 없습니다',
+    colHeight: '높이',
+    colTime: '시간',
+    colDelta: 'Δt',
+    colGenerator: '생성자',
+    colTxs: 'Tx',
+    colFees: '수수료',
+    newer: '‹ 최신',
+    older: '이전 ›',
+    page: '{{page}} 페이지',
+    liveOnFirstPage: '새 블록은 1 페이지에 표시됩니다',
+    rollbackMarker: '이 노드에서 {{count}}개 블록 롤백으로 교체됨 – 네트워크 페이지 참조',
+    loadError: '블록을 불러오지 못했습니다',
+    empty: '블록 없음',
+  },
 }
 
 export default ko

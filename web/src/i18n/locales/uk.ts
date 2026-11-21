@@ -166,6 +166,27 @@ const uk: Locale = {
     chainLanes:
       'Показує, які вузли знаходяться на тому ж ланцюзі, що й ваш, а які — на конкуруючих, згрупованих за накопиченою складністю.',
   },
+  blocks: {
+    section: 'Блоки',
+    latest: 'Останні блоки',
+    searchPlaceholder: 'Висота, ID блоку, ID транзакції або адреса (S-…)',
+    search: 'Знайти',
+    searching: 'Пошук…',
+    notFound: 'Нічого не знайдено за «{{query}}»',
+    colHeight: 'Висота',
+    colTime: 'Час',
+    colDelta: 'Δt',
+    colGenerator: 'Генератор',
+    colTxs: 'Транз.',
+    colFees: 'Комісії',
+    newer: '‹ новіші',
+    older: 'старіші ›',
+    page: 'Сторінка {{page}}',
+    liveOnFirstPage: 'Нові блоки з’являються на сторінці 1',
+    rollbackMarker: 'Замінено на цьому вузлі відкатом на {{count}} блоків – див. сторінку мережі',
+    loadError: 'Не вдалося завантажити блоки',
+    empty: 'Немає блоків',
+  },
 }
 
 export default uk

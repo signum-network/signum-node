@@ -52,6 +52,7 @@ export interface Locale {
     avgCommitment: string; jvmHeap: string; dbTrimming: string
     chainLanes: string
   }
+  blocks: { section: string; latest: string; searchPlaceholder: string; search: string; searching: string; notFound: string; colHeight: string; colTime: string; colDelta: string; colGenerator: string; colTxs: string; colFees: string; newer: string; older: string; page: string; liveOnFirstPage: string; rollbackMarker: string; loadError: string; empty: string }
 }
 
 const en: Locale = {
@@ -219,6 +220,27 @@ const en: Locale = {
       'When enabled, the node periodically removes derived-table data (balances, unconfirmed transactions) that can be recalculated from the chain. Keeps the database compact at the cost of a small background workload.',
     chainLanes:
       'Shows which peers are on the same chain as your node and which are on competing chains, grouped by cumulative difficulty. The difficulty bar shows relative chain weight — the chain with the most accumulated work is canonical.',
+  },
+  blocks: {
+    section: 'Blocks',
+    latest: 'Latest blocks',
+    searchPlaceholder: 'Height, block ID, transaction ID or address (S-…)',
+    search: 'Search',
+    searching: 'Searching…',
+    notFound: 'Nothing found for “{{query}}”',
+    colHeight: 'Height',
+    colTime: 'Time',
+    colDelta: 'Δt',
+    colGenerator: 'Generator',
+    colTxs: 'Txs',
+    colFees: 'Fees',
+    newer: '‹ newer',
+    older: 'older ›',
+    page: 'Page {{page}}',
+    liveOnFirstPage: 'New blocks appear on page 1',
+    rollbackMarker: 'Replaced by a rollback of {{count}} blocks on this node – see the network page',
+    loadError: 'Could not load the blocks',
+    empty: 'No blocks',
   },
 }
 

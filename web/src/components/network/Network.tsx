@@ -1,25 +1,11 @@
 import { useTranslation } from 'react-i18next'
 import { PageWrapper } from '@/components/layout/PageWrapper'
+import { SectionDivider } from '@/components/ui/SectionDivider'
 import { ConsensusBar } from './components/ConsensusBar'
 import { PeerTable } from './components/PeerTable'
 import { ForkHistory } from './components/ForkHistory'
 import { BlacklistPanel } from './components/BlacklistPanel'
 import { ChainLanes } from './components/ChainLanes'
-
-function SectionDivider({ label }: { label: string }) {
-  return (
-    <div className="flex items-center gap-4 py-1">
-      <div className="h-px flex-1" style={{ background: 'var(--border)' }} />
-      <span
-        className="text-[9px] font-semibold uppercase tracking-[3px]"
-        style={{ color: 'var(--muted)' }}
-      >
-        {label}
-      </span>
-      <div className="h-px flex-1" style={{ background: 'var(--border)' }} />
-    </div>
-  )
-}
 
 export function Network() {
   const { t } = useTranslation()

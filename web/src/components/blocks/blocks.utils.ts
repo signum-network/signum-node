@@ -94,3 +94,13 @@ export function parseHeightParam(param: string, tipHeight: number | undefined): 
   if (tipHeight !== undefined && height > tipHeight) return null
   return height
 }
+
+/** "3 minutes ago" in the given locale, for an age in seconds; a clock slightly ahead reads as 0. */
+export function relativeTime(ageSeconds: number, locale: string): string {
+  const age = Math.max(0, ageSeconds)
+  const format = new Intl.RelativeTimeFormat(locale, { numeric: 'always' })
+  if (age < 60) return format.format(-Math.round(age), 'second')
+  if (age < 3_600) return format.format(-Math.round(age / 60), 'minute')
+  if (age < 86_400) return format.format(-Math.round(age / 3_600), 'hour')
+  return format.format(-Math.round(age / 86_400), 'day')
+}

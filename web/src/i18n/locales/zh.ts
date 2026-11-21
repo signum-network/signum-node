@@ -166,6 +166,27 @@ const zh: Locale = {
     chainLanes:
       '按累积难度分组显示哪些节点与您的节点在同一链上，哪些在竞争链上。',
   },
+  blocks: {
+    section: '区块',
+    latest: '最新区块',
+    searchPlaceholder: '高度、区块 ID、交易 ID 或地址 (S-…)',
+    search: '搜索',
+    searching: '搜索中…',
+    notFound: '未找到“{{query}}”',
+    colHeight: '高度',
+    colTime: '时间',
+    colDelta: 'Δt',
+    colGenerator: '生成者',
+    colTxs: '交易',
+    colFees: '手续费',
+    newer: '‹ 较新',
+    older: '较旧 ›',
+    page: '第 {{page}} 页',
+    liveOnFirstPage: '新区块显示在第 1 页',
+    rollbackMarker: '在本节点被 {{count}} 个区块的回滚替换 – 参见网络页面',
+    loadError: '无法加载区块',
+    empty: '没有区块',
+  },
 }
 
 export default zh

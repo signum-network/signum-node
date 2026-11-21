@@ -8,6 +8,14 @@ import { NavItem } from './components/NavItem'
 import { StatusStrip } from './components/StatusStrip'
 import { ThemeSwitcher } from './components/ThemeSwitcher'
 
+/** The blocks item also covers the transaction and account pages reached from it. */
+function isActive(path: string, pathname: string): boolean {
+  if (pathname === path) return true
+  if (path === '/') return false
+  if (pathname.startsWith(`${path}/`)) return true
+  return path === '/blocks' && (pathname.startsWith('/tx/') || pathname.startsWith('/accounts/'))
+}
+
 export function Topbar() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
@@ -18,7 +26,7 @@ export function Topbar() {
   const NAV_ITEMS = [
     { label: t('nav.dashboard'), path: '/' },
     { label: t('nav.network'),   path: '/network' },
-    { label: t('nav.blocks'),    path: '/blocks',  future: true },
+    { label: t('nav.blocks'),    path: '/blocks' },
     { label: t('nav.wallet'),    path: '/wallet',  future: true },
   ] as const
 
@@ -60,7 +68,7 @@ export function Topbar() {
           <NavItem
             key={item.path}
             label={item.label}
-            active={pathname === item.path}
+            active={isActive(item.path, pathname)}
             future={'future' in item && item.future}
             onClick={() => {
               play(sfx.click)

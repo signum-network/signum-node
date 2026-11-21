@@ -166,6 +166,27 @@ const es: Locale = {
     chainLanes:
       'Muestra qué peers están en la misma cadena que tu nodo y cuáles en cadenas competidoras, agrupados por dificultad acumulada.',
   },
+  blocks: {
+    section: 'Bloques',
+    latest: 'Últimos bloques',
+    searchPlaceholder: 'Altura, ID de bloque, ID de transacción o dirección (S-…)',
+    search: 'Buscar',
+    searching: 'Buscando…',
+    notFound: 'No se encontró nada para «{{query}}»',
+    colHeight: 'Altura',
+    colTime: 'Hora',
+    colDelta: 'Δt',
+    colGenerator: 'Generador',
+    colTxs: 'Tx',
+    colFees: 'Comisiones',
+    newer: '‹ más nuevos',
+    older: 'más antiguos ›',
+    page: 'Página {{page}}',
+    liveOnFirstPage: 'Los bloques nuevos aparecen en la página 1',
+    rollbackMarker: 'Reemplazado en este nodo por un rollback de {{count}} bloques – ver la página de red',
+    loadError: 'No se pudieron cargar los bloques',
+    empty: 'Sin bloques',
+  },
 }
 
 export default es

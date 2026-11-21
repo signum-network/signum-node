@@ -166,6 +166,27 @@ const pt: Locale = {
     chainLanes:
       'Mostra quais peers estão na mesma cadeia que seu nó e quais estão em cadeias concorrentes, agrupados por dificuldade acumulada.',
   },
+  blocks: {
+    section: 'Blocos',
+    latest: 'Blocos mais recentes',
+    searchPlaceholder: 'Altura, ID do bloco, ID da transação ou endereço (S-…)',
+    search: 'Buscar',
+    searching: 'Buscando…',
+    notFound: 'Nada encontrado para “{{query}}”',
+    colHeight: 'Altura',
+    colTime: 'Hora',
+    colDelta: 'Δt',
+    colGenerator: 'Gerador',
+    colTxs: 'Tx',
+    colFees: 'Taxas',
+    newer: '‹ mais novos',
+    older: 'mais antigos ›',
+    page: 'Página {{page}}',
+    liveOnFirstPage: 'Novos blocos aparecem na página 1',
+    rollbackMarker: 'Substituído neste nó por um rollback de {{count}} blocos – veja a página de rede',
+    loadError: 'Não foi possível carregar os blocos',
+    empty: 'Sem blocos',
+  },
 }
 
 export default pt

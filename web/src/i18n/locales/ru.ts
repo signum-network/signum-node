@@ -166,6 +166,27 @@ const ru: Locale = {
     chainLanes:
       'Показывает, какие узлы находятся на той же цепи, что и ваш, а какие — на конкурирующих, сгруппированных по накопленной сложности.',
   },
+  blocks: {
+    section: 'Блоки',
+    latest: 'Последние блоки',
+    searchPlaceholder: 'Высота, ID блока, ID транзакции или адрес (S-…)',
+    search: 'Найти',
+    searching: 'Поиск…',
+    notFound: 'Ничего не найдено по «{{query}}»',
+    colHeight: 'Высота',
+    colTime: 'Время',
+    colDelta: 'Δt',
+    colGenerator: 'Генератор',
+    colTxs: 'Транз.',
+    colFees: 'Комиссии',
+    newer: '‹ новее',
+    older: 'старее ›',
+    page: 'Страница {{page}}',
+    liveOnFirstPage: 'Новые блоки появляются на странице 1',
+    rollbackMarker: 'Заменён на этом узле откатом на {{count}} блоков – см. страницу сети',
+    loadError: 'Не удалось загрузить блоки',
+    empty: 'Нет блоков',
+  },
 }
 
 export default ru

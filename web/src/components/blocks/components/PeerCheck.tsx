@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useBlockPeerCheck } from '@/hooks/useNodeQuery'
-import { peerCheckTone, relativeTime } from '../blocks.utils'
+import { peerCheckTone } from '../blocks.utils'
+import { relativeTime } from '@/lib/format'
 
 const TONE_COLOR = { ok: 'var(--green)', warn: 'var(--text)', muted: 'var(--muted)' } as const
 

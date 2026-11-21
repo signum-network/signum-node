@@ -1,4 +1,5 @@
-import { NodeApiError, type BlockDetail, type Constants, type ForkEvent, type TransactionDetail } from '@/lib/nodeApi'
+import { NodeApiError, type BlockDetail, type ForkEvent } from '@/lib/nodeApi'
+import { PAGE_SIZE } from '@/lib/blocks'
 
 export type SearchTarget =
   | { kind: 'height'; height: number }
@@ -85,14 +86,6 @@ export function rollbackCovering(height: number, forks: ForkEvent[]): ForkEvent 
   return newest
 }
 
-export const PAGE_SIZE = 25
-
-/** API indices of a page; page 0 holds the newest blocks. */
-export function pageRange(page: number): { firstIndex: number; lastIndex: number } {
-  const firstIndex = page * PAGE_SIZE
-  return { firstIndex, lastIndex: firstIndex + PAGE_SIZE - 1 }
-}
-
 /** A route's height parameter, or `null` unless it is a whole number from 0 to the tip. */
 export function parseHeightParam(param: string, tipHeight: number | undefined): number | null {
   if (!/^\d+$/.test(param)) return null
@@ -100,64 +93,6 @@ export function parseHeightParam(param: string, tipHeight: number | undefined): 
   if (!Number.isSafeInteger(height)) return null
   if (tipHeight !== undefined && height > tipHeight) return null
   return height
-}
-
-function relative(seconds: number, sign: 1 | -1, locale: string): string {
-  const format = new Intl.RelativeTimeFormat(locale, { numeric: 'always' })
-  if (seconds < 60) return format.format(sign * Math.round(seconds), 'second')
-  if (seconds < 3_600) return format.format(sign * Math.round(seconds / 60), 'minute')
-  if (seconds < 86_400) return format.format(sign * Math.round(seconds / 3_600), 'hour')
-  return format.format(sign * Math.round(seconds / 86_400), 'day')
-}
-
-/** "3 minutes ago" in the given locale, for an age in seconds; a clock slightly ahead reads as 0. */
-export function relativeTime(ageSeconds: number, locale: string): string {
-  return relative(Math.max(0, ageSeconds), -1, locale)
-}
-
-/** "in 3 days" in the given locale, for a time ahead in seconds; a time already passed reads as 0. */
-export function timeUntil(aheadSeconds: number, locale: string): string {
-  return relative(Math.max(0, aheadSeconds), 1, locale)
-}
-
-/** The subtype's name from the node constants, e.g. "Ordinary Payment"; `type/subtype` if unknown. */
-export function txTypeName(constants: Constants | undefined, type: number, subtype: number): string {
-  const name = constants?.transactionTypes
-    .find((t) => t.value === type)
-    ?.subtypes.find((s) => s.value === subtype)?.description
-  return name ?? `${type}/${subtype}`
-}
-
-const COMMITMENT_TYPE = 20
-const ADD_COMMITMENT = 1
-const REMOVE_COMMITMENT = 2
-
-/** The amount to show: for adding or removing a commitment the node carries it in the attachment. */
-export function txAmountNqt(tx: TransactionDetail): string {
-  const isCommitment = tx.type === COMMITMENT_TYPE && (tx.subtype === ADD_COMMITMENT || tx.subtype === REMOVE_COMMITMENT)
-  const committed = tx.attachment?.amountNQT
-  if (!isCommitment) return tx.amountNQT
-  if (typeof committed === 'string') return committed
-  // the node sends this one as a JSON number; exact up to 2^53 NQT (about 90 million SIGNA)
-  if (typeof committed === 'number' && Number.isSafeInteger(committed)) return String(committed)
-  return tx.amountNQT
-}
-
-/** Extra blocks fetched below an anchored page, so blocks pushed meanwhile cannot shorten it. */
-const ANCHOR_MARGIN = 10
-
-/**
- * API indices for the page whose newest block is at height `from`. Indices count from the tip, which
- * may grow between reading it and fetching; `blocksFrom` cuts the result back to `from`.
- */
-export function anchoredRange(from: number, tipHeight: number): { firstIndex: number; lastIndex: number } {
-  const firstIndex = Math.max(0, tipHeight - from)
-  return { firstIndex, lastIndex: firstIndex + PAGE_SIZE - 1 + ANCHOR_MARGIN }
-}
-
-/** The page starting at height `from`, out of a window fetched with `anchoredRange`. */
-export function blocksFrom(blocks: BlockDetail[], from: number): BlockDetail[] {
-  return blocks.filter((block) => block.height <= from).slice(0, PAGE_SIZE)
 }
 
 /** Anchor of the next older page, or `null` once the page reaches the genesis block. */

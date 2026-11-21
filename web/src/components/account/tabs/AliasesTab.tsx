@@ -2,7 +2,7 @@ import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Card, CardSkeleton } from '@/components/ui/Card'
 import { AccountLink } from '@/components/shared/AccountLink'
-import { Pager } from '@/components/blocks/components/Pager'
+import { Pager } from '@/components/ui/Pager'
 import {
   aliasesCacheKey,
   useAccountAliasesCached,

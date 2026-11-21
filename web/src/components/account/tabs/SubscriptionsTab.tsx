@@ -2,7 +2,7 @@ import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Card, CardLabel, CardSkeleton } from '@/components/ui/Card'
 import { AccountLink } from '@/components/shared/AccountLink'
-import { timeUntil } from '@/components/blocks/blocks.utils'
+import { timeUntil } from '@/lib/format'
 import {
   subscriptionsCacheKey,
   useAccountSubscriptionsCached,

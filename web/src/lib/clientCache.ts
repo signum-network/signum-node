@@ -43,10 +43,20 @@ export function indexedDbBackend(): KeyValueBackend {
           if (!req.result.objectStoreNames.contains(store)) req.result.createObjectStore(store)
         }
       }
-      req.onsuccess = () => resolve(req.result)
+      req.onsuccess = () => {
+        const connection = req.result
+        // a newer schema opened in another tab: let it upgrade, reopen on the next call
+        connection.onversionchange = () => {
+          connection.close()
+          db = null
+        }
+        resolve(connection)
+      }
       req.onerror = () => reject(req.error)
       req.onblocked = () => reject(new Error('IndexedDB blocked'))
     })
+    // a failed open is not kept: the next call tries again
+    db.catch(() => { db = null })
     return db
   }
   const run = async <T>(store: StoreName, mode: IDBTransactionMode, op: (s: IDBObjectStore) => IDBRequest<T>) =>
@@ -72,12 +82,16 @@ export class ClientCache {
     this.now = now
   }
 
-  /** Runs on the backend; on its first failure switches to memory for good and runs there. */
+  /**
+   * Runs on the backend; on its first failure switches to memory for good and runs there. Several
+   * calls failing together switch only once, so values written to memory meanwhile stay.
+   */
   private async use<T>(op: (backend: KeyValueBackend) => Promise<T>): Promise<T> {
+    const used = this.backend
     try {
-      return await op(this.backend)
+      return await op(used)
     } catch {
-      this.backend = memoryBackend()
+      if (this.backend === used) this.backend = memoryBackend()
       return op(this.backend)
     }
   }

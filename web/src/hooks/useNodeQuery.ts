@@ -30,7 +30,7 @@ import {
 import { useEffect, useRef } from 'react'
 import { cachedExpiring, cachedImmutable, clientCache, networkKey } from '@/lib/clientCache'
 import { computeValidUntil, consistentFetch, limitConcurrency, shouldRefetchOverdue, subscriptionTimesMs } from '@/components/account/account.utils'
-import { anchoredRange, blocksFrom, pageRange, PAGE_SIZE } from '@/components/blocks/blocks.utils'
+import { anchoredRange, blocksFrom, pageRange, PAGE_SIZE } from '@/lib/blocks'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNodeSocket } from './useNodeSocket'
 

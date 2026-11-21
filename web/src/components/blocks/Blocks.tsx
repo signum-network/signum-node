@@ -6,8 +6,9 @@ import { SectionDivider } from '@/components/ui/SectionDivider'
 import { useBlockchainStatus, useBlocksPage, useForkHistory } from '@/hooks/useNodeQuery'
 import { BlockSearch } from './components/BlockSearch'
 import { BlockTable } from './components/BlockTable'
-import { Pager } from './components/Pager'
-import { newerFrom, olderFrom, PAGE_SIZE } from './blocks.utils'
+import { Pager } from '@/components/ui/Pager'
+import { newerFrom, olderFrom } from './blocks.utils'
+import { PAGE_SIZE } from '@/lib/blocks'
 
 export function Blocks({ from }: { from: number | undefined }) {
   const { t } = useTranslation()

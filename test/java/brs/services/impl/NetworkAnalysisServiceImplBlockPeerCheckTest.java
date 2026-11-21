@@ -160,6 +160,21 @@ class NetworkAnalysisServiceImplBlockPeerCheckTest {
     }
 
     @Test
+    void checkBlockPeers_GivenSlowRound_ChecksAtRoundEnd() {
+        // the cache lifetime counts from when the answers are in, not from when the round started
+        Peer peer = peer(TIP, HAS);
+        NetworkAnalysisServiceImpl service = new NetworkAnalysisServiceImpl(blockchain, mock(PropertyService.class),
+                () -> peers, (p, blockId) -> {
+                    clock.addAndGet(3_000);
+                    return answers.get(p);
+                }, mock(ScheduledExecutorService.class), probePool, probeTimeoutMs, clock::get);
+
+        BlockPeerCheck check = service.checkBlockPeers(BLOCK_ID);
+
+        assertEquals(1_003_000L, check.checkedAt());
+    }
+
+    @Test
     void checkBlockPeers_GivenSecondCallWithinTtl_ReturnsCachedWithoutProbing() {
         Peer peer = peer(TIP, HAS);
         NetworkAnalysisServiceImpl service = service();

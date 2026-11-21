@@ -5,7 +5,8 @@ import { CardSkeleton } from '@/components/ui/Card'
 import { AccountLink } from '@/components/shared/AccountLink'
 import { signumTimestampToMs, type BlockDetail, type ForkEvent } from '@/lib/nodeApi'
 import { fmtDuration, fmtNqt } from '@/lib/utils'
-import { blockDeltaSeconds, deltaTone, relativeTime, rollbackCovering } from '../blocks.utils'
+import { blockDeltaSeconds, deltaTone, rollbackCovering } from '../blocks.utils'
+import { relativeTime } from '@/lib/format'
 
 const TONE_COLOR = { fast: 'var(--green)', normal: 'var(--text)', slow: 'var(--gold)' } as const
 

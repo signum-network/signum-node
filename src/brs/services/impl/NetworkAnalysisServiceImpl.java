@@ -9,11 +9,11 @@ import brs.peer.Peer;
 import brs.peer.Peers;
 import brs.props.PropertyService;
 import brs.props.Props;
+import brs.services.BlockPeerCheck;
+import brs.services.BlockPeerCheck.Outcome;
 import brs.services.NetworkAnalysisService;
 import brs.services.impl.PeerBlockProbe.ProbeResult;
 import brs.util.Convert;
-import brs.services.BlockPeerCheck.Outcome;
-import brs.services.BlockPeerCheck;
 import brs.util.JSON;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -348,14 +348,14 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
             } else {
                 lastBlockCheckStartedAt = now;
                 runningBlockId = blockId;
-                runningBlockCheck = round = startBlockCheck(blockId, height, now);
+                runningBlockCheck = round = startBlockCheck(blockId, height);
             }
         }
         return round.join();
     }
 
     /** Asks every connected peer in parallel, each bounded by the probe deadline. */
-    private CompletableFuture<BlockPeerCheck> startBlockCheck(long blockId, int height, long startedAt) {
+    private CompletableFuture<BlockPeerCheck> startBlockCheck(long blockId, int height) {
         List<CompletableFuture<BlockPeerState>> answers = new ArrayList<>();
         for (Peer peer : connectedPeers.get()) {
             int peerHeight = peer.getLastKnownHeight();
@@ -367,10 +367,11 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
         return CompletableFuture.allOf(answers.toArray(new CompletableFuture[0])).thenApply(done -> {
             Map<BlockPeerState, Integer> counts = new EnumMap<>(BlockPeerState.class);
             answers.forEach(answer -> counts.merge(answer.join(), 1, Integer::sum));
+            // checked when the answers are in, so a slow round does not shorten the cache lifetime
             BlockPeerCheck check = new BlockPeerCheck(Outcome.OK, blockId, height,
                     counts.getOrDefault(BlockPeerState.HAS_IT, 0), counts.getOrDefault(BlockPeerState.MISSING, 0),
                     counts.getOrDefault(BlockPeerState.NOT_YET, 0), counts.getOrDefault(BlockPeerState.NO_ANSWER, 0),
-                    startedAt);
+                    clock.getAsLong());
             blockChecks.put(blockId, check);
             return check;
         });

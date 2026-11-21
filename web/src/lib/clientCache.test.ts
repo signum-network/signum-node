@@ -52,6 +52,27 @@ describe('ClientCache', () => {
   })
 })
 
+describe('ClientCache fallback', () => {
+  it('switches to memory only once when calls fail at the same time', async () => {
+    // a page of token reads fails together; a value written in between must survive
+    let rejectSecond!: (e: unknown) => void
+    const pending = new Promise((_, reject) => { rejectSecond = reject })
+    let calls = 0
+    const flaky: KeyValueBackend = {
+      get: () => (++calls === 1 ? (pending as Promise<undefined>) : Promise.reject(new Error('blocked'))),
+      put: () => Promise.reject(new Error('blocked')),
+      delete: () => Promise.reject(new Error('blocked')),
+    }
+    const cache = new ClientCache(flaky, () => 0)
+    const slowRead = cache.getImmutable('assets', 'g:2')
+    await cache.getImmutable('assets', 'g:1')          // first failure: switch to memory
+    await cache.putImmutable('assets', 'g:1', { name: 'KEPT' })
+    rejectSecond(new Error('blocked'))                 // second failure arrives late
+    await slowRead
+    expect(await cache.getImmutable('assets', 'g:1')).toEqual({ name: 'KEPT' })
+  })
+})
+
 describe('cachedImmutable', () => {
   it('fetches once and stores only the picked fields', async () => {
     const { cache } = setup()

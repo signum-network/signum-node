@@ -4,7 +4,8 @@ import { Card, CardLabel } from '@/components/ui/Card'
 import { KeyValueList } from '@/components/shared/KeyValueList'
 import type { BlockDetail, ForkEvent } from '@/lib/nodeApi'
 import { fmtNqt } from '@/lib/utils'
-import { canCheckPeers, relativeTime } from '../blocks.utils'
+import { canCheckPeers } from '../blocks.utils'
+import { relativeTime } from '@/lib/format'
 import { PeerCheck } from './PeerCheck'
 
 function shortHash(hash: string): string {

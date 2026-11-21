@@ -9,7 +9,7 @@ import { NotFound } from '@/components/shared/NotFound'
 import { useConstants, useTransaction } from '@/hooks/useNodeQuery'
 import { signumTimestampToMs, type TransactionDetail as Tx } from '@/lib/nodeApi'
 import { fmtNqtFull } from '@/lib/utils'
-import { txAmountNqt, txTypeName } from '@/components/blocks/blocks.utils'
+import { txAmountNqt, txTypeName } from '@/lib/blocks'
 import { showErrorInsteadOfData } from '@/components/account/account.utils'
 
 function UnconfirmedPill({ label }: { label: string }) {

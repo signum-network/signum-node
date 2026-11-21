@@ -6,20 +6,15 @@ import {
   blockDeltaSeconds,
   deltaTone,
   rollbackCovering,
-  pageRange,
   parseHeightParam,
-  relativeTime,
-  timeUntil,
-  txTypeName,
-  txAmountNqt,
-  anchoredRange,
-  blocksFrom,
   olderFrom,
   newerFrom,
   canCheckPeers,
   peerCheckTone,
   searchErrorKind,
 } from './blocks.utils'
+import { relativeTime, timeUntil } from '@/lib/format'
+import { pageRange, txTypeName, txAmountNqt, anchoredRange, blocksFrom } from '@/lib/blocks'
 import { NodeApiError } from '@/lib/nodeApi'
 
 const TIP = 1_607_462

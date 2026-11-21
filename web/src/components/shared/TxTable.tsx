@@ -4,7 +4,7 @@ import { ScrollableTable } from '@/components/ui/ScrollableTable'
 import { useConstants } from '@/hooks/useNodeQuery'
 import type { TransactionDetail } from '@/lib/nodeApi'
 import { fmtNqt } from '@/lib/utils'
-import { txAmountNqt, txTypeName } from '@/components/blocks/blocks.utils'
+import { txAmountNqt, txTypeName } from '@/lib/blocks'
 import { AccountLink } from './AccountLink'
 
 function Th({ children, align = 'left' }: { children: React.ReactNode; align?: 'left' | 'right' }) {

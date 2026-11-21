@@ -276,6 +276,14 @@ const ru: Locale = {
     aliases: 'Алиасы',
     subscriptions: 'Подписки',
   },
+  tokens: {
+    empty: 'Нет токенов',
+    colName: 'Название',
+    colBalance: 'Баланс',
+    colToken: 'ID токена',
+    colIssuer: 'Эмитент',
+    metaMissing: 'нет данных – исходное количество',
+  },
 }
 
 export default ru

@@ -276,6 +276,14 @@ const hi: Locale = {
     aliases: 'उपनाम',
     subscriptions: 'सदस्यताएँ',
   },
+  tokens: {
+    empty: 'कोई टोकन नहीं',
+    colName: 'नाम',
+    colBalance: 'शेष',
+    colToken: 'टोकन ID',
+    colIssuer: 'जारीकर्ता',
+    metaMissing: 'विवरण उपलब्ध नहीं – मूल मात्रा',
+  },
 }
 
 export default hi

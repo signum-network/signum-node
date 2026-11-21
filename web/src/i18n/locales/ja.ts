@@ -276,6 +276,14 @@ const ja: Locale = {
     aliases: 'エイリアス',
     subscriptions: 'サブスクリプション',
   },
+  tokens: {
+    empty: 'トークンなし',
+    colName: '名前',
+    colBalance: '残高',
+    colToken: 'トークン ID',
+    colIssuer: '発行者',
+    metaMissing: '詳細を取得できません – 生の数量',
+  },
 }
 
 export default ja

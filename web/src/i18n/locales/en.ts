@@ -58,6 +58,7 @@ export interface Locale {
   account: { section: string; overview: string; notFound: string; backToList: string; address: string; id: string; name: string; balance: string; committed: string; guaranteed: string; smartContract: string; forgedBlocks: string; transactions: string; colHeight: string; colTime: string; colFees: string; noBlocks: string; loadError: string }
   blockPeers: { peers: string; peerCheck: string; peerChecking: string; peerResult: string; peerMissing: string; peerNotYet: string; peerNoAnswer: string; peerBusy: string; peerTooOld: string; peerError: string }
   accountTabs: { overview: string; tokens: string; contracts: string; aliases: string; subscriptions: string }
+  tokens: { empty: string; colName: string; colBalance: string; colToken: string; colIssuer: string; metaMissing: string }
 }
 
 const en: Locale = {
@@ -335,6 +336,14 @@ const en: Locale = {
     contracts: 'Contracts',
     aliases: 'Aliases',
     subscriptions: 'Subscriptions',
+  },
+  tokens: {
+    empty: 'No tokens',
+    colName: 'Name',
+    colBalance: 'Balance',
+    colToken: 'Token ID',
+    colIssuer: 'Issuer',
+    metaMissing: 'details unavailable – raw quantity',
   },
 }
 

@@ -276,6 +276,14 @@ const zh: Locale = {
     aliases: '别名',
     subscriptions: '订阅',
   },
+  tokens: {
+    empty: '没有代币',
+    colName: '名称',
+    colBalance: '余额',
+    colToken: '代币 ID',
+    colIssuer: '发行者',
+    metaMissing: '详情不可用 – 原始数量',
+  },
 }
 
 export default zh

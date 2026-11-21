@@ -276,6 +276,14 @@ const de: Locale = {
     aliases: 'Aliases',
     subscriptions: 'Abonnements',
   },
+  tokens: {
+    empty: 'Keine Tokens',
+    colName: 'Name',
+    colBalance: 'Bestand',
+    colToken: 'Token-ID',
+    colIssuer: 'Herausgeber',
+    metaMissing: 'Details nicht verfügbar – Rohmenge',
+  },
 }
 
 export default de

@@ -117,6 +117,7 @@ export interface AccountDetail {
   guaranteedBalanceNQT: string
   committedBalanceNQT?: string
   isAT: boolean
+  assetBalances?: { asset: string; balanceQNT: string }[]
 }
 
 export interface AccountBlocksResponse {

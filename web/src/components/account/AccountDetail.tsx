@@ -14,6 +14,7 @@ import { useAccount, useAccountBlocks, useAccountTransactions } from '@/hooks/us
 import { signumTimestampToMs, type AccountDetail as Account, type BlockDetail } from '@/lib/nodeApi'
 import { fmtNqt } from '@/lib/utils'
 import { AccountTabs } from './AccountTabs'
+import { TokensTab } from './tabs/TokensTab'
 import type { AccountTab } from './account.utils'
 
 function Overview({ account }: { account: Account }) {
@@ -140,6 +141,7 @@ export function AccountDetail({ id, tab }: { id: string; tab: AccountTab }) {
         <Overview account={account} />
         <AccountTabs active={tab} onSelect={selectTab} />
         {tab === 'overview' && <OverviewTab id={id} />}
+        {tab === 'tokens' && <TokensTab account={account} />}
       </>
     )
   })()

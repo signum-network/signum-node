@@ -276,6 +276,14 @@ const es: Locale = {
     aliases: 'Alias',
     subscriptions: 'Suscripciones',
   },
+  tokens: {
+    empty: 'Sin tokens',
+    colName: 'Nombre',
+    colBalance: 'Saldo',
+    colToken: 'ID del token',
+    colIssuer: 'Emisor',
+    metaMissing: 'detalles no disponibles – cantidad bruta',
+  },
 }
 
 export default es

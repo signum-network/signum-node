@@ -276,6 +276,14 @@ const ko: Locale = {
     aliases: '별칭',
     subscriptions: '구독',
   },
+  tokens: {
+    empty: '토큰 없음',
+    colName: '이름',
+    colBalance: '잔액',
+    colToken: '토큰 ID',
+    colIssuer: '발행자',
+    metaMissing: '세부 정보 없음 – 원시 수량',
+  },
 }
 
 export default ko

@@ -276,6 +276,14 @@ const uk: Locale = {
     aliases: 'Аліаси',
     subscriptions: 'Підписки',
   },
+  tokens: {
+    empty: 'Немає токенів',
+    colName: 'Назва',
+    colBalance: 'Баланс',
+    colToken: 'ID токена',
+    colIssuer: 'Емітент',
+    metaMissing: 'немає даних – вихідна кількість',
+  },
 }
 
 export default uk

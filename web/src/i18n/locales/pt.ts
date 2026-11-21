@@ -276,6 +276,14 @@ const pt: Locale = {
     aliases: 'Aliases',
     subscriptions: 'Assinaturas',
   },
+  tokens: {
+    empty: 'Sem tokens',
+    colName: 'Nome',
+    colBalance: 'Saldo',
+    colToken: 'ID do token',
+    colIssuer: 'Emissor',
+    metaMissing: 'detalhes indisponíveis – quantidade bruta',
+  },
 }
 
 export default pt

@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalInt;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -71,6 +72,9 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
     /** Blocks asked about: only near the tip, where forks happen (about one day). */
     static final int RECENT_BLOCKS = 360;
     static final long BLOCK_CHECK_CACHE_TTL_MS = 60_000;
+    /** Rounds run one at a time and at most one per this gap, so scripted calls cannot keep peers busy. */
+    static final long MIN_BLOCK_CHECK_GAP_MS = 10_000;
+    private long lastBlockCheckStartedAt = Long.MIN_VALUE;
     private final Map<Long, BlockPeerCheck> blockChecks = new ConcurrentHashMap<>();
     private final Object blockCheckLock = new Object();
     private long runningBlockId;
@@ -339,7 +343,10 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
                     return BlockPeerCheck.without(Outcome.BUSY, blockId, height);
                 }
                 round = runningBlockCheck;
+            } else if (lastBlockCheckStartedAt != Long.MIN_VALUE && now - lastBlockCheckStartedAt < MIN_BLOCK_CHECK_GAP_MS) {
+                return BlockPeerCheck.without(Outcome.BUSY, blockId, height);
             } else {
+                lastBlockCheckStartedAt = now;
                 runningBlockId = blockId;
                 runningBlockCheck = round = startBlockCheck(blockId, height, now);
             }
@@ -372,7 +379,8 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
     /** Asks one peer; any failure counts as no answer from this peer only. */
     private BlockPeerState askForBlock(Peer peer, int peerHeight, long blockId, int blockHeight) {
         try {
-            return BlockPeerClassifier.classify(probe.probe(peer, blockId), peerHeight, blockHeight);
+            ProbeResult result = probe.probe(peer, blockId);
+            return BlockPeerClassifier.classify(result, heightInOurChain(result.theirTipId()), peerHeight, blockHeight);
         } catch (RuntimeException e) {
             logger.debug("Block check failed for peer {}", peer.getPeerAddress(), e);
             return BlockPeerState.NO_ANSWER;
@@ -443,6 +451,13 @@ public class NetworkAnalysisServiceImpl implements NetworkAnalysisService {
             logger.debug("Block check failed for peer {}", peer.getPeerAddress(), e);
             return new PeerCheck(peer, peerHeight, ProbeResult.noAnswer(), PeerChainStatus.UNKNOWN);
         }
+    }
+
+    /** Height of the block if it is in our chain, else empty. */
+    private OptionalInt heightInOurChain(String blockId) {
+        if (blockId == null) return OptionalInt.empty();
+        Block block = blockchain.getBlock(Convert.parseUnsignedLong(blockId));
+        return block == null ? OptionalInt.empty() : OptionalInt.of(block.getHeight());
     }
 
     /** @throws RuntimeException if the ID is malformed or the lookup fails */

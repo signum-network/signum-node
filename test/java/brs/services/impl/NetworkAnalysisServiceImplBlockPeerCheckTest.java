@@ -116,14 +116,23 @@ class NetworkAnalysisServiceImplBlockPeerCheckTest {
 
     @Test
     void checkBlockPeers_GivenPeers_CountsEachState() {
+        stubBlock(5L, TIP - 12);
         peer(TIP, HAS);
         peer(TIP, LACKS);
-        peer(TIP - 11, LACKS);
+        peer(TIP, new ProbeResult(false, false, "5", 5L, 1L));
         peer(TIP, null);
 
         BlockPeerCheck check = service().checkBlockPeers(BLOCK_ID);
 
         assertEquals(new BlockPeerCheck(Outcome.OK, BLOCK_ID, TIP - 10, 1, 1, 1, 1, 1_000_000L), check);
+    }
+
+    @Test
+    void checkBlockPeers_GivenForkedPeerWithStaleLowHeight_CountsMissing() {
+        // recorded height below the block, but its tip "9" is a block we lack: on a fork, not behind
+        peer(TIP - 50, LACKS);
+
+        assertEquals(1, service().checkBlockPeers(BLOCK_ID).missing());
     }
 
     @Test
@@ -174,6 +183,38 @@ class NetworkAnalysisServiceImplBlockPeerCheckTest {
 
         assertEquals(1_060_001L, second.checkedAt());
         assertEquals(2, probeCalls.get(peer).get());
+    }
+
+    @Test
+    void checkBlockPeers_GivenNewRoundWithin10Seconds_ReturnsBusy() {
+        // walking through many recent blocks must not start a round per call on a public node
+        Peer peer = peer(TIP, HAS);
+        NetworkAnalysisServiceImpl service = service();
+        service.checkBlockPeers(BLOCK_ID);
+        clock.addAndGet(9_999);
+
+        assertEquals(Outcome.BUSY, service.checkBlockPeers(OTHER_BLOCK_ID).outcome());
+        assertEquals(1, probeCalls.get(peer).get());
+    }
+
+    @Test
+    void checkBlockPeers_GivenNewRoundAfter10Seconds_Checks() {
+        peer(TIP, HAS);
+        NetworkAnalysisServiceImpl service = service();
+        service.checkBlockPeers(BLOCK_ID);
+        clock.addAndGet(10_000);
+
+        assertEquals(Outcome.OK, service.checkBlockPeers(OTHER_BLOCK_ID).outcome());
+    }
+
+    @Test
+    void checkBlockPeers_GivenCachedBlockWithin10Seconds_ReturnsTheCachedResult() {
+        peer(TIP, HAS);
+        NetworkAnalysisServiceImpl service = service();
+        service.checkBlockPeers(BLOCK_ID);
+        clock.addAndGet(1_000);
+
+        assertEquals(Outcome.OK, service.checkBlockPeers(BLOCK_ID).outcome());
     }
 
     @Test

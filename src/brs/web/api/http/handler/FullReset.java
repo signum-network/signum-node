@@ -2,9 +2,9 @@ package brs.web.api.http.handler;
 
 import brs.BlockchainProcessor;
 import brs.props.PropertyService;
-import brs.props.Props;
 
 import brs.web.api.http.ApiServlet;
+import brs.web.api.http.common.AdminKeys;
 import brs.web.api.http.common.LegacyDocTag;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -16,26 +16,25 @@ import static brs.web.api.http.common.Parameters.API_KEY_PARAMETER;
 import static brs.web.api.http.common.ResultFields.DONE_RESPONSE;
 import static brs.web.api.http.common.ResultFields.ERROR_RESPONSE;
 
-import java.util.List;
 
 public final class FullReset extends ApiServlet.JsonRequestHandler {
 
   private final BlockchainProcessor blockchainProcessor;
 
-  private final List<String> apiAdminKeyList;
+  private final AdminKeys adminKeys;
 
   public FullReset(BlockchainProcessor blockchainProcessor, PropertyService propertyService) {
     super(new LegacyDocTag[]{LegacyDocTag.ADMIN}, API_KEY_PARAMETER);
     this.blockchainProcessor = blockchainProcessor;
 
-    apiAdminKeyList = propertyService.getStringList(Props.API_ADMIN_KEY_LIST);
+    adminKeys = AdminKeys.from(propertyService);
   }
 
   @Override
   protected
   JsonElement processRequest(HttpServletRequest req) {
     String apiKey = req.getParameter(API_KEY_PARAMETER);
-    if(!apiAdminKeyList.contains(apiKey)) {
+    if(!adminKeys.isAllowed(apiKey)) {
       return ERROR_NOT_ALLOWED;
     }
 

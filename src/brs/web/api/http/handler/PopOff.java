@@ -4,9 +4,9 @@ import brs.Block;
 import brs.Blockchain;
 import brs.BlockchainProcessor;
 import brs.props.PropertyService;
-import brs.props.Props;
 import brs.services.BlockService;
 import brs.web.api.http.ApiServlet;
+import brs.web.api.http.common.AdminKeys;
 import brs.web.api.http.common.JSONData;
 import brs.web.api.http.common.LegacyDocTag;
 import com.google.gson.JsonArray;
@@ -28,7 +28,7 @@ public final class PopOff extends ApiServlet.JsonRequestHandler {
   private final BlockchainProcessor blockchainProcessor;
   private final Blockchain blockchain;
   private final BlockService blockService;
-  private final List<String> apiAdminKeyList;
+  private final AdminKeys adminKeys;
 
   public PopOff(BlockchainProcessor blockchainProcessor, Blockchain blockchain, BlockService blockService, PropertyService propertyService) {
     super(new LegacyDocTag[] {LegacyDocTag.ADMIN}, NUM_BLOCKS_PARAMETER, HEIGHT_PARAMETER, API_KEY_PARAMETER);
@@ -36,7 +36,7 @@ public final class PopOff extends ApiServlet.JsonRequestHandler {
     this.blockchain = blockchain;
     this.blockService = blockService;
 
-    apiAdminKeyList = propertyService.getStringList(Props.API_ADMIN_KEY_LIST);
+    adminKeys = AdminKeys.from(propertyService);
   }
 
   @Override
@@ -44,7 +44,7 @@ public final class PopOff extends ApiServlet.JsonRequestHandler {
   JsonElement processRequest(HttpServletRequest req) {
 
     String apiKey = req.getParameter(API_KEY_PARAMETER);
-    if(!apiAdminKeyList.contains(apiKey)) {
+    if(!adminKeys.isAllowed(apiKey)) {
       return ERROR_NOT_ALLOWED;
     }
 

@@ -133,6 +133,7 @@ public final class Peers {
 
     private static final ConcurrentMap<String, Peer> peers = new ConcurrentHashMap<>();
     private static final ConcurrentMap<String, String> announcedAddresses = new ConcurrentHashMap<>();
+    private static final InboundContacts inboundContacts = new InboundContacts();
 
     private static final Collection<Peer> allPeers = Collections.unmodifiableCollection(peers.values());
 
@@ -686,6 +687,21 @@ public final class Peers {
 
     static void notifyListeners(Peer peer, Event eventType) {
         Peers.listeners.notify(peer, eventType);
+    }
+
+    /** @return when other nodes last contacted this one (for the web UI's node health) */
+    public static InboundContacts getInboundContacts() {
+        return inboundContacts;
+    }
+
+    /** @return true if the peer server runs ({@code P2P.shareMyAddress} and not offline) */
+    public static boolean isPeerServerRunning() {
+        return shareMyAddress;
+    }
+
+    /** @return true if this node announces an address that other nodes can pass on */
+    public static boolean announcesAddress() {
+        return myPeerInfoResponse != null && myPeerInfoResponse.getAsJsonObject().has("announcedAddress");
     }
 
     public static Collection<Peer> getAllPeers() {

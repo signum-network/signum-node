@@ -132,6 +132,7 @@ public final class PeerServlet extends HttpServlet {
             if (peer == null || peer.isBlacklisted()) {
                 return;
             }
+            Peers.getInboundContacts().record(req.getRemoteAddr(), System.currentTimeMillis());
 
             JsonObject request;
             CountingInputStream cis = new CountingInputStream(req.getInputStream());

@@ -237,6 +237,26 @@ const es: Locale = {
     attachment: 'Adjunto',
     loadError: 'No se pudo cargar la transacción',
   },
+  account: {
+    section: 'Cuenta',
+    overview: 'Resumen',
+    notFound: 'Cuenta no encontrada',
+    backToList: 'Volver a la lista de bloques',
+    address: 'Dirección',
+    id: 'ID numérico',
+    name: 'Nombre',
+    balance: 'Saldo',
+    committed: 'Comprometido',
+    guaranteed: 'Saldo garantizado',
+    smartContract: 'Contrato inteligente',
+    forgedBlocks: 'Bloques forjados',
+    transactions: 'Últimas transacciones',
+    colHeight: 'Altura',
+    colTime: 'Hora',
+    colFees: 'Comisiones',
+    noBlocks: 'Sin bloques forjados',
+    loadError: 'No se pudo cargar la cuenta',
+  },
 }
 
 export default es

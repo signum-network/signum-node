@@ -237,6 +237,26 @@ const ko: Locale = {
     attachment: '첨부',
     loadError: '트랜잭션을 불러오지 못했습니다',
   },
+  account: {
+    section: '계정',
+    overview: '개요',
+    notFound: '계정을 찾을 수 없습니다',
+    backToList: '블록 목록으로',
+    address: '주소',
+    id: '숫자 ID',
+    name: '이름',
+    balance: '잔액',
+    committed: '커밋먼트',
+    guaranteed: '보장 잔액',
+    smartContract: '스마트 계약',
+    forgedBlocks: '생성한 블록',
+    transactions: '최근 트랜잭션',
+    colHeight: '높이',
+    colTime: '시간',
+    colFees: '수수료',
+    noBlocks: '생성한 블록 없음',
+    loadError: '계정을 불러오지 못했습니다',
+  },
 }
 
 export default ko

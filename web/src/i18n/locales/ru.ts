@@ -237,6 +237,26 @@ const ru: Locale = {
     attachment: 'Вложение',
     loadError: 'Не удалось загрузить транзакцию',
   },
+  account: {
+    section: 'Аккаунт',
+    overview: 'Обзор',
+    notFound: 'Аккаунт не найден',
+    backToList: 'К списку блоков',
+    address: 'Адрес',
+    id: 'Числовой ID',
+    name: 'Имя',
+    balance: 'Баланс',
+    committed: 'Commitment',
+    guaranteed: 'Гарантированный баланс',
+    smartContract: 'Смарт-контракт',
+    forgedBlocks: 'Созданные блоки',
+    transactions: 'Последние транзакции',
+    colHeight: 'Высота',
+    colTime: 'Время',
+    colFees: 'Комиссии',
+    noBlocks: 'Нет созданных блоков',
+    loadError: 'Не удалось загрузить аккаунт',
+  },
 }
 
 export default ru

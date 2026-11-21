@@ -237,6 +237,26 @@ const zh: Locale = {
     attachment: '附件',
     loadError: '无法加载交易',
   },
+  account: {
+    section: '账户',
+    overview: '概览',
+    notFound: '未找到账户',
+    backToList: '返回区块列表',
+    address: '地址',
+    id: '数字 ID',
+    name: '名称',
+    balance: '余额',
+    committed: '承诺量',
+    guaranteed: '保证余额',
+    smartContract: '智能合约',
+    forgedBlocks: '锻造的区块',
+    transactions: '最新交易',
+    colHeight: '高度',
+    colTime: '时间',
+    colFees: '手续费',
+    noBlocks: '没有锻造的区块',
+    loadError: '无法加载账户',
+  },
 }
 
 export default zh

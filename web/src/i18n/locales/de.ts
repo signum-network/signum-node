@@ -237,6 +237,26 @@ const de: Locale = {
     attachment: 'Anhang',
     loadError: 'Transaktion konnte nicht geladen werden',
   },
+  account: {
+    section: 'Konto',
+    overview: 'Übersicht',
+    notFound: 'Konto nicht gefunden',
+    backToList: 'Zurück zur Blockliste',
+    address: 'Adresse',
+    id: 'Numerische ID',
+    name: 'Name',
+    balance: 'Kontostand',
+    committed: 'Commitment',
+    guaranteed: 'Garantierter Kontostand',
+    smartContract: 'Smart Contract',
+    forgedBlocks: 'Geschmiedete Blöcke',
+    transactions: 'Letzte Transaktionen',
+    colHeight: 'Höhe',
+    colTime: 'Zeit',
+    colFees: 'Gebühren',
+    noBlocks: 'Keine geschmiedeten Blöcke',
+    loadError: 'Konto konnte nicht geladen werden',
+  },
 }
 
 export default de

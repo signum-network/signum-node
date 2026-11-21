@@ -237,6 +237,26 @@ const uk: Locale = {
     attachment: 'Вкладення',
     loadError: 'Не вдалося завантажити транзакцію',
   },
+  account: {
+    section: 'Обліковий запис',
+    overview: 'Огляд',
+    notFound: 'Обліковий запис не знайдено',
+    backToList: 'До списку блоків',
+    address: 'Адреса',
+    id: 'Числовий ID',
+    name: 'Ім’я',
+    balance: 'Баланс',
+    committed: 'Commitment',
+    guaranteed: 'Гарантований баланс',
+    smartContract: 'Смарт-контракт',
+    forgedBlocks: 'Створені блоки',
+    transactions: 'Останні транзакції',
+    colHeight: 'Висота',
+    colTime: 'Час',
+    colFees: 'Комісії',
+    noBlocks: 'Немає створених блоків',
+    loadError: 'Не вдалося завантажити обліковий запис',
+  },
 }
 
 export default uk

@@ -237,6 +237,26 @@ const hi: Locale = {
     attachment: 'संलग्नक',
     loadError: 'लेनदेन लोड नहीं हो सका',
   },
+  account: {
+    section: 'खाता',
+    overview: 'सारांश',
+    notFound: 'खाता नहीं मिला',
+    backToList: 'ब्लॉक सूची पर वापस',
+    address: 'पता',
+    id: 'संख्यात्मक ID',
+    name: 'नाम',
+    balance: 'शेष राशि',
+    committed: 'कमिटमेंट',
+    guaranteed: 'गारंटीकृत शेष',
+    smartContract: 'स्मार्ट कॉन्ट्रैक्ट',
+    forgedBlocks: 'बनाए गए ब्लॉक',
+    transactions: 'नवीनतम लेनदेन',
+    colHeight: 'ऊँचाई',
+    colTime: 'समय',
+    colFees: 'शुल्क',
+    noBlocks: 'कोई बनाया गया ब्लॉक नहीं',
+    loadError: 'खाता लोड नहीं हो सका',
+  },
 }
 
 export default hi

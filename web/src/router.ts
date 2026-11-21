@@ -5,6 +5,7 @@ import NetworkPage from './routes/network/index'
 import BlocksPage from './routes/blocks/index'
 import BlockDetailPage from './routes/blocks/detail'
 import TransactionPage from './routes/tx/detail'
+import AccountPage from './routes/accounts/detail'
 
 const rootRoute = createRootRoute({
   component: RootLayout,
@@ -45,11 +46,10 @@ const transactionRoute = createRoute({
   component: TransactionPage,
 })
 
-// the account page follows; until then it leads back to the list
 const accountRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/accounts/$id',
-  beforeLoad: () => { throw redirect({ to: '/blocks', search: { page: 0 } }) },
+  component: AccountPage,
 })
 
 // Future routes — redirect to home until implemented

@@ -1,0 +1,1 @@
+export { AccountDetail } from './AccountDetail'

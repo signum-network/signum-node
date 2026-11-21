@@ -237,6 +237,26 @@ const pt: Locale = {
     attachment: 'Anexo',
     loadError: 'Não foi possível carregar a transação',
   },
+  account: {
+    section: 'Conta',
+    overview: 'Visão geral',
+    notFound: 'Conta não encontrada',
+    backToList: 'Voltar à lista de blocos',
+    address: 'Endereço',
+    id: 'ID numérico',
+    name: 'Nome',
+    balance: 'Saldo',
+    committed: 'Comprometido',
+    guaranteed: 'Saldo garantido',
+    smartContract: 'Contrato inteligente',
+    forgedBlocks: 'Blocos forjados',
+    transactions: 'Últimas transações',
+    colHeight: 'Altura',
+    colTime: 'Hora',
+    colFees: 'Taxas',
+    noBlocks: 'Sem blocos forjados',
+    loadError: 'Não foi possível carregar a conta',
+  },
 }
 
 export default pt

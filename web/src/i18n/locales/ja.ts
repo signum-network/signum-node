@@ -237,6 +237,26 @@ const ja: Locale = {
     attachment: '添付データ',
     loadError: 'トランザクションを読み込めませんでした',
   },
+  account: {
+    section: 'アカウント',
+    overview: '概要',
+    notFound: 'アカウントが見つかりません',
+    backToList: 'ブロック一覧に戻る',
+    address: 'アドレス',
+    id: '数値 ID',
+    name: '名前',
+    balance: '残高',
+    committed: 'コミットメント',
+    guaranteed: '保証残高',
+    smartContract: 'スマートコントラクト',
+    forgedBlocks: '生成したブロック',
+    transactions: '最新のトランザクション',
+    colHeight: '高さ',
+    colTime: '時刻',
+    colFees: '手数料',
+    noBlocks: '生成したブロックはありません',
+    loadError: 'アカウントを読み込めませんでした',
+  },
 }
 
 export default ja

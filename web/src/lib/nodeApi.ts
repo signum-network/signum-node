@@ -129,6 +129,20 @@ export interface AccountTransactionsResponse {
   nextIndex?: number
 }
 
+export interface Subscription {
+  id: string
+  sender: string
+  senderRS: string
+  recipient: string
+  recipientRS: string
+  amountNQT: string
+  frequency: number          // seconds
+  timeNext: number           // Signum epoch seconds of the next payment
+  alias?: string             // set when the subscription renews an alias
+  aliasName?: string
+  tldName?: string
+}
+
 export interface Constants {
   addressPrefix: string
   transactionTypes: {

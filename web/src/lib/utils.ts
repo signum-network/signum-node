@@ -60,19 +60,26 @@ export function categorizeVersion(
 }
 
 /**
- * Formats an NQT amount (a string, may exceed 2^53) as SIGNA, exactly: thousands and decimal
- * separators from the locale, fractional digits truncated to `decimals`.
+ * Formats an integer amount in the smallest unit (a string, may exceed 2^53) with `decimals` places,
+ * exactly: thousands and decimal separators from the locale, fractional digits truncated to
+ * `shownDecimals` (default: all `decimals`).
  */
-export function fmtNqt(nqt: string, decimals = 2, locale?: string): string {
-  const negative = nqt.startsWith('-')
-  const value = BigInt(negative ? nqt.slice(1) : nqt)
-  const ONE_SIGNA = 100_000_000n
+export function fmtUnits(value: string, decimals: number, shownDecimals = decimals, locale?: string): string {
+  const negative = value.startsWith('-')
+  const amount = BigInt(negative ? value.slice(1) : value)
+  const unit = 10n ** BigInt(decimals)
   const format = new Intl.NumberFormat(locale)
-  const integer = format.format(value / ONE_SIGNA)
-  const fraction = (value % ONE_SIGNA).toString().padStart(8, '0').slice(0, decimals)
+  const integer = format.format(amount / unit)
+  const sign = negative && amount !== 0n ? '-' : ''
+  if (decimals === 0 || shownDecimals === 0) return `${sign}${integer}`
+  const fraction = (amount % unit).toString().padStart(decimals, '0').slice(0, shownDecimals).padEnd(shownDecimals, '0')
   const decimalSeparator = format.formatToParts(0.5).find((part) => part.type === 'decimal')?.value ?? '.'
-  const sign = negative && value !== 0n ? '-' : ''
-  return decimals > 0 ? `${sign}${integer}${decimalSeparator}${fraction}` : `${sign}${integer}`
+  return `${sign}${integer}${decimalSeparator}${fraction}`
+}
+
+/** An NQT amount as SIGNA (8 decimals), truncated to `decimals` places. */
+export function fmtNqt(nqt: string, decimals = 2, locale?: string): string {
+  return fmtUnits(nqt, 8, decimals, locale)
 }
 
 /** Like `fmtNqt`, with every significant decimal (at least two), for detail pages. */

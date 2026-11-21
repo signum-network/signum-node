@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { fmtNqt, fmtNqtFull } from './utils'
+import { fmtNqt, fmtNqtFull, fmtUnits } from './utils'
 
 describe('fmtNqt', () => {
   it('formats NQT as SIGNA with two decimals', () => {
@@ -38,5 +38,19 @@ describe('fmtNqtFull', () => {
   it('keeps at least two decimals', () => {
     expect(fmtNqtFull('100000000', 'en-US')).toBe('1.00')
     expect(fmtNqtFull('0', 'en-US')).toBe('0.00')
+  })
+})
+
+describe('fmtUnits', () => {
+  it('formats a token without decimals as an integer', () => {
+    expect(fmtUnits('123', 0, undefined, 'en-US')).toBe('123')
+  })
+
+  it('formats all decimals by default', () => {
+    expect(fmtUnits('100000000', 8, undefined, 'en-US')).toBe('1.00000000')
+  })
+
+  it('stays exact far above 2^53', () => {
+    expect(fmtUnits('900719925474099312345', 4, 4, 'en-US')).toBe('90,071,992,547,409,931.2345')
   })
 })

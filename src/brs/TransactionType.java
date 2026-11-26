@@ -2993,9 +2993,6 @@ public abstract class TransactionType {
         {
           throw new SignumException.NotValidException("Invalid escrow creation amount");
         }
-        if (transaction.getFeeNqt() < Constants.ONE_SIGNA) {
-          throw new SignumException.NotValidException("Escrow transaction must have a fee at least 1 burst");
-        }
         if (attachment.getRequiredSigners() < 1 || attachment.getRequiredSigners() > 10) {
           throw new SignumException.NotValidException("Escrow required signers much be 1 - 10");
         }
@@ -3076,8 +3073,8 @@ public abstract class TransactionType {
       @Override
       protected void validateAttachment(Transaction transaction) throws SignumException.ValidationException {
         Attachment.AdvancedPaymentEscrowSign attachment = (Attachment.AdvancedPaymentEscrowSign) transaction.getAttachment();
-        if (transaction.getAmountNqt() != 0 || transaction.getFeeNqt() != Constants.ONE_SIGNA) {
-          throw new SignumException.NotValidException("Escrow signing must have amount 0 and fee of 1");
+        if (transaction.getAmountNqt() != 0) {
+          throw new SignumException.NotValidException("Escrow signing must have amount 0");
         }
         if (attachment.getEscrowId() == null || attachment.getDecision() == null) {
           throw new SignumException.NotValidException("Escrow signing requires escrow id and decision set");
